@@ -7,7 +7,47 @@ import { projects, categories } from "@/data/mock";
 import { MaskLines, StatusPill, Reveal, EASE, domainOf } from "@/components/site/helpers";
 import { XIcon, TelegramIcon } from "@/components/site/icons";
 import Footer from "@/components/site/Footer";
+import { SunPortal, clamp01 } from "@/components/site/Chapter";
 import { useSmooth } from "@/lib/smooth";
+
+function TiltIn({ children }) {
+  const ref = useRef(null);
+  const { scrollYProgress: pr } = useScroll({ target: ref, offset: ["start end", "start 0.2"] });
+  const rotateX = useTransform(pr, (v) => (1 - clamp01(v)) * 22);
+  const scale = useTransform(pr, (v) => 0.84 + clamp01(v) * 0.16);
+  const opacity = useTransform(pr, (v) => 0.3 + clamp01(v * 1.6) * 0.7);
+  return (
+    <div ref={ref} className="[perspective:1600px]">
+      <motion.div style={{ rotateX, scale, opacity, transformOrigin: "50% 0%" }}>{children}</motion.div>
+    </div>
+  );
+}
+
+function NextScene({ pr, next }) {
+  const imgScale = useTransform(pr, (v) => 1.35 - clamp01(v) * 0.35);
+  const tOpacity = useTransform(pr, (v) => clamp01((v - 0.3) / 0.3));
+  const tY = useTransform(pr, (v) => 60 - clamp01((v - 0.3) / 0.45) * 60);
+  return (
+    <div className="absolute inset-0 bg-[#14130f]">
+      <motion.img src={next.cover} alt="" className="absolute inset-0 h-full w-full object-cover blur-[6px]" style={{ scale: imgScale }} />
+      <div className="absolute inset-0 bg-[#14130f]/75" />
+      <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 60%, ${next.accent}33, transparent 60%)` }} />
+      <motion.div style={{ opacity: tOpacity, y: tY }} className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center text-[#efe9df]">
+        <p className="label-xs text-[#efe9df]/70">Siguiente proyecto</p>
+        <p className="font-serif-d mt-6 text-[clamp(3rem,10vw,10rem)] font-light leading-[0.9] tracking-[-0.03em]">{next.title}</p>
+        <p className="font-serif-d mt-4 text-xl italic text-[#efe9df]/70">{next.kicker}</p>
+        <Link
+          to={`/proyecto/${next.id}`}
+          data-testid="case-next-project"
+          data-cursor="Abrir"
+          className="pointer-events-auto group mt-10 inline-flex items-center gap-3 rounded-full bg-[#efe9df] px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.2em] text-[#14130f] transition-colors duration-300 hover:bg-[#e8a15b]"
+        >
+          Ver proyecto <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+        </Link>
+      </motion.div>
+    </div>
+  );
+}
 
 function LiveBrowser({ p, dark }) {
   const boxRef = useRef(null);
@@ -162,9 +202,9 @@ export default function CaseStudy() {
             </p>
             <p className="font-mono-d hidden text-xs md:block" style={{ color: c.sub }}>{domainOf(p.url)}</p>
           </div>
-          <Reveal>
+          <TiltIn>
             <LiveBrowser p={p} dark={dark} />
-          </Reveal>
+          </TiltIn>
         </div>
       </section>
 
@@ -265,24 +305,11 @@ export default function CaseStudy() {
         </div>
       </section>
 
-      {/* NEXT */}
-      <Link
-        to={`/proyecto/${next.id}`}
-        data-testid="case-next-project"
-        data-cursor="Siguiente"
-        className="group relative block overflow-hidden bg-[#14130f] px-4 py-24 text-[#efe9df] md:px-8 md:py-36"
-      >
-        <img src={next.cover} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-0 transition-[opacity,transform] duration-1000 group-hover:scale-100 group-hover:opacity-30" />
-        <div className="relative mx-auto flex max-w-[1600px] items-end justify-between gap-6">
-          <div>
-            <p className="label-xs text-white/50">Siguiente proyecto</p>
-            <p className="font-serif-d mt-6 text-[clamp(3rem,9vw,9rem)] font-light leading-[0.9] tracking-[-0.03em] transition-transform duration-700 group-hover:translate-x-4 group-hover:italic">{next.title}</p>
-          </div>
-          <span className="mb-4 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-white/20 transition-[background-color,transform] duration-500 group-hover:rotate-[-45deg] group-hover:bg-[#e8a15b] group-hover:text-[#14130f] md:h-24 md:w-24">
-            <ArrowRight className="h-6 w-6" />
-          </span>
-        </div>
-      </Link>
+      {/* NEXT — sun portal */}
+      <div className="relative">
+        <p className="label-xs pointer-events-none absolute left-1/2 top-24 z-10 -translate-x-1/2" style={{ color: c.sub }}>Sigue bajando</p>
+        <SunPortal height="210vh" render={(pr) => <NextScene pr={pr} next={next} />} />
+      </div>
 
       <Footer />
 

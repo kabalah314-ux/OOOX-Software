@@ -2,6 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Monitor, Coins, Layers, List } from "lucide-react";
 import SplitFlap from "./SplitFlap";
+import Chapter from "./Chapter";
 import WebShowcase from "./WebShowcase";
 import CryptoShowcase from "./CryptoShowcase";
 import ProjectIndex from "./ProjectIndex";
@@ -14,7 +15,7 @@ export default function Projects({ category, setCategory, view, setView }) {
   const isCrypto = category === "crypto";
 
   return (
-    <section id="proyectos" data-testid="projects-section" className="relative z-10 -mt-[35vh] overflow-clip rounded-t-[36px] bg-[#14130f] shadow-[0_-40px_90px_-10px_rgba(0,0,0,0.55)] md:rounded-t-[64px]">
+    <Chapter id="proyectos" testid="projects-section" className="z-10 -mt-[35vh] bg-[#14130f] shadow-[0_-40px_90px_-10px_rgba(0,0,0,0.55)]">
       {/* sticky background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="sticky top-0 h-screen w-full overflow-hidden">
@@ -113,6 +114,6 @@ export default function Projects({ category, setCategory, view, setView }) {
           </motion.div>
         </AnimatePresence>
       </div>
-    </section>
+    </Chapter>
   );
 }

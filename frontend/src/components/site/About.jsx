@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { about, projects } from "@/data/mock";
 import { Counter, Reveal, EASE } from "./helpers";
 import Marquee from "./Marquee";
+import Chapter from "./Chapter";
 
 function Word({ children, progress, range }) {
   const k = (v) => Math.max(0, Math.min(1, (v - range[0]) / (range[1] - range[0])));
@@ -41,7 +42,7 @@ export default function About() {
   ];
 
   return (
-    <section id="sobre-mi" data-testid="about-section" className="relative z-20 overflow-hidden bg-[#efe9df] pb-16 text-[#14130f]">
+    <Chapter id="sobre-mi" testid="about-section" className="z-30 -mt-16 bg-[#efe9df] pb-16 text-[#14130f] shadow-[0_-30px_80px_-20px_rgba(0,0,0,0.35)]">
       <div className="mx-auto max-w-[1600px] px-4 pb-24 pt-24 md:px-8 md:pb-32 md:pt-32">
         <p className="label-xs mb-10 flex items-center gap-4 text-[#6d675c]"><span>03 — Sobre mí</span><span className="h-px w-24 bg-[#14130f]/20" /></p>
         <div className="max-w-6xl">
@@ -134,6 +135,6 @@ export default function About() {
           itemClass="font-serif-d text-4xl font-light italic text-[#14130f] md:text-6xl"
         />
       </div>
-    </section>
+    </Chapter>
   );
 }

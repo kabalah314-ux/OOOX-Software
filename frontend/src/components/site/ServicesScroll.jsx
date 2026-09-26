@@ -1,9 +1,10 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { ArrowRight, ArrowUpRight, Monitor, Workflow, Wrench, Coins, Check, MoveRight } from "lucide-react";
 import { services } from "@/data/mock";
 import { MaskLines, Magnetic, useIsDesktop } from "./helpers";
 import { useSmooth } from "@/lib/smooth";
+import Chapter from "./Chapter";
 
 const THEMES = {
   cream: { bg: "#F6F2EA", fg: "#14130F", sub: "#5f5a50", line: "rgba(20,19,15,0.14)", accent: "#14130F", border: "rgba(20,19,15,0.1)" },
@@ -139,14 +140,12 @@ export default function ServicesScroll({ onPick }) {
   };
   const toContact = () => scrollTo("#contacto");
 
-  useEffect(() => {}, []);
-
   return (
-    <section
+    <Chapter
       id="servicios"
-      ref={sectionRef}
-      data-testid="services-section"
-      className="relative z-20 -mt-16 rounded-t-[36px] bg-[#efe9df] text-[#14130f] shadow-[0_-30px_80px_-20px_rgba(0,0,0,0.5)] md:rounded-t-[64px]"
+      targetRef={sectionRef}
+      testid="services-section"
+      className="z-20 -mt-16 bg-[#efe9df] text-[#14130f] shadow-[0_-30px_80px_-20px_rgba(0,0,0,0.5)]"
       style={isDesktop ? { height: `calc(100vh + ${dist}px)` } : undefined}
     >
       {isDesktop ? (
@@ -180,6 +179,6 @@ export default function ServicesScroll({ onPick }) {
           </div>
         </div>
       )}
-    </section>
+    </Chapter>
   );
 }

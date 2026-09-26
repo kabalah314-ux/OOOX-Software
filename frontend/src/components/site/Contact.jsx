@@ -1,16 +1,42 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowUpRight, Copy, Check, Send } from "lucide-react";
+import { motion, useTransform } from "framer-motion";
+import { ArrowUpRight, Copy, Check, Send, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { brand } from "@/data/mock";
-import { Magnetic, MaskLines, Reveal } from "./helpers";
+import { Magnetic, Reveal } from "./helpers";
+import { SunPortal, clamp01 } from "./Chapter";
 import { XIcon, TelegramIcon } from "./icons";
 
 const TYPES = ["Web", "App / SaaS", "Crypto", "Automatización", "Otro"];
+
+function PortalScene({ p }) {
+  const imgScale = useTransform(p, (v) => 1.35 - clamp01(v) * 0.35);
+  const tOpacity = useTransform(p, (v) => clamp01((v - 0.28) / 0.3));
+  const tScale = useTransform(p, (v) => 1.14 - clamp01((v - 0.28) / 0.5) * 0.14);
+  const tY = useTransform(p, (v) => 50 - clamp01((v - 0.28) / 0.45) * 50);
+  return (
+    <div className="absolute inset-0 bg-[#14130f]">
+      <motion.img src="/img/projects-bg.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" style={{ scale: imgScale }} />
+      <div className="absolute inset-0 bg-[#14130f]/45" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-[#14130f]" />
+      <motion.div style={{ opacity: tOpacity, scale: tScale, y: tY }} className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center text-[#efe9df]">
+        <p className="label-xs mb-8 text-[#efe9df]/75">04 — Contacto</p>
+        <h2 className="font-serif-d text-[clamp(2.8rem,9vw,10rem)] font-light leading-[0.92] tracking-[-0.03em] [text-shadow:0_4px_40px_rgba(20,19,15,0.4)]">
+          ¿Tienes una idea
+          <br />
+          <span className="italic text-[#ffd9a8]">que merece existir?</span>
+        </h2>
+        <p className="label-xs mt-10 flex items-center gap-2 text-[#efe9df]/75">
+          Sigue bajando <ArrowDown className="h-3.5 w-3.5 animate-bounce" />
+        </p>
+      </motion.div>
+    </div>
+  );
+}
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", type: "Web", budget: "", message: "" });
@@ -48,17 +74,13 @@ export default function Contact() {
   const field = "h-12 rounded-xl border-white/15 bg-white/[0.03] text-[#efe9df] placeholder:text-white/35 focus-visible:ring-[#e8a15b] focus-visible:ring-offset-0";
 
   return (
-    <section id="contacto" data-testid="contact-section" className="relative z-30 -mt-16 overflow-hidden rounded-[36px] bg-[#14130f] text-[#efe9df] shadow-[0_-30px_80px_-20px_rgba(0,0,0,0.45)] md:rounded-[64px]">
-      <img src="/img/projects-bg.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#14130f] via-[#14130f]/70 to-[#14130f]" />
+    <div className="relative z-40 -mt-[75vh]">
+    <SunPortal testid="contact-portal" render={(p) => <PortalScene p={p} />} />
+    <section id="contacto" data-testid="contact-section" className="relative overflow-hidden rounded-b-[36px] bg-[#14130f] text-[#efe9df] md:rounded-b-[64px]">
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[400px] w-[80vw] max-w-[900px] -translate-x-1/2 rounded-full bg-[#e8a15b]/10 blur-[140px]" />
 
-      <div className="relative mx-auto max-w-[1600px] px-4 pb-24 pt-28 md:px-8 md:pb-32 md:pt-36">
-        <p className="label-xs mb-8 text-[#efe9df]/60">04 — Contacto</p>
-        <h2 className="font-serif-d text-[clamp(3rem,8.5vw,9rem)] font-light leading-[0.92] tracking-[-0.03em]">
-          <MaskLines lines={["¿Tienes una idea", { text: "que merece existir?", className: "italic text-[#e8a15b]" }]} />
-        </h2>
-
-        <div className="mt-16 grid gap-14 lg:grid-cols-12">
+      <div className="relative mx-auto max-w-[1600px] px-4 pb-24 pt-10 md:px-8 md:pb-32">
+        <div className="grid gap-14 lg:grid-cols-12">
           <div className="lg:col-span-5">
             <Reveal>
               <p className="max-w-md text-lg leading-relaxed text-[#efe9df]/70">
@@ -194,5 +216,6 @@ export default function Contact() {
         </div>
       </div>
     </section>
+    </div>
   );
 }

@@ -21,20 +21,26 @@ function Page({ children }) {
   return (
     <>
       {children}
+      {/* cover: rises from below with a hill-arch top */}
       <motion.div
-        className="pointer-events-none fixed inset-0 z-[120] origin-bottom bg-[#14130f]"
-        initial={{ scaleY: 0 }}
-        animate={{ scaleY: 0 }}
-        exit={{ scaleY: 1 }}
-        transition={{ duration: 0.6, ease: EASE_IO }}
+        className="pointer-events-none fixed inset-x-0 top-0 z-[120] h-[140vh] bg-[#14130f]"
+        style={{ borderRadius: "50% 50% 0 0 / 22vh 22vh 0 0" }}
+        initial={{ y: "100vh" }}
+        animate={{ y: "100vh" }}
+        exit={{ y: "-30vh" }}
+        transition={{ duration: 0.75, ease: EASE_IO }}
       />
+      {/* reveal: lifts away with an arched bottom edge */}
       <motion.div
-        className="pointer-events-none fixed inset-0 z-[120] origin-top bg-[#14130f]"
-        initial={{ scaleY: 1 }}
-        animate={{ scaleY: 0 }}
-        exit={{ scaleY: 0 }}
-        transition={{ duration: 0.7, ease: EASE_IO, delay: 0.1 }}
-      />
+        className="pointer-events-none fixed inset-x-0 top-0 z-[120] flex h-[140vh] items-center justify-center bg-[#14130f]"
+        style={{ borderRadius: "0 0 50% 50% / 0 0 22vh 22vh" }}
+        initial={{ y: "-10vh" }}
+        animate={{ y: "-150vh" }}
+        exit={{ y: "-150vh" }}
+        transition={{ duration: 0.9, ease: EASE_IO, delay: 0.15 }}
+      >
+        <span className="font-sans-d text-[12px] tracking-[0.5em] text-[#efe9df]/60">OOOX</span>
+      </motion.div>
     </>
   );
 }
