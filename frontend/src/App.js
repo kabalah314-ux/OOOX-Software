@@ -6,6 +6,7 @@ import { SmoothScrollProvider } from "@/lib/smooth";
 import Navbar from "@/components/site/Navbar";
 import Cursor from "@/components/site/Cursor";
 import Preloader from "@/components/site/Preloader";
+import { ScrollProgress } from "@/components/site/SectionRail";
 import Home from "@/pages/Home";
 import CaseStudy from "@/pages/CaseStudy";
 import { Toaster } from "@/components/ui/sonner";
@@ -48,6 +49,7 @@ function Shell() {
   return (
     <div className="App grain">
       {loading && <Preloader onReveal={reveal} onDone={done} />}
+      <ScrollProgress />
       <Cursor />
       <Navbar />
       <AnimatePresence mode="wait">

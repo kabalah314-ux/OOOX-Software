@@ -5,8 +5,9 @@ import { Counter, Reveal, EASE } from "./helpers";
 import Marquee from "./Marquee";
 
 function Word({ children, progress, range }) {
-  const opacity = useTransform(progress, range, [0.14, 1]);
-  const y = useTransform(progress, range, [8, 0]);
+  const k = (v) => Math.max(0, Math.min(1, (v - range[0]) / (range[1] - range[0])));
+  const opacity = useTransform(progress, (v) => 0.14 + k(v) * 0.86);
+  const y = useTransform(progress, (v) => 8 - k(v) * 8);
   return (
     <motion.span style={{ opacity, y }} className="mr-[0.25em] inline-block">
       {children}
@@ -40,9 +41,9 @@ export default function About() {
   ];
 
   return (
-    <section id="sobre-mi" data-testid="about-section" className="relative overflow-hidden bg-[#efe9df] text-[#14130f]">
-      <div className="mx-auto max-w-[1600px] px-4 pb-24 pt-28 md:px-8 md:pb-32 md:pt-36">
-        <p className="label-xs mb-10 text-[#6d675c]">— Sobre mí</p>
+    <section id="sobre-mi" data-testid="about-section" className="relative z-20 overflow-hidden bg-[#efe9df] pb-16 text-[#14130f]">
+      <div className="mx-auto max-w-[1600px] px-4 pb-24 pt-24 md:px-8 md:pb-32 md:pt-32">
+        <p className="label-xs mb-10 flex items-center gap-4 text-[#6d675c]"><span>03 — Sobre mí</span><span className="h-px w-24 bg-[#14130f]/20" /></p>
         <div className="max-w-6xl">
           <ScrollStatement text={about.statement} />
         </div>

@@ -1,15 +1,25 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import { brand } from "@/data/mock";
 import { LiveClock, EASE } from "./helpers";
 import { useSmooth } from "@/lib/smooth";
 
-export default function Footer() {
+export default function Footer({ overlap = false }) {
   const { scrollTo } = useSmooth();
+  const innerRef = useRef(null);
+  const [h, setH] = useState(0);
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
-    <footer data-testid="footer" className="relative overflow-hidden bg-[#0e0d0b] text-[#efe9df]">
-      <div className="mx-auto max-w-[1600px] px-4 pt-20 md:px-8">
+    <div className={`relative ${overlap ? "-mt-16" : ""}`} style={{ height: h || "auto", clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)" }}>
+    <footer ref={innerRef} data-testid="footer" className={`${h ? "fixed" : "relative"} bottom-0 left-0 z-0 w-full overflow-hidden bg-[#0e0d0b] text-[#efe9df]`}>
+      <div className={`mx-auto max-w-[1600px] px-4 md:px-8 ${overlap ? "pt-36" : "pt-20"}`}>
         <div className="grid gap-10 border-b border-white/10 pb-12 md:grid-cols-4">
           <div className="md:col-span-2">
             <p className="font-serif-d max-w-md text-3xl font-light leading-tight">
@@ -60,5 +70,6 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+    </div>
   );
 }

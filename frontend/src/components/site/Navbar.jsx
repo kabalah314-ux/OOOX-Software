@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/s
 import { useSmooth } from "@/lib/smooth";
 import { brand } from "@/data/mock";
 import { XIcon, TelegramIcon } from "./icons";
+import { useActiveSection } from "@/lib/useActiveSection";
 
 const links = [
   { id: "proyectos", label: "Proyectos" },
@@ -21,6 +22,7 @@ export default function Navbar() {
   const { scrollTo } = useSmooth();
   const location = useLocation();
   const navigate = useNavigate();
+  const active = useActiveSection();
 
   useEffect(() => {
     let last = window.scrollY;
@@ -75,6 +77,9 @@ export default function Navbar() {
               <span className="absolute inset-x-0 top-1/2 block translate-y-[80%] text-center text-[#e8a15b] transition-transform duration-500 group-hover:-translate-y-1/2">
                 {l.label}
               </span>
+              {active === l.id && (
+                <motion.span layoutId="nav-active" className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#e8a15b]" transition={{ type: "spring", stiffness: 380, damping: 30 }} />
+              )}
             </button>
           ))}
         </nav>

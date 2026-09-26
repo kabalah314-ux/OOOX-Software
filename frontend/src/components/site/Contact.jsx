@@ -48,12 +48,12 @@ export default function Contact() {
   const field = "h-12 rounded-xl border-white/15 bg-white/[0.03] text-[#efe9df] placeholder:text-white/35 focus-visible:ring-[#e8a15b] focus-visible:ring-offset-0";
 
   return (
-    <section id="contacto" data-testid="contact-section" className="relative overflow-hidden bg-[#14130f] text-[#efe9df]">
+    <section id="contacto" data-testid="contact-section" className="relative z-30 -mt-16 overflow-hidden rounded-[36px] bg-[#14130f] text-[#efe9df] shadow-[0_-30px_80px_-20px_rgba(0,0,0,0.45)] md:rounded-[64px]">
       <img src="/img/projects-bg.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
       <div className="absolute inset-0 bg-gradient-to-b from-[#14130f] via-[#14130f]/70 to-[#14130f]" />
 
       <div className="relative mx-auto max-w-[1600px] px-4 pb-24 pt-28 md:px-8 md:pb-32 md:pt-36">
-        <p className="label-xs mb-8 text-[#efe9df]/60">— Contacto</p>
+        <p className="label-xs mb-8 text-[#efe9df]/60">04 — Contacto</p>
         <h2 className="font-serif-d text-[clamp(3rem,8.5vw,9rem)] font-light leading-[0.92] tracking-[-0.03em]">
           <MaskLines lines={["¿Tienes una idea", { text: "que merece existir?", className: "italic text-[#e8a15b]" }]} />
         </h2>

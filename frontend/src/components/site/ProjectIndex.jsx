@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpRight, Lock } from "lucide-react";
@@ -70,6 +71,7 @@ export default function ProjectIndex({ items, dark }) {
         </motion.button>
       ))}
 
+      {createPortal(
       <motion.div className="pointer-events-none fixed left-0 top-0 z-[80] hidden md:block" style={{ x: sx, y: sy }}>
         <AnimatePresence>
           {hover && (
@@ -86,6 +88,7 @@ export default function ProjectIndex({ items, dark }) {
           )}
         </AnimatePresence>
       </motion.div>
+      , document.body)}
     </div>
   );
 }

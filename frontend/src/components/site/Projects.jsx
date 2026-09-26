@@ -14,7 +14,7 @@ export default function Projects({ category, setCategory, view, setView }) {
   const isCrypto = category === "crypto";
 
   return (
-    <section id="proyectos" data-testid="projects-section" className="relative bg-[#14130f]">
+    <section id="proyectos" data-testid="projects-section" className="relative z-10 -mt-[35vh] overflow-clip rounded-t-[36px] bg-[#14130f] shadow-[0_-40px_90px_-10px_rgba(0,0,0,0.55)] md:rounded-t-[64px]">
       {/* sticky background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="sticky top-0 h-screen w-full overflow-hidden">
@@ -29,24 +29,16 @@ export default function Projects({ category, setCategory, view, setView }) {
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[1600px] px-4 pb-24 pt-28 md:px-8 md:pb-32 md:pt-36">
+      <div className="relative z-10 mx-auto max-w-[1600px] px-4 pb-32 pt-20 md:px-8 md:pb-44 md:pt-28">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="label-xs mb-6 text-[#efe9df]/70">— Proyectos · Archivo 2026</p>
+            <p className="label-xs mb-6 text-[#efe9df]/70">01 — Proyectos</p>
             <SplitFlap text="CONOCE MIS PROYECTOS" />
           </div>
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={category}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.5, ease: EASE }}
-              className="font-serif-d max-w-sm text-xl font-light leading-snug text-[#efe9df]/85 lg:text-right"
-            >
-              {cat.description}
-            </motion.p>
-          </AnimatePresence>
+          <p className="font-mono-d text-xs text-[#efe9df]/60 lg:text-right">
+            {String(projects.length).padStart(2, "0")} proyectos · {categories.length} categorías
+            <br className="hidden lg:block" /> <span className="text-[#e8a15b]">●</span> Actualizado 2026
+          </p>
         </div>
 
         {/* controls */}
@@ -105,9 +97,9 @@ export default function Projects({ category, setCategory, view, setView }) {
         <AnimatePresence mode="wait">
           <motion.div
             key={`${category}-${view}`}
-            initial={{ opacity: 0, y: 50, filter: "blur(8px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -30, filter: "blur(8px)" }}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
             transition={{ duration: 0.6, ease: EASE }}
             className="mt-10"
           >

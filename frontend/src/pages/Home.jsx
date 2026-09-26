@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import Hero from "@/components/site/Hero";
-import Marquee from "@/components/site/Marquee";
+import HeroCinematic from "@/components/site/HeroCinematic";
+import SectionRail from "@/components/site/SectionRail";
 import Projects from "@/components/site/Projects";
-import Services from "@/components/site/Services";
+import ServicesScroll from "@/components/site/ServicesScroll";
 import About from "@/components/site/About";
 import Contact from "@/components/site/Contact";
 import Footer from "@/components/site/Footer";
-import { marqueeWords } from "@/data/mock";
 import { useSmooth } from "@/lib/smooth";
 
 export default function Home({ ready }) {
@@ -33,15 +32,13 @@ export default function Home({ ready }) {
 
   return (
     <main data-testid="home-page">
-      <Hero ready={ready} />
-      <div className="border-y border-white/10 bg-[#14130f] py-8 md:py-10">
-        <Marquee words={marqueeWords} itemClass="font-serif-d text-5xl font-light italic text-[#efe9df] md:text-7xl" />
-      </div>
+      <HeroCinematic ready={ready} />
       <Projects category={category} setCategory={setCategory} view={view} setView={setView} />
-      <Services onPick={setCategory} />
+      <ServicesScroll onPick={setCategory} />
       <About />
       <Contact />
-      <Footer />
+      <Footer overlap />
+      <SectionRail />
     </main>
   );
 }
