@@ -210,6 +210,7 @@ export const projects = [
     type: "AI Game · Interactive World", status: "Prototype", statusTone: "build", access: "public",
     url: "https://threejs-interactive-village-prototy.vercel.app/",
     accent: "#8AB4F8", accentSoft: "#0B1020",
+    video: { src: "/videos/crossia.mp4", poster: "/videos/crossia.jpg", label: "Explora · Habla · Genera · Gana" },
     // Datos extraídos de la web real del proyecto
     description: "Un planeta diminuto habitado por animales con problemas: exploras el mundo, aceptas sus misiones y creas sus web apps con un portátil de IA.",
     longDescription: "Un planeta diminuto habitado por animales con grandes problemas, y tú eres el único humano con un portátil de IA. El bucle de juego recorre cuatro pasos: explorar el planeta (caminar, nadar y darle la vuelta hasta verlo entero), hablar con los vecinos marcados con un «!» y aceptar sus misiones, generar su web app escribiendo el prompt en la laptop, y ganar $TOKEN para desbloquear tiendas, skins, el barco mercante, memes y frutas doradas. Se juega sin registro, como invitado, con guardado local en el navegador.",

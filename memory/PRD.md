@@ -11,6 +11,7 @@ Mejorar lo que se muestra de cada proyecto con **mini-vídeos que se reproducen 
 - 2026-06 · `HoverVideo.jsx` (`components/site/`): poster + `<video muted loop playsInline>` que arranca al hover / al entrar en pantalla (móvil). `data-testid="hover-video"`.
 - 2026-06 · `SelectedWork.jsx`: si `p.video` existe se usa HoverVideo en la tarjeta. `CaseStudy.jsx`: mockup de navegador con el vídeo en autoplay.
 - 2026-06 · `mock.js` → `usain-bot.video = { src: "/videos/usain-bot-3d.mp4", poster: "/videos/usain-bot-3d.jpg", label }`.
+- 2026-06 · Vídeo **CrossIA** (subido por el usuario, 77 s → 39 s: explorar/hablar con el castor + laptop IA generando la app + recompensa + tienda; crop bandas negras 848×408; 1,4 MB) en `public/videos/crossia.mp4` + poster. `mock.js` → `crossia.video` (sigue como `placeholder: true`, tarjeta no clicable).
 - 2026-06 · Vídeo **Elementia** (subido por el usuario, 50 s → recortado a 32,7 s: combate + victoria + mercado/criatura; crop 28 px arriba para quitar la barra del navegador; 848×420, 0,8 MB) en `public/videos/elementia.mp4` + poster. `mock.js` → `elementia.video`.
 - 2026-06 · Vídeo **Usain Bot 3D Sandbox** (17,5 s, 960×600, 3,8 MB) en `frontend/public/videos/`. Sólo el juego 3D (los minijuegos 2D no importan, según el usuario).
 
