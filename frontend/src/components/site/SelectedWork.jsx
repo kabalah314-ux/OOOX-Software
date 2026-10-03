@@ -5,6 +5,7 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import CyclingImages from "./CyclingImages";
 import CrossiaScene from "./CrossiaScene";
 import ElementiaScene from "./ElementiaScene";
+import HoverVideo from "./HoverVideo";
 import { EASE, StatusPill } from "./helpers";
 import { workCards } from "@/data/mock";
 import { useLang } from "@/i18n";
@@ -62,7 +63,15 @@ function WorkCard({ p, index, featured }) {
       {/* recorrido visual del producto */}
       <div className={`relative ${featured ? "lg:col-span-7" : ""}`}>
         <div className="absolute -inset-4 rounded-full opacity-25 blur-[70px] transition-opacity duration-700 group-hover:opacity-50" style={{ background: p.accent }} />
-        {p.scene === "crossia" || p.scene === "elementia" ? (
+        {p.video ? (
+          <HoverVideo
+            src={p.video.src}
+            poster={p.video.poster || p.cover}
+            label={p.video.label}
+            playing={playing}
+            className={`w-full transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${featured ? "aspect-[16/10]" : "aspect-[16/9]"} ${playing ? "scale-[1.03]" : ""}`}
+          />
+        ) : p.scene === "crossia" || p.scene === "elementia" ? (
           <div
             className={`relative w-full overflow-hidden transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
               featured ? "aspect-[16/10]" : "aspect-[16/9]"

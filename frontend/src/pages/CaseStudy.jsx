@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, ArrowRight, Check } from "lucide-react";
 import { projects, workCards } from "@/data/mock";
 import { BrowserMockup, PhoneMockup } from "@/components/site/Mockups";
+import HoverVideo from "@/components/site/HoverVideo";
 import { MaskLines, StatusPill, Reveal, EASE, domainOf } from "@/components/site/helpers";
 import Footer from "@/components/site/Footer";
 import { useSmooth } from "@/lib/smooth";
@@ -85,7 +86,19 @@ export default function CaseStudy() {
           className="relative mx-auto max-w-[1400px] rounded-[32px] p-4 sm:p-8 md:p-14"
           style={{ background: p.accentSoft }}
         >
-          {p.scene ? (
+          {p.video ? (
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#1b1a17] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6)]">
+              <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2.5">
+                <div className="flex gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                </div>
+                <div className="font-mono-d mx-auto max-w-[70%] truncate rounded-full bg-white/5 px-4 py-1 text-[11px] text-white/55">{domainOf(p.url)}</div>
+              </div>
+              <HoverVideo src={p.video.src} poster={p.video.poster || p.cover} label={p.video.label} playing className="w-full aspect-[16/9]" />
+            </div>
+          ) : p.scene ? (
             <div className="relative w-full overflow-hidden rounded-[20px]">
               <BrowserMockup project={p} dark={isCrypto} frameClass="aspect-[16/9]" />
             </div>
