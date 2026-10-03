@@ -182,6 +182,7 @@ export const projects = [
     scene: "elementia",
     type: "GameFi · Juego P2E", status: "Demo jugable", statusTone: "live", access: "public", url: "https://axie-infinity-style-game.vercel.app/",
     ...shots("elementia"), accent: "#F5C24B", accentSoft: "#1A1508",
+    video: { src: "/videos/elementia.mp4", poster: "/videos/elementia.jpg", label: "Combate 3×3 · Mercado" },
     token: { ticker: "$ELT", chain: "Robinhood Chain", chainId: "4663", supply: "100M", tax: "—", liquidity: "LP 24m" },
     socials: { web: "https://axie-infinity-style-game.vercel.app/", x: "https://x.com/", telegram: "https://t.me/" },
     description: "Juego de criaturas estilo Axie en Robinhood Chain: mina huevos, cría nuevas generaciones y combate 3×3 por turnos con 18 tipos.",
