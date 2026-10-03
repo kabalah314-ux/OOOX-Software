@@ -119,6 +119,7 @@ export const projects = [
     id: "casa-aurea", category: "business", title: "Áurea", kicker: "Viviendas contemporáneas que se recorren en 3D", year: "2026",
     type: "Web inmobiliaria · Promotora premium", status: "Online", statusTone: "live", access: "public", url: AUREA,
     cover: `${AUREA}images/aurea/hero.jpg`, long: AUREA_FULL, mobile: `${AUREA}images/aurea/living.jpg`,
+    video: { src: "/videos/aurea.mp4", poster: "/videos/aurea.jpg", label: "Tour 3D · Villa Áurea" },
     // Imágenes reales del interior de la Villa Áurea (lo que se recorre en el tour 3D)
     previews: [
       { src: `${AUREA}images/aurea/hero.jpg`, y: 50, label: "Villa al anochecer" },
