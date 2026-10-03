@@ -18,7 +18,6 @@ export default function SectionRail() {
     <AnimatePresence>
       {visible && (
         <motion.nav
-          data-testid="section-rail"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 20 }}
@@ -28,12 +27,8 @@ export default function SectionRail() {
           {SECTIONS.map((s) => {
             const on = active === s.id;
             return (
-              <button key={s.id} data-testid={`rail-${s.id}`} onClick={() => scrollTo(`#${s.id}`)} className="group flex items-center gap-3">
-                <span
-                  className={`font-mono-d text-[10px] uppercase tracking-[0.2em] transition-[opacity,transform] duration-500 ${
-                    "translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
-                  }`}
-                >
+              <button key={s.id} onClick={() => scrollTo(`#${s.id}`)} className="group flex items-center gap-3">
+                <span className="font-mono-d translate-x-2 text-[10px] uppercase tracking-[0.2em] opacity-0 transition-[opacity,transform] duration-500 group-hover:translate-x-0 group-hover:opacity-100">
                   {s.n} · {s.label}
                 </span>
                 <span className={`h-px bg-white transition-[width,opacity] duration-500 ${on ? "w-6 opacity-100" : "w-3 opacity-40 group-hover:w-5"}`} />

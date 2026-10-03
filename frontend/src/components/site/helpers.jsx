@@ -18,7 +18,6 @@ export function Reveal({ children, delay = 0, y = 40, className = "", once = tru
   );
 }
 
-/* Line-mask reveal for headings: pass an array of lines */
 export function MaskLines({ lines, className = "", lineClassName = "", delay = 0, animate: forced }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "0px 0px -8% 0px" });
@@ -87,8 +86,7 @@ export function Counter({ to = 10, pad = 2, duration = 1.6, className = "" }) {
           const start = performance.now();
           const tick = (t) => {
             const p = Math.min(1, (t - start) / (duration * 1000));
-            const eased = 1 - Math.pow(1 - p, 3);
-            setVal(Math.round(eased * to));
+            setVal(Math.round((1 - Math.pow(1 - p, 3)) * to));
             if (p < 1) requestAnimationFrame(tick);
           };
           requestAnimationFrame(tick);

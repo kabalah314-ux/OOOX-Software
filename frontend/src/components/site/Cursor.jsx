@@ -58,7 +58,6 @@ export default function Cursor() {
           height: size,
           scale: down ? 0.85 : 1,
           backgroundColor: label ? "rgba(232,161,91,0.95)" : "rgba(239,233,223,0)",
-          borderColor: label ? "rgba(232,161,91,0)" : "rgba(239,233,223,0.7)",
         }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
       >

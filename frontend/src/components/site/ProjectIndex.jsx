@@ -1,9 +1,45 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpRight, Lock } from "lucide-react";
 import { EASE } from "./helpers";
+import CyclingImages from "./CyclingImages";
+
+function CyclingPreview({ project, interval = 900 }) {
+  const list = project.previews?.length ? project.previews : [project.cover];
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    list.forEach((src) => {
+      const im = new Image();
+      im.src = src;
+    });
+    if (list.length < 2) return;
+    const t = setInterval(() => setI((n) => (n + 1) % list.length), interval);
+    return () => clearInterval(t);
+  }, [project.id]);
+  return (
+    <div className="relative aspect-[16/10] w-[380px] bg-[#14130f]">
+      <AnimatePresence initial={false}>
+        <motion.img
+          key={list[i]}
+          src={list[i]}
+          alt=""
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35 }}
+          className="absolute inset-0 h-full w-full object-cover object-top"
+        />
+      </AnimatePresence>
+      <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1">
+        {list.map((_, k) => (
+          <span key={k} className={`h-1 rounded-full transition-all duration-300 ${k === i ? "w-5 bg-[#e8a15b]" : "w-1.5 bg-white/60"}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ProjectIndex({ items, dark }) {
   const navigate = useNavigate();
@@ -23,12 +59,7 @@ export default function ProjectIndex({ items, dark }) {
   const line = dark ? "border-white/10" : "border-black/10";
 
   return (
-    <div
-      data-testid="project-index"
-      onMouseMove={onMove}
-      onMouseLeave={() => setHover(null)}
-      className={`relative rounded-[28px] p-4 sm:p-8 md:p-10 ${dark ? "bg-[#100f0d]/90" : "bg-[#f1ece2]"} ${fg}`}
-    >
+    <div onMouseMove={onMove} onMouseLeave={() => setHover(null)} className={`relative rounded-[28px] p-4 sm:p-8 md:p-10 ${dark ? "bg-[#100f0d]/90" : "bg-[#f1ece2]"} ${fg}`}>
       <div className={`label-xs hidden grid-cols-12 gap-4 border-b pb-4 md:grid ${line} ${sub}`}>
         <span className="col-span-1">Nº</span>
         <span className="col-span-5">Proyecto</span>
@@ -39,7 +70,6 @@ export default function ProjectIndex({ items, dark }) {
       {items.map((p, i) => (
         <motion.button
           key={p.id}
-          data-testid={`index-row-${p.id}`}
           data-cursor="Abrir"
           onMouseEnter={() => setHover(p)}
           onClick={() => navigate(`/proyecto/${p.id}`)}
@@ -53,10 +83,9 @@ export default function ProjectIndex({ items, dark }) {
           <span className={`font-mono-d relative col-span-2 text-xs md:col-span-1 ${sub}`}>{String(i + 1).padStart(2, "0")}</span>
           <span className="relative col-span-10 flex items-center gap-4 md:col-span-5">
             <img src={p.cover} alt="" className="h-12 w-16 shrink-0 rounded-md object-cover md:hidden" />
-            <span className="font-serif-d text-3xl font-light transition-transform duration-500 group-hover:translate-x-3 group-hover:italic md:text-5xl">
-              {p.title}
-            </span>
+            <span className="font-serif-d text-3xl font-light transition-transform duration-500 group-hover:translate-x-3 group-hover:italic md:text-5xl">{p.title}</span>
             {p.token && <span className="font-mono-d hidden text-sm font-bold md:inline" style={{ color: p.accent }}>{p.token.ticker}</span>}
+            {p.demo && <span className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.18em] ${line} ${sub}`}>Demo</span>}
           </span>
           <span className={`relative col-span-3 hidden text-sm md:block ${sub}`}>{p.type}</span>
           <span className={`font-mono-d relative col-span-1 hidden text-sm md:block ${sub}`}>{p.year}</span>
@@ -72,23 +101,24 @@ export default function ProjectIndex({ items, dark }) {
       ))}
 
       {createPortal(
-      <motion.div className="pointer-events-none fixed left-0 top-0 z-[80] hidden md:block" style={{ x: sx, y: sy }}>
-        <AnimatePresence>
-          {hover && (
-            <motion.div
-              key={hover.id}
-              initial={{ opacity: 0, scale: 0.6, rotate: -6 }}
-              animate={{ opacity: 1, scale: 1, rotate: -3 }}
-              exit={{ opacity: 0, scale: 0.6 }}
-              transition={{ duration: 0.4, ease: EASE }}
-              className="-translate-y-1/2 translate-x-8 overflow-hidden rounded-xl border-4 border-[#14130f] shadow-2xl"
-            >
-              <img src={hover.cover} alt="" className="aspect-[16/10] w-[340px] object-cover" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-      , document.body)}
+        <motion.div className="pointer-events-none fixed left-0 top-0 z-[80] hidden md:block" style={{ x: sx, y: sy }}>
+          <AnimatePresence>
+            {hover && (
+              <motion.div
+                key={hover.id}
+                initial={{ opacity: 0, scale: 0.6, rotate: -6 }}
+                animate={{ opacity: 1, scale: 1, rotate: -3 }}
+                exit={{ opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.4, ease: EASE }}
+                className="-translate-y-1/2 translate-x-8 overflow-hidden rounded-xl border-4 border-[#14130f] shadow-2xl"
+              >
+                <CyclingImages project={hover} interval={1000} className="aspect-[16/10] w-[400px]" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>,
+        document.body
+      )}
     </div>
   );
 }
