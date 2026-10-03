@@ -197,7 +197,7 @@ export const projects = [
     id: "usain-bot", category: "crypto", title: "Usain Bot", kicker: "Winners are always first.", year: "2026",
     type: "Memecoin · Arcade", status: "Build mode", statusTone: "build", access: "public", url: "https://usain-bot.vercel.app/",
     ...shots("bolt"), accent: "#FFD83D", accentSoft: "#17150A",
-    video: { src: "/videos/usain-bot-3d.mp4", poster: "/videos/usain-bot-3d.jpg", label: "3D Open World · Sandbox" },
+    video: { src: "/videos/usain-bot-3d.mp4", poster: "/videos/usain-bot-3d.jpg", label: "3D Open World · Misiones · Coches" },
     token: { ticker: "$BOLT", chain: "Robinhood Chain", chainId: "4663", supply: "1B", tax: "0/0", liquidity: "100% lock" },
     socials: { web: "https://usain-bot.vercel.app/", x: "https://x.com/", telegram: "https://t.me/" },
     description: "El bot más rápido de Robinhood Chain. Memecoin con arcade jugable: 100m Masher y Reaction 9.39 con muro de campeones.",
