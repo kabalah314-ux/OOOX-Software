@@ -149,6 +149,7 @@ export const projects = [
     id: "massflow", category: "business", title: "MassFlow", kicker: "SaaS de gestión de masajes a domicilio", year: "2026",
     type: "SaaS · Panel de gestión", status: "Privado", statusTone: "private", access: "private", url: "https://saas-madajesadomicilio.vercel.app/",
     cover: "/projects/massflow_admin_dashboard.jpg",
+    video: { src: "/videos/massflow.mp4", poster: "/videos/massflow.jpg", label: "Admin · Reservas · Agente IA · Finanzas" },
     long: "/projects/massflow_admin_dashboard.jpg",
     mobile: "/projects/massflow_login_screen.jpg",
     // Capturas de los módulos por rol de acceso:
