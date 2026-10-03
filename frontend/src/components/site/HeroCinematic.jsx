@@ -2,18 +2,19 @@ import React, { useMemo, useRef } from "react";
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import { MaskLines, LiveClock, EASE, useIsDesktop } from "./helpers";
 import { XIcon } from "./icons";
-import { brand } from "@/data/mock";
+import { brand, img } from "@/data/mock";
 import { useSmooth } from "@/lib/smooth";
+import { useLang } from "@/i18n";
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
 export default function HeroCinematic({ ready }) {
+  const { t } = useLang();
   const ref = useRef(null);
   const { scrollTo } = useSmooth();
   const wide = useIsDesktop(768);
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end end"] });
 
-  // camera pull-back: the full-bleed scene shrinks into a framed card
   const clip = useTransform(p, (v) => {
     const e = Math.min(1, v * 1.15);
     const k = 1 - Math.pow(1 - e, 2);
@@ -57,12 +58,12 @@ export default function HeroCinematic({ ready }) {
   const xUrl = brand.socials.find((s) => s.id === "x")?.url || "https://x.com/";
 
   return (
-    <section id="inicio" ref={ref} onMouseMove={onMove} data-testid="hero-section" className="relative h-[190vh] bg-[#14130f]">
+    <section id="inicio" ref={ref} onMouseMove={onMove} className="relative h-[190vh] bg-[#14130f]">
       <div className="sticky top-0 h-[100svh] min-h-[600px] w-full overflow-hidden">
         <motion.div className="absolute inset-0 overflow-hidden" style={{ clipPath: clip }}>
           <motion.div className="absolute inset-0" style={{ x: imgMx, y: imgMy }}>
             <motion.img
-              src="/img/hero-scene.jpg"
+              src={img("/img/hero-scene.jpg")}
               alt="Un prado tranquilo al atardecer, con una persona trabajando con su portátil"
               className="absolute inset-0 h-full w-full object-cover object-[35%_center] md:object-center"
               style={{ scale: imgScale }}
@@ -86,43 +87,42 @@ export default function HeroCinematic({ ready }) {
           </div>
         </motion.div>
 
-        {/* headline */}
         <motion.div className="relative z-10 flex h-full items-center justify-center px-5 text-center" style={{ y: titleY, opacity: titleOpacity, scale: titleScale }}>
           <motion.div style={{ x: txtMx, y: txtMy }}>
-            <h1 data-testid="hero-title" className="font-serif-d text-[clamp(2.5rem,7.2vw,7.6rem)] font-light leading-[0.98] tracking-[-0.02em] text-[#f6f2ea] [text-shadow:0_4px_40px_rgba(20,19,15,0.35)]">
+            <h1 className="font-serif-d text-[clamp(2.5rem,7.2vw,7.6rem)] font-light leading-[0.98] tracking-[-0.02em] text-[#f6f2ea] [text-shadow:0_4px_40px_rgba(20,19,15,0.35)]">
               <MaskLines
                 animate={ready}
                 delay={0.3}
-                lines={
-                  wide
-                    ? [
-                        "Creo todo tipo de software",
-                        { text: "para mí y para quien", className: "italic" },
-                        { text: "lo necesita.", className: "italic text-[#ffd9a8]" },
-                      ]
-                    : [
-                        "Creo todo tipo",
-                        "de software",
-                        { text: "para mí y para", className: "italic" },
-                        { text: "quien lo necesita.", className: "italic text-[#ffd9a8]" },
-                      ]
-                }
+                lines={t("hero.title").map((line, i, arr) =>
+                  i === arr.length - 1 ? { text: line, className: "italic text-[#ffd9a8]" } : line
+                )}
               />
             </h1>
+            <motion.p
+              className="font-serif-d mt-6 text-[clamp(1.05rem,2vw,1.85rem)] font-light italic leading-snug text-[#f6f2ea]/75"
+              initial={{ opacity: 0, y: 12 }}
+              animate={ready ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 1, delay: 1, ease: EASE }}
+            >
+              {t("hero.subtitle")}
+            </motion.p>
+            <motion.p
+              className="label-xs mt-5 text-[#efe9df]/55"
+              initial={{ opacity: 0 }}
+              animate={ready ? { opacity: 1 } : {}}
+              transition={{ duration: 1, delay: 1.3 }}
+            >
+              {t("hero.note")}
+            </motion.p>
           </motion.div>
         </motion.div>
 
-        {/* bottom bar */}
-        <motion.div
-          className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between px-5 pb-6 text-[#efe9df] md:px-10 md:pb-8"
-          style={{ opacity: metaOpacity }}
-        >
+        <motion.div className="absolute inset-x-0 bottom-0 z-10 flex items-end justify-between px-5 pb-6 text-[#efe9df] md:px-10 md:pb-8" style={{ opacity: metaOpacity }}>
           <motion.a
             href={xUrl}
             target="_blank"
             rel="noreferrer"
-            aria-label="Sígueme en X"
-            data-testid="hero-x-link"
+            aria-label={t("hero.followX")}
             initial={{ opacity: 0, y: 12 }}
             animate={ready ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 1.1, ease: EASE }}
@@ -132,30 +132,24 @@ export default function HeroCinematic({ ready }) {
               <XIcon className="h-4 w-4" />
             </span>
             <span className="label-xs hidden -translate-x-2 text-[#efe9df]/80 opacity-0 transition-[opacity,transform] duration-500 group-hover:translate-x-0 group-hover:opacity-100 md:inline">
-              Sígueme en X
+              {t("hero.followX")}
             </span>
           </motion.a>
 
           <motion.button
-            data-testid="hero-scroll-cta"
-            onClick={() => scrollTo("#proyectos")}
+            onClick={() => scrollTo("#servicios")}
             initial={{ opacity: 0 }}
             animate={ready ? { opacity: 1 } : {}}
             transition={{ duration: 1, delay: 1.2 }}
             className="group absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 md:bottom-8"
           >
-            <span className="label-xs text-[#efe9df]/75 transition-colors duration-300 group-hover:text-[#e8a15b]">Scroll para entrar</span>
+            <span className="label-xs text-[#efe9df]/75 transition-colors duration-300 group-hover:text-[#e8a15b]">{t("hero.scroll")}</span>
             <span className="relative h-12 w-px overflow-hidden bg-[#efe9df]/15">
               <span className="scroll-line absolute inset-0 bg-[#efe9df]" />
             </span>
           </motion.button>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={ready ? { opacity: 1 } : {}}
-            transition={{ duration: 1, delay: 1.2 }}
-            className="text-right"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={ready ? { opacity: 1 } : {}} transition={{ duration: 1, delay: 1.2 }} className="text-right">
             <p className="label-xs hidden text-[#efe9df]/55 md:block">Barcelona · ES</p>
             <LiveClock className="font-mono-d mt-2 block text-sm tabular-nums md:text-lg" seconds={false} />
           </motion.div>

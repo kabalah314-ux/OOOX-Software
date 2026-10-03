@@ -1,31 +1,31 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Monitor, Coins, Layers, List } from "lucide-react";
 import SplitFlap from "./SplitFlap";
 import Chapter from "./Chapter";
-import WebShowcase from "./WebShowcase";
-import CryptoShowcase from "./CryptoShowcase";
-import ProjectIndex from "./ProjectIndex";
+import SelectedWork from "./SelectedWork";
 import { EASE } from "./helpers";
-import { projects, categories } from "@/data/mock";
+import { projects, categories, img } from "@/data/mock";
+import { useLang } from "@/i18n";
 
-export default function Projects({ category, setCategory, view, setView }) {
-  const items = projects.filter((p) => p.category === category);
-  const cat = categories.find((c) => c.id === category);
-  const isCrypto = category === "crypto";
+// Orden de exposición dentro de cada categoría
+const ORDER = ["usain-bot", "elementia", "crossia", "casa-aurea", "massflow", "moog-barcelona"];
+
+export default function Projects({ category, setCategory }) {
+  const { t } = useLang();
+  const catId = categories.some((c) => c.id === category) ? category : categories[0].id;
+  const items = projects
+    .filter((p) => p.category === catId)
+    .sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
+  const activeCat = categories.find((c) => c.id === catId);
+  const isCrypto = catId === "crypto";
 
   return (
-    <Chapter id="proyectos" testid="projects-section" className="z-10 -mt-[35vh] bg-[#14130f] shadow-[0_-40px_90px_-10px_rgba(0,0,0,0.55)]">
-      {/* sticky background */}
+    <Chapter id="proyectos" className="z-20 -mt-16 bg-[#14130f] shadow-[0_-40px_90px_-10px_rgba(0,0,0,0.55)]">
       <div className="pointer-events-none absolute inset-0">
         <div className="sticky top-0 h-screen w-full overflow-hidden">
-          <img src="/img/projects-bg.jpg" alt="" className="h-full w-full object-cover" />
+          <img src={img("/img/projects-bg.jpg")} alt="" className="h-full w-full object-cover" />
           <motion.div className="absolute inset-0 bg-[#0e0d0b]" animate={{ opacity: isCrypto ? 0.9 : 0.35 }} transition={{ duration: 0.9, ease: EASE }} />
-          <motion.div
-            className="grid-lines absolute inset-0 text-[#e8a15b]"
-            animate={{ opacity: isCrypto ? 0.06 : 0 }}
-            transition={{ duration: 0.9 }}
-          />
+          <motion.div className="grid-lines absolute inset-0 text-[#e8a15b]" animate={{ opacity: isCrypto ? 0.06 : 0 }} transition={{ duration: 0.9 }} />
           <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#14130f] to-transparent" />
         </div>
       </div>
@@ -33,28 +33,27 @@ export default function Projects({ category, setCategory, view, setView }) {
       <div className="relative z-10 mx-auto max-w-[1600px] px-4 pb-32 pt-20 md:px-8 md:pb-44 md:pt-28">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="label-xs mb-6 text-[#efe9df]/70">01 — Proyectos</p>
-            <SplitFlap text="CONOCE MIS PROYECTOS" />
+            <p className="label-xs mb-6 text-[#efe9df]/70">02 — {t("projects.eyebrow")}</p>
+            <SplitFlap text={String(t("projects.eyebrow")).toUpperCase()} />
+            <p className="mt-8 max-w-xl text-[17px] leading-relaxed text-[#efe9df]/65">{t("projects.lead")}</p>
           </div>
           <p className="font-mono-d text-xs text-[#efe9df]/60 lg:text-right">
-            {String(projects.length).padStart(2, "0")} proyectos · {categories.length} categorías
-            <br className="hidden lg:block" /> <span className="text-[#e8a15b]">●</span> Actualizado 2026
+            {String(projects.length).padStart(2, "0")} {t("projects.projectsWord")} · {categories.length} {t("projects.categoriesWord")}
+            <br className="hidden lg:block" /> <span className="text-[#e8a15b]">●</span> {t("projects.updated")}
           </p>
         </div>
 
-        {/* controls */}
-        <div className="relative z-30 mt-12 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex w-full rounded-full border border-white/10 bg-[#14130f]/70 p-1.5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:w-auto">
+        {/* categorías */}
+        <div className="relative z-30 mt-12">
+          <div className="flex w-full flex-wrap rounded-full border border-white/10 bg-[#14130f]/70 p-1.5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:w-auto">
             {categories.map((c) => {
-              const active = c.id === category;
+              const active = c.id === catId;
               const count = projects.filter((p) => p.category === c.id).length;
-              const Icon = c.id === "web" ? Monitor : Coins;
               return (
                 <button
                   key={c.id}
-                  data-testid={`category-tab-${c.id}`}
                   onClick={() => setCategory(c.id)}
-                  className={`relative flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3 text-[11px] font-medium uppercase tracking-[0.12em] transition-colors duration-500 sm:flex-none sm:gap-2.5 sm:px-5 sm:text-[12px] sm:tracking-[0.18em] md:px-8 md:py-4 md:text-[13px] ${
+                  className={`relative flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-3 text-[11px] font-medium uppercase tracking-[0.14em] transition-colors duration-500 sm:flex-none sm:gap-3 sm:px-6 sm:text-[12px] sm:tracking-[0.18em] md:px-8 md:py-4 md:text-[13px] ${
                     active ? "text-[#14130f]" : "text-[#efe9df]/70 hover:text-[#efe9df]"
                   }`}
                 >
@@ -66,50 +65,44 @@ export default function Projects({ category, setCategory, view, setView }) {
                       transition={{ type: "spring", stiffness: 380, damping: 32 }}
                     />
                   )}
-                  <Icon className="relative h-4 w-4" />
-                  <span className="relative">{c.label}</span>
+                  <span className="font-mono-d relative text-[10px] opacity-70">{c.n}</span>
+                  <span className="relative">{t(`projects.categories.${c.id}.label`)}</span>
                   <sup className="font-mono-d relative text-[10px]">{String(count).padStart(2, "0")}</sup>
                 </button>
               );
             })}
           </div>
 
-          <div className="flex items-center gap-1 rounded-full border border-white/10 bg-[#14130f]/70 p-1.5 backdrop-blur-xl">
-            {[
-              { id: "showcase", label: "Showcase", Icon: Layers },
-              { id: "index", label: "Índice", Icon: List },
-            ].map(({ id, label, Icon }) => (
-              <button
-                key={id}
-                data-testid={`view-toggle-${id}`}
-                onClick={() => setView(id)}
-                className={`relative flex items-center gap-2 rounded-full px-4 py-2.5 text-[11px] uppercase tracking-[0.18em] transition-colors duration-300 ${
-                  view === id ? "text-[#14130f]" : "text-[#efe9df]/60 hover:text-[#efe9df]"
-                }`}
-              >
-                {view === id && <motion.span layoutId="view-pill" className="absolute inset-0 rounded-full bg-[#efe9df]" transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
-                <Icon className="relative h-3.5 w-3.5" />
-                <span className="relative hidden sm:inline">{label}</span>
-              </button>
-            ))}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={catId}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.5, ease: EASE }}
+              className="mt-6 max-w-lg text-[15px] leading-relaxed text-[#efe9df]/55"
+            >
+              {t(`projects.categories.${catId}.description`)}
+            </motion.p>
+          </AnimatePresence>
         </div>
 
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${category}-${view}`}
+            key={catId}
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -30 }}
             transition={{ duration: 0.6, ease: EASE }}
-            className="mt-10"
+            className="mt-12"
           >
-            {view === "index" ? (
-              <ProjectIndex items={items} dark={isCrypto} />
-            ) : isCrypto ? (
-              <CryptoShowcase items={items} />
+            {items.length ? (
+              <SelectedWork items={items} />
             ) : (
-              <WebShowcase items={items} />
+              <div className="rounded-[24px] border border-dashed border-white/12 px-8 py-14 text-center">
+                <p className="font-serif-d text-[clamp(1.8rem,3vw,2.6rem)] font-light italic text-[#efe9df]/70">{t("projects.emptyTitle")}</p>
+                <p className="mt-3 text-sm text-white/45">{t("projects.emptyText")}</p>
+              </div>
             )}
           </motion.div>
         </AnimatePresence>

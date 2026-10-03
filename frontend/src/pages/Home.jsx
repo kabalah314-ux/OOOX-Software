@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import HeroCinematic from "@/components/site/HeroCinematic";
 import SectionRail from "@/components/site/SectionRail";
 import Projects from "@/components/site/Projects";
-import ServicesScroll from "@/components/site/ServicesScroll";
+import HowIWork from "@/components/site/HowIWork";
 import About from "@/components/site/About";
 import Contact from "@/components/site/Contact";
 import Footer from "@/components/site/Footer";
@@ -12,8 +12,7 @@ import { useSmooth } from "@/lib/smooth";
 export default function Home({ ready }) {
   const location = useLocation();
   const { scrollTo } = useSmooth();
-  const [category, setCategory] = useState(location.state?.category || sessionStorage.getItem("ooox_cat") || "web");
-  const [view, setView] = useState("showcase");
+  const [category, setCategory] = useState(location.state?.category || sessionStorage.getItem("ooox_cat") || "crypto");
 
   useEffect(() => {
     sessionStorage.setItem("ooox_cat", category);
@@ -23,7 +22,6 @@ export default function Home({ ready }) {
     const target = location.state?.scrollTo;
     if (target) {
       const t = setTimeout(() => scrollTo(`#${target}`, { immediate: true }), 80);
-      window.history.replaceState({}, "");
       return () => clearTimeout(t);
     }
     scrollTo(0, { immediate: true });
@@ -31,10 +29,10 @@ export default function Home({ ready }) {
   }, []);
 
   return (
-    <main data-testid="home-page">
+    <main>
       <HeroCinematic ready={ready} />
-      <Projects category={category} setCategory={setCategory} view={view} setView={setView} />
-      <ServicesScroll onPick={setCategory} />
+      <HowIWork />
+      <Projects category={category} setCategory={setCategory} />
       <About />
       <Contact />
       <Footer overlap />

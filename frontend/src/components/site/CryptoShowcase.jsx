@@ -50,7 +50,6 @@ function TokenCard({ p, featured = false, index }) {
     <motion.article
       ref={ref}
       onMouseMove={onMove}
-      data-testid={`crypto-card-${p.id}`}
       initial={{ opacity: 0, y: 60 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -65,13 +64,11 @@ function TokenCard({ p, featured = false, index }) {
         className={`relative h-full overflow-hidden rounded-[27px] bg-[#100f0d] p-5 text-[#efe9df] sm:p-7 ${featured ? "lg:grid lg:grid-cols-12 lg:gap-10 lg:p-10" : ""}`}
         style={{ backgroundImage: `radial-gradient(700px circle at var(--mx, 50%) var(--my, 0%), ${p.accent}14, transparent 40%)` }}
       >
-        {/* visual */}
         <div className={`relative ${featured ? "lg:col-span-7" : ""}`} data-cursor="Recorrer">
           <div className="absolute -inset-4 rounded-full opacity-30 blur-[70px] transition-opacity duration-700 group-hover:opacity-60" style={{ background: p.accent }} />
           <BrowserMockup project={p} dark active={active} onToggle={() => setActive((a) => !a)} className="relative" />
         </div>
 
-        {/* info */}
         <div className={`relative mt-7 flex flex-col ${featured ? "lg:col-span-5 lg:mt-0" : ""}`}>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4">
@@ -93,7 +90,7 @@ function TokenCard({ p, featured = false, index }) {
           <p className="font-serif-d mt-2 italic text-white/55">{p.kicker}</p>
           <p className="mt-4 text-[15px] leading-relaxed text-white/65">{p.description}</p>
 
-          <div className="mt-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 font-mono-d text-[11px] text-white/70">
+          <div className="font-mono-d mt-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] text-white/70">
             <Link2 className="h-3.5 w-3.5" style={{ color: p.accent }} /> {tk.chain} · EVM {tk.chainId}
           </div>
 
@@ -108,7 +105,6 @@ function TokenCard({ p, featured = false, index }) {
 
           <div className="mt-7 flex flex-wrap items-center gap-2.5 lg:mt-auto lg:pt-7">
             <a
-              data-testid={`crypto-web-${p.id}`}
               href={p.socials?.web || p.url}
               target="_blank"
               rel="noreferrer"
@@ -118,17 +114,16 @@ function TokenCard({ p, featured = false, index }) {
               Abrir web <ArrowUpRight className="h-4 w-4" />
             </a>
             {p.socials?.x && (
-              <a data-testid={`crypto-x-${p.id}`} href={p.socials.x} target="_blank" rel="noreferrer" aria-label="X" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 transition-colors duration-300 hover:bg-[#efe9df] hover:text-[#14130f]">
+              <a href={p.socials.x} target="_blank" rel="noreferrer" aria-label="X" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 transition-colors duration-300 hover:bg-[#efe9df] hover:text-[#14130f]">
                 <XIcon />
               </a>
             )}
             {p.socials?.telegram && (
-              <a data-testid={`crypto-telegram-${p.id}`} href={p.socials.telegram} target="_blank" rel="noreferrer" aria-label="Telegram" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 transition-colors duration-300 hover:bg-[#efe9df] hover:text-[#14130f]">
+              <a href={p.socials.telegram} target="_blank" rel="noreferrer" aria-label="Telegram" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 transition-colors duration-300 hover:bg-[#efe9df] hover:text-[#14130f]">
                 <TelegramIcon />
               </a>
             )}
             <button
-              data-testid={`crypto-case-${p.id}`}
               onClick={() => navigate(`/proyecto/${p.id}`)}
               className="group/b ml-auto inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.15em] text-white/70 transition-colors duration-300 hover:text-[#efe9df]"
             >
@@ -145,22 +140,20 @@ export default function CryptoShowcase({ items }) {
   const [featured, ...rest] = items;
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 font-mono-d text-[12px] text-white/55">
+      <div className="font-mono-d mb-5 flex flex-wrap items-center justify-between gap-3 text-[12px] text-white/55">
         <span>
           <span className="text-[#e8a15b]">ooox@archivo</span>:~$ ls ./crypto --launched
           <span className="ml-1 inline-block h-3.5 w-2 translate-y-0.5 animate-pulse bg-[#e8a15b]" />
         </span>
-        <span>{String(items.length).padStart(2, "0")} proyectos · 1 cadena · actualizado 2026</span>
+        <span>{String(items.length).padStart(2, "0")} tokens · Robinhood Chain</span>
       </div>
       <TickerTape items={items} />
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
         {featured && <TokenCard p={featured} featured index={0} />}
         {rest.map((p, i) => (
           <TokenCard key={p.id} p={p} index={i + 1} />
         ))}
-        <div className={`min-w-0 ${rest.length % 2 === 0 ? "lg:col-span-2" : ""}`}>
-          <TeaserCard dark className={rest.length % 2 === 0 ? "" : "h-full lg:flex-col lg:items-start lg:justify-center"} />
-        </div>
+        <TeaserCard dark />
       </div>
     </div>
   );

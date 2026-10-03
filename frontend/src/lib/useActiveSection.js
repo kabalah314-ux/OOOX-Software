@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 export const SECTIONS = [
-  { id: "proyectos", label: "Proyectos", n: "01" },
-  { id: "servicios", label: "Servicios", n: "02" },
+  { id: "servicios", label: "Cómo trabajo", n: "01" },
+  { id: "proyectos", label: "Proyectos", n: "02" },
   { id: "sobre-mi", label: "Sobre mí", n: "03" },
   { id: "contacto", label: "Contacto", n: "04" },
 ];

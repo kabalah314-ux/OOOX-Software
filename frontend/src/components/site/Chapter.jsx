@@ -6,11 +6,6 @@ export const clamp01 = (v) => Math.max(0, Math.min(1, v));
 export const easeOut = (v) => 1 - Math.pow(1 - v, 3);
 export const easeInOut = (v) => (v < 0.5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2);
 
-/**
- * Chapter — shared section transition language:
- *  - enters with a "hill arch" top edge that flattens as it rises
- *  - leaves by tilting back, shrinking and dimming (same camera pull-back as the hero)
- */
 export default function Chapter({ id, targetRef, className = "", style, arch = true, recede = true, children, testid, dimColor = "#0b0a09" }) {
   const own = useRef(null);
   const ref = targetRef || own;
@@ -49,10 +44,6 @@ export default function Chapter({ id, targetRef, className = "", style, arch = t
   );
 }
 
-/**
- * SunPortal — pinned stage where a small "sun" grows into a full-screen circle.
- * children receive the scroll progress (0..1) via render prop.
- */
 export function SunPortal({ height = "220vh", className = "", stageClassName = "", render, testid }) {
   const ref = useRef(null);
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end end"] });
