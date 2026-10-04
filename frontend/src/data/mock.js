@@ -9,10 +9,10 @@ export const brand = {
   city: "Barcelona",
   timezone: "Europe/Madrid",
   socials: [
-    { id: "x", label: "X", url: "https://x.com/" },
-    { id: "telegram", label: "Telegram", url: "https://t.me/" },
-    { id: "github", label: "GitHub", url: "https://github.com/" },
-    { id: "linkedin", label: "LinkedIn", url: "https://www.linkedin.com/" },
+    { id: "x", label: "X", url: "https://x.com/softwareOOOX" },
+    { id: "telegram", label: "Telegram", url: null },
+    { id: "github", label: "GitHub", url: null },
+    { id: "linkedin", label: "LinkedIn", url: null },
   ],
 };
 
@@ -118,6 +118,7 @@ export const projects = [
   {
     id: "casa-aurea", category: "business", title: "Áurea", kicker: "Viviendas contemporáneas que se recorren en 3D", year: "2026",
     type: "Web inmobiliaria · Promotora premium", status: "Online", statusTone: "live", access: "public", url: AUREA,
+    socials: { x: "https://x.com/softwareOOOX" },
     cover: `${AUREA}images/aurea/hero.jpg`, long: AUREA_FULL, mobile: `${AUREA}images/aurea/living.jpg`,
     video: { src: "/videos/aurea.mp4", poster: "/videos/aurea.jpg", label: "Tour 3D · Villa Áurea" },
     // Imágenes reales del interior de la Villa Áurea (lo que se recorre en el tour 3D)
@@ -139,6 +140,7 @@ export const projects = [
   {
     id: "moog-barcelona", category: "business", title: "MOOG Barcelona", kicker: "30 aniversario · techno desde 1996", year: "2026",
     type: "Web de club · Rediseño", status: "Online", statusTone: "live", access: "public", url: "https://moog-barcelona.vercel.app",
+    socials: { x: "https://x.com/softwareOOOX" },
     ...shots("moog"), accent: "#5EEAD4", accentSoft: "#0B1416",
     description: "Réplica mejorada de la web del club techno más mítico del Raval: agenda, merch, residentes, galería y un orbe 3D que reacciona al ratón.",
     longDescription: "Para el 30 aniversario de MOOG planteé una web que respirase la cabina: tipografía gigante, un orbe líquido en tiempo real, agenda con filas que laten al ritmo y un índice de DJs con foto al hover. Misma estructura que la original, pero con movimiento, sonido opcional y una experiencia mucho más cercana a estar en el club a las 23:59h.",
@@ -149,6 +151,7 @@ export const projects = [
   {
     id: "massflow", category: "business", title: "MassFlow", kicker: "SaaS de gestión de masajes a domicilio", year: "2026",
     type: "SaaS · Panel de gestión", status: "Privado", statusTone: "private", access: "private", url: "https://saas-madajesadomicilio.vercel.app/",
+    socials: { x: "https://x.com/softwareOOOX" },
     cover: "/projects/massflow_admin_dashboard.jpg",
     video: { src: "/videos/massflow.mp4", poster: "/videos/massflow.jpg", label: "Admin · Reservas · Agente IA · Finanzas" },
     long: "/projects/massflow_admin_dashboard.jpg",
@@ -186,7 +189,7 @@ export const projects = [
     ...shots("elementia"), accent: "#F5C24B", accentSoft: "#1A1508",
     video: { src: "/videos/elementia.mp4", poster: "/videos/elementia.jpg", label: "Combate 3×3 · Mercado" },
     token: { ticker: "$ELT", chain: "Robinhood Chain", chainId: "4663", supply: "100M", tax: "—", liquidity: "LP 24m" },
-    socials: { web: "https://axie-infinity-style-game.vercel.app/", x: "https://x.com/", telegram: "https://t.me/" },
+    socials: { web: "https://axie-infinity-style-game.vercel.app/", x: "https://x.com/softwareOOOX", telegram: "https://t.me/" },
     description: "Juego de criaturas estilo Axie en Robinhood Chain: mina huevos, cría nuevas generaciones y combate 3×3 por turnos con 18 tipos.",
     longDescription: "Elementia es un juego completo con economía de dos activos: Gemas (off-chain, se ganan jugando) y ELT, token ERC-20 de 100M fijos para premios de temporada y gobernanza. Aventura en solitario de 15 etapas, Arena PvP con MMR y 6 ligas, mercado entre jugadores con 5 % de comisión y temporadas de 28 días.",
     highlights: ["Combates 3×3 por turnos con tabla de 18 tipos", "Criaturas generadas desde su ADN: 4 partes y genes 0-31", "Mercado P2P, cría y quema verificable on-chain", "Temporadas de 28 días con 250.000 ELT en premios"],
@@ -199,7 +202,7 @@ export const projects = [
     ...shots("bolt"), accent: "#FFD83D", accentSoft: "#17150A",
     video: { src: "/videos/usain-bot-3d.mp4", poster: "/videos/usain-bot-3d.jpg", label: "3D Open World · Misiones · Coches" },
     token: { ticker: "$BOLT", chain: "Robinhood Chain", chainId: "4663", supply: "1B", tax: "0/0", liquidity: "100% lock" },
-    socials: { web: "https://usain-bot.vercel.app/", x: "https://x.com/", telegram: "https://t.me/" },
+    socials: { web: "https://usain-bot.vercel.app/", x: "https://x.com/usainthebot", telegram: "https://t.me/" },
     description: "El bot más rápido de Robinhood Chain. Memecoin con arcade jugable: 100m Masher y Reaction 9.39 con muro de campeones.",
     longDescription: "En 2026 un robot bajó de los 9.58 s de Bolt. $BOLT convierte esa historia en una memecoin con identidad cómic, dos minijuegos arcade gratuitos, leaderboard, roadmap en 4 calles y guía de compra. Sin preventa ni tokens de equipo: 0/0 de tasas y liquidez bloqueada para siempre tras la curva.",
     highlights: ["Arcade con 2 minijuegos y leaderboard general", "Historia de origen en formato portada de periódico", "Tokenomics transparentes: 0/0 tax, 100 % público", "Rig animado del personaje por piezas"],
@@ -211,6 +214,7 @@ export const projects = [
     id: "crossia", category: "crypto", title: "CrossIA", year: "2026",
     type: "AI Game · Interactive World", status: "Prototype", statusTone: "build", access: "public",
     url: "https://threejs-interactive-village-prototy.vercel.app/",
+    socials: { x: "https://x.com/softwareOOOX" },
     accent: "#8AB4F8", accentSoft: "#0B1020",
     video: { src: "/videos/crossia.mp4", poster: "/videos/crossia.jpg", label: "Explora · Habla · Genera · Gana" },
     // Datos extraídos de la web real del proyecto

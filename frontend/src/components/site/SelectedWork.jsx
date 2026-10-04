@@ -6,7 +6,8 @@ import CyclingImages from "./CyclingImages";
 import CrossiaScene from "./CrossiaScene";
 import ElementiaScene from "./ElementiaScene";
 import HoverVideo from "./HoverVideo";
-import { EASE, StatusPill } from "./helpers";
+import { EASE, StatusPill, xHandleOf } from "./helpers";
+import { XIcon } from "./icons";
 import { workCards } from "@/data/mock";
 import { useLang } from "@/i18n";
 
@@ -128,6 +129,19 @@ function WorkCard({ p, index, featured }) {
 
         <div className="mt-7 flex items-center gap-3">
           <StatusPill tone={p.statusTone} label={card.facts?.find(([k]) => k === "Status")?.[1] || p.status} dark accent={p.accent} />
+          {p.socials?.x && (
+            <a
+              href={p.socials.x}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              aria-label={`X · ${xHandleOf(p.socials.x)}`}
+              title={xHandleOf(p.socials.x)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors duration-300 hover:border-[#efe9df] hover:bg-[#efe9df] hover:text-[#14130f]"
+            >
+              <XIcon className="h-3.5 w-3.5" />
+            </a>
+          )}
           <span
             className={`ml-auto inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] transition-colors duration-300 ${
               p.placeholder ? "text-white/30" : "text-white/50 group-hover:text-[#efe9df]"

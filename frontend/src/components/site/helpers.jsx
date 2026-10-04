@@ -132,3 +132,8 @@ export function useIsDesktop(bp = 1024) {
 }
 
 export const domainOf = (url = "") => url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+export const xHandleOf = (url = "") => {
+  const m = String(url).match(/(?:x|twitter)\.com\/([^/?#]+)/i);
+  return m ? `@${m[1]}` : "";
+};

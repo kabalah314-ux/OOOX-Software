@@ -14,7 +14,7 @@ export const contactContent = {
   copyright: "OOOX",
   socials: [
     // Añade la cuenta de OOOX en `url` para activar el enlace.
-    { id: "x", label: "X", url: null },
+    { id: "x", label: "X", url: "https://x.com/softwareOOOX" },
     { id: "github", label: "GitHub", url: null },
     { id: "linkedin", label: "LinkedIn", url: null },
   ],

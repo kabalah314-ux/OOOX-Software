@@ -5,7 +5,8 @@ import { ArrowLeft, ArrowUpRight, ArrowRight, Check } from "lucide-react";
 import { projects, workCards } from "@/data/mock";
 import { BrowserMockup, PhoneMockup } from "@/components/site/Mockups";
 import HoverVideo from "@/components/site/HoverVideo";
-import { MaskLines, StatusPill, Reveal, EASE, domainOf } from "@/components/site/helpers";
+import { MaskLines, StatusPill, Reveal, EASE, domainOf, xHandleOf } from "@/components/site/helpers";
+import { XIcon } from "@/components/site/icons";
 import Footer from "@/components/site/Footer";
 import { useSmooth } from "@/lib/smooth";
 import { useLang } from "@/i18n";
@@ -74,6 +75,19 @@ export default function CaseStudy() {
                 {t("case.demo")} <ArrowUpRight className="h-4 w-4" />
               </button>
             )}
+            {p.socials?.x && (
+              <a
+                href={p.socials.x}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`X · ${xHandleOf(p.socials.x)}`}
+                className="group inline-flex items-center gap-3 rounded-full border border-white/25 bg-white/[0.04] px-6 py-3.5 text-[12px] font-bold uppercase tracking-[0.15em] text-[#efe9df] transition-colors duration-300 hover:border-[#efe9df] hover:bg-[#efe9df] hover:text-[#14130f]"
+                style={{ boxShadow: `0 18px 50px -25px ${p.accent}` }}
+              >
+                <XIcon className="h-4 w-4" />
+                {xHandleOf(p.socials.x)}
+              </a>
+            )}
           </div>
         </div>
       </section>
@@ -122,6 +136,14 @@ export default function CaseStudy() {
                 [tLabel("Acceso"), tLabel(p.access === "private" ? "Privado" : "Público")],
                 [tLabel("Stack"), p.stack.join(" · ")],
                 ...(p.token ? [[tLabel("Chain"), `${p.token.chain} · ${p.token.chainId}`], [tLabel("Supply"), p.token.supply], [tLabel("Tax"), p.token.tax]] : []),
+                ...(p.socials?.x
+                  ? [[
+                      tLabel("X"),
+                      <a key="x" href={p.socials.x} target="_blank" rel="noreferrer" className="transition-colors duration-300 hover:text-[#e8a15b]">
+                        {xHandleOf(p.socials.x)}
+                      </a>,
+                    ]]
+                  : []),
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-4 border-t border-white/10 py-4 text-sm">
                   <dt className="text-white/50">{k}</dt>
@@ -166,15 +188,17 @@ export default function CaseStudy() {
           </div>
         </div>
 
-        <div className="mt-24 grid gap-6 md:grid-cols-2">
-          {p.gallery.map((g, i) => (
-            <Reveal key={g} delay={i * 0.1}>
-              <div className="overflow-hidden rounded-[24px] border border-white/10">
-                <img src={g} alt={`${p.title} ${i + 1}`} loading="lazy" className="aspect-[4/3] w-full object-cover object-top transition-transform duration-700 hover:scale-105" />
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        {p.gallery?.length > 0 && (
+          <div className="mt-24 grid gap-6 md:grid-cols-2">
+            {p.gallery.map((g, i) => (
+              <Reveal key={g} delay={i * 0.1}>
+                <div className="overflow-hidden rounded-[24px] border border-white/10">
+                  <img src={g} alt={`${p.title} ${i + 1}`} loading="lazy" className="aspect-[4/3] w-full object-cover object-top transition-transform duration-700 hover:scale-105" />
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="px-4 pb-24 md:px-8">
@@ -183,7 +207,7 @@ export default function CaseStudy() {
           data-cursor={t("case.next")}
           className="group relative mx-auto block w-full max-w-[1600px] overflow-hidden rounded-[32px] border border-white/10 text-left"
         >
-          <img src={next.cover} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30 transition-[transform,opacity] duration-1000 group-hover:scale-105 group-hover:opacity-50" />
+          <img src={next.cover || next.video?.poster || ""} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30 transition-[transform,opacity] duration-1000 group-hover:scale-105 group-hover:opacity-50" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#14130f] via-[#14130f]/70 to-transparent" />
           <div className="relative flex items-end justify-between gap-6 p-8 md:p-16">
             <div>

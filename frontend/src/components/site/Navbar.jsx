@@ -132,8 +132,13 @@ export default function Navbar() {
             <div className="absolute inset-x-6 bottom-8 flex items-center justify-between">
               <a href={`mailto:${brand.email}`} className="text-sm text-[#efe9df]/70">{brand.email}</a>
               <div className="flex gap-2">
-                <a href={brand.socials[0].url} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-[#efe9df]/20"><XIcon /></a>
-                <a href={brand.socials[1].url} target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-[#efe9df]/20"><TelegramIcon /></a>
+                {brand.socials
+                  .filter((s) => s.url)
+                  .map((s) => (
+                    <a key={s.id} href={s.url} target="_blank" rel="noreferrer" aria-label={s.label} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#efe9df]/20 transition-colors duration-300 hover:border-[#efe9df] hover:bg-[#efe9df] hover:text-[#14130f]">
+                      {s.id === "telegram" ? <TelegramIcon /> : <XIcon />}
+                    </a>
+                  ))}
               </div>
             </div>
           </motion.div>
