@@ -165,8 +165,8 @@ export default function CaseStudy() {
 
             <div className="mt-16 grid grid-cols-3 gap-4 border-y border-white/10 py-10">
               {p.metrics.map((m) => (
-                <div key={m.label}>
-                  <p className="font-serif-d text-4xl font-light md:text-6xl" style={{ color: p.accent }}>{m.value}</p>
+                <div key={m.label} className="min-w-0">
+                  <p className="font-serif-d text-[clamp(1.5rem,6vw,3.5rem)] font-light leading-none break-words md:text-6xl" style={{ color: p.accent }}>{m.value}</p>
                   <p className="mt-2 text-xs uppercase tracking-[0.16em] text-white/50">{tLabel(m.label)}</p>
                 </div>
               ))}
