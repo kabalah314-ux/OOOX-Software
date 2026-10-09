@@ -40,7 +40,7 @@ function PlaceholderVisual({ p }) {
 
 function WorkCard({ p, index, featured }) {
   const navigate = useNavigate();
-  const { t, lang } = useLang();
+  const { t, tLabel, lang } = useLang();
   const localized = lang === "es" ? t(`work.cards.${p.id}`) || {} : {};
   const card = { ...(workCards[p.id] || {}), ...localized };
   const [hover, setHover] = useState(false);
@@ -127,8 +127,13 @@ function WorkCard({ p, index, featured }) {
           ))}
         </div>
 
-        <div className="mt-7 flex items-center gap-3">
+        <div className="mt-7 flex flex-wrap items-center gap-3">
           <StatusPill tone={p.statusTone} label={card.facts?.find(([k]) => k === "Status")?.[1] || p.status} dark accent={p.accent} />
+          {p.demo && (
+            <span className="rounded-full border border-white/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-[#e8a15b]">
+              {tLabel("Demo")}
+            </span>
+          )}
           {p.socials?.x && (
             <a
               href={p.socials.x}

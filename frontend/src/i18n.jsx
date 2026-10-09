@@ -119,6 +119,7 @@ const dict = {
       Superficie: "Surface", Habitaciones: "Bedrooms", Tour: "Tour", Secciones: "Sections",
       Eventos: "Events", Orbes: "Orbs", Roles: "Roles", Módulos: "Modules", Supply: "Supply",
       Vecinos: "Neighbours", Mundo: "World", Record: "Record", Juegos: "Games", Tax: "Tax",
+      Cadena: "Chain", "Creado en": "Created on",
       Ligas: "Leagues", Tipos: "Types", Baños: "Bathrooms", "Ocio nocturno": "Nightlife",
       Branding: "Branding", Animación: "Animation", SaaS: "SaaS", "Negocio local": "Local business",
       Reservas: "Booking", GameFi: "GameFi", P2E: "P2E", Tokenomics: "Tokenomics", Memecoin: "Memecoin",
@@ -199,10 +200,10 @@ const dict = {
       detailsSoon: "Detalles próximamente",
       cards: {
         "usain-bot": {
-          typeEn: "Memecoin · Arcade",
-          short: "Una memecoin con arcade jugable: dos minijuegos, una clasificación global y una historia de origen en formato cómic.",
-          route: ["Historia", "Arcade", "Clasificación", "Tokenomics"],
-          facts: [["", "Memecoin"], ["", "Robinhood"], ["", "2026"], ["", "Build mode"]],
+          typeEn: "Memecoin · Mundo 3D",
+          short: "Una memecoin con un mundo 3D jugable: misiones, conducción y una ciudad por explorar; los dos minijuegos arcade son un extra.",
+          route: ["Mundo 3D", "Misiones", "Coches", "Arcade"],
+          facts: [["", "Memecoin"], ["", "Solana"], ["", "2026"], ["", "Build mode"]],
         },
         elementia: {
           typeEn: "Juego Crypto · PvP",
@@ -211,10 +212,10 @@ const dict = {
           facts: [["", "Cría"], ["", "Combates 3×3"], ["", "PvP"], ["", "Solana"]],
         },
         crossia: {
-          typeEn: "Juego IA · Mundo Interactivo",
-          short: "Un planeta diminuto donde los vecinos animales necesitan web apps: exploras el mundo, aceptas sus misiones y construyes lo que necesitan con un portátil de IA.",
-          route: ["Explorar", "Hablar", "Generar", "Ganar"],
-          facts: [["", "Juego IA"], ["", "Planeta 3D"], ["", "Vecinos 7"], ["", "Prototipo"]],
+          typeEn: "Juego Solana · Mundo onírico",
+          short: "Un juego creado en Solana con el token CrossIA: una aventura online de comercio en un mundo onírico, con el objetivo de comprar el billete de avión y salir de la isla.",
+          route: ["Explorar", "Comerciar", "Ahorrar", "Volar"],
+          facts: [["", "Juego Solana"], ["", "CrossIA"], ["", "Mundo onírico"], ["", "Jugable"]],
         },
         "casa-aurea": {
           typeEn: "Inmobiliaria · Web",
@@ -230,7 +231,7 @@ const dict = {
         },
         "moog-barcelona": {
           typeEn: "Web de club · Rediseño",
-          short: "Un rediseño de la web de un club techno mítico: agenda, residentes, galería y un orbe 3D líquido que reacciona al cursor.",
+          short: "Un rediseño demo de la web de un club techno mítico, hecho solo para ooox: agenda, residentes, galería y un orbe 3D líquido que reacciona al cursor.",
           route: ["Inicio", "Agenda", "Residentes", "Galería"],
           facts: [["", "Web"], ["", "2026"], ["", "React · WebGL"], ["", "Online"]],
         },
@@ -272,9 +273,9 @@ const dict = {
       projects: {
         "moog-barcelona": {
           kicker: "30 aniversario · techno desde 1996",
-          description: "Réplica mejorada de la web del club techno más mítico del Raval: agenda, merch, residentes, galería y un orbe 3D que reacciona al ratón.",
+          description: "Proyecto demo · Réplica de la web del club techno MOOG hecha solo para la web ooox: agenda, merch, residentes, galería y un orbe 3D que reacciona al ratón.",
           longDescription:
-            "Para el 30 aniversario de MOOG planteé una web que respirase la cabina: tipografía gigante, un orbe líquido en tiempo real, agenda con filas que laten al ritmo y un índice de DJs con foto al hover. Misma estructura que la original, pero con movimiento, sonido opcional y una experiencia mucho más cercana a estar en el club a las 23:59h.",
+            "Este es un proyecto demo hecho solo para la web ooox: no es un encargo real del club, es una recreación propia. Para el 30 aniversario de MOOG planteé una web que respirase la cabina: tipografía gigante, un orbe líquido en tiempo real, agenda con filas que laten al ritmo y un índice de DJs con foto al hover. Misma estructura que la original, pero con movimiento, sonido opcional y una experiencia mucho más cercana a estar en el club a las 23:59h.",
           highlights: [
             "Orbe 3D interactivo en el hero con estela y reflejos",
             "Agenda de 28 eventos con suscripción a calendario",
@@ -320,26 +321,26 @@ const dict = {
         },
         "usain-bot": {
           kicker: "Winners are always first.",
-          description: "El bot más rápido de la cadena. Memecoin con arcade jugable: 100m Masher y Reaction 9.39 con muro de campeones.",
+          description: "El bot más rápido de Solana. Memecoin con un mundo 3D jugable: misiones, conducción y una ciudad por explorar; los dos minijuegos arcade son un extra.",
           longDescription:
-            "En 2026 un robot bajó de los 9.58 s de Bolt. $BOLT convierte esa historia en una memecoin con identidad cómic, dos minijuegos arcade gratuitos, leaderboard, roadmap en 4 calles y guía de compra. Sin preventa ni tokens de equipo: 0/0 de tasas y liquidez bloqueada para siempre tras la curva.",
+            "En 2026 un robot bajó de los 9.58 s de Bolt. $BOLT convierte esa historia en una memecoin con identidad cómic y un mundo 3D abierto en el que completas misiones y conduces por la ciudad. Creado en pump.fun, sin preventa ni tokens de equipo. Como extra, dos minijuegos arcade gratuitos con leaderboard global, roadmap en 4 calles y guía de compra.",
           highlights: [
-            "Arcade con 2 minijuegos y leaderboard general",
+            "Mundo 3D abierto: misiones, conducción y ciudad por explorar",
             "Historia de origen en formato portada de periódico",
-            "Tokenomics transparentes: 0/0 tax, 100 % público",
-            "Rig animado del personaje por piezas",
+            "Creado en pump.fun: sin preventa ni tokens de equipo",
+            "Extra: dos minijuegos arcade con leaderboard global",
           ],
         },
         crossia: {
-          kicker: "Un planeta diminuto habitado por animales con problemas",
-          description: "Un planeta diminuto habitado por animales con problemas: exploras el mundo, aceptas sus misiones y creas sus web apps con un portátil de IA.",
+          kicker: "Una aventura online para comerciar y salir de la isla",
+          description: "Juego creado en Solana con el token CrossIA: una aventura online de comercio en un mundo onírico con el objetivo de comprar el billete de avión para salir de la isla.",
           longDescription:
-            "Un planeta diminuto habitado por animales con grandes problemas, y tú eres el único humano con un portátil de IA. El bucle de juego recorre cuatro pasos: explorar el planeta (caminar, nadar y darle la vuelta hasta verlo entero), hablar con los vecinos marcados con un «!» y aceptar sus misiones, generar su web app escribiendo el prompt en la laptop, y ganar $TOKEN para desbloquear tiendas, skins, el barco mercante, memes y frutas doradas. Se juega sin registro, como invitado, con guardado local en el navegador.",
+            "Animal CrossIA es un juego creado en Solana, con el token CrossIA. Será una aventura online de comerciar en un mundo onírico: exploras la isla, comercias con sus habitantes y acumulas el dinero suficiente para comprar el billete de avión que te permitirá salir. El proyecto está en construcción y ya es jugable.",
           highlights: [
-            "Explora el planeta: camina, nada y da la vuelta hasta verlo entero",
-            "Habla con los vecinos marcados con «!» y acepta sus misiones",
-            "Abre la laptop de IA, escribe el prompt y crea su web app",
-            "Gana $TOKEN y desbloquea tiendas, skins, el barco mercante y frutas doradas",
+            "Creado en Solana con el token CrossIA",
+            "Aventura online en un mundo onírico",
+            "Comercia con los habitantes de la isla y acumula recursos",
+            "Objetivo final: comprar el billete de avión y salir de la isla",
           ],
         },
       },
@@ -352,9 +353,9 @@ dict.en.case.projects = {
   "moog-barcelona": {
     kicker: "30th anniversary · techno since 1996",
     description:
-      "An upgraded rebuild of the website of the most iconic techno club in the Raval: agenda, merch, residents, gallery and a 3D orb that reacts to the cursor.",
+      "Demo project · A rebuild of the website of the iconic techno club MOOG, made only for the ooox site: agenda, merch, residents, gallery and a 3D orb that reacts to the cursor.",
     longDescription:
-      "For MOOG's 30th anniversary I designed a website that breathes the booth: giant typography, a real-time liquid orb, an agenda with rows that pulse to the beat and a DJ index that shows a photo on hover. The same structure as the original, but with movement, optional sound and an experience much closer to being in the club at 11:59pm.",
+      "This is a demo project made only for the ooox site: it is not a real commission from the club, it is my own recreation. For MOOG's 30th anniversary I designed a website that breathes the booth: giant typography, a real-time liquid orb, an agenda with rows that pulse to the beat and a DJ index that shows a photo on hover. The same structure as the original, but with movement, optional sound and an experience much closer to being in the club at 11:59pm.",
     highlights: [
       "Interactive 3D orb in the hero with trail and reflections",
       "Agenda of 28 events with calendar subscription",
@@ -404,27 +405,27 @@ dict.en.case.projects = {
   "usain-bot": {
     kicker: "Winners are always first.",
     description:
-      "The fastest bot on chain. A memecoin with a playable arcade: 100m Masher and Reaction 9.39 with a champions wall.",
+      "The fastest bot on Solana. A memecoin with a playable 3D world: missions, driving and a city to explore; the two arcade minigames are an extra.",
     longDescription:
-      "In 2026 a robot broke Bolt's 9.58s record. $BOLT turns that story into a memecoin with comic identity, two free arcade minigames, a leaderboard, a 4-street roadmap and a buying guide. No presale and no team tokens: 0/0 taxes and liquidity locked forever after the curve.",
+      "In 2026 a robot broke Bolt's 9.58s record. $BOLT turns that story into a memecoin with comic identity and an open 3D world where you complete missions and drive around the city. Created on pump.fun, with no presale and no team tokens. As an extra, two free arcade minigames with a global leaderboard, a 4-street roadmap and a buying guide.",
     highlights: [
-      "Arcade with 2 minigames and a global leaderboard",
+      "Open 3D world: missions, driving and a city to explore",
       "Origin story told as a newspaper front page",
-      "Transparent tokenomics: 0/0 tax, 100% public",
-      "Character rig animated piece by piece",
+      "Created on pump.fun: no presale, no team tokens",
+      "Extra: two arcade minigames with a global leaderboard",
     ],
   },
   crossia: {
-    kicker: "A tiny planet inhabited by animals with problems",
+    kicker: "An online adventure to trade your way off the island",
     description:
-      "A tiny planet where animal neighbours need web apps: you explore the world, take on their missions and build what they need with an AI laptop.",
+      "A game created on Solana with the CrossIA token: an online trading adventure in an oniric world, aiming to buy the plane ticket that gets you off the island.",
     longDescription:
-      "A tiny planet inhabited by animals with big problems, and you are the only human with an AI laptop. The game loop has four steps: explore the planet (walk, swim and circle it until you see it whole), talk to the neighbours marked with a «!» and take their missions, generate their web app by writing the prompt on the laptop, and earn $TOKEN to unlock shops, skins, the merchant ship, memes and golden fruits. It plays without registration, as a guest, with local saving in the browser.",
+      "Animal CrossIA is a game created on Solana, with the CrossIA token. It will be an online trading adventure set in an oniric world: you explore the island, trade with its inhabitants and save enough money to buy the plane ticket that lets you leave. The project is under construction and already playable.",
     highlights: [
-      "Explore the planet: walk, swim and circle it until you see it whole",
-      "Talk to the neighbours marked with «!» and take their missions",
-      "Open the AI laptop, write the prompt and build their web app",
-      "Earn $TOKEN and unlock shops, skins, the merchant ship and golden fruits",
+      "Created on Solana with the CrossIA token",
+      "An online adventure in an oniric world",
+      "Trade with the island's inhabitants and save resources",
+      "Final goal: buy the plane ticket and leave the island",
     ],
   },
 };

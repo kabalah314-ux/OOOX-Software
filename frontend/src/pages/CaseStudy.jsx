@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, ArrowRight, Check } from "lucide-react";
-import { projects, workCards } from "@/data/mock";
+import { projects, workCards, nextProject } from "@/data/mock";
 import { BrowserMockup, PhoneMockup } from "@/components/site/Mockups";
 import HoverVideo from "@/components/site/HoverVideo";
 import { MaskLines, StatusPill, Reveal, EASE, domainOf, xHandleOf } from "@/components/site/helpers";
@@ -33,7 +33,7 @@ export default function CaseStudy() {
     );
   }
 
-  const next = projects[(idx + 1) % projects.length];
+  const next = nextProject(p);
   const isCrypto = p.category === "crypto";
   const back = () => navigate("/", { state: { scrollTo: "proyectos", category: p.category } });
 
@@ -56,6 +56,11 @@ export default function CaseStudy() {
 
           <div className="mt-12 flex flex-wrap items-center gap-4">
             <StatusPill tone={p.statusTone} label={card.facts?.find(([k]) => k === "Status")?.[1] || p.status} dark accent={p.accent} />
+            {p.demo && (
+              <span className="rounded-full border border-white/20 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-[#e8a15b]">
+                {tLabel("Demo")}
+              </span>
+            )}
             <span className="label-xs text-[#efe9df]/50">{typeLabel} · {p.year}</span>
             {p.token && <span className="font-mono-d text-sm font-bold" style={{ color: p.accent }}>{p.token.ticker}</span>}
           </div>
@@ -135,7 +140,14 @@ export default function CaseStudy() {
                 [tLabel("Tipo"), typeLabel],
                 [tLabel("Acceso"), tLabel(p.access === "private" ? "Privado" : "Público")],
                 [tLabel("Stack"), p.stack.join(" · ")],
-                ...(p.token ? [[tLabel("Chain"), `${p.token.chain} · ${p.token.chainId}`], [tLabel("Supply"), p.token.supply], [tLabel("Tax"), p.token.tax]] : []),
+                ...(p.token
+                  ? [
+                      [tLabel("Cadena"), `${p.token.chain}${p.token.chainId ? ` · ${p.token.chainId}` : ""}`],
+                      ...(p.token.supply ? [[tLabel("Supply"), p.token.supply]] : []),
+                      ...(p.token.createdOn ? [[tLabel("Creado en"), p.token.createdOn]] : []),
+                      ...(p.token.tax ? [[tLabel("Tax"), p.token.tax]] : []),
+                    ]
+                  : []),
                 ...(p.socials?.x
                   ? [[
                       tLabel("X"),

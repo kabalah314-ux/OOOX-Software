@@ -4,11 +4,8 @@ import SplitFlap from "./SplitFlap";
 import Chapter from "./Chapter";
 import SelectedWork from "./SelectedWork";
 import { EASE } from "./helpers";
-import { projects, categories, img } from "@/data/mock";
+import { projects, categories, img, ORDER } from "@/data/mock";
 import { useLang } from "@/i18n";
-
-// Orden de exposición dentro de cada categoría
-const ORDER = ["usain-bot", "elementia", "crossia", "casa-aurea", "massflow", "moog-barcelona"];
 
 export default function Projects({ category, setCategory }) {
   const { t } = useLang();
