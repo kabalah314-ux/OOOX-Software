@@ -1,12 +1,12 @@
 // OOOX — Datos del portfolio (recreado desde el repo original)
-const RAW = "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/main/frontend/public";
-export const img = (p) => `${RAW}${p}`;
-
 // Rutas relativas al documento: así los vídeos e imágenes locales funcionan
 // tanto si el build se sirve del dominio (ooox.es) como si se abre el
 // build/index.html directamente desde el disco (file://) o en un subdirectorio.
+// (Antes apuntaban a raw.githubusercontent, que tarda y a veces no carga.)
 export const asset = (p) =>
   typeof document === "undefined" ? p : new URL(String(p).replace(/^\/+/, ""), document.baseURI).href;
+
+export const img = (p) => asset(p);
 
 export const brand = {
   name: "OOOX",
@@ -91,7 +91,7 @@ export const workCards = {
   },
   "moog-barcelona": {
     typeEn: "Club website · Redesign",
-    short: "A demo rebuild of an iconic techno club site made only for ooox: agenda, residents, gallery and a liquid 3D orb that reacts to the cursor.",
+    short: "A demo rebuild of an iconic techno club site, made only for ooox to show one type of the websites I build: agenda, residents, gallery and a liquid 3D orb that reacts to the cursor.",
     route: ["Home", "Agenda", "Residents", "Gallery"],
     facts: [
       ["Type", "Website"],
@@ -149,8 +149,8 @@ export const projects = [
     socials: { x: "https://x.com/softwareOOOX" },
     ...shots("moog"), accent: "#5EEAD4", accentSoft: "#0B1416",
     demo: true,
-    description: "Proyecto demo · Réplica de la web del club techno MOOG hecha solo para la web ooox: agenda, merch, residentes, galería y un orbe 3D que reacciona al ratón.",
-    longDescription: "Este es un proyecto demo hecho solo para la web ooox: no es un encargo real del club, es una recreación propia. Para el 30 aniversario de MOOG planteé una web que respirase la cabina: tipografía gigante, un orbe líquido en tiempo real, agenda con filas que laten al ritmo y un índice de DJs con foto al hover. Misma estructura que la original, pero con movimiento, sonido opcional y una experiencia mucho más cercana a estar en el club a las 23:59h.",
+    description: "Proyecto demo para enseñar un tipo de las webs que hago: réplica de la web del club techno MOOG con agenda, merch, residentes, galería y un orbe 3D que reacciona al ratón. Hecha solo para la web ooox.",
+    longDescription: "MOOG Barcelona es un proyecto demo hecho solo para la web ooox para enseñar un tipo de web de las que hago: no es un encargo real del club, es una recreación propia. Para el 30 aniversario de MOOG planteé una web que respirase la cabina: tipografía gigante, un orbe líquido en tiempo real, agenda con filas que laten al ritmo y un índice de DJs con foto al hover. Misma estructura que la original, pero con movimiento, sonido opcional y una experiencia mucho más cercana a estar en el club a las 23:59h.",
     highlights: ["Orbe 3D interactivo en el hero con estela y reflejos", "Agenda de 28 eventos con suscripción a calendario", "Índice de residentes con imagen al pasar el ratón", "Galería arrastrable y modo sonido on/off"],
     stack: ["React", "WebGL", "Motion", "Vercel"], tags: ["Ocio nocturno", "Branding", "Animación"],
     metrics: [{ label: "Secciones", value: "13" }, { label: "Eventos", value: "28" }, { label: "Orbes", value: "5" }],
@@ -228,7 +228,7 @@ export const projects = [
     id: "crossia", category: "crypto", title: "Animal CrossIA", kicker: "Una aventura online para comerciar y salir de la isla", year: "2026",
     type: "Juego Solana · Mundo onírico", status: "En construcción (jugable)", statusTone: "build", access: "public",
     url: "https://threejs-interactive-village-prototy.vercel.app/",
-    socials: { x: "https://x.com/softwareOOOX" },
+    socials: { x: "https://x.com/AnimalCrossIAW" },
     accent: "#8AB4F8", accentSoft: "#0B1020",
     video: { src: asset("/videos/crossia.mp4"), poster: asset("/videos/crossia.jpg"), label: "Prototipo jugable · En construcción" },
     description: "Juego creado en Solana con el token CrossIA: una aventura online de comercio en un mundo onírico con el objetivo de comprar el billete de avión para salir de la isla.",

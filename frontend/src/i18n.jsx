@@ -231,7 +231,7 @@ const dict = {
         },
         "moog-barcelona": {
           typeEn: "Web de club · Rediseño",
-          short: "Un rediseño demo de la web de un club techno mítico, hecho solo para ooox: agenda, residentes, galería y un orbe 3D líquido que reacciona al cursor.",
+          short: "Un rediseño demo de la web de un club techno mítico, hecho solo para ooox para enseñar un tipo de las webs que hago: agenda, residentes, galería y un orbe 3D líquido que reacciona al cursor.",
           route: ["Inicio", "Agenda", "Residentes", "Galería"],
           facts: [["", "Web"], ["", "2026"], ["", "React · WebGL"], ["", "Online"]],
         },
@@ -273,9 +273,9 @@ const dict = {
       projects: {
         "moog-barcelona": {
           kicker: "30 aniversario · techno desde 1996",
-          description: "Proyecto demo · Réplica de la web del club techno MOOG hecha solo para la web ooox: agenda, merch, residentes, galería y un orbe 3D que reacciona al ratón.",
+          description: "Proyecto demo para enseñar un tipo de las webs que hago: réplica de la web del club techno MOOG con agenda, merch, residentes, galería y un orbe 3D que reacciona al ratón. Hecha solo para la web ooox.",
           longDescription:
-            "Este es un proyecto demo hecho solo para la web ooox: no es un encargo real del club, es una recreación propia. Para el 30 aniversario de MOOG planteé una web que respirase la cabina: tipografía gigante, un orbe líquido en tiempo real, agenda con filas que laten al ritmo y un índice de DJs con foto al hover. Misma estructura que la original, pero con movimiento, sonido opcional y una experiencia mucho más cercana a estar en el club a las 23:59h.",
+            "MOOG Barcelona es un proyecto demo hecho solo para la web ooox para enseñar un tipo de web de las que hago: no es un encargo real del club, es una recreación propia. Para el 30 aniversario de MOOG planteé una web que respirase la cabina: tipografía gigante, un orbe líquido en tiempo real, agenda con filas que laten al ritmo y un índice de DJs con foto al hover. Misma estructura que la original, pero con movimiento, sonido opcional y una experiencia mucho más cercana a estar en el club a las 23:59h.",
           highlights: [
             "Orbe 3D interactivo en el hero con estela y reflejos",
             "Agenda de 28 eventos con suscripción a calendario",
@@ -353,9 +353,9 @@ dict.en.case.projects = {
   "moog-barcelona": {
     kicker: "30th anniversary · techno since 1996",
     description:
-      "Demo project · A rebuild of the website of the iconic techno club MOOG, made only for the ooox site: agenda, merch, residents, gallery and a 3D orb that reacts to the cursor.",
+      "Demo project to show one type of the websites I build: a rebuild of MOOG's techno club site with agenda, merch, residents, gallery and a 3D orb that reacts to the cursor. Made only for the ooox site.",
     longDescription:
-      "This is a demo project made only for the ooox site: it is not a real commission from the club, it is my own recreation. For MOOG's 30th anniversary I designed a website that breathes the booth: giant typography, a real-time liquid orb, an agenda with rows that pulse to the beat and a DJ index that shows a photo on hover. The same structure as the original, but with movement, optional sound and an experience much closer to being in the club at 11:59pm.",
+      "MOOG Barcelona is a demo project made only for the ooox site to show one type of the websites I build: it is not a real commission from the club, it is my own recreation. For MOOG's 30th anniversary I designed a website that breathes the booth: giant typography, a real-time liquid orb, an agenda with rows that pulse to the beat and a DJ index that shows a photo on hover. The same structure as the original, but with movement, optional sound and an experience much closer to being in the club at 11:59pm.",
     highlights: [
       "Interactive 3D orb in the hero with trail and reflections",
       "Agenda of 28 events with calendar subscription",
