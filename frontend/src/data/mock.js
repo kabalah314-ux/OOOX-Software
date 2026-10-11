@@ -193,7 +193,7 @@ export const projects = [
     id: "elementia", category: "crypto", title: "Elementia", kicker: "Colecciona, cría y combate criaturas elementales", year: "2026",
     scene: "elementia",
     type: "GameFi · Juego P2E", status: "Demo jugable", statusTone: "live", access: "public", url: "https://axie-infinity-style-game.vercel.app/",
-    ...shots("elementia"), accent: "#F5C24B", accentSoft: "#1A1508",
+    ...shots("elementia"), cover: asset("/videos/elementia.jpg"), accent: "#F5C24B", accentSoft: "#1A1508",
     video: { src: asset("/videos/elementia.mp4"), poster: asset("/videos/elementia.jpg"), label: "Combate 3×3 · Mercado" },
     token: { ticker: "$ELT", chain: "Solana", chainId: "mainnet-beta", supply: "100M", tax: "—", liquidity: "LP 24m" },
     socials: { web: "https://axie-infinity-style-game.vercel.app/", x: "https://x.com/softwareOOOX", telegram: "https://t.me/" },
