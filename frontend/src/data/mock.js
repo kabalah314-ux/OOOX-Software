@@ -293,7 +293,7 @@ export const projects = [
 //  basta con meterlo en `projects` dentro de esa sección (al final): el que era
 //  último pasa a enlazar con el nuevo y el nuevo con el que enlazaba el antiguo.
 // ------------------------------------------------------------
-export const ORDER = ["usain-bot", "elementia", "crossia", "neuron", "casa-aurea", "massflow", "moog-barcelona"];
+export const ORDER = ["neuron", "elementia", "crossia", "usain-bot", "casa-aurea", "massflow", "moog-barcelona"];
 
 const rank = (id) => (ORDER.indexOf(id) === -1 ? ORDER.length : ORDER.indexOf(id));
 
