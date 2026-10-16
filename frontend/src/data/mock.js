@@ -258,8 +258,8 @@ export const projects = [
   {
     id: "neuron", category: "crypto", title: "NEURON", kicker: "Entrena una IA con tu comunidad", year: "2026",
     type: "Juego social 3D · Memecoin", status: "Beta jugable", statusTone: "build", access: "public",
-    url: "https://neuron-sage.vercel.app/",
-    socials: { web: "https://neuron-sage.vercel.app/", x: "https://x.com/neuron_nodi" },
+    url: "https://noditheneuron.online/",
+    socials: { web: "https://noditheneuron.online/", x: "https://x.com/neuron_nodi" },
     cover: asset("/projects/neuron.jpg"), long: asset("/projects/neuron_long.jpg"), mobile: asset("/projects/neuron_m.jpg"),
     accent: "#7DF8FF", accentSoft: "#050817",
     // Vídeo hover: lo prepara Oscar. Cuando esté, guardar en public/videos/neuron.mp4 (+ neuron.jpg de poster) y añadir:
