@@ -126,6 +126,7 @@ const dict = {
       Arcade: "Arcade", Comunidad: "Community", Inmobiliaria: "Real estate", "3D": "3D",
       Demo: "Demo", "Roles & Auth": "Roles & Auth", Gestión: "Management", Web3: "Web3",
       AI: "AI", Game: "Game", "Privado": "Private", "Público": "Public",
+      Minijuegos: "Minigames", Salas: "Rooms", "Juego social": "Social game",
     },
   },
 
@@ -217,6 +218,12 @@ const dict = {
           route: ["Explorar", "Comerciar", "Ahorrar", "Volar"],
           facts: [["", "Juego Solana"], ["", "CrossIA"], ["", "Mundo onírico"], ["", "Jugable"]],
         },
+        neuron: {
+          typeEn: "Juego social 3D · Memecoin",
+          short: "Un juego social en 3D, gratis en el navegador: eres una neurona dentro del cerebro de una IA y, con la comunidad, lo entrenas con misiones diarias y minijuegos.",
+          route: ["Neurona", "Misiones", "Minijuegos", "Cerebro"],
+          facts: [["", "Juego social"], ["", "Solana"], ["", "2026"], ["", "Beta jugable"]],
+        },
         "casa-aurea": {
           typeEn: "Inmobiliaria · Web",
           short: "Un escaparate premium para una promotora donde la casa se puede recorrer en 3D antes de existir.",
@@ -271,6 +278,18 @@ const dict = {
       notFound: "Proyecto no encontrado",
       home: "Volver al inicio",
       projects: {
+        neuron: {
+          kicker: "Entrena una IA con tu comunidad",
+          description: "Juego social en 3D, gratis en el navegador: eres una neurona dentro de un cerebro artificial y, con la comunidad, lo entrenas con misiones diarias y minijuegos. Token $NEURON en Solana.",
+          longDescription:
+            "NEURON convierte el entrenamiento de una IA en un juego social. Cada jugador es una neurona dentro de un cerebro 3D compartido: completa misiones diarias, juega 15 minijuegos en 5 salas con otras personas o con neuronas IA, purga alucinaciones y llena el Núcleo para que el cerebro crezca. Cada Época dura 3 semanas y, cuando se cumplen sus objetivos, se libera parte del Fondo de Despertar (10 % del supply) a los jugadores. El token $NEURON sale en pump.fun, sin preventa, y nunca da ventaja dentro del juego.",
+          highlights: [
+            "Cerebro 3D compartido y multijugador en tiempo real",
+            "15 minijuegos en 5 salas, con dificultad que se adapta",
+            "Misiones diarias, Épocas de 3 semanas y experiencia de comunidad",
+            "Fondo de Despertar: 10 % del supply en premios por jugar",
+          ],
+        },
         "moog-barcelona": {
           kicker: "30 aniversario · techno desde 1996",
           description: "Proyecto demo para enseñar un tipo de las webs que hago: réplica de la web del club techno MOOG con agenda, merch, residentes, galería y un orbe 3D que reacciona al ratón. Hecha solo para la web ooox.",
@@ -350,6 +369,19 @@ const dict = {
 
 // Textos de proyectos en inglés (base de datos del sitio)
 dict.en.case.projects = {
+  neuron: {
+    kicker: "Train an AI with your community",
+    description:
+      "A free 3D social game in your browser: you are a neuron inside an artificial brain and, with the community, you train it through daily missions and minigames. $NEURON token on Solana.",
+    longDescription:
+      "NEURON turns training an AI into a social game. Every player is a neuron inside a shared 3D brain: complete daily missions, play 15 minigames across 5 rooms with other people or with AI neurons, purge hallucinations and fill the Core so the brain grows. Each Epoch lasts 3 weeks and, when its goals are met, part of the Awakening Fund (10% of supply) is released to players. The $NEURON token launches on pump.fun with no presale and never gives an in-game advantage.",
+    highlights: [
+      "Shared, real-time multiplayer 3D brain",
+      "15 minigames across 5 rooms, with adaptive difficulty",
+      "Daily missions, 3-week Epochs and community experience",
+      "Awakening Fund: 10% of supply in rewards for playing",
+    ],
+  },
   "moog-barcelona": {
     kicker: "30th anniversary · techno since 1996",
     description:

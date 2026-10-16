@@ -67,6 +67,17 @@ export const workCards = {
       ["Status", "Under construction (playable)"],
     ],
   },
+  neuron: {
+    typeEn: "Social 3D Game · Memecoin",
+    short: "A free 3D social game in your browser: you are a neuron inside an AI brain and, with the community, you train it through daily missions and minigames.",
+    route: ["Neuron", "Missions", "Minigames", "Brain"],
+    facts: [
+      ["Type", "Memecoin · Game"],
+      ["Chain", "Solana"],
+      ["Year", "2026"],
+      ["Status", "Playable beta"],
+    ],
+  },
   "casa-aurea": {
     typeEn: "Real estate · Web",
     short: "A premium developer showcase where the house can be walked through in 3D before it exists.",
@@ -243,6 +254,35 @@ export const projects = [
     metrics: [{ label: "Cadena", value: "Solana" }, { label: "Token", value: "CrossIA" }, { label: "Estado", value: "En construcción" }],
     scene: "crossia",
   },
+  // ---------------------------------------------------------- CRYPTO · NEURON
+  {
+    id: "neuron", category: "crypto", title: "NEURON", kicker: "Entrena una IA con tu comunidad", year: "2026",
+    type: "Juego social 3D · Memecoin", status: "Beta jugable", statusTone: "build", access: "public",
+    url: "https://neuron-sage.vercel.app/",
+    socials: { web: "https://neuron-sage.vercel.app/", x: "https://x.com/neuron_nodi" },
+    cover: asset("/projects/neuron.jpg"), long: asset("/projects/neuron_long.jpg"), mobile: asset("/projects/neuron_m.jpg"),
+    accent: "#7DF8FF", accentSoft: "#050817",
+    // Vídeo hover: lo prepara Oscar. Cuando esté, guardar en public/videos/neuron.mp4 (+ neuron.jpg de poster) y añadir:
+    // video: { src: asset("/videos/neuron.mp4"), poster: asset("/videos/neuron.jpg"), label: "Portada con Nodi · Núcleo 3D" },
+    previews: [
+      { src: asset("/projects/neuron.jpg"), y: 50, label: "Portada · Nodi" },
+      { src: asset("/projects/neuron_juego.jpg"), y: 50, label: "El Núcleo en 3D" },
+      { src: asset("/projects/neuron_long.jpg"), y: 30, label: "Minijuegos y Tokenomics" },
+      { src: asset("/projects/neuron_m.jpg"), y: 50, label: "Móvil" },
+    ],
+    gallery: [asset("/projects/neuron.jpg"), asset("/projects/neuron_juego.jpg")],
+    token: { ticker: "$NEURON", chain: "Solana", chainId: "mainnet-beta", supply: "1B", createdOn: "pump.fun" },
+    description: "Juego social en 3D, gratis en el navegador: eres una neurona dentro de un cerebro artificial y, con la comunidad, lo entrenas con misiones diarias y minijuegos. Token $NEURON en Solana.",
+    longDescription: "NEURON convierte el entrenamiento de una IA en un juego social. Cada jugador es una neurona dentro de un cerebro 3D compartido: completa misiones diarias, juega 15 minijuegos en 5 salas con otras personas o con neuronas IA, purga alucinaciones y llena el Núcleo para que el cerebro crezca. Cada Época dura 3 semanas y, cuando se cumplen sus objetivos, se libera parte del Fondo de Despertar (10 % del supply) a los jugadores. El token $NEURON sale en pump.fun, sin preventa, y nunca da ventaja dentro del juego.",
+    highlights: [
+      "Cerebro 3D compartido y multijugador en tiempo real",
+      "15 minijuegos en 5 salas, con dificultad que se adapta",
+      "Misiones diarias, Épocas de 3 semanas y experiencia de comunidad",
+      "Fondo de Despertar: 10 % del supply en premios por jugar",
+    ],
+    stack: ["React", "Three.js", "Supabase", "Solana"], tags: ["Memecoin", "Juego social", "3D", "Comunidad"],
+    metrics: [{ label: "Minijuegos", value: "15" }, { label: "Salas", value: "5" }, { label: "Supply", value: "1B" }],
+  },
 ];
 
 // ------------------------------------------------------------
@@ -253,7 +293,7 @@ export const projects = [
 //  basta con meterlo en `projects` dentro de esa sección (al final): el que era
 //  último pasa a enlazar con el nuevo y el nuevo con el que enlazaba el antiguo.
 // ------------------------------------------------------------
-export const ORDER = ["usain-bot", "elementia", "crossia", "casa-aurea", "massflow", "moog-barcelona"];
+export const ORDER = ["usain-bot", "elementia", "crossia", "neuron", "casa-aurea", "massflow", "moog-barcelona"];
 
 const rank = (id) => (ORDER.indexOf(id) === -1 ? ORDER.length : ORDER.indexOf(id));
 
