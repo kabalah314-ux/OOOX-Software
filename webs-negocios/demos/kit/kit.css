@@ -1,0 +1,90 @@
+/* OOOX Webs · kit común (v1). Cada web define sus tokens:
+   --k-bg, --k-fg, --k-muted, --k-line, --k-accent, --k-accent-ink, --k-radius, --k-font. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 88px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } }
+body { margin: 0; }
+img { max-width: 100%; display: block; height: auto; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--k-accent, #1a73e8); outline-offset: 3px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------- banner «web de muestra» ---------- */
+.kit-demobar { position: relative; z-index: 60; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
+  padding: 7px max(16px, env(safe-area-inset-right, 0px)) 7px max(16px, env(safe-area-inset-left, 0px));
+  background: #121212; color: #f1ede6; font: 500 12.5px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: .01em; text-align: center; }
+.kit-demobar b { font-weight: 700; }
+.kit-demobar-txt span { opacity: .72; }
+.kit-demobar-mark { display: inline-flex; gap: 3px; }
+.kit-demobar-mark i { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid #f1ede6; display: block; }
+.kit-demobar-cta { display: inline-flex; align-items: center; padding: 4px 11px; border-radius: 999px; background: #f1ede6; color: #121212; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.kit-demobar-cta:hover { background: #fff; }
+.kit-demobar-x { position: absolute; right: max(8px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%); background: none; border: 0; color: #f1ede6; font-size: 18px; line-height: 1; padding: 4px 8px; opacity: .7; }
+.kit-demobar-x:hover { opacity: 1; }
+@media (max-width: 560px) { .kit-demobar { padding-right: 40px; justify-content: flex-start; text-align: left; } .kit-demobar-txt span { display: none; } }
+
+/* ---------- horario ---------- */
+.kit-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; background: currentColor; flex: none; }
+[data-hours="badge"] { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+[data-hours="badge"].is-open .kit-dot { background: #22c55e; box-shadow: 0 0 0 0 rgba(34,197,94,.6); animation: kit-pulse 2s infinite; }
+[data-hours="badge"].is-closed .kit-dot { background: #ef4444; }
+@keyframes kit-pulse { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,.55); } 70% { box-shadow: 0 0 0 9px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+[data-hours="table"] { display: grid; gap: 0; }
+.kit-hrow { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--k-line, rgba(0,0,0,.12)); font-variant-numeric: tabular-nums; }
+.kit-hrow:last-child { border-bottom: 0; }
+.kit-hday em { font-style: normal; font-size: .72em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-left: 8px; padding: 2px 7px; border-radius: 999px; background: var(--k-accent, #111); color: var(--k-accent-ink, #fff); vertical-align: 2px; }
+.kit-hrow.is-today { font-weight: 700; }
+.kit-hval { text-align: right; }
+
+/* ---------- ventanas ---------- */
+.kit-dialog { border: 0; padding: 0; border-radius: 22px; max-width: min(440px, calc(100vw - 24px)); width: 100%; background: #fff; color: #111; box-shadow: 0 30px 80px -20px rgba(0,0,0,.45); }
+.kit-dialog::backdrop { background: rgba(10,10,10,.55); backdrop-filter: blur(3px); }
+.kit-dialog[open] { animation: kit-in .28s cubic-bezier(.2,.8,.2,1); }
+@keyframes kit-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+.kit-x { position: absolute; top: 10px; right: 12px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(0,0,0,.06); font-size: 22px; line-height: 1; }
+.kit-x:hover { background: rgba(0,0,0,.12); }
+
+/* vista previa de WhatsApp */
+.kit-wa { padding: 26px 22px 22px; font: 400 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.kit-wa-k { margin: 0 40px 14px 0; font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
+.kit-wa-phone { border-radius: 18px; overflow: hidden; border: 1px solid #e3e3e3; }
+.kit-wa-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #075e54; color: #fff; }
+.kit-wa-av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #dcf8c6; color: #075e54; font-weight: 800; }
+.kit-wa-name { display: grid; line-height: 1.15; }
+.kit-wa-name small { opacity: .8; font-size: 12px; }
+.kit-wa-chat { padding: 16px 12px 18px; background: #ece5dd linear-gradient(0deg, rgba(255,255,255,.35), rgba(255,255,255,.35)); min-height: 120px; display: flex; justify-content: flex-end; }
+.kit-wa-bubble { position: relative; max-width: 88%; background: #dcf8c6; border-radius: 12px 2px 12px 12px; padding: 9px 11px 20px; box-shadow: 0 1px 1px rgba(0,0,0,.12); font-size: 14.5px; color: #111; word-break: break-word; }
+.kit-wa-time { position: absolute; right: 8px; bottom: 4px; font-size: 11px; color: #4b6b4b; }
+.kit-wa-note { margin: 14px 0 16px; color: #555; font-size: 13.5px; }
+.kit-call-num { font: 800 30px/1.1 system-ui, sans-serif; letter-spacing: -.02em; margin: 0; font-variant-numeric: tabular-nums; }
+.kit-wa-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.kit-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border-radius: 999px; border: 0; font-weight: 700; text-decoration: none; font-size: 15px; }
+.kit-btn-wa { background: #25d366; color: #0b2e13; }
+.kit-btn-wa:hover { background: #1fbe5b; }
+.kit-btn-ghost { background: #f1f1f1; color: #111; }
+
+/* aviso */
+.kit-toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 30px); opacity: 0; z-index: 90; background: #111; color: #fff; padding: 12px 18px; border-radius: 999px; font: 600 14px system-ui, sans-serif; transition: .3s; pointer-events: none; max-width: calc(100vw - 32px); }
+.kit-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+/* antes / después */
+[data-compare] { --pos: 50%; position: relative; overflow: hidden; user-select: none; touch-action: pan-y; }
+[data-compare] > img { width: 100%; height: 100%; object-fit: cover; }
+[data-compare] .kit-cmp-after { position: absolute; inset: 0; clip-path: inset(0 0 0 var(--pos)); }
+[data-compare] .kit-cmp-after img { width: 100%; height: 100%; object-fit: cover; }
+[data-compare] .kit-cmp-line { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.15); pointer-events: none; }
+[data-compare] .kit-cmp-line::after { content: "⟷"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 46px; height: 46px; border-radius: 50%; background: #fff; color: #111; display: grid; place-items: center; font-size: 20px; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+[data-compare] input[type=range] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; }
+
+/* interruptor de notas y notas para el negocio (solo en demos) */
+.kit-demobar-tips { background: transparent; color: #f1ede6; border: 1.5px solid rgba(241,237,230,.45); border-radius: 999px; padding: 3px 10px; font-weight: 600; font-size: 12px; }
+.kit-demobar-tips[aria-pressed="true"] { background: #ffd84d; border-color: #ffd84d; color: #1a1a1a; }
+.demo-tip { display: none; }
+html[data-demo].tips-on .demo-tip { display: block; }
+.demo-tip { position: relative; max-width: 300px; padding: 12px 14px 12px 40px; border-radius: 4px 14px 14px 14px; background: #ffe680; color: #2a2300;
+  font: 500 13.5px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; box-shadow: 0 10px 24px -12px rgba(60,45,0,.55); transform: rotate(-1.2deg); }
+.demo-tip::before { content: "OOOX"; position: absolute; left: 10px; top: 13px; writing-mode: vertical-rl; transform: rotate(180deg); font: 800 9px/1 system-ui, sans-serif; letter-spacing: .14em; color: #7a6400; }
+.demo-tip b { font-weight: 800; }
+@media (max-width: 560px) { .kit-demobar-tips { order: 3; } }
