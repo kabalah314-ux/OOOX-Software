@@ -15,5 +15,31 @@
         "query": "?lang=en"
       }
     ]
+  },
+  "estudio-lua": {
+    "sections": [
+      "horario",
+      "precios"
+    ],
+    "qa": [
+      {
+        "name": "clase",
+        "js": "document.querySelector('#horario .cc').click();"
+      },
+      {
+        "name": "reserva-wa",
+        "mobile": true,
+        "js": "document.querySelector('#horario .cc').click(); setTimeout(function () { var d = document.querySelector('dialog[open]'); d.querySelector('input[id^=cd-n]').value = 'Laura'; d.querySelector('form').requestSubmit(); }, 400);"
+      },
+      {
+        "name": "horario-movil",
+        "mobile": true,
+        "query": "?shot=horario"
+      },
+      {
+        "name": "en",
+        "query": "?lang=en"
+      }
+    ]
   }
 }

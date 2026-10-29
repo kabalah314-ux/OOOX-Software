@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Estudio Lúa · Yoga y pilates en Sants–Les Corts">
 <meta property="og:description" content="Respira. Muévete. Vuelve a ti. Grupos pequeños, mucha luz y la primera clase gratis.">
-<meta property="og:image" content="https://images.unsplash.com/photo-1761971975973-cbb3e59263de?auto=format&fit=crop&w=1200&q=72">
+<meta property="og:image" content="https://ooox.es/projects/demos/estudio-lua_og.jpg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%234A3F7A'/%3E%3Cpath transform='rotate(-25 32 32)' d='M32 12A20 20 0 0 1 32 52A13.7 20 0 0 0 32 12Z' fill='%23EFE7DA'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -102,11 +102,12 @@ p { margin: 0; }
 .hero-live { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 26px; animation: rise 1.1s var(--ease) .7s both; }
 .badge { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 15px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font-size: 14.5px; line-height: 1.3; }
 .badge > b { font-weight: 700; }
-.next { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; padding: 5px 16px 5px 6px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font-size: 14.5px; line-height: 1.25; color: var(--ink); text-align: left; transition: border-color .2s, transform .25s var(--ease); }
+.next { display: inline-flex; align-items: center; gap: 11px; min-height: 40px; padding: 7px 18px 7px 7px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font-size: 14.5px; line-height: 1.25; color: var(--ink); text-align: left; transition: border-color .2s, transform .25s var(--ease); }
 .next:hover { border-color: var(--lav); transform: translateY(-1px); }
-.next-ic { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--lav-w); color: var(--lav); flex: none; }
+.next-ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--lav-w); color: var(--lav); flex: none; }
 .next-ic svg { width: 16px; height: 16px; }
-.next-k { color: var(--muted); }
+.next-tx { display: grid; gap: 1px; }
+.next-k { font-size: 12.5px; font-weight: 600; color: var(--muted); }
 .next-w { font-weight: 700; color: var(--lav-dd); }
 
 .hero-art { position: relative; width: min(100%, 580px); aspect-ratio: 1; justify-self: end; }
@@ -119,18 +120,18 @@ p { margin: 0; }
 .hero-ph { position: absolute; inset: 7.5%; margin: 0; border-radius: 50%; overflow: hidden; background: var(--sand-d); box-shadow: 0 50px 90px -50px rgba(38,32,70,.65); animation: phIn 1.6s var(--ease) .1s both; }
 .hero-ph img { width: 100%; height: 100%; object-fit: cover; }
 @keyframes phIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
-.moonw { position: absolute; left: -6%; bottom: 4%; z-index: 2; display: flex; align-items: center; gap: 14px; width: max-content; max-width: min(340px, 92%); padding: 12px 20px 12px 12px; border-radius: 24px; background: rgba(255,253,249,.95); border: 1px solid var(--line); box-shadow: 0 26px 50px -30px rgba(38,32,70,.6); animation: rise 1.2s var(--ease) 1.1s both; }
+.moonw { position: absolute; left: -6%; bottom: 4%; z-index: 2; display: flex; align-items: center; gap: 14px; width: max-content; max-width: min(340px, 92%); padding: 12px 20px 12px 12px; border-radius: 24px; background: rgba(255,253,249,.95); border: 1px solid var(--line); box-shadow: 0 26px 50px -30px rgba(38,32,70,.6); animation: rise 1s var(--ease) .55s both; }
 .moonw-art { width: 66px; height: 66px; flex: none; display: block; }
 .moonw-art svg { width: 100%; height: 100%; display: block; }
 .moonw p > b { display: block; font: 600 15px/1.3 var(--f-b); color: var(--lav-dd); }
 .moonw p > span { display: block; margin-top: 4px; font-size: 13.5px; line-height: 1.4; color: var(--muted); }
-.tip-moon { position: absolute; top: -2%; right: -2%; z-index: 3; }
+.hero-in { position: relative; }
+.tip-moon { position: absolute; top: -4px; right: var(--gut-r); z-index: 3; }
 @media (max-width: 900px) {
   .hero-in { grid-template-columns: 1fr; }
   .hero-art { justify-self: center; width: min(100%, 440px); margin-top: 8px; }
   .moonw { left: 50%; bottom: -28px; transform: translateX(-50%); animation: none; }
-  .tip-moon { position: relative; top: auto; right: auto; margin: 0 auto; }
-  .hero-art + .tip-moon { margin-top: 56px; }
+  .tip-moon { position: relative; top: auto; right: auto; justify-self: center; margin-top: 44px; }
 }
 @media (max-width: 560px) {
   .hero-h { font-size: clamp(46px, 13.4vw, 62px); }
@@ -167,7 +168,12 @@ p { margin: 0; }
 .bcue > b { font: italic 300 clamp(30px, 3.4vw, 42px)/1.05 var(--f-d); }
 .bcue > b.is-idle { font-size: clamp(24px, 2.4vw, 28px); }
 .bcue > span { font: 700 15px/1 var(--f-b); font-variant-numeric: tabular-nums; color: rgba(46,39,84,.6); min-height: 15px; }
-@media (max-width: 860px) { .breath-in { grid-template-columns: 1fr; } .breath-txt { justify-items: stretch; } .stage { width: min(100%, 360px); } }
+@media (max-width: 860px) {
+  .breath-in { display: flex; flex-direction: column; align-items: stretch; gap: 22px; }
+  .breath-txt { display: contents; }
+  .breath-txt > .h2 { order: 1; } .breath-txt > .lead { order: 2; } .stage { order: 3; width: min(100%, 330px); align-self: center; margin: 4px 0; }
+  #bgo { order: 4; margin: 0; } .breath-after { order: 5; } .breath-small { order: 6; text-align: center; }
+}
 
 /* ---------- horario ---------- */
 .sched { padding: clamp(76px, 9vw, 124px) 0 clamp(60px, 7vw, 100px); }
@@ -194,6 +200,7 @@ p { margin: 0; }
 .dtabs { display: none; }
 .dsel { display: none; }
 .wk { position: relative; display: grid; grid-template-columns: 78px repeat(7, minmax(0, 1fr)); grid-template-rows: auto auto auto auto; column-gap: 8px; margin-top: 18px; }
+.wk[hidden] { display: none; }
 .wk-todaybg { grid-row: 1 / -1; margin: 0 -4px; border-radius: 20px; background: var(--lav-w); }
 .wk-corner { grid-column: 1; grid-row: 1; }
 .wk-h { grid-row: 1; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 7px; padding: 14px 6px 12px; }
@@ -227,6 +234,7 @@ p { margin: 0; }
 @keyframes livep { 70% { box-shadow: 0 0 0 7px rgba(74,63,122,0); } 100% { box-shadow: 0 0 0 0 rgba(74,63,122,0); } }
 .wnone { display: grid; justify-items: center; gap: 12px; padding: 36px 16px 20px; text-align: center; color: var(--muted); }
 .wnone[hidden] { display: none; }
+@media (min-width: 961px) { .wnone.is-day { display: none; } }
 .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
 .legend > span { display: inline-flex; align-items: center; gap: 8px; }
 .lg-done { width: 22px; height: 14px; border-radius: 5px; border: 1px dashed var(--line-s); }
@@ -236,9 +244,10 @@ p { margin: 0; }
   .panel { padding: 16px 14px 18px; border-radius: 26px; }
   .ptop { gap: 10px; }
   .filters { gap: 12px; }
-  .fgroup { width: 100%; }
-  .fgroup .seg { flex: 1 1 auto; min-width: 0; }
-  .flabel { width: 46px; font-size: 16px; }
+  .fgroup { width: 100%; flex-direction: column; align-items: flex-start; gap: 8px; }
+  .fgroup .seg { max-width: 100%; }
+  .seg button { padding: 9px 12px; font-size: 14px; }
+  .flabel { font-size: 16px; }
   .dtabs { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
   .dtab { position: relative; display: grid; justify-items: center; gap: 4px; min-width: 0; padding: 9px 0 8px; border-radius: 16px; border: 1px solid transparent; background: transparent; color: var(--ink); }
   .dtab > small { font: 600 12px/1 var(--f-b); color: var(--muted); }
@@ -277,8 +286,8 @@ p { margin: 0; }
 .cg-ph { position: relative; margin: 0; overflow: hidden; aspect-ratio: 4 / 5; background: var(--sand-d); box-shadow: 0 40px 70px -50px rgba(38,32,70,.6); position: sticky; top: 100px; }
 .cg-ph img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease); }
 .cg-ph:hover img { transform: scale(1.03); }
-.ph-a { border-radius: 52% 48% 44% 56% / 42% 46% 54% 58%; }
-.ph-b { border-radius: 46% 54% 56% 44% / 54% 44% 56% 46%; }
+.ph-a { border-radius: 50% 22px 50% 22px; }
+.ph-b { border-radius: 22px 50% 22px 50%; }
 .ph-c { border-radius: 50%; aspect-ratio: 1; }
 .cg-h { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
 .cg-h h3 { font: 300 clamp(34px, 3.6vw, 46px)/1 var(--f-d); color: var(--lav-dd); letter-spacing: -.01em; }
@@ -303,16 +312,18 @@ p { margin: 0; }
 
 /* ---------- precios ---------- */
 .prices { padding: clamp(76px, 9vw, 124px) 0; }
-.pr-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); gap: 28px 60px; align-items: end; }
+.pr-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px 60px; align-items: end; }
+.promises { flex-direction: column; align-items: flex-start; }
 .promises { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .promises li { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font-weight: 600; font-size: 14.5px; }
 .promises svg { width: 16px; height: 16px; color: var(--olive); }
 .rec { position: relative; display: grid; gap: 12px; margin-top: 40px; padding: 22px 24px; border-radius: 24px; background: var(--lav-w); }
 .rec-q { font: 400 22px/1.25 var(--f-d); color: var(--lav-dd); }
 .rec-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
-.rec .seg { background: var(--paper); }
+.rec .chip { border-color: rgba(74,63,122,.22); }
 .rec-msg { font-size: 16px; color: var(--ink); max-width: 52ch; }
-.tip-prices { position: absolute; right: 18px; top: -46px; }
+.tip-prices { position: absolute; right: 24px; top: 50%; transform: translateY(-50%) rotate(-1.2deg); }
+@media (min-width: 1101px) { html.tips-on .rec { padding-right: 350px; } }
 .tiers { list-style: none; margin: 26px 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
 .tier { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 26px 22px 22px; border-radius: 26px; background: var(--paper); border: 1px solid var(--line); transition: transform .35s var(--ease), box-shadow .35s; }
 .tier-moon { display: block; width: 42px; height: 42px; color: var(--lav); margin-bottom: 6px; }
@@ -332,11 +343,11 @@ p { margin: 0; }
 .tier.is-rec { transform: translateY(-8px); box-shadow: 0 0 0 3px var(--clay), 0 30px 50px -30px rgba(38,32,70,.55); }
 .tier-for { display: none; position: absolute; left: 50%; bottom: -13px; transform: translateX(-50%); padding: 5px 11px; border-radius: 999px; background: var(--clay); color: #fff; font: 700 12px/1 var(--f-b); white-space: nowrap; }
 .tier.is-rec .tier-for { display: block; }
-.pr-note { display: flex; align-items: center; gap: 12px; margin-top: 30px; font-size: 15.5px; color: var(--muted); }
+.pr-note { display: flex; align-items: flex-start; gap: 12px; margin-top: 30px; font-size: 15.5px; color: var(--muted); }
 .pr-note b { color: var(--olive-d); }
 @media (max-width: 1180px) { .tiers { grid-template-columns: repeat(3, minmax(0, 1fr)); } .tier.is-unl { grid-column: span 2; } }
-@media (max-width: 1100px) { .tip-prices { position: relative; right: auto; top: auto; margin-top: 4px; } }
-@media (max-width: 860px) { .pr-top { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .tip-prices { position: relative; right: auto; top: auto; transform: rotate(-1.2deg); margin-bottom: 4px; } }
+@media (max-width: 860px) { .pr-top { grid-template-columns: 1fr; } .promises { flex-direction: row; flex-wrap: wrap; } }
 @media (max-width: 760px) {
   .tiers { grid-template-columns: 1fr; gap: 12px; }
   .tier.is-unl { grid-column: auto; }
@@ -346,8 +357,8 @@ p { margin: 0; }
   .tier-p { grid-area: p; font-size: 34px; text-align: right; }
   .tier-d { grid-area: d; }
   .tier-cta { grid-area: c; margin: 0; padding: 4px 0 0; }
-  .tier-badge { position: static; grid-area: d; justify-self: start; margin-bottom: 4px; }
-  .tier.is-unl .tier-d { margin-top: 30px; }
+  .tier-badge { top: -11px; right: 18px; }
+  .tier.is-unl { margin-top: 8px; }
   .tier.is-rec { transform: none; }
   .tier-for { left: auto; right: 18px; transform: none; }
   .rec { padding: 20px 16px; }
@@ -375,7 +386,7 @@ p { margin: 0; }
 .check-ic svg { width: 18px; height: 18px; }
 .check h3 { font: 400 23px/1.2 var(--f-d); color: var(--ink); }
 .check p { margin-top: 4px; color: var(--muted); font-size: 16px; max-width: 46ch; }
-.first-ph { margin: 40px 0 0; width: min(100%, 480px); aspect-ratio: 16 / 11; overflow: hidden; border-radius: 48% 52% 46% 54% / 56% 50% 50% 44%; background: var(--sand-d); }
+.first-ph { margin: 44px 0 0; width: min(100%, 460px); aspect-ratio: 5 / 4; overflow: hidden; border-radius: 22px 50% 22px 50%; background: var(--sand-d); }
 .first-ph img { width: 100%; height: 100%; object-fit: cover; }
 .picker { position: relative; display: grid; gap: 22px; padding: clamp(22px, 3vw, 36px); border-radius: 30px; background: var(--paper); box-shadow: 0 50px 90px -60px rgba(38,32,70,.65); border: 1px solid rgba(74,63,122,.12); }
 .picker-h { display: grid; gap: 6px; }
@@ -402,7 +413,7 @@ p { margin: 0; }
 .slot-note { font-size: 14.5px; color: var(--muted); }
 .picker .btn { width: 100%; min-height: 56px; }
 .picker-small { margin-top: -10px; font-size: 13.5px; color: var(--muted); text-align: center; }
-.tip-first { position: absolute; top: -34px; right: -26px; z-index: 3; }
+.tip-first { position: absolute; top: -78px; right: -14px; z-index: 3; }
 @media (max-width: 1180px) { .tip-first { position: relative; top: auto; right: auto; margin: -4px 0 0; } }
 @media (max-width: 900px) { .first-grid { grid-template-columns: 1fr; } .first-ph { display: none; } }
 
@@ -412,7 +423,7 @@ p { margin: 0; }
 .score { display: grid; gap: 12px; justify-items: start; }
 .score > h2 { font: 300 clamp(30px, 3vw, 38px)/1.1 var(--f-d); color: var(--lav-dd); }
 .score > b { font: 300 clamp(96px, 10vw, 140px)/.85 var(--f-d); letter-spacing: -.04em; color: var(--lav-dd); margin-top: 6px; }
-.stars { color: var(--clay); font-size: 24px; letter-spacing: 3px; line-height: 1; }
+.score > .stars { color: var(--clay); font-size: 24px; letter-spacing: 3px; line-height: 1; }
 .score > span { color: var(--muted); font-size: 15.5px; }
 .sample { display: inline-block; padding: 5px 11px; border-radius: 999px; border: 1px dashed var(--line-s); font: 600 12.5px/1 var(--f-b); color: var(--muted); }
 .score .btn { margin-top: 8px; }
@@ -447,13 +458,16 @@ p { margin: 0; }
 /* ---------- dónde ---------- */
 .visit { padding: clamp(76px, 9vw, 124px) 0; background: var(--sand); }
 .visit-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); gap: 30px 60px; align-items: end; }
-.visit-ph { margin: 0; aspect-ratio: 16 / 10; border-radius: 999px 999px 28px 28px / 70% 70% 28px 28px; overflow: hidden; background: var(--sand-d); }
+.visit-ph { margin: 0; aspect-ratio: 2 / 1; border-radius: 999px; overflow: hidden; background: var(--sand-d); }
 .visit-ph img { width: 100%; height: 100%; object-fit: cover; }
 .visit-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.25fr); gap: 18px; margin-top: 40px; }
 .vcard { position: relative; padding: clamp(22px, 3vw, 34px); border-radius: 28px; background: var(--paper); border: 1px solid var(--line); }
 .vcard > h3 { font: 400 28px/1.1 var(--f-d); color: var(--lav-dd); margin-bottom: 16px; }
 .vcard .badge { margin-bottom: 14px; background: var(--mist); }
 .hnote { margin-top: 16px; font-size: 14.5px; color: var(--muted); }
+.vcontact { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.vcontact > p { font: 400 20px/1.25 var(--f-d); color: var(--ink); }
+.vcontact .btns { margin-top: 14px; }
 .map { position: relative; aspect-ratio: 16 / 10; border-radius: 20px; overflow: hidden; background: #ECE4D5; border: 1px solid var(--line); }
 .map svg { width: 100%; height: 100%; display: block; }
 .addr { margin-top: 20px; display: grid; gap: 14px; }
@@ -464,7 +478,7 @@ p { margin: 0; }
 .mline { display: inline-grid; place-items: center; min-width: 30px; height: 22px; padding: 0 6px; border-radius: 5px; color: #fff; font: 800 12px/1 var(--f-b); }
 .btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
 .btns .btn { min-height: 46px; padding: 0 18px; font-size: 15px; }
-@media (max-width: 900px) { .visit-top, .visit-grid { grid-template-columns: 1fr; } .visit-ph { aspect-ratio: 16 / 11; } }
+@media (max-width: 900px) { .visit-top, .visit-grid { grid-template-columns: 1fr; } .visit-ph { aspect-ratio: 16 / 9; } .map { aspect-ratio: 1; } }
 
 /* ---------- pie ---------- */
 .ft { background: var(--night); color: rgba(247,243,236,.78); padding: 64px 0 calc(40px + env(safe-area-inset-bottom, 0px)); --k-accent: var(--sand); }
@@ -481,23 +495,23 @@ p { margin: 0; }
 
 /* ---------- ventana de clase ---------- */
 .kit-dialog.dlg-cls { max-width: min(520px, calc(100vw - 24px)); background: var(--mist); color: var(--ink); border-radius: 28px; }
-.cd { display: grid; gap: 18px; padding: 28px 24px 24px; font-family: var(--f-b); }
+.cd { display: grid; gap: 14px; padding: 24px 24px 22px; font-family: var(--f-b); }
 .cd-k { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding-right: 44px; font-size: 13.5px; font-weight: 700; color: var(--muted); }
 .cd-k > span { display: inline-flex; align-items: center; gap: 7px; }
-.cd-h { font: 300 clamp(34px, 7vw, 42px)/1 var(--f-d); letter-spacing: -.015em; color: var(--lav-dd); }
-.cd-when { margin-top: -6px; font-size: 16px; color: var(--ink); }
+.cd-h { font: 300 clamp(32px, 6.6vw, 38px)/1 var(--f-d); letter-spacing: -.015em; color: var(--lav-dd); }
+.cd-when { margin-top: -4px; font-size: 15.5px; line-height: 1.45; color: var(--ink); }
 .cd-when > b { font-weight: 700; }
-.cd-note { padding: 12px 14px; border-radius: 14px; background: var(--lav-w); color: var(--lav-dd); font-size: 14.5px; line-height: 1.45; }
-.cd-d { color: var(--muted); font-size: 15.5px; line-height: 1.55; }
+.cd-note { padding: 10px 14px; border-radius: 14px; background: var(--lav-w); color: var(--lav-dd); font-size: 14.5px; line-height: 1.45; }
+.cd-d { color: var(--muted); font-size: 15px; line-height: 1.5; }
 .facts { margin: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
-.facts > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.facts > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); align-items: start; }
 .facts dt { font: italic 400 16px/1.35 var(--f-d); color: var(--muted); }
 .facts dd { margin: 0; font-size: 15px; line-height: 1.45; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .facts dd small { flex-basis: 100%; color: var(--muted); font-size: 13.5px; }
 .seats { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .seats > i { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--lav-m); }
 .seats > i.is-taken { background: var(--lav); box-shadow: none; }
-.sw { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; border-radius: 16px; border: 1.5px solid var(--line-s); background: #fff; text-align: left; color: var(--ink); transition: border-color .2s, background .2s; }
+.sw { display: flex; align-items: center; gap: 14px; width: 100%; padding: 11px 14px; border-radius: 16px; border: 1.5px solid var(--line-s); background: #fff; text-align: left; color: var(--ink); transition: border-color .2s, background .2s; }
 .sw-track { position: relative; width: 46px; height: 28px; border-radius: 999px; background: var(--line-s); flex: none; transition: background .25s; }
 .sw-knob { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.2); transition: transform .25s var(--ease); }
 .sw-l { display: grid; gap: 2px; }
@@ -506,10 +520,12 @@ p { margin: 0; }
 .sw[aria-checked="true"] { border-color: var(--lav); background: var(--lav-w); }
 .sw[aria-checked="true"] .sw-track { background: var(--lav); }
 .sw[aria-checked="true"] .sw-knob { transform: translateX(18px); }
-.cd-price { font-size: 14.5px; color: var(--muted); margin-top: -6px; }
-.cd .btn { width: 100%; min-height: 56px; }
-.cd-small { margin-top: -8px; font-size: 13.5px; color: var(--muted); text-align: center; }
-.cd-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.cd-price { font-size: 14px; color: var(--muted); margin-top: -4px; }
+.cd .btn { width: 100%; min-height: 54px; margin-top: 2px; }
+.cd .field { gap: 8px; }
+.cd .field input[type=text] { min-height: 46px; }
+.cd-small { margin-top: -6px; font-size: 13.5px; color: var(--muted); text-align: center; }
+.cd-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: end; }
 @media (max-width: 480px) { .cd { padding: 26px 18px 20px; } .cd-row { grid-template-columns: 1fr; } .facts > div { grid-template-columns: 84px minmax(0, 1fr); } }
 
 /* ---------- barra móvil ---------- */
@@ -570,8 +586,8 @@ p { margin: 0; }
           <span class="moonw-art" id="moon-art"></span>
           <p><b id="moon-t"></b><span id="moon-s"></span></p>
         </div>
-        <div class="demo-tip tip-moon" data-th="tip.moon"><b>Detalles que hacen que la web se recuerde.</b> La luna es la de hoy, de verdad, y el ejercicio de respiración de aquí abajo funciona.</div>
       </div>
+      <div class="demo-tip tip-moon" data-th="tip.moon"><b>Detalles que hacen que la web se recuerde.</b> La luna es la de hoy, de verdad, y el ejercicio de respiración de aquí abajo funciona.</div>
     </div>
   </section>
 
@@ -675,7 +691,7 @@ p { margin: 0; }
     <div class="wrap">
       <div class="pr-top">
         <div class="sh">
-          <h2 class="h2" id="h-pr" data-t="pr.h">Precios claros, sin matrícula ni permanencia</h2>
+          <h2 class="h2" id="h-pr" data-t="pr.h">Precios claros, sin letra pequeña</h2>
           <p class="lead" data-t="pr.lead">Pagas en el estudio, con tarjeta o en efectivo. Los bonos y el ilimitado se pueden congelar si te vas de viaje o te lesionas.</p>
         </div>
         <ul class="promises">
@@ -688,8 +704,8 @@ p { margin: 0; }
         <div class="demo-tip tip-prices" data-th="tip.prices"><b>Precios claros: nadie tiene que preguntar.</b> Y esta pregunta le dice a cada persona qué le sale mejor.</div>
         <p class="rec-q" id="rec-q" data-t="rec.q">¿Cuántas veces a la semana quieres venir?</p>
         <div class="rec-row">
-          <div class="seg" role="group" aria-labelledby="rec-q">
-            <button type="button" data-rec="0" aria-pressed="false" data-t="rec.o0">Solo probar</button><button type="button" data-rec="1" aria-pressed="false" data-t="rec.o1">1 vez</button><button type="button" data-rec="2" aria-pressed="true" data-t="rec.o2">2 veces</button><button type="button" data-rec="3" aria-pressed="false" data-t="rec.o3">3 o más</button>
+          <div class="chips" role="group" aria-labelledby="rec-q">
+            <button type="button" class="chip" data-rec="0" aria-pressed="false" data-t="rec.o0">Solo probar</button><button type="button" class="chip" data-rec="1" aria-pressed="false" data-t="rec.o1">1 vez</button><button type="button" class="chip" data-rec="2" aria-pressed="true" data-t="rec.o2">2 veces</button><button type="button" class="chip" data-rec="3" aria-pressed="false" data-t="rec.o3">3 o más</button>
           </div>
           <p class="rec-msg" id="recmsg" aria-live="polite"></p>
         </div>
@@ -706,7 +722,7 @@ p { margin: 0; }
         <li class="tier" data-tier="one">
           <span class="tier-moon" data-moon=".12"></span>
           <h3 data-t="t.one">Clase suelta</h3>
-          <p class="tier-p" data-t="t.one.p">16 €</p>
+          <p class="tier-p" data-t="t.one.p">16 €</p>
           <p class="tier-d" data-t="t.one.d">Cuando te venga bien.</p>
           <p class="tier-cta"><button type="button" class="lnk" data-plan="one" data-t="t.cta">Me interesa</button></p>
           <span class="tier-for" data-t="t.for">Para ti</span>
@@ -714,16 +730,16 @@ p { margin: 0; }
         <li class="tier" data-tier="b5">
           <span class="tier-moon" data-moon=".25"></span>
           <h3 data-t="t.b5">Bono 5 clases</h3>
-          <p class="tier-p" data-t="t.b5.p">70 €</p>
-          <p class="tier-d" data-t="t.b5.d">14 € la clase. Válido 2 meses.</p>
+          <p class="tier-p" data-t="t.b5.p">70 €</p>
+          <p class="tier-d" data-t="t.b5.d">14 € la clase. Válido 2 meses.</p>
           <p class="tier-cta"><button type="button" class="lnk" data-plan="b5" data-t="t.cta">Me interesa</button></p>
           <span class="tier-for" data-t="t.for">Para ti</span>
         </li>
         <li class="tier" data-tier="b10">
           <span class="tier-moon" data-moon=".37"></span>
           <h3 data-t="t.b10">Bono 10 clases</h3>
-          <p class="tier-p" data-t="t.b10.p">130 €</p>
-          <p class="tier-d" data-t="t.b10.d">13 € la clase. Válido 4 meses.</p>
+          <p class="tier-p" data-t="t.b10.p">130 €</p>
+          <p class="tier-d" data-t="t.b10.d">13 € la clase. Válido 4 meses.</p>
           <p class="tier-cta"><button type="button" class="lnk" data-plan="b10" data-t="t.cta">Me interesa</button></p>
           <span class="tier-for" data-t="t.for">Para ti</span>
         </li>
@@ -731,13 +747,13 @@ p { margin: 0; }
           <span class="tier-badge" data-t="t.badge">El más elegido</span>
           <span class="tier-moon" data-moon=".5"></span>
           <h3 data-t="t.unl">Ilimitado</h3>
-          <p class="tier-p" data-th="t.unl.p">79 €<small>/mes</small></p>
+          <p class="tier-p" data-th="t.unl.p">79 €<small>/mes</small></p>
           <p class="tier-d" data-t="t.unl.d">Todas las clases que quieras, cada mes.</p>
           <p class="tier-cta"><button type="button" class="lnk" data-plan="unl" data-t="t.cta">Me interesa</button></p>
           <span class="tier-for" data-t="t.for">Para ti</span>
         </li>
       </ol>
-      <p class="pr-note"><span class="lvd" style="--c:#6B7F3A" aria-hidden="true"></span><span data-th="pr.note"><b>Pilates máquina: +6 € por clase</b> con cualquier bono o el ilimitado. La clase suelta en máquina, 22 €.</span></p>
+      <p class="pr-note"><span class="lvd" style="--c:#6B7F3A;margin-top:8px" aria-hidden="true"></span><span data-th="pr.note"><b>Pilates máquina: +6 € por clase</b> con cualquier bono o el ilimitado. La clase suelta en máquina, 22 €.</span></p>
     </div>
   </section>
 
@@ -839,7 +855,7 @@ p { margin: 0; }
       </div>
       <div>
         <details class="qa"><summary data-t="faq.q1">Nunca he hecho yoga, ¿puedo venir?</summary><p data-t="faq.a1">Claro. Empieza por hatha suave, que es de iniciación, o por cualquier clase para todos los niveles. La profe te propone variantes para cada postura y nadie mira a nadie. Y la primera clase es gratis.</p></details>
-        <details class="qa"><summary data-t="faq.q2">¿Qué diferencia hay entre pilates suelo y pilates máquina?</summary><p data-t="faq.a2">En suelo trabajas sobre la esterilla con el peso de tu cuerpo y algún accesorio: aro, pelota o banda. En máquina usas el reformer, con muelles que te ayudan o te ponen resistencia, así que el trabajo es más preciso y se adapta mejor a las lesiones. En máquina sois seis como máximo, con Marta, que es fisioterapeuta, y cuesta 6 € más por clase.</p></details>
+        <details class="qa"><summary data-t="faq.q2">¿Qué diferencia hay entre pilates suelo y pilates máquina?</summary><p data-t="faq.a2">En suelo trabajas sobre la esterilla con el peso de tu cuerpo y algún accesorio: aro, pelota o banda. En máquina usas el reformer, con muelles que te ayudan o te ponen resistencia, así que el trabajo es más preciso y se adapta mejor a las lesiones. En máquina sois seis como máximo, con Marta, que es fisioterapeuta, y cuesta 6 € más por clase.</p></details>
         <details class="qa"><summary data-t="faq.q3">¿Cómo reservo y cómo cancelo?</summary><p data-t="faq.a3">Toca la clase en el horario y envía el WhatsApp que se escribe solo; te confirmamos la plaza en un rato. Puedes cancelar hasta 4 horas antes con otro mensaje y no pierdes la clase del bono. Si cancelas más tarde o no vienes, la clase cuenta como hecha.</p></details>
         <details class="qa"><summary data-t="faq.q4">¿Hay vestuarios y duchas?</summary><p data-t="faq.a4">Sí: vestuarios con taquillas, dos duchas y secador. Trae tu toalla; el gel y el champú los ponemos nosotras.</p></details>
         <details class="qa"><summary data-t="faq.q5">¿Puedo congelar el bono?</summary><p data-t="faq.a5">Sí. Si te vas de viaje, te lesionas o te quedas embarazada, congelamos tu bono o tu ilimitado hasta dos meses. Solo tienes que avisarnos por WhatsApp antes de dejar de venir.</p></details>
@@ -863,24 +879,31 @@ p { margin: 0; }
           <span class="badge" data-hours="badge"></span>
           <div data-hours="table" role="table" aria-label="Horario" data-ta="aria-label:visit.hours"></div>
           <p class="hnote" data-t="visit.hnote">Los festivos avisamos aquí y por WhatsApp de cualquier cambio.</p>
+          <div class="vcontact">
+            <p data-t="visit.ask">¿Alguna duda antes de venir?</p>
+            <div class="btns">
+              <a class="btn btn-soft" href="tel:+34930000000" data-number="930 00 00 00"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span data-t="visit.call">Llamar</span></a>
+              <a class="btn btn-soft" href="https://wa.me/34600000000?text=Hola%2C%20tengo%20una%20pregunta%20sobre%20Estudio%20L%C3%BAa%3A%20" data-ta="href:visit.wahref"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.3.7-2 .9-2.3.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg><span>WhatsApp</span></a>
+            </div>
+          </div>
         </div>
         <div class="vcard">
           <div class="map" aria-hidden="true">
             <svg viewBox="0 0 640 400" preserveAspectRatio="xMidYMid slice">
               <rect width="640" height="400" fill="#ECE4D5"/>
               <g fill="#E1D6C2">
-                <rect x="20" y="20" width="148" height="96" rx="12"/><rect x="200" y="20" width="118" height="96" rx="12"/><rect x="350" y="20" width="128" height="96" rx="12"/><rect x="510" y="20" width="112" height="96" rx="12"/>
-                <rect x="20" y="148" width="148" height="104" rx="12"/><rect x="350" y="148" width="128" height="104" rx="12"/><rect x="510" y="148" width="112" height="104" rx="12"/>
-                <rect x="200" y="300" width="118" height="84" rx="12"/><rect x="350" y="300" width="128" height="84" rx="12"/><rect x="510" y="300" width="112" height="84" rx="12"/>
+                <rect x="20" y="20" width="72" height="100" rx="12"/><rect x="108" y="20" width="98" height="100" rx="12"/><rect x="222" y="20" width="114" height="100" rx="12"/><rect x="352" y="20" width="114" height="100" rx="12"/><rect x="482" y="20" width="138" height="100" rx="12"/>
+                <rect x="20" y="136" width="72" height="122" rx="12"/><rect x="108" y="136" width="98" height="122" rx="12"/><rect x="352" y="136" width="114" height="122" rx="12"/><rect x="482" y="136" width="138" height="122" rx="12"/>
+                <rect x="20" y="284" width="72" height="96" rx="12"/><rect x="222" y="286" width="114" height="94" rx="12"/><rect x="352" y="286" width="114" height="94" rx="12"/><rect x="482" y="282" width="138" height="98" rx="12"/>
               </g>
-              <rect x="200" y="148" width="118" height="104" rx="12" fill="#DCD5EC"/>
-              <rect x="20" y="300" width="148" height="84" rx="20" fill="#D6DDBF"/>
-              <g fill="#BCC99A"><circle cx="60" cy="334" r="15"/><circle cx="108" cy="352" r="19"/><circle cx="146" cy="326" r="10"/></g>
-              <g stroke="#FFFDF9" stroke-width="16" stroke-linecap="round" fill="none"><path d="M-10 132H650"/><path d="M-10 280C180 270 420 288 650 274"/><path d="M184 -10V410"/><path d="M334 -10V410"/><path d="M494 -10V410"/></g>
-              <g fill="#7D7489" font-family="Karla, Arial, sans-serif" font-size="13" font-weight="600"><text x="196" y="26" transform="rotate(90 196 26)">C. de Galileu</text><text x="234" y="302">C. de Sants</text><text x="20" y="124">Av. de Madrid</text></g>
-              <g transform="translate(404 279)"><rect x="-17" y="-12" width="34" height="24" rx="6" fill="#0078BF"/><text y="5" text-anchor="middle" fill="#fff" font-family="Karla, Arial, sans-serif" font-size="13" font-weight="800">L5</text><text y="34" text-anchor="middle" fill="#5E596C" font-family="Karla, Arial, sans-serif" font-size="13" font-weight="600">Pl. de Sants</text></g>
-              <g transform="translate(578 276)"><rect x="-17" y="-12" width="34" height="24" rx="6" fill="#E3001B"/><text y="5" text-anchor="middle" fill="#fff" font-family="Karla, Arial, sans-serif" font-size="13" font-weight="800">L1</text><text y="34" text-anchor="middle" fill="#5E596C" font-family="Karla, Arial, sans-serif" font-size="13" font-weight="600">Hostafrancs</text></g>
-              <g transform="translate(232 214)"><path d="M0-48c-17 0-30 13-30 30 0 22 30 46 30 46s30-24 30-46c0-17-13-30-30-30z" fill="#4A3F7A"/><circle cy="-18" r="15" fill="#EFE7DA"/><path transform="translate(0 -18) rotate(-25)" d="M0-11A11 11 0 0 1 0 11A7.5 11 0 0 0 0-11Z" fill="#4A3F7A"/></g>
+              <rect x="222" y="136" width="114" height="122" rx="12" fill="#DCD5EC"/>
+              <rect x="108" y="284" width="98" height="96" rx="18" fill="#D6DDBF"/>
+              <g fill="#BCC99A"><circle cx="138" cy="334" r="12"/><circle cx="178" cy="352" r="16"/><circle cx="128" cy="366" r="8"/></g>
+              <g stroke="#FFFDF9" stroke-width="16" stroke-linecap="round" fill="none"><path d="M-10 128H650"/><path d="M-10 276C190 266 430 282 650 270"/><path d="M100 -10V410"/><path d="M214 -10V410"/><path d="M344 -10V410"/><path d="M474 -10V410"/></g>
+              <g fill="#746B80" font-family="Karla, Arial, sans-serif" font-size="16" font-weight="700"><text x="220" y="30" transform="rotate(90 220 30)">C. de Galileu</text><text x="126" y="304">C. de Sants</text><text x="358" y="118">Av. de Madrid</text></g>
+              <g transform="translate(378 273)"><rect x="-19" y="-13" width="38" height="26" rx="6" fill="#0078BF"/><text y="6" text-anchor="middle" fill="#fff" font-family="Karla, Arial, sans-serif" font-size="15" font-weight="800">L5</text><text y="36" text-anchor="middle" fill="#5E596C" font-family="Karla, Arial, sans-serif" font-size="15" font-weight="700">Pl. de Sants</text></g>
+              <g transform="translate(470 272)"><rect x="-19" y="-13" width="38" height="26" rx="6" fill="#E3001B"/><text y="6" text-anchor="middle" fill="#fff" font-family="Karla, Arial, sans-serif" font-size="15" font-weight="800">L1</text><text y="-22" text-anchor="middle" fill="#5E596C" font-family="Karla, Arial, sans-serif" font-size="15" font-weight="700">Hostafrancs</text></g>
+              <g transform="translate(262 222)"><path d="M0-50c-18 0-31 13-31 31 0 23 31 48 31 48s31-25 31-48c0-18-13-31-31-31z" fill="#4A3F7A"/><circle cy="-19" r="16" fill="#EFE7DA"/><path transform="translate(0 -19) rotate(-25)" d="M0-11.5A11.5 11.5 0 0 1 0 11.5A7.9 11.5 0 0 0 0-11.5Z" fill="#4A3F7A"/></g>
             </svg>
           </div>
           <div class="addr">
@@ -894,7 +917,6 @@ p { margin: 0; }
           <div class="btns">
             <a class="btn btn-lav" href="https://www.google.com/maps/search/?api=1&amp;query=Carrer+de+Galileu+Barcelona" target="_blank" rel="noopener" data-t="visit.gmaps">Cómo llegar</a>
             <a class="btn btn-soft" href="https://maps.apple.com/?q=Carrer+de+Galileu,+Barcelona" target="_blank" rel="noopener" data-t="visit.amaps">Apple Maps</a>
-            <a class="btn btn-soft" href="tel:+34930000000" data-number="930 00 00 00" data-t="visit.call">Llamar</a>
           </div>
         </div>
       </div>
@@ -1016,18 +1038,18 @@ p { margin: 0; }
     "cg.yoga": "Ioga", "cg.yoga.p": "Del més suau al més dinàmic, i un d'especial per a l'embaràs.", "cg.yoga.alt": "Grup estirant-se sobre estores a l'estudi",
     "cg.pilates": "Pilates", "cg.pilates.p": "A l'estora o a la màquina, amb una fisioterapeuta al capdavant.", "cg.pilates.alt": "Sala de pilates amb màquines reformer",
     "cg.med": "Meditació", "cg.med.p": "Trenta minuts per aturar-se. No cal experiència.", "cg.med.alt": "Dona meditant sobre un terra de fusta",
-    "pr.h": "Preus clars, sense matrícula ni permanència",
+    "pr.h": "Preus clars, sense lletra petita",
     "pr.lead": "Pagues a l'estudi, amb targeta o en efectiu. Els bons i l'il·limitat es poden congelar si te'n vas de viatge o et lesiones.",
     "pr.p1": "Sense matrícula", "pr.p2": "Sense permanència", "pr.p3": "Cancel·les fins a 4 h abans",
     "rec.q": "Quantes vegades a la setmana vols venir?",
     "rec.o0": "Només provar", "rec.o1": "1 cop", "rec.o2": "2 cops", "rec.o3": "3 o més",
     "t.free": "Primera classe", "t.free.p": "Gratis", "t.free.d": "Per conèixer-nos, sense compromís. Val per a qualsevol classe, també a màquina.", "t.free.cta": "Reservar gratis",
-    "t.one": "Classe solta", "t.one.p": "16 €", "t.one.d": "Quan et vagi bé.",
-    "t.b5": "Bo de 5 classes", "t.b5.p": "70 €", "t.b5.d": "14 € la classe. Vàlid 2 mesos.",
-    "t.b10": "Bo de 10 classes", "t.b10.p": "130 €", "t.b10.d": "13 € la classe. Vàlid 4 mesos.",
-    "t.unl": "Il·limitat", "t.unl.p": "79 €<small>/mes</small>", "t.unl.d": "Totes les classes que vulguis, cada mes.",
+    "t.one": "Classe solta", "t.one.p": "16 €", "t.one.d": "Quan et vagi bé.",
+    "t.b5": "Bo de 5 classes", "t.b5.p": "70 €", "t.b5.d": "14 € la classe. Vàlid 2 mesos.",
+    "t.b10": "Bo de 10 classes", "t.b10.p": "130 €", "t.b10.d": "13 € la classe. Vàlid 4 mesos.",
+    "t.unl": "Il·limitat", "t.unl.p": "79 €<small>/mes</small>", "t.unl.d": "Totes les classes que vulguis, cada mes.",
     "t.badge": "El més triat", "t.cta": "M'interessa", "t.for": "Per a tu",
-    "pr.note": "<b>Pilates de màquina: +6 € per classe</b> amb qualsevol bo o l'il·limitat. La classe solta a màquina, 22 €.",
+    "pr.note": "<b>Pilates de màquina: +6 € per classe</b> amb qualsevol bo o l'il·limitat. La classe solta a màquina, 22 €.",
     "team.h": "Les professores",
     "team.lead": "Tres maneres d'ensenyar i una mateixa idea: que surtis de classe millor que no hi has entrat.",
     "tm1.role": "Hatha i Yin, 15 anys de pràctica",
@@ -1048,7 +1070,7 @@ p { margin: 0; }
     "fp.p": "Tria què et ve de gust i t'ensenyem les properes classes amb plaça.",
     "fp.q": "Què et ve de gust provar?",
     "fp.k.any": "Recomana-me'n una", "fp.k.pre": "Estic embarassada",
-    "fp.when": "Tria dia i hora", "fp.name": "El teu nom", "fp.send": "Reservar la meva classe gratis",
+    "fp.when": "Tria dia i hora", "fp.name": "El teu nom", "fp.send": "Reservar la classe gratis",
     "fp.small": "Et confirmem per WhatsApp en una estona. Sense targeta, sense compromís.",
     "rev.h": "Què en diuen, de Lúa", "rev.stars": "4,9 de 5", "rev.count": "180 ressenyes a Google", "rev.sample": "Ressenyes d'exemple", "rev.btn": "Deixa'ns la teva ressenya",
     "rev.alt": "Grup practicant ioga amb els braços enlaire",
@@ -1060,7 +1082,7 @@ p { margin: 0; }
     "faq.q1": "No he fet mai ioga, puc venir?",
     "faq.a1": "És clar. Comença pel hatha suau, que és d'iniciació, o per qualsevol classe per a tots els nivells. La professora et proposa variants per a cada postura i ningú no mira ningú. I la primera classe és gratis.",
     "faq.q2": "Quina diferència hi ha entre el pilates a terra i el de màquina?",
-    "faq.a2": "A terra treballes sobre l'estora amb el pes del teu cos i algun accessori: cèrcol, pilota o banda. A màquina fas servir el reformer, amb molles que t'ajuden o et posen resistència, així que el treball és més precís i s'adapta millor a les lesions. A màquina sou sis com a màxim, amb la Marta, que és fisioterapeuta, i costa 6 € més per classe.",
+    "faq.a2": "A terra treballes sobre l'estora amb el pes del teu cos i algun accessori: cèrcol, pilota o banda. A màquina fas servir el reformer, amb molles que t'ajuden o et posen resistència, així que el treball és més precís i s'adapta millor a les lesions. A màquina sou sis com a màxim, amb la Marta, que és fisioterapeuta, i costa 6 € més per classe.",
     "faq.q3": "Com reservo i com cancel·lo?",
     "faq.a3": "Toca la classe a l'horari i envia el WhatsApp que s'escriu sol; et confirmem la plaça en una estona. Pots cancel·lar fins a 4 hores abans amb un altre missatge i no perds la classe del bo. Si cancel·les més tard o no vens, la classe compta com a feta.",
     "faq.q4": "Hi ha vestidors i dutxes?",
@@ -1073,7 +1095,8 @@ p { margin: 0; }
     "visit.hours": "Horari",
     "visit.hnote": "Els festius avisem aquí i per WhatsApp de qualsevol canvi.",
     "visit.walk1": "· 5 min a peu", "visit.walk2": "· 8 min a peu", "visit.bus": "parada a 2 minuts",
-    "visit.gmaps": "Com arribar", "visit.amaps": "Apple Maps", "visit.call": "Trucar",
+    "visit.gmaps": "Com arribar", "visit.amaps": "Apple Maps", "visit.call": "Trucar", "visit.ask": "Algun dubte abans de venir?",
+    "visit.wahref": "https://wa.me/34600000000?text=Hola%2C%20tinc%20una%20pregunta%20sobre%20Estudio%20L%C3%BAa%3A%20",
     "ft.p": "Ioga i pilates en grups petits, a Sants–les Corts. Respira, mou-te i torna a tu.",
     "ft.h1": "L'estudi", "ft.h2": "Contacte", "ft.wa": "WhatsApp",
     "ft.legal": "Avís legal i privacitat", "ft.cookies": "Aquesta web no fa servir galetes", "ft.made": "Negoci fictici · Web de mostra d'OOOX",
@@ -1103,8 +1126,8 @@ p { margin: 0; }
     "cc.aria": "{d}, {t}. {n} amb {p}. {l}. {s}.",
     "band.am": "Matí", "band.mid": "Migdia", "band.pm": "Tarda",
     "dtab.aria": "{d}: {n}",
-    "d.past": "Aquesta classe ja s'ha acabat. Et proposem la següent: {d} a les {t}.",
-    "d.live": "Aquesta classe ja ha començat. Et proposem la següent: {d} a les {t}.",
+    "d.past": "Aquesta classe ja s'ha acabat. Et proposem la de la setmana que ve.",
+    "d.live": "Aquesta classe ja ha començat. Et proposem la de la setmana que ve.",
     "d.with": "amb {p}", "d.teacher": "Professora", "d.int": "Intensitat", "d.bring": "Què portar", "d.spots": "Places",
     "d.spotsv": "Queden {n} de {c}", "d.spotsv1": "Queda 1 de {c}", "d.fullv": "Plena",
     "d.full": "Classe plena. T'apuntem a la llista d'espera i t'avisem si s'allibera una plaça.",
@@ -1117,15 +1140,15 @@ p { margin: 0; }
     "fp.any": "Per començar et recomanem hatha suau o pilates a terra.",
     "fp.none": "No queden places lliures els propers dies per a aquesta classe. Escriu-nos i et busquem un forat.",
     "rec.free": "Comença per la primera classe: és gratis i sense compromís.",
-    "rec.b10": "Et va millor el bo de 10: 13 € la classe i et dura uns dos mesos i mig.",
-    "rec.unl2": "Et va millor l'il·limitat: amb dues classes a la setmana, et surt a uns 9 € la classe.",
-    "rec.unl3": "Et va millor l'il·limitat: amb tres classes a la setmana, et surt a uns 6 € la classe.",
+    "rec.b10": "Et va millor el bo de 10: 13 € la classe i et dura uns dos mesos i mig.",
+    "rec.unl2": "Et va millor l'il·limitat: amb dues classes a la setmana, et surt a uns 9 € la classe.",
+    "rec.unl3": "Et va millor l'il·limitat: amb tres classes a la setmana, et surt a uns 6 € la classe.",
     "wa.book": "Hola! Vull reservar plaça a *Estudio Lúa*:\n• Classe: {c}\n• Dia: {d}\n• Hora: {t}\n• Professora: {p}\n• Nom: {name}{first}{note}\nGràcies!",
     "wa.wait": "Hola! Vull apuntar-me a la *llista d'espera* d'*Estudio Lúa*:\n• Classe: {c}\n• Dia: {d}\n• Hora: {t}\n• Professora: {p}\n• Nom: {name}{first}{note}\nGràcies!",
     "wa.first": "\n• És la meva *primera classe* (la gratuïta)",
     "wa.note": "\n• A tenir en compte: {x}",
     "wa.free": "Hola! Vull reservar la meva *primera classe gratis* a *Estudio Lúa*:\n• Classe: {c}\n• Dia: {d}\n• Hora: {t}\n• Professora: {p}\n• Nom: {name}\nGràcies!",
-    "wa.plan": "Hola! M'interessa el *{p}* ({price}) d'*Estudio Lúa*. Com el puc contractar?",
+    "wa.plan": "Hola! M'interessa aquest pla d'*Estudio Lúa*: *{p}* ({price}). Em podeu explicar com funciona?",
     "note.review.t": "Ressenya a Google en un toc", "note.review.d": "A la web real, aquest botó obre directament la finestra per deixar una ressenya a la teva fitxa de Google. També et preparem un QR per a la recepció.",
     "note.ig.t": "El teu Instagram", "note.ig.d": "A la web real, enllaça al teu Instagram. Si vols, hi posem les últimes fotos de les classes.",
     "note.legal.t": "Avís legal, privacitat i galetes", "note.legal.d": "A la web real, amb les dades del teu negoci (titular, NIF, adreça i correu), com demana la llei. Sense galetes, sense bàner."
@@ -1157,7 +1180,7 @@ p { margin: 0; }
     "cg.yoga": "Yoga", "cg.yoga.p": "From the gentlest to the most dynamic, plus one just for pregnancy.", "cg.yoga.alt": "Group stretching on mats in the studio",
     "cg.pilates": "Pilates", "cg.pilates.p": "On the mat or on the reformer, led by a physiotherapist.", "cg.pilates.alt": "Pilates room with reformer machines",
     "cg.med": "Meditation", "cg.med.p": "Thirty minutes to pause. No experience needed.", "cg.med.alt": "Woman meditating on a wooden floor",
-    "pr.h": "Clear prices, no sign-up fee, no contract",
+    "pr.h": "Clear prices, no small print",
     "pr.lead": "Pay at the studio, by card or in cash. Class packs and unlimited can be frozen if you travel or get injured.",
     "pr.p1": "No sign-up fee", "pr.p2": "No contract", "pr.p3": "Cancel up to 4 h before",
     "rec.q": "How often would you like to come each week?",
@@ -1214,7 +1237,8 @@ p { margin: 0; }
     "visit.hours": "Opening hours",
     "visit.hnote": "On public holidays we post any changes here and on WhatsApp.",
     "visit.walk1": "· 5 min walk", "visit.walk2": "· 8 min walk", "visit.bus": "stop 2 minutes away",
-    "visit.gmaps": "Directions", "visit.amaps": "Apple Maps", "visit.call": "Call",
+    "visit.gmaps": "Directions", "visit.amaps": "Apple Maps", "visit.call": "Call", "visit.ask": "Any questions before you come?",
+    "visit.wahref": "https://wa.me/34600000000?text=Hi%2C%20I%20have%20a%20question%20about%20Estudio%20L%C3%BAa%3A%20",
     "ft.p": "Yoga and pilates in small groups, in Sants–Les Corts. Breathe, move and come back to you.",
     "ft.h1": "The studio", "ft.h2": "Contact", "ft.wa": "WhatsApp",
     "ft.legal": "Legal notice & privacy", "ft.cookies": "This site uses no cookies", "ft.made": "Fictional business · OOOX sample website",
@@ -1244,8 +1268,8 @@ p { margin: 0; }
     "cc.aria": "{d}, {t}. {n} with {p}. {l}. {s}.",
     "band.am": "Morning", "band.mid": "Midday", "band.pm": "Evening",
     "dtab.aria": "{d}: {n}",
-    "d.past": "This class has already finished. Here's the next one: {d} at {t}.",
-    "d.live": "This class has already started. Here's the next one: {d} at {t}.",
+    "d.past": "This class has already finished. Here's next week's instead.",
+    "d.live": "This class has already started. Here's next week's instead.",
     "d.with": "with {p}", "d.teacher": "Teacher", "d.int": "Intensity", "d.bring": "What to bring", "d.spots": "Spots",
     "d.spotsv": "{n} of {c} left", "d.spotsv1": "1 of {c} left", "d.fullv": "Full",
     "d.full": "This class is full. We'll put you on the waiting list and let you know if a spot opens up.",
@@ -1266,7 +1290,7 @@ p { margin: 0; }
     "wa.first": "\n• It's my *first class* (the free one)",
     "wa.note": "\n• Please note: {x}",
     "wa.free": "Hi! I'd like to book my *free first class* at *Estudio Lúa*:\n• Class: {c}\n• Day: {d}\n• Time: {t}\n• Teacher: {p}\n• Name: {name}\nThank you!",
-    "wa.plan": "Hi! I'm interested in the *{p}* ({price}) at *Estudio Lúa*. How can I sign up?",
+    "wa.plan": "Hi! I'm interested in this plan at *Estudio Lúa*: *{p}* ({price}). Could you tell me how it works?",
     "note.review.t": "Google review in one tap", "note.review.d": "On the real site, this button opens the window to leave a review on your Google listing. We also prepare a QR code for your reception desk.",
     "note.ig.t": "Your Instagram", "note.ig.d": "On the real site, it links to your Instagram. If you like, we can show your latest class photos.",
     "note.legal.t": "Legal notice, privacy and cookies", "note.legal.d": "On the real site, with your business details (owner, tax ID, address and email), as the law requires. No cookies, no banner."
@@ -1293,8 +1317,8 @@ p { margin: 0; }
     "cc.aria": "{d}, {t}. {n} con {p}. {l}. {s}.",
     "band.am": "Mañana", "band.mid": "Mediodía", "band.pm": "Tarde",
     "dtab.aria": "{d}: {n}",
-    "d.past": "Esta clase ya ha terminado. Te proponemos la siguiente: {d} a las {t}.",
-    "d.live": "Esta clase ya ha empezado. Te proponemos la siguiente: {d} a las {t}.",
+    "d.past": "Esta clase ya ha terminado. Te proponemos la de la semana que viene.",
+    "d.live": "Esta clase ya ha empezado. Te proponemos la de la semana que viene.",
     "d.with": "con {p}", "d.teacher": "Profe", "d.int": "Intensidad", "d.bring": "Qué traer", "d.spots": "Plazas",
     "d.spotsv": "Quedan {n} de {c}", "d.spotsv1": "Queda 1 de {c}", "d.fullv": "Completa",
     "d.full": "Clase completa. Te apuntamos a la lista de espera y te avisamos si se libera una plaza.",
@@ -1307,15 +1331,15 @@ p { margin: 0; }
     "fp.any": "Para empezar te recomendamos hatha suave o pilates suelo.",
     "fp.none": "No quedan plazas libres en los próximos días para esta clase. Escríbenos y te buscamos hueco.",
     "rec.free": "Empieza por la primera clase: es gratis y sin compromiso.",
-    "rec.b10": "Te va mejor el bono de 10: 13 € la clase y te dura unos dos meses y medio.",
-    "rec.unl2": "Te va mejor el ilimitado: con dos clases a la semana, te sale a unos 9 € la clase.",
-    "rec.unl3": "Te va mejor el ilimitado: con tres clases a la semana, te sale a unos 6 € la clase.",
+    "rec.b10": "Te va mejor el bono de 10: 13 € la clase y te dura unos dos meses y medio.",
+    "rec.unl2": "Te va mejor el ilimitado: con dos clases a la semana, te sale a unos 9 € la clase.",
+    "rec.unl3": "Te va mejor el ilimitado: con tres clases a la semana, te sale a unos 6 € la clase.",
     "wa.book": "¡Hola! Quiero reservar plaza en *Estudio Lúa*:\n• Clase: {c}\n• Día: {d}\n• Hora: {t}\n• Profe: {p}\n• Nombre: {name}{first}{note}\n¡Gracias!",
     "wa.wait": "¡Hola! Quiero apuntarme a la *lista de espera* de *Estudio Lúa*:\n• Clase: {c}\n• Día: {d}\n• Hora: {t}\n• Profe: {p}\n• Nombre: {name}{first}{note}\n¡Gracias!",
     "wa.first": "\n• Es mi *primera clase* (la gratuita)",
     "wa.note": "\n• A tener en cuenta: {x}",
     "wa.free": "¡Hola! Quiero reservar mi *primera clase gratis* en *Estudio Lúa*:\n• Clase: {c}\n• Día: {d}\n• Hora: {t}\n• Profe: {p}\n• Nombre: {name}\n¡Gracias!",
-    "wa.plan": "¡Hola! Me interesa el *{p}* ({price}) de *Estudio Lúa*. ¿Cómo lo puedo contratar?",
+    "wa.plan": "¡Hola! Me interesa este plan de *Estudio Lúa*: *{p}* ({price}). ¿Me contáis cómo funciona?",
     "note.review.t": "Reseña en Google en un toque", "note.review.d": "En la web real, este botón abre directamente la ventana para dejar una reseña en tu ficha de Google. También te preparamos un QR para la recepción.",
     "note.ig.t": "Tu Instagram", "note.ig.d": "En la web real, enlaza a tu Instagram. Si quieres, ponemos las últimas fotos de tus clases.",
     "note.legal.t": "Aviso legal, privacidad y cookies", "note.legal.d": "En la web real, con los datos de tu negocio (titular, NIF, dirección y email), como pide la ley. Sin cookies, sin banner."
@@ -1354,6 +1378,7 @@ document.addEventListener('kit:ready', function () {
     if (n === 1) return K.k('tomorrowL');
     return cap(fmt(iso, { weekday: 'long' })) + ' ' + fmt(iso, { day: 'numeric' });
   }
+  function money(n) { return K.money(n).replace(' ', '\u00a0'); }
   function nCls(n) { return n === 1 ? K.t('n.cls1') : K.t('n.clsN', { n: n }); }
 
   /* ---------------- lunas ---------------- */
@@ -1436,7 +1461,7 @@ document.addEventListener('kit:ready', function () {
         h('span', { class: 'mono', text: T.i }),
         h('span', { class: 'cc-who', text: T.s }),
         h('span', { class: 'cc-d', text: s.c.min + ' min' }),
-        s.c.extra ? h('span', { class: 'cc-x', text: '+' + K.money(s.c.extra) }) : null,
+        s.c.extra ? h('span', { class: 'cc-x', text: '+' + money(s.c.extra) }) : null,
         h('span', { class: 'cc-lv', title: K.L(L) }, lvlDot(s.c.lvl), h('span', { text: K.L(L) }))),
       h('span', { class: 'cc-s' }, st === 'live' ? h('i', { class: 'live-dot', 'aria-hidden': 'true' }) : null, sp));
   }
@@ -1488,11 +1513,11 @@ document.addEventListener('kit:ready', function () {
     if (F.day === td) dsel.appendChild(h('em', { text: K.k('todayL') }));
     var selN = lists[days.indexOf(F.day)].filter(passes).length;
     $('#scount').textContent = shown === total ? K.t('sched.count', { n: nCls(total) }) : K.t('sched.countOf', { n: shown, m: total });
+    grid.hidden = !shown;
     var none = $('#wnone');
-    if (!shown) { none.hidden = false; $('#wnone-t').textContent = K.t('sched.noneWeek'); }
-    else if (!selN) { none.hidden = false; $('#wnone-t').textContent = K.t('sched.noneDay'); none.classList.add('is-day'); }
-    else none.hidden = true;
-    if (shown) none.classList.toggle('is-day', !selN); else none.classList.remove('is-day');
+    none.hidden = shown > 0 && selN > 0;
+    none.classList.toggle('is-day', shown > 0 && !selN);
+    $('#wnone-t').textContent = K.t(shown ? 'sched.noneDay' : 'sched.noneWeek');
     var lg = $('#legend'); lg.innerHTML = '';
     Object.keys(S.levels).forEach(function (k) { lg.appendChild(h('span', null, lvlDot(k), K.L(S.levels[k]))); });
     lg.appendChild(h('span', null, h('i', { class: 'lg-done', 'aria-hidden': 'true' }), K.t('sched.past')));
@@ -1503,6 +1528,10 @@ document.addEventListener('kit:ready', function () {
   $('#wreset').addEventListener('click', function () { F.type = 'all'; F.lvl = 'all'; F.focus = null; renderSched(); });
   function goSched(focus) {
     F.focus = focus; F.type = 'all'; F.lvl = 'all';
+    // En el móvil se ve un día: se elige el próximo que tenga esa clase.
+    var days = weekDays(), td = today();
+    var pick = days.filter(function (d) { return d >= td; }).concat(days).filter(function (d) { return dayList(d).some(function (x) { return passes(x) && stateOf(x) !== 'done'; }); })[0];
+    if (!pick && !F.week) { F.week = 1; F.day = null; } else if (pick) F.day = pick;
     renderSched();
     $('#horario').scrollIntoView({ behavior: RM.matches ? 'auto' : 'smooth', block: 'start' });
   }
@@ -1518,7 +1547,7 @@ document.addEventListener('kit:ready', function () {
     var s = s0, st = stateOf(s), notice = '';
     if (st === 'done' || st === 'live') {
       var nx = session(addDays(s.iso, 7), [s.t, s.k, s.tch]);
-      notice = K.t(st === 'done' ? 'd.past' : 'd.live', { d: longDay(nx.iso), t: nx.t });
+      notice = K.t(st === 'done' ? 'd.past' : 'd.live');
       s = nx; st = stateOf(s);
     }
     var c = s.c, T = S.teachers[s.tch], L = S.levels[c.lvl], full = st === 'full', n = ++uid;
@@ -1527,7 +1556,7 @@ document.addEventListener('kit:ready', function () {
     var price = h('p', { class: 'cd-price' });
     function upd() {
       sw.setAttribute('aria-checked', String(FIRST));
-      price.textContent = FIRST ? K.t('d.pfree') : c.extra ? K.t('d.pmaq', { x: K.money(c.extra), p: K.money(S.prices.one + c.extra) }) : K.t('d.pstd', { p: K.money(S.prices.one) });
+      price.textContent = FIRST ? K.t('d.pfree') : c.extra ? K.t('d.pmaq', { x: money(c.extra), p: money(S.prices.one + c.extra) }) : K.t('d.pstd', { p: money(S.prices.one) });
     }
     var sw = h('button', { type: 'button', class: 'sw', role: 'switch', 'aria-checked': String(FIRST), onclick: function () { FIRST = !FIRST; upd(); } },
       h('span', { class: 'sw-track', 'aria-hidden': 'true' }, h('span', { class: 'sw-knob' })),
@@ -1584,7 +1613,7 @@ document.addEventListener('kit:ready', function () {
     var d = diff(today(), nx.iso);
     var when = d === 0 ? K.t('next.today', { t: nx.t }) : d === 1 ? K.t('next.tomorrow', { t: nx.t }) : K.t('next.day', { d: fmt(nx.iso, { weekday: 'long' }), t: nx.t });
     b.appendChild(h('span', { class: 'next-ic', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>' }));
-    b.appendChild(h('span', null, h('span', { class: 'next-k', text: K.t('next.l') + ': ' }), h('span', { class: 'next-w', text: when }), ' · ' + K.L(nx.c.n)));
+    b.appendChild(h('span', { class: 'next-tx' }, h('span', { class: 'next-k', text: K.t('next.l') }), h('span', null, h('span', { class: 'next-w', text: cap(when) }), ' · ' + K.L(nx.c.n))));
     b.onclick = function () { openClass(nx); };
   }
 
@@ -1602,7 +1631,7 @@ document.addEventListener('kit:ready', function () {
             h('span', { class: 'tag' }, lvlDot(c.lvl), K.L(L)),
             h('span', { class: 'tag', html: '<span class="mi">' + moonIcon(INT[c.int]) + '</span>' + K.esc(K.t('int.' + c.int)) }),
             h('span', { class: 'tag', text: K.t('crow.n', { n: n }) }),
-            c.extra ? h('span', { class: 'tag tag-x', text: K.t('crow.x', { x: K.money(c.extra) }) }) : null),
+            c.extra ? h('span', { class: 'tag tag-x', text: K.t('crow.x', { x: money(c.extra) }) }) : null),
           h('button', { type: 'button', class: 'lnk', onclick: function () { goSched({ kind: 'cls', id: k }); } }, K.t('crow.go'))));
       });
     });
@@ -1659,7 +1688,7 @@ document.addEventListener('kit:ready', function () {
   $$('[data-plan]').forEach(function (b) {
     b.addEventListener('click', function () {
       var tier = b.closest('.tier'), p = S.prices[b.getAttribute('data-plan')];
-      var price = K.money(p) + (b.getAttribute('data-plan') === 'unl' ? (K.lang === 'en' ? '/month' : '/mes') : '');
+      var price = money(p) + (b.getAttribute('data-plan') === 'unl' ? (K.lang === 'en' ? '/month' : '/mes') : '');
       K.wa(K.t('wa.plan', { p: $('h3', tier).textContent, price: price }), { business: BIZ });
     });
   });
