@@ -831,7 +831,8 @@ p { margin: 0; }
             <b id="sjn">176</b>
             <span><strong id="sjl">días para Sant Jordi</strong><small id="sjd">Viernes, 23 de abril de 2027</small></span>
           </div>
-          <form class="sj-form" id="sjform" novalidate>
+          <form class="sj-form" id="sjform" novalidate aria-labelledby="sj-form-h">
+            <div class="wform-h"><h3 id="sj-form-h" data-t="sj.form">Reserva tu rosa</h3><span data-t="sj.formsub">Sin colas el día 23</span></div>
             <div class="sj-row">
               <svg class="la" viewBox="0 0 64 150" aria-hidden="true"><use href="#rose" x="0" y="0" width="44" height="110" transform="translate(2 18)"/><use href="#wheat" x="26" y="2" width="34" height="146"/></svg>
               <div><b data-t="sj.p1">Rosa + espiga</b><small><span data-t="sj.p1s">La de siempre, con su lazo</span> · <em data-money="6">6 €</em></small></div>
@@ -1115,7 +1116,7 @@ p { margin: 0; }
     <div class="ft-grid">
       <div><p data-t="ft.p">Floristería de barrio en Sant Antoni desde 2011. Flor fresca cada mañana y tarjetas escritas a mano.</p></div>
       <div><h4 data-t="ft.h1">La tienda</h4><ul><li><a href="#catalogo" data-t="nav.cat">Ramos</a></li><li><a href="#entregas" data-t="nav.ship">Entregas</a></li><li><a href="#sant-jordi">Sant Jordi</a></li><li><a href="#bodas" data-t="nav.wed">Bodas</a></li><li><a href="#suscripcion" data-t="nav.sub">Suscripción</a></li></ul></div>
-      <div><h4 data-t="ft.h2">Contacto</h4><ul><li><a href="tel:+34930000000" data-number="930 00 00 00">930 00 00 00</a></li><li><a href="https://wa.me/34600000000?text=Hola%2C%20Flors%20%26%20Fulles!">WhatsApp</a></li><li><a href="#" data-demo-note="note.ig">Instagram · @florsifulles</a></li><li>Carrer del Comte Borrell, 00</li></ul></div>
+      <div><h4 data-t="ft.h2">Contacto</h4><ul><li><a href="tel:+34930000000" data-number="930 00 00 00">930 00 00 00</a></li><li><a id="ftwa" href="https://wa.me/34600000000?text=%C2%A1Hola%2C%20Flors%20%26%20Fulles!">WhatsApp</a></li><li><a href="#" data-demo-note="note.ig">Instagram · @florsifulles</a></li><li>Carrer del Comte Borrell, 00</li></ul></div>
     </div>
     <div class="ft-bot">
       <span>© 2026 Flors &amp; Fulles · <a href="#" data-demo-note="note.legal" data-t="ft.legal">Aviso legal y privacidad</a> · <span data-t="ft.cookies">Esta web no usa cookies</span></span>
@@ -1213,7 +1214,7 @@ p { margin: 0; }
     "p.melocoton.n": "Flor seca préssec", "p.melocoton.d": "Flor seca i preservada en tons préssec. Dura mesos i no necessita aigua: ideal per portar a l'hospital.", "p.melocoton.alt": "Ram de flor seca embolicat en paper préssec amb llaç",
     "p.bienvenida.n": "Benvinguda", "p.bienvenida.d": "Roses en tons suaus per donar la benvinguda a qui acaba d'arribar. Amb targeta per a la nova família.", "p.bienvenida.alt": "Roses roses vistes de prop",
     "p.calma.n": "Calma", "p.calma.d": "Flors blanques i crema amb verd suau. Per acompanyar amb respecte, sense estridències.", "p.calma.alt": "Flors blanques i beix",
-    "sym.h": "Corones i centres per al tanatori", "sym.p": "Els portem als tanatoris de Barcelona el mateix dia. Escriu-nos i t'assessorem amb calma.", "sym.cta": "Escriu-nos per WhatsApp", "sym.wa": "Hola, voldria informació sobre una corona o un centre per a un tanatori.",
+    "sym.h": "Corones i centres per al tanatori", "sym.p": "Els portem als tanatoris de Barcelona el mateix dia. Escriu-nos i t'assessorem amb calma.", "sym.cta": "Escriu-nos per WhatsApp", "sym.wa": "Hola, voldria informació sobre una corona o un centre per a un tanatori.", "wa.hello": "Hola, Flors & Fulles!", "sj.form": "Reserva la teva rosa", "sj.formsub": "Sense cues el dia 23", "sj.todayBig": "Avui",
     "cat.more": "Busques una altra cosa? Plantes, centres de taula, flor preservada… <a href=\"https://wa.me/34600000000?text=Hola%2C%20busco%20una%20cosa%20que%20no%20%C3%A9s%20al%20cat%C3%A0leg%3A%20\">Escriu-nos</a> i te la preparem.",
     "ship.k": "Entregues", "ship.h": "Avui mateix, <em>si demanes abans de les 14:00</em>",
     "ship.lead": "Repartim de dilluns a dissabte per tot Barcelona, també a hospitals, oficines i tanatoris. El que demanes abans de les 14:00 surt aquella mateixa tarda; si no, arriba l'endemà al matí.",
@@ -1332,7 +1333,7 @@ p { margin: 0; }
     "p.melocoton.n": "Peach dried bouquet", "p.melocoton.d": "Dried and preserved flowers in peach tones. Lasts for months and needs no water: perfect for a hospital visit.", "p.melocoton.alt": "Dried flower bouquet wrapped in peach paper with a ribbon",
     "p.bienvenida.n": "Welcome, baby", "p.bienvenida.d": "Soft-toned roses to welcome the newest arrival. With a card for the new family.", "p.bienvenida.alt": "Close-up of pink roses",
     "p.calma.n": "Calm", "p.calma.d": "White and cream flowers with soft greenery. To show you care, quietly and respectfully.", "p.calma.alt": "White and beige flowers",
-    "sym.h": "Funeral wreaths and arrangements", "sym.p": "We deliver to Barcelona's funeral homes on the same day. Message us and we'll guide you, calmly.", "sym.cta": "Message us on WhatsApp", "sym.wa": "Hello, I would like some information about a wreath or an arrangement for a funeral home.",
+    "sym.h": "Funeral wreaths and arrangements", "sym.p": "We deliver to Barcelona's funeral homes on the same day. Message us and we'll guide you, calmly.", "sym.cta": "Message us on WhatsApp", "sym.wa": "Hello, I would like some information about a wreath or an arrangement for a funeral home.", "wa.hello": "Hi, Flors & Fulles!", "sj.form": "Reserve your rose", "sj.formsub": "No queues on the 23rd", "sj.todayBig": "Today",
     "cat.more": "Looking for something else? Plants, centrepieces, preserved flowers… <a href=\"https://wa.me/34600000000?text=Hi%2C%20I'm%20looking%20for%20something%20that%20isn't%20in%20the%20catalogue%3A%20\">Message us</a> and we'll make it for you.",
     "ship.k": "Delivery", "ship.h": "Today, <em>if you order by 2 pm</em>",
     "ship.lead": "We deliver Monday to Saturday all over Barcelona, including hospitals, offices and funeral homes. Order by 2 pm and it goes out that same afternoon; otherwise it arrives the next morning.",
@@ -1422,7 +1423,7 @@ p { margin: 0; }
   },
   "es": {
     "meta.title": "Flors & Fulles · Floristería en Sant Antoni, Barcelona",
-    "sym.wa": "Hola, quería información sobre una corona o un centro para un tanatorio.",
+    "sym.wa": "Hola, quería información sobre una corona o un centro para un tanatorio.", "wa.hello": "¡Hola, Flors & Fulles!", "sj.todayBig": "Hoy",
     "and": "y", "from": "desde {x}",
     "ed.0": "Edición de invierno", "ed.1": "Edición de primavera", "ed.2": "Edición de verano", "ed.3": "Edición de otoño",
     "season.now": "En temporada: {list}",
@@ -1521,7 +1522,7 @@ document.addEventListener('kit:ready', function () {
   function leftTxt(min) { var hh = Math.floor(min / 60), mm = min % 60; return hh ? hh + ' h' + (mm ? ' ' + mm + ' min' : '') : mm + ' min'; }
   function cutHTML() {
     var c = cutState();
-    if (c.today) return c.left > 240 ? K.t('cut.before') : K.t('cut.today', { t: leftTxt(c.left) });
+    if (c.today) return c.left > 360 ? K.t('cut.before') : K.t('cut.today', { t: leftTxt(c.left) });
     return c.off === 1 ? K.t('cut.tomorrow') : K.t('cut.day', { d: dayLower(c.day) });
   }
   function renderCut() {
@@ -1562,6 +1563,7 @@ document.addEventListener('kit:ready', function () {
     $$('[data-occ]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-occ') === occ)); });
     $('#catcount').textContent = n === 1 ? K.t('cat.one') : K.t('cat.count', { n: n });
     $('#symwa').href = waHref(K.t('sym.wa'));
+    $('#ftwa').href = waHref(K.t('wa.hello'));
   }
   $$('[data-occ]').forEach(function (b) { b.addEventListener('click', function () { occ = b.getAttribute('data-occ'); renderCat(); }); });
   $$('#grid [data-p]').forEach(function (b) { b.addEventListener('click', function () { openOrder(b.getAttribute('data-p'), b); }); });
@@ -1587,18 +1589,15 @@ document.addEventListener('kit:ready', function () {
       var now = K.nowMin();
       if (st.mode === 'deliv') return now >= CUT ? 'o.late' : '';
       var rs = S.hours[d.day] || [], close = rs.length ? K.toMin(rs[rs.length - 1][1]) : 0;
-      return now + 60 > close ? 'o.latePick' : '';
+      return readyToday() > close - 15 ? 'o.latePick' : '';
     }
     function fixDay() {
       var L = days(), cur = L.filter(function (d) { return d.iso === st.day; })[0];
       if (!cur || avail(cur)) { var f = L.filter(function (d) { return !avail(d); })[0]; st.day = (f || L[0]).iso; }
     }
     function fixSlot() { var isT = dayObj().iso === K.todayISO(); if (!st.slot || (isT && st.slot === 'am')) st.slot = isT ? 'pm' : 'am'; }
-    function pickFrom(d) {
-      if (d.iso !== K.todayISO()) return '10:00';
-      var m = Math.ceil((K.nowMin() + 60) / 15) * 15;
-      return K.fmtMin(Math.max(600, m));
-    }
+    function readyToday() { return Math.max(600, Math.ceil((K.nowMin() + 60) / 15) * 15); } // listo en 1 h, nunca antes de las 10:00
+    function pickFrom(d) { return d.iso === K.todayISO() ? K.fmtMin(readyToday()) : '10:00'; }
     function fee() { return st.mode === 'deliv' ? ZONE[st.zone].fee : 0; }
     function stepH(n, key, id, opt) { return h('h3', { class: 'dstep-h', id: id }, h('i', { text: n }), h('span', { text: K.t(key) }), opt ? h('small', { style: 'font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted)', text: K.t('o.opt') }) : null); }
 
@@ -1717,15 +1716,15 @@ document.addEventListener('kit:ready', function () {
             h('p', { class: 'dr-k', text: K.t('cat.plate', { n: ROMAN[p.i] }) + ' · ' + p.o.map(function (o) { return K.t('occ.' + o); }).join(' · ') }),
             h('h2', { class: 'dr-name', id: 'dr-title', tabindex: '-1', text: pname(p) }),
             h('p', { class: 'dr-desc', text: K.t('p.' + p.id + '.d') }))),
-        h('section', { class: 'dstep' }, stepH('1', 'o.size', 'ds1'), els.sizes),
-        h('section', { class: 'dstep' }, stepH('2', 'o.day', 'ds2'), h('p', { class: 'cutoff cutoff-sm' }, h('span', { class: 'cut-dot', 'aria-hidden': 'true' }), h('span', { 'data-cut': '' })), els.days),
-        h('section', { class: 'dstep' }, stepH('3', 'o.how', 'ds3'), els.hows, els.deliv, els.pick),
-        h('section', { class: 'dstep' }, stepH('4', 'o.card', 'ds4'),
+        h('section', { class: 'dstep', 'aria-labelledby': 'ds1' }, stepH('1', 'o.size', 'ds1'), els.sizes),
+        h('section', { class: 'dstep', 'aria-labelledby': 'ds2' }, stepH('2', 'o.day', 'ds2'), h('p', { class: 'cutoff cutoff-sm' }, h('span', { class: 'cut-dot', 'aria-hidden': 'true' }), h('span', { 'data-cut': '' })), els.days),
+        h('section', { class: 'dstep', 'aria-labelledby': 'ds3' }, stepH('3', 'o.how', 'ds3'), els.hows, els.deliv, els.pick),
+        h('section', { class: 'dstep', 'aria-labelledby': 'ds4' }, stepH('4', 'o.card', 'ds4'),
           h('div', { class: 'field' }, h('label', { for: 'o-to' }, K.t('o.to') + ' ', h('small', { text: K.t('o.opt') })), els.to),
           h('div', { class: 'field' }, h('label', { for: 'o-msg' }, K.t('o.msg') + ' ', h('small', { text: K.t('o.opt') })), els.msg, els.count),
           els.card,
           h('p', { class: 'cap', style: 'text-align:center', text: K.t('o.cardnote') })),
-        h('section', { class: 'dstep', style: 'border-bottom:0' }, stepH('5', 'o.you', 'ds5'), els.fName)));
+        h('section', { class: 'dstep', 'aria-labelledby': 'ds5', style: 'border-bottom:0' }, stepH('5', 'o.you', 'ds5'), els.fName)));
       body.appendChild(h('div', { class: 'dr-foot' },
         els.sum, els.err,
         h('button', { type: 'button', class: 'btn btn-fx btn-block', onclick: send }, h('span', { html: WAICON, style: 'display:contents' }), h('span', { text: K.t('o.send') })),
@@ -1741,7 +1740,7 @@ document.addEventListener('kit:ready', function () {
   function sjNext() { var d = today(); var t = Date.UTC(d.y, 3, 23); if (t < d.t) t = Date.UTC(d.y + 1, 3, 23); return { t: t, n: Math.round((t - d.t) / DAY) }; }
   function renderSJ() {
     var x = sjNext();
-    $('#sjn').textContent = x.n === 0 ? '✿' : x.n;
+    $('#sjn').textContent = x.n === 0 ? K.t('sj.todayBig') : x.n;
     $('#sjl').textContent = x.n === 0 ? K.t('sj.today') : x.n === 1 ? K.t('sj.day1') : K.t('sj.days');
     $('#sjd').textContent = cap(fmt(x.t, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
     $('#sjrose').textContent = SJ.rose;
