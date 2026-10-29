@@ -109,5 +109,36 @@
         "query": "?lang=en"
       }
     ]
+  },
+  "clinica-dental-horta": {
+    "sections": [
+      "cuotas",
+      "cita"
+    ],
+    "qa": [
+      {
+        "name": "cuotas",
+        "js": "document.querySelector('#cpresets button').click(); document.querySelector('#cmonths [data-m=\"24\"]').click(); document.querySelector('#cuotas').scrollIntoView({ block: 'start', behavior: 'instant' });"
+      },
+      {
+        "name": "urgencia",
+        "mobile": true,
+        "js": "document.querySelector('#motivos [data-m=\"urgencia\"]').click(); document.querySelector('#cita').scrollIntoView({ block: 'start', behavior: 'instant' });"
+      },
+      {
+        "name": "cita-wa",
+        "mobile": true,
+        "js": "document.querySelector('#motivos .pill').click(); document.querySelector('#fear') && document.querySelector('#fear').click(); document.querySelector('#bname').value = 'Elena'; document.querySelector('#bform').requestSubmit();"
+      },
+      {
+        "name": "en",
+        "query": "?lang=en"
+      },
+      {
+        "name": "ca-movil",
+        "mobile": true,
+        "query": "?lang=ca"
+      }
+    ]
   }
 }

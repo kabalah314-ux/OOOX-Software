@@ -11,7 +11,10 @@
 <meta property="og:locale" content="es_ES">
 <meta property="og:title" content="Clínica Dental Horta · Dentista en Horta, Barcelona">
 <meta property="og:description" content="Una clínica de barrio donde no da miedo ir al dentista. Primera visita gratis y sin compromiso.">
-<meta property="og:image" content="https://images.unsplash.com/photo-1777331903190-341a3dd0441b?auto=format&fit=crop&w=1200&q=72">
+<meta property="og:image" content="https://ooox.es/projects/demos/clinica-dental-horta_og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='20' fill='%230B2545'/%3E%3Cpath d='M15 29c6 14 28 14 34 0' fill='none' stroke='%238FD3C9' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='47' cy='18' r='5.5' fill='%23FF7A59'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,6 +66,7 @@ html.tips-on .sec-head:has(.demo-tip) { align-items: start; }
 .btn:hover { transform: translateY(-2px); }
 .btn:active { transform: none; }
 .btn .ico { width: 20px; height: 20px; }
+.btn > span { text-wrap: balance; }
 .btn-coral { --bg: var(--coral); --fg: var(--ink); box-shadow: 0 14px 26px -16px rgba(230,90,55,.95); }
 .btn-coral:hover { --bg: var(--coral-2); }
 .btn-ink { --bg: var(--ink); --fg: #fff; }
@@ -110,6 +114,7 @@ html.tips-on .sec-head:has(.demo-tip) { align-items: start; }
 .hero h1 em::after { content: ""; position: absolute; left: -.04em; right: -.04em; bottom: -.16em; height: .32em; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 30' preserveAspectRatio='none'%3E%3Cpath d='M5 6C80 31 220 31 295 4' fill='none' stroke='%23FF7A59' stroke-width='5.5' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat; clip-path: inset(0 100% 0 0); animation: draw 1s cubic-bezier(.65,.05,.3,1) .75s forwards; }
 @keyframes draw { to { clip-path: inset(0 0 0 0); } }
 @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hero-txt, .hero-vis, .hero h1 em::after { animation-delay: 0s !important; } }
 @keyframes pop { from { opacity: 0; transform: scale(.94) rotate(-2deg); } to { opacity: 1; transform: none; } }
 .hero-lead { font-size: clamp(17.5px, 1.6vw, 20px); color: var(--muted); max-width: 44ch; }
 .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -142,7 +147,7 @@ html.tips-on .sec-head:has(.demo-tip) { align-items: start; }
 .t-txt { display: grid; gap: 2px; min-width: 0; }
 .t-txt > strong { font: 780 19px/1.15 var(--f-display); letter-spacing: -.02em; color: var(--ink); }
 .t-txt > small { font-size: 14px; line-height: 1.3; color: var(--muted); }
-@media (max-width: 960px) {
+@media (max-width: 1100px) {
   .trust { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .trust > li:nth-child(3) { border-left: 0; }
   .trust > li:nth-child(n+3) { border-top: 1px solid var(--line); }
@@ -185,6 +190,7 @@ html.tips-on .sec-head:has(.demo-tip) { align-items: start; }
 
 /* tratamientos */
 .tgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.tgrid:has(.is-open) { align-items: start; }
 .tcard { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 26px 24px 20px; border-radius: 28px; background: var(--cream); border: 1.5px solid transparent; transition: border-color .25s, background-color .25s, box-shadow .25s, transform .25s var(--ease); }
 .tcard:hover { border-color: var(--line-2); transform: translateY(-3px); box-shadow: var(--sh-1); }
 .tcard.is-open { background: #fff; border-color: var(--aqua); box-shadow: var(--sh-1); transform: none; }
@@ -231,7 +237,13 @@ html.tips-on .sec-head:has(.demo-tip) { align-items: start; }
 /* calculadora de cuotas */
 .calc { background: var(--mint); }
 .calc-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 18px; align-items: stretch; }
-.calc-panel { display: grid; gap: 30px; align-content: start; padding: clamp(22px, 3.4vw, 40px); background: #fff; border-radius: 32px; box-shadow: var(--sh-1); }
+.calc-panel { display: flex; flex-direction: column; gap: 30px; padding: clamp(22px, 3.4vw, 40px); background: #fff; border-radius: 32px; box-shadow: var(--sh-1); min-width: 0; }
+.c-how { margin-top: auto; padding-top: 22px; border-top: 1px dashed var(--line-2); }
+.c-how-h { font: 750 15px/1.2 var(--f-display); color: var(--ink); margin-bottom: 14px; }
+.c-how ol { list-style: none; counter-reset: how; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.c-how li { counter-increment: how; display: grid; align-content: start; gap: 9px; font-size: 14px; line-height: 1.4; color: var(--muted); }
+.c-how li::before { content: counter(how); width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--mint); color: var(--ink); font: 800 13px/1 var(--f-display); }
+@media (max-width: 560px) { .c-how ol { grid-template-columns: 1fr; gap: 10px; } .c-how li { grid-template-columns: 28px minmax(0, 1fr); align-items: center; gap: 12px; } }
 .c-field { display: grid; gap: 14px; min-width: 0; }
 .c-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font: 750 17px/1.25 var(--f-display); color: var(--ink); letter-spacing: -.01em; }
 .c-presets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -280,13 +292,14 @@ html.tips-on .sec-head:has(.demo-tip) { align-items: start; }
 .r-note .ico { margin-top: 1px; width: 17px; height: 17px; }
 .r-note.is-ex { padding: 12px 14px; border-radius: 16px; background: rgba(255,122,89,.13); border: 1px solid rgba(255,122,89,.42); color: #fff; }
 .calc-result .btn { margin-top: auto; width: 100%; }
+.calc-result :focus-visible, .offer :focus-visible { outline-color: var(--aqua); }
 .calc .demo-tip { margin-top: 2px; }
 @media (max-width: 920px) { .calc-grid { grid-template-columns: 1fr; } }
 @media (max-width: 420px) { .months > button { font-size: 22px; } .months > button > small { font-size: 10.5px; } }
 
 /* primera visita, paso a paso */
 .tl-wrap { position: relative; }
-.tl-arc { position: absolute; top: 0; left: calc((100% - 72px) / 8); right: calc((100% - 72px) / 8); width: auto; height: 100px; overflow: visible; pointer-events: none; }
+.tl-arc { position: absolute; top: 0; left: calc((100% - 72px) / 8); width: calc(100% - (100% - 72px) / 4); height: 100px; overflow: visible; pointer-events: none; }
 .tl-arc path { fill: none; stroke: var(--aqua); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 9; }
 .tl { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
 .tl-step { display: grid; justify-items: center; align-content: start; gap: 10px; text-align: center; }
@@ -421,11 +434,17 @@ html.tips-on .sec-head:has(.demo-tip) { align-items: start; }
 .pill.is-urgent[aria-pressed="true"] .u-dot { background: var(--ink); }
 .urgent { display: grid; gap: 12px; justify-items: start; padding: 18px 20px 20px; border-radius: 22px; background: var(--coral-l); border: 1.5px solid rgba(255,122,89,.55); animation: rise .35s var(--ease); }
 .urgent[hidden] { display: none; }
+.urgent { scroll-margin-top: 92px; }
 .u-h { display: flex; align-items: center; gap: 10px; font: 780 20px/1.2 var(--f-display); color: var(--ink); letter-spacing: -.02em; }
 .u-h .ico { width: 22px; height: 22px; color: #C9472A; }
 .urgent > p:not(.u-h) { font-size: 15.5px; line-height: 1.45; }
-.urgent .btn { width: 100%; min-height: 58px; font-size: 17px; }
+.urgent .btn { width: 100%; min-height: 64px; border-radius: 20px; gap: 14px; }
+.u-call .ico { width: 24px; height: 24px; }
+.u-txt { display: grid; gap: 3px; text-align: left; }
+.u-txt > span { font-size: 14px; font-weight: 600; opacity: .82; }
+.u-num { font: 800 21px/1 var(--f-display); letter-spacing: .01em; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .urgent > small { font-size: 13.5px; color: var(--muted); }
+.u-closed { font-size: 14.5px; line-height: 1.45; font-weight: 600; color: #8A2E17; }
 .days { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 3px; margin: -3px; scroll-snap-type: x proximity; }
 .days::-webkit-scrollbar { display: none; }
 @media (min-width: 961px) { .days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); overflow: visible; margin: 0; padding: 0; } .days > .day { width: auto; } }
@@ -461,6 +480,7 @@ textarea.input { min-height: 88px; resize: vertical; }
 .sum > span.is-urg { background: var(--coral-l); }
 .sum .ico { width: 15px; height: 15px; }
 .btn-send { width: 100%; min-height: 60px; font-size: 17px; }
+@media (max-width: 420px) { .btn-send, .calc-result .btn { font-size: 16px; padding: 0 16px; } }
 .form-note { margin-top: -12px; text-align: center; font-size: 14px; color: var(--muted); }
 .is-bad .input, .is-bad .days { box-shadow: 0 0 0 3px rgba(255,122,89,.6); border-radius: 16px; }
 @media (max-width: 960px) { .book-grid { grid-template-columns: 1fr; } .book-side { position: static; } }
@@ -608,7 +628,7 @@ textarea.input { min-height: 88px; resize: vertical; }
     <div class="wrap">
       <ul class="trust" aria-label="Por qué confiar en nosotros" data-ta="aria-label:trust.label">
         <li><span class="t-seal is-star" aria-hidden="true"><svg class="ico"><use href="#i-star"/></svg></span><span class="t-txt"><strong data-t="trust.1a">4,9 de 5</strong><small data-t="trust.1b">230 reseñas en Google</small></span></li>
-        <li><span class="t-seal" aria-hidden="true"><svg class="ico"><use href="#i-home"/></svg></span><span class="t-txt"><strong data-t="trust.2a">18 años en Horta</strong><small data-t="trust.2b">dentistas del barrio desde 2008</small></span></li>
+        <li><span class="t-seal" aria-hidden="true"><svg class="ico"><use href="#i-home"/></svg></span><span class="t-txt"><strong data-t="trust.2a">18 años en Horta</strong><small data-t="trust.2b">abrimos en 2008</small></span></li>
         <li><span class="t-seal" aria-hidden="true"><svg class="ico"><use href="#i-percent"/></svg></span><span class="t-txt"><strong data-t="trust.3a">Sin intereses</strong><small data-t="trust.3b">financiación hasta 12 meses</small></span></li>
         <li><span class="t-seal" aria-hidden="true"><svg class="ico"><use href="#i-bolt"/></svg></span><span class="t-txt"><strong data-t="trust.4a">Urgencias</strong><small data-t="trust.4b">te vemos el mismo día</small></span></li>
       </ul>
@@ -687,6 +707,14 @@ textarea.input { min-height: 88px; resize: vertical; }
               <button type="button" data-m="18" aria-pressed="false" data-int>18<span class="sr-only" data-t="calc.months">meses</span><small data-t="calc.int">6,9 % TIN</small></button>
               <button type="button" data-m="24" aria-pressed="false" data-int>24<span class="sr-only" data-t="calc.months">meses</span><small data-t="calc.int">6,9 % TIN</small></button>
             </div>
+          </div>
+          <div class="c-how">
+            <p class="c-how-h" data-t="calc.howh">Cómo funciona</p>
+            <ol>
+              <li data-t="calc.how1">Revisión gratis y presupuesto cerrado</li>
+              <li data-t="calc.how2">Firmas la financiación aquí mismo, en unos minutos</li>
+              <li data-t="calc.how3">Empiezas el tratamiento y pagas cada mes</li>
+            </ol>
           </div>
         </div>
         <div class="calc-result">
@@ -835,7 +863,8 @@ textarea.input { min-height: 88px; resize: vertical; }
         <div class="urgent" id="urgent" hidden>
           <p class="u-h"><svg class="ico" aria-hidden="true"><use href="#i-bolt"/></svg><span data-t="u.h">¿Te duele ahora?</span></p>
           <p data-t="u.p">Llámanos y te buscamos hueco hoy mismo, en horario de clínica.</p>
-          <a class="btn btn-ink" href="tel:+34930000000" data-number="930 00 00 00"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg><span data-t="u.cta">Llamar ahora · 930 00 00 00</span></a>
+          <a class="btn btn-ink u-call" href="tel:+34930000000" data-number="930 00 00 00"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg><span class="u-txt"><span data-t="u.cta">Llámanos ahora</span><b class="u-num">930 00 00 00</b></span></a>
+          <p class="u-closed" id="uclosed" hidden></p>
           <small data-t="u.or">O sigue y mándanos el WhatsApp: lo miramos enseguida.</small>
         </div>
         <div class="field" id="f-day" role="group" aria-labelledby="l-day">
@@ -1014,7 +1043,7 @@ textarea.input { min-height: 88px; resize: vertical; }
     "hero.alt": "Dentista explicant el tractament a un pacient en una consulta lluminosa",
     "sticker.aria": "Primera visita gratuïta", "sticker.a": "1a visita", "sticker.b": "gratis",
     "trust.label": "Per què confiar en nosaltres",
-    "trust.1a": "4,9 de 5", "trust.1b": "230 ressenyes a Google", "trust.2a": "18 anys a Horta", "trust.2b": "dentistes del barri des del 2008",
+    "trust.1a": "4,9 de 5", "trust.1b": "230 ressenyes a Google", "trust.2a": "18 anys a Horta", "trust.2b": "vam obrir el 2008",
     "trust.3a": "Sense interessos", "trust.3b": "finançament fins a 12 mesos", "trust.4a": "Urgències", "trust.4b": "et veiem el mateix dia",
     "offer.pill": "Per a pacients nous", "offer.h": "Primera visita gratuïta", "offer.lead": "Revisió, radiografia i pla per escrit, sense compromís.",
     "offer.l1": "Revisió de dents, genives i mossegada", "offer.l2": "Radiografia digital inclosa", "offer.l3": "Pla i pressupost tancat, per escrit", "offer.l4": "Uns 45 minuts, sense presses",
@@ -1027,6 +1056,7 @@ textarea.input { min-height: 88px; resize: vertical; }
     "tip.calc": "<b>Quotes al mes: el preu deixa de fer por.</b> 1.990 € fan enrere; 165 € al mes, molt menys.",
     "calc.l1": "Tractament", "calc.l2": "Import", "calc.hint": "Financem tractaments a partir de 300 €.", "calc.l3": "En quants mesos?", "calc.months": "mesos",
     "calc.free": "sense interessos", "calc.int": "6,9 % TIN", "calc.pm": "al mes", "calc.cta": "Demanar cita per al meu pressupost",
+    "calc.howh": "Com funciona", "calc.how1": "Revisió gratuïta i pressupost tancat", "calc.how2": "Signes el finançament aquí mateix, en pocs minuts", "calc.how3": "Comences el tractament i pagues cada mes",
     "steps.h": "La teva primera visita, pas a pas", "steps.lead": "Uns 45 minuts, sense presses. En tot moment sabràs què estem fent i per què.",
     "steps.1h": "T'acollim sense presses", "steps.1p": "Ens expliques què et preocupa. Si et poses nerviós, digues-nos-ho: acordem un senyal per parar quan vulguis.",
     "steps.2h": "Revisió i radiografia", "steps.2p": "Mirem dents, genives i mossegada, i fem una radiografia digital. T'ensenyem les imatges a la pantalla.",
@@ -1062,7 +1092,7 @@ textarea.input { min-height: 88px; resize: vertical; }
     "book.p1": "Et responem en horari de clínica, normalment en menys d'una hora", "book.p2": "Si et fa mal, et veiem avui mateix", "book.p3": "Canviar o anul·lar la cita és tan fàcil com enviar un missatge",
     "book.call": "Prefereixes parlar? Truca'ns al <a href=\"tel:+34930000000\" data-number=\"930 00 00 00\">930 00 00 00</a>",
     "tip.book": "<b>Cites per WhatsApp, ja endreçades.</b> Motiu, dia i franja en un sol missatge. I si algú té por, ho sabeu abans que arribi.",
-    "f.motivo": "Què necessites?", "u.h": "Et fa mal ara?", "u.p": "Truca'ns i et busquem forat avui mateix, en horari de clínica.", "u.cta": "Trucar ara · 930 00 00 00", "u.or": "O continua i envia'ns el WhatsApp: el mirem de seguida.",
+    "f.motivo": "Què necessites?", "u.h": "Et fa mal ara?", "u.p": "Truca'ns i et busquem forat avui mateix, en horari de clínica.", "u.cta": "Truca'ns ara", "u.or": "O continua i envia'ns el WhatsApp: el mirem de seguida.", "u.closed": "Ara la clínica està tancada ({when}). Si és greu, truca al 112.",
     "f.day": "Quin dia et va millor?", "f.part": "Matí o tarda?", "f.am": "Matí", "f.pm": "Tarda", "f.any": "M'és igual",
     "f.name": "El teu nom", "f.fear": "Em fa una mica de por anar al dentista", "f.fear2": "Ens ho apuntem per anar amb calma i explicar-te cada pas.",
     "f.note": "Alguna cosa més? (opcional)", "f.noteph": "Tinc mútua, vinc amb la meva filla, prefereixo que em truqueu…", "f.send": "Demanar cita per WhatsApp", "f.foot": "Et responem amb una hora concreta. Sense compromís.",
@@ -1097,12 +1127,12 @@ textarea.input { min-height: 88px; resize: vertical; }
     "logo.sub": "Dental clinic",
     "nav.label": "Sections", "nav.trat": "Treatments", "nav.fin": "Financing", "nav.first": "First visit", "nav.team": "Team", "nav.contact": "Contact", "nav.faq": "FAQ",
     "lang.label": "Language", "cta.book": "Book a visit", "cta.urgent": "Emergency today",
-    "hero.h": "A neighbourhood clinic where going to the dentist <em>isn't scary</em>.",
+    "hero.h": "A local clinic where going to the dentist <em>isn't scary</em>.",
     "hero.lead": "We explain every step before we start, go at your pace and give you the quote in writing. We've been Horta's neighbourhood dentists for 18 years.",
     "hero.alt": "Dentist explaining a treatment to a patient in a bright surgery",
     "sticker.aria": "Free first visit", "sticker.a": "1st visit", "sticker.b": "free",
     "trust.label": "Why patients trust us",
-    "trust.1a": "4.9 out of 5", "trust.1b": "230 Google reviews", "trust.2a": "18 years in Horta", "trust.2b": "your local dentists since 2008",
+    "trust.1a": "4.9 out of 5", "trust.1b": "230 Google reviews", "trust.2a": "18 years in Horta", "trust.2b": "open since 2008",
     "trust.3a": "Interest-free", "trust.3b": "financing up to 12 months", "trust.4a": "Emergencies", "trust.4b": "seen the same day",
     "offer.pill": "For new patients", "offer.h": "Free first visit", "offer.lead": "Check-up, X-ray and a written plan, with no strings attached.",
     "offer.l1": "Check of your teeth, gums and bite", "offer.l2": "Digital X-ray included", "offer.l3": "Plan and fixed quote, in writing", "offer.l4": "About 45 minutes, unhurried",
@@ -1115,6 +1145,7 @@ textarea.input { min-height: 88px; resize: vertical; }
     "tip.calc": "<b>Monthly payments: the price stops being scary.</b> €1,990 puts people off; €165 a month, much less so.",
     "calc.l1": "Treatment", "calc.l2": "Amount", "calc.hint": "We finance treatments from €300.", "calc.l3": "Over how many months?", "calc.months": "months",
     "calc.free": "interest-free", "calc.int": "6.9% rate", "calc.pm": "a month", "calc.cta": "Book a visit for my quote",
+    "calc.howh": "How it works", "calc.how1": "Free check-up and a fixed quote", "calc.how2": "Sign the financing right here, in a few minutes", "calc.how3": "Start your treatment and pay monthly",
     "steps.h": "Your first visit, step by step", "steps.lead": "About 45 minutes, unhurried. You'll always know what we're doing and why.",
     "steps.1h": "We welcome you, no rush", "steps.1p": "Tell us what's worrying you. If you're nervous, say so: we'll agree on a signal so you can stop us at any time.",
     "steps.2h": "Check-up and X-ray", "steps.2p": "We check your teeth, gums and bite, and take a digital X-ray. We show you the images on screen.",
@@ -1150,7 +1181,7 @@ textarea.input { min-height: 88px; resize: vertical; }
     "book.p1": "We reply during clinic hours, usually within the hour", "book.p2": "If you're in pain, we'll see you today", "book.p3": "Changing or cancelling is as easy as sending a message",
     "book.call": "Prefer to talk? Call us on <a href=\"tel:+34930000000\" data-number=\"930 00 00 00\">930 00 00 00</a>",
     "tip.book": "<b>Bookings on WhatsApp, already sorted.</b> Reason, day and time of day in a single message. And if someone is nervous, you know before they arrive.",
-    "f.motivo": "What do you need?", "u.h": "In pain right now?", "u.p": "Call us and we'll fit you in today, during clinic hours.", "u.cta": "Call now · 930 00 00 00", "u.or": "Or carry on and send us the WhatsApp: we'll look at it straight away.",
+    "f.motivo": "What do you need?", "u.h": "In pain right now?", "u.p": "Call us and we'll fit you in today, during clinic hours.", "u.cta": "Call us now", "u.or": "Or carry on and send us the WhatsApp: we'll look at it straight away.", "u.closed": "The clinic is closed right now ({when}). If it's serious, call 112.",
     "f.day": "Which day suits you best?", "f.part": "Morning or afternoon?", "f.am": "Morning", "f.pm": "Afternoon", "f.any": "Either",
     "f.name": "Your name", "f.fear": "I'm a bit nervous about the dentist", "f.fear2": "We'll make a note to take it slowly and explain every step.",
     "f.note": "Anything else? (optional)", "f.noteph": "I have dental insurance, I'm bringing my daughter, I'd rather you called…", "f.send": "Book on WhatsApp", "f.foot": "We'll reply with a specific time. No commitment.",
@@ -1188,6 +1219,7 @@ textarea.input { min-height: 88px; resize: vertical; }
     "calc.note0": "Cuota orientativa, sin intereses ni comisiones. Sujeta a la aprobación de la financiación.",
     "calc.note1": "Ejemplo orientativo, sujeto a aprobación de la financiera. Calculado con un {tin} TIN; TAE {tae} sin comisiones.",
     "calc.live": "{fee} al mes durante {n} meses", "calc.tr.other": "Aún no lo sé",
+    "u.closed": "Ahora la clínica está cerrada ({when}). Si es grave, llama al 112.",
     "f.friday": "Los viernes cerramos a las 15:00: solo por la mañana.", "f.todaypm": "Hoy ya solo quedan horas por la tarde.", "f.closed": "cerrado", "f.full": "hoy ya no quedan horas",
     "sum.am": "Por la mañana", "sum.pm": "Por la tarde", "sum.any": "A cualquier hora", "sum.fear": "Con calma",
     "wa.book": "¡Hola! Quiero pedir cita en *Clínica Dental Horta*.\n• Motivo: {m}\n• Día: {d}\n• Franja: {p}\n• Nombre: {name}{fear}{note}\n¡Gracias!",
@@ -1214,7 +1246,7 @@ document.addEventListener('kit:ready', function () {
   var WA = 'https://wa.me/34600000000?text=';
   var NS = 'http://www.w3.org/2000/svg';
 
-  K.hours({ week: S.hours });
+  var HRS = K.hours({ week: S.hours });
 
   // El kit pinta el horario (y lo repinta cada minuto y al cambiar de idioma). Aquí solo se pule la tipografía:
   // cada tramo «09:00–14:00» no se parte nunca y, en el móvil, cada tramo va en su línea.
@@ -1290,7 +1322,15 @@ document.addEventListener('kit:ready', function () {
   // Enlaces que preparan otra sección: «Pedir cita» elige el motivo y «Calcular cuotas» carga el tratamiento.
   document.addEventListener('click', function (e) {
     if (!e.target.closest) return;
-    var p = e.target.closest('[data-pick]'); if (p) setMotivo(p.getAttribute('data-pick'));
+    var p = e.target.closest('[data-pick]');
+    if (p) {
+      setMotivo(p.getAttribute('data-pick'));
+      if (p.getAttribute('data-pick') === 'urgencia') { // con dolor, directo a la caja de «Llámanos ahora»
+        e.preventDefault();
+        var calm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        $('#urgent').scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' });
+      }
+    }
     var c = e.target.closest('[data-calc]'); if (c) setPreset(c.getAttribute('data-calc'));
   });
 
@@ -1402,11 +1442,18 @@ document.addEventListener('kit:ready', function () {
     $$('#motivos .pill').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-m') === id)); });
     var urg = id === 'urgencia';
     $('#urgent').hidden = !urg;
+    urgentNote();
     if (urg) { // con dolor, lo lógico es hoy si aún da tiempo
       var today = days.filter(function (d) { return d.iso === K.todayISO() && d.avail; })[0];
       if (today) pickDay(today.iso);
     }
     summary();
+  }
+  function urgentNote() {
+    // Si ahora está cerrado, lo decimos claro: cuándo abre y que si es grave, al 112.
+    var el = $('#uclosed'), open = HRS.status().open;
+    el.hidden = open;
+    if (!open) el.textContent = K.t('u.closed', { when: HRS.label().sub });
   }
   function partsFor(d) {
     // Mañana / tarde de ese día; hoy solo cuenta lo que aún da tiempo (con media hora de margen).
@@ -1432,7 +1479,7 @@ document.addEventListener('kit:ready', function () {
     days.forEach(function (d) {
       var why = d.closed ? K.t('f.closed') : (!d.avail ? K.t('f.full') : '');
       box.appendChild(h('button', { type: 'button', class: 'day', 'data-iso': d.iso, disabled: !d.avail, 'aria-pressed': String(B.day === d.iso), 'aria-label': d.long + (why ? ' · ' + why : ''), title: why || null, onclick: function () { pickDay(d.iso); } },
-        h('small', { text: d.top }), h('b', { text: d.num }), h('span', { text: d.month })));
+        h('small', { text: d.top }), h('b', { text: d.num }), h('span', { text: d.month.replace(/^(d[’']|de\s+)/i, '') })));
     });
   }
   function pickDay(iso) {
@@ -1507,7 +1554,7 @@ document.addEventListener('kit:ready', function () {
 
   function renderAll() {
     renderTreat(); renderPresets(); updateCalc(false, false);
-    renderMotivos(); renderDays(); renderParts(); summary();
+    renderMotivos(); renderDays(); renderParts(); summary(); urgentNote();
     renderReviews(); waLinks();
   }
   renderAll();

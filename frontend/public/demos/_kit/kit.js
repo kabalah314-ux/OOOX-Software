@@ -238,7 +238,8 @@
         var rs = (self.week[d] || []);
         var row = h('div', { class: 'kit-hrow' + (d === today ? ' is-today' : ''), role: 'row' },
           h('span', { class: 'kit-hday', role: 'cell' }, dayName(d), d === today ? h('em', { text: k('todayL') }) : null),
-          h('span', { class: 'kit-hval', role: 'cell' }, rs.length ? rs.map(function (r) { return r[0] + '–' + r[1]; }).join(' · ') : k('closedDay')));
+          // cada tramo en una pieza: en el móvil no se parte «15:30–» / «20:00»
+          h('span', { class: 'kit-hval', role: 'cell' }, rs.length ? rs.map(function (r, i) { return [i ? ' · ' : null, h('span', { class: 'kit-hr', text: r[0] + '–' + r[1] })]; }) : k('closedDay')));
         el.appendChild(row);
       });
     });
@@ -260,7 +261,8 @@
       var d = new Date(start.getTime() + i * 86400000);
       var m = madrid(d);
       var parts = new Intl.DateTimeFormat(loc, { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' }).formatToParts(d);
-      var get = function (type) { var p = parts.find(function (x) { return x.type === type; }); return p ? p.value.replace('.', '') : ''; };
+      // (en catalán el mes corto llega como «d’oct.» o «de nov.»: se deja solo el mes)
+      var get = function (type) { var p = parts.find(function (x) { return x.type === type; }); return p ? p.value.replace('.', '').replace(/^(de\s+|d['’])/, '') : ''; };
       out.push({
         iso: m.date, day: m.day, closed: (closedDays || []).indexOf(m.day) !== -1,
         top: i === 0 ? k('todayL') : i === 1 ? k('tomorrowL') : get('weekday'),
@@ -381,7 +383,8 @@
   /* ------------------------------------------------------------------ dinero */
   function money(n) {
     var loc = lang === 'en' ? 'en-GB' : 'es-ES';
-    var s = new Intl.NumberFormat(loc, { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }).format(n);
+    // useGrouping 'always': 1.990 € también con cuatro cifras (los navegadores antiguos lo tratan como true)
+    var s = new Intl.NumberFormat(loc, { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2, useGrouping: 'always' }).format(n);
     return lang === 'en' ? '€' + s : s + ' €';
   }
 

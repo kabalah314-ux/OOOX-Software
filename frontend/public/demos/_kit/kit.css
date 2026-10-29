@@ -37,6 +37,7 @@ a { color: inherit; }
 .kit-hday em { font-style: normal; font-size: .72em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-left: 8px; padding: 2px 7px; border-radius: 999px; background: var(--k-accent, #111); color: var(--k-accent-ink, #fff); vertical-align: 2px; }
 .kit-hrow.is-today { font-weight: 700; }
 .kit-hval { text-align: right; }
+.kit-hr { white-space: nowrap; }
 
 /* ---------- ventanas ---------- */
 .kit-dialog { border: 0; padding: 0; border-radius: 22px; max-width: min(440px, calc(100vw - 24px)); width: 100%; background: #fff; color: #111; box-shadow: 0 30px 80px -20px rgba(0,0,0,.45); }
