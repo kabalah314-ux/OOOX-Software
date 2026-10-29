@@ -88,3 +88,7 @@ html[data-demo].tips-on .demo-tip { display: block; }
 .demo-tip::before { content: "OOOX"; position: absolute; left: 10px; top: 13px; writing-mode: vertical-rl; transform: rotate(180deg); font: 800 9px/1 system-ui, sans-serif; letter-spacing: .14em; color: #7a6400; }
 .demo-tip b { font-weight: 800; }
 @media (max-width: 560px) { .kit-demobar-tips { order: 3; } }
+
+/* captura limpia (?shot) para el portfolio de OOOX: todo en su estado final, sin animaciones */
+html.kit-shot { scroll-behavior: auto; }
+html.kit-shot *, html.kit-shot *::before, html.kit-shot *::after { animation-delay: 0s !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-delay: 0s !important; transition-duration: .001ms !important; }

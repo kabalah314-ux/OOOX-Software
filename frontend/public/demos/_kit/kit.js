@@ -19,14 +19,20 @@
   'use strict';
 
   var OOOX = {
-    // Dónde lleva «Quiero una web así». Cuando OOOX Webs tenga su WhatsApp, poner aquí wa.me/34XXXXXXXXX.
-    contact: 'https://ooox.es/',
+    // Dónde lleva «Quiero una web así»: la sección de webs para negocios de ooox.es.
+    // Cuando OOOX Webs tenga su WhatsApp, poner aquí wa.me/34XXXXXXXXX.
+    contact: 'https://ooox.es/#/webs',
     brand: 'OOOX',
   };
 
   var TZ = 'Europe/Madrid';
   var root = document.documentElement;
   var DEMO = root.hasAttribute('data-demo');
+  // Captura limpia para el portfolio de OOOX: ?shot → sin banner, sin notas, sin animaciones y en castellano;
+  // ?shot=<id> → además la página empieza en esa sección (para las vistas previas de cada demo).
+  var SHOT = location.search.match(/[?&]shot(?:=([\w-]*))?(?:&|$)/);
+  var SHOT_AT = SHOT && SHOT[1] && SHOT[1] !== '1' ? SHOT[1] : '';
+  if (SHOT) root.classList.add('kit-shot');
 
   /* ------------------------------------------------------------------ utilidades */
   function $(sel, ctx) { return (ctx || document).querySelector(sel); }
@@ -153,7 +159,7 @@
     var saved = store.get('lang');
     var nav = (navigator.language || 'es').slice(0, 2);
     // Por defecto castellano; catalán si el navegador está en catalán. El inglés, con el botón (o ?lang=en).
-    lang = q || saved || (nav === 'ca' ? 'ca' : 'es');
+    lang = q || (SHOT ? 'es' : '') || saved || (nav === 'ca' ? 'ca' : 'es');
     document.addEventListener('click', function (e) {
       var b = e.target.closest && e.target.closest('[data-lang]');
       if (b) { e.preventDefault(); setLang(b.getAttribute('data-lang')); }
@@ -377,7 +383,7 @@
 
   /* ------------------------------------------------------------------ banner de demo */
   function demoBar() {
-    if (!DEMO) return;
+    if (!DEMO || SHOT) return;
     if (store.get('tips') !== '0') root.classList.add('tips-on');
     if (store.get('demobar-off') === document.location.pathname) return;
     var bar = h('div', { class: 'kit-demobar', role: 'note' },
@@ -428,6 +434,21 @@
     window.addEventListener('scroll', tick, { passive: true }); tick();
   }
 
+  /* ------------------------------------------------------------------ captura limpia (?shot) */
+  function shotMode() {
+    if (!SHOT) return;
+    $$('img[loading="lazy"]').forEach(function (im) { im.loading = 'eager'; });
+    var el = SHOT_AT && document.getElementById(SHOT_AT);
+    if (!el) return;
+    // Oculta todo lo que va antes de la sección pedida: la captura empieza en ella.
+    for (var n = el; n && n !== document.body; n = n.parentElement) {
+      for (var s = n.previousElementSibling; s; s = s.previousElementSibling) {
+        if (!/^(SCRIPT|STYLE|LINK|DIALOG|TEMPLATE)$/.test(s.tagName)) s.style.setProperty('display', 'none', 'important');
+      }
+    }
+    window.scrollTo(0, 0);
+  }
+
   /* ------------------------------------------------------------------ arranque */
   var Kit = {
     $: $, $$: $$, h: h, esc: esc, store: store,
@@ -436,12 +457,13 @@
     madrid: madrid, toMin: toMin, fmtMin: fmtMin, dayName: dayName, todayISO: todayISO, nowMin: nowMadridMin,
     hours: hours, days: days, slots: slots, rand: rand,
     dialog: dialog, toast: toast, wa: wa, callPreview: callPreview,
-    compare: compare, moon: moon, money: money, demo: DEMO, ooox: OOOX,
+    compare: compare, moon: moon, money: money, demo: DEMO, shot: !!SHOT, ooox: OOOX,
   };
   window.Kit = Kit;
 
   function start() {
     initLang();
+    shotMode();
     demoBar();
     interceptDemo();
     stickyHeader();

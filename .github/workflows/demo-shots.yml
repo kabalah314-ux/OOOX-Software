@@ -1,0 +1,59 @@
+# Capturas de las demos de webs para negocios (webs-negocios/demos) con fotos y tipografías reales.
+# Se lanza al subir cambios de las demos a cualquier rama que no sea main y publica el resultado,
+# sin historial, en la rama `demo-shots` (imágenes para el portfolio de ooox.es y capturas de revisión).
+name: Capturas de las demos
+
+on:
+  push:
+    branches-ignore: [main, demo-shots]
+    paths:
+      - 'frontend/public/demos/**'
+      - 'webs-negocios/demos/shots.mjs'
+      - 'webs-negocios/demos/shots.json'
+      - '.github/workflows/demo-shots.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: demo-shots
+  cancel-in-progress: true
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TZ: Europe/Madrid
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar Playwright (Chromium)
+        working-directory: webs-negocios/demos
+        run: |
+          npm i --no-save --no-package-lock --no-audit --no-fund playwright@1.49.1
+          npx playwright install --with-deps chromium
+
+      - name: Hacer las capturas
+        run: node webs-negocios/demos/shots.mjs /tmp/out 2>&1 | tee /tmp/shots-log.txt
+
+      - name: Publicar en la rama demo-shots
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/out && cp /tmp/shots-log.txt /tmp/out/log.txt || true
+          cd /tmp/out
+          # Esta rama solo guarda imágenes: que Vercel no intente desplegarla.
+          echo '{ "git": { "deploymentEnabled": false } }' > vercel.json
+          mkdir -p frontend && cp vercel.json frontend/vercel.json
+          printf '# Capturas de las demos\n\nGeneradas por `.github/workflows/demo-shots.yml` desde la rama `%s` (commit %s).\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" > README.md
+          git init -q -b demo-shots
+          git add -A
+          git -c user.name="OOOX bot" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Capturas de las demos · ${GITHUB_REF_NAME} · ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:demo-shots

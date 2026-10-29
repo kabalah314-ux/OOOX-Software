@@ -1,0 +1,19 @@
+{
+  "la-vermuteria": {
+    "sections": [
+      "carta",
+      "reserva"
+    ],
+    "qa": [
+      {
+        "name": "reserva-wa",
+        "mobile": true,
+        "js": "document.querySelector('#times button:not([disabled])').click(); document.querySelector('#rname').value = 'Marta'; document.querySelector('#resform').requestSubmit();"
+      },
+      {
+        "name": "en",
+        "query": "?lang=en"
+      }
+    ]
+  }
+}
