@@ -96,13 +96,13 @@
       {
         "name": "encargo",
         "wait": 1500,
-        "js": "function f(id, v) { var e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); } document.querySelector('#grid [data-p=\"rosa\"]').click(); setTimeout(function () { f('o-to', 'Marta'); f('o-msg', 'Feliz aniversario. Gracias por estos diez años.'); }, 300);"
+        "js": "var f = function (id, v) { var e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }; document.querySelector('#grid [data-p=\"rosa\"]').click(); setTimeout(function () { f('o-to', 'Marta'); f('o-msg', 'Feliz aniversario. Gracias por estos diez años.'); }, 300);"
       },
       {
         "name": "encargo-wa",
         "mobile": true,
         "wait": 1800,
-        "js": "function f(id, v) { var e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); } document.querySelector('#grid [data-p=\"rosa\"]').click(); setTimeout(function () { f('o-addr', 'Carrer del Comte Borrell, 00, 2.º 1.ª'); f('o-to', 'Marta'); f('o-msg', 'Feliz aniversario. Gracias por estos diez años.'); f('o-name', 'Jordi'); setTimeout(function () { document.querySelector('.btn-fx.btn-block').click(); }, 300); }, 400);"
+        "js": "var f = function (id, v) { var e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }; document.querySelector('#grid [data-p=\"rosa\"]').click(); setTimeout(function () { f('o-addr', 'Carrer del Comte Borrell, 00, 2.º 1.ª'); f('o-to', 'Marta'); f('o-msg', 'Feliz aniversario. Gracias por estos diez años.'); f('o-name', 'Jordi'); setTimeout(function () { document.querySelector('.btn-fx.btn-block').click(); }, 300); }, 400);"
       },
       {
         "name": "en",
