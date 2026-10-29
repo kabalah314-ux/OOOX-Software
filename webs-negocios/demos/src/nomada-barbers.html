@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0E0E0E">
 <meta property="og:title" content="Nómada Barbers · Barbería en Poblenou">
 <meta property="og:description" content="Corte. Barba. Calma. Pide cita en 20 segundos: eliges servicio, barbero, día y hora.">
-<meta property="og:image" content="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=72">
+<meta property="og:image" content="https://ooox.es/projects/demos/nomada-barbers_og.jpg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230E0E0E'/%3E%3Crect x='22' y='8' width='20' height='48' rx='10' fill='%23F2F0EB'/%3E%3Cpath fill='%23C8102E' d='M22 22 42 6v8L22 30zM22 38 42 22v8L22 46zM22 54 42 38v8L22 62z'/%3E%3Crect x='22' y='8' width='20' height='48' rx='10' fill='none' stroke='%230E0E0E' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -122,6 +122,7 @@ p { margin: 0; }
 .hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 28px; }
 .ph .status { position: absolute; z-index: 2; left: 14px; bottom: 14px; right: 14px; width: max-content; max-width: calc(100% - 28px); background: rgba(14,14,14,.78); border-color: rgba(242,240,235,.16); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .status { flex-wrap: nowrap; padding: 9px 14px; border-radius: 3px; background: rgba(242,240,235,.07); border: 1px solid var(--dline); font-size: 14.5px; line-height: 1.2; }
+.status b { flex: none; white-space: nowrap; }
 .status span { color: var(--dmuted); }
 .hero-lead, .hero-cta { animation: fadeUp .8s cubic-bezier(.2,.8,.2,1) .5s both; }
 @keyframes rise { from { transform: translateY(108%); } }
@@ -1251,7 +1252,7 @@ document.addEventListener('kit:ready', function () {
     }
   }
 
-  function done(n) { return n <= 2 || (n === 3 && !!B.day) || (n === 4 && !!B.time) || (n === 5 && !!nameVal()); }
+  function done(n) { var d = n === 3 ? dayObj() : null; return n <= 2 || (n === 3 && !!d && freeN(d, dur(), B.barber) > 0) || (n === 4 && !!B.time) || (n === 5 && !!nameVal()); }
   function renderSteps() {
     $$('[data-go]', wiz).forEach(function (b) {
       var n = Number(b.getAttribute('data-go'));

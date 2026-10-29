@@ -110,7 +110,7 @@ for (const slug of slugs) {
 
     for (const step of c.qa || []) {
       p = await open(step.mobile ? mob1x : desk, url + (step.query || ''), slug, `qa-${step.name}`);
-      if (step.js) { await p.evaluate(step.js); await p.waitForTimeout(900); }
+      if (step.js) { await p.evaluate(step.js); await p.waitForTimeout(step.wait || 900); }
       await p.screenshot({ path: join(out, 'qa', `${slug}-${step.name}.jpg`), fullPage: !!step.full, ...jpg(70) }); await p.close();
     }
   } catch (e) {

@@ -41,5 +41,50 @@
         "query": "?lang=en"
       }
     ]
+  },
+  "nomada-barbers": {
+    "sections": [
+      "cita",
+      "precios"
+    ],
+    "qa": [
+      {
+        "name": "cita-hora",
+        "js": "document.querySelector('[data-go=\"4\"]').click(); document.querySelector('#cita').scrollIntoView({ block: 'start', behavior: 'instant' });"
+      },
+      {
+        "name": "cita-wa",
+        "mobile": true,
+        "wait": 1500,
+        "js": "document.querySelector('[data-go=\"4\"]').click(); setTimeout(function () { var t = [].slice.call(document.querySelectorAll('#o-time button')).find(function (b) { return !b.disabled; }); if (t) t.click(); setTimeout(function () { document.querySelector('#bk-name').value = 'Carlos'; document.querySelector('#bk').requestSubmit(); }, 300); }, 300);"
+      },
+      {
+        "name": "en",
+        "query": "?lang=en"
+      }
+    ]
+  },
+  "ramirez-24h": {
+    "sections": [
+      "presupuesto",
+      "tarifas"
+    ],
+    "qa": [
+      {
+        "name": "calculo",
+        "wait": 2200,
+        "js": "document.querySelector('.tile[data-p=\"atasco\"]').click(); document.querySelector('[data-when=\"today\"]').click(); document.querySelector('#presupuesto').scrollIntoView({ block: 'start', behavior: 'instant' });"
+      },
+      {
+        "name": "presupuesto-wa",
+        "mobile": true,
+        "wait": 2600,
+        "js": "document.querySelector('.tile[data-p=\"fuga\"]').click(); setTimeout(function () { document.querySelector('#tk-wa').click(); }, 1200);"
+      },
+      {
+        "name": "en",
+        "query": "?lang=en"
+      }
+    ]
   }
 }
