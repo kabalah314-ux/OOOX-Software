@@ -1,0 +1,1520 @@
+<!doctype html>
+<html lang="es" data-demo>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ramírez Fontaneros 24 h · Fontanería y urgencias en Barcelona</title>
+<meta name="description" content="Fontaneros en Barcelona las 24 horas, los 365 días del año. Llegamos en menos de 45 minutos, con precio cerrado antes de empezar y garantía de 1 año por escrito. Calcula tu precio orientativo en 1 minuto.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#101010">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Ramírez Fontaneros 24 h · Urgencias de fontanería en Barcelona">
+<meta property="og:description" content="¿Fuga de agua? Llegamos en menos de 45 minutos. Precio cerrado antes de empezar y garantía de 1 año por escrito.">
+<meta property="og:image" content="https://images.unsplash.com/photo-1749532125405-70950966b0e5?auto=format&fit=crop&w=1200&q=72">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFC400'/%3E%3Cpath d='M32 7 53.6 19.5v25L32 57 10.4 44.5v-25z' fill='%23101010'/%3E%3Cpath d='M32 18.5c-6.2 8-9.3 13.5-9.3 17.5a9.3 9.3 0 0 0 18.6 0c0-4-3.1-9.5-9.3-17.5z' fill='%231E6BFF'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../_kit/kit.css?v=2b9233e9">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Plumber","name":"Ramírez Fontaneros 24 h","description":"Fontanería y urgencias en Barcelona las 24 horas, los 365 días del año.","telephone":"+34930000000","priceRange":"€€","currenciesAccepted":"EUR","address":{"@type":"PostalAddress","streetAddress":"Carrer de Sants, 00","postalCode":"08014","addressLocality":"Barcelona","addressRegion":"Barcelona","addressCountry":"ES"},"areaServed":{"@type":"City","name":"Barcelona"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],"opens":"00:00","closes":"23:59"}]}
+</script>
+<style>
+/* Concepto: el costado de una furgoneta de urgencias. Amarillo de seguridad y negro, cinta de peligro en diagonal
+   solo en los bordes «urgentes», tuerca hexagonal (logo, pasos, monogramas), el precio en ruedas de contador de agua,
+   una tubería que une los pasos y Barcelona como mapa de casillas por tiempo de llegada. */
+:root {
+  --y: #FFC400; --y-h: #FFD23A; --y-2: #FFE07A; --y-3: #FFF2C4;
+  --ink: #101010; --ink-2: #191919; --ink-3: #232323; --ink-4: #343434;
+  --white: #FFFFFF; --con: #F1F1EE; --con-2: #E2E2DC;
+  --steel: #4A4A4A; --steel-2: #6B6B6B;
+  --blue: #1E6BFF; --wa: #25D366; --live: #2BD46D;
+  --line: rgba(16,16,16,.14); --line-d: rgba(255,255,255,.15);
+  --k-accent: var(--blue); --k-accent-ink: #fff; --k-line: var(--line);
+  --f-d: "Barlow Condensed", "Roboto Condensed", "Arial Narrow", "DejaVu Sans Condensed", sans-serif;
+  --f-b: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --gut: max(20px, env(safe-area-inset-left, 0px));
+  --gut-r: max(20px, env(safe-area-inset-right, 0px));
+  --stripe: repeating-linear-gradient(-45deg, var(--y) 0 12px, var(--ink) 12px 24px);
+  --hex: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  color-scheme: light;
+}
+[hidden] { display: none !important; }
+body { background: var(--white); color: var(--ink); font: 400 17px/1.55 var(--f-b); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--y); color: var(--ink); }
+.wrap { width: 100%; max-width: 1240px; margin: 0 auto; padding-left: var(--gut); padding-right: var(--gut-r); }
+h1, h2, h3 { margin: 0; font-family: var(--f-d); font-weight: 800; text-transform: uppercase; line-height: .95; text-wrap: balance; }
+p { margin: 0; }
+.h2 { font: 900 clamp(42px, 5.4vw, 74px)/.9 var(--f-d); letter-spacing: -.004em; }
+.lead { margin-top: 16px; font-size: clamp(17px, 1.45vw, 19px); line-height: 1.5; color: var(--steel); max-width: 54ch; }
+.lead b { color: var(--ink); font-weight: 700; }
+.sec { padding: clamp(64px, 8vw, 112px) 0; }
+.i { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--live); flex: none; display: inline-block; }
+.dot.is-live { animation: live 2s infinite; }
+@keyframes live { 0% { box-shadow: 0 0 0 0 rgba(43,212,109,.6); } 70% { box-shadow: 0 0 0 10px rgba(43,212,109,0); } 100% { box-shadow: 0 0 0 0 rgba(43,212,109,0); } }
+.tape { height: 16px; background: var(--stripe); }
+.nut { width: 40px; height: 35px; flex: none; display: inline-grid; place-items: center; position: relative; isolation: isolate; font: 900 19px/1 var(--f-d); color: var(--y); }
+.nut::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--ink); clip-path: var(--hex); transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+
+/* botones */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 22px; border-radius: 6px; border: 2px solid transparent; font: 800 18px/1 var(--f-d); text-transform: uppercase; letter-spacing: .04em; text-decoration: none; text-align: center; transition: transform .15s, background-color .2s, color .2s, border-color .2s; }
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: none; }
+.btn-y { background: var(--y); color: var(--ink); }
+.btn-y:hover { background: var(--y-h); }
+.btn-k { background: var(--ink); color: #fff; }
+.btn-k:hover { background: var(--ink-4); }
+.btn-o { background: transparent; color: inherit; border-color: currentColor; }
+.btn-o:hover { background: rgba(127,127,127,.12); }
+.i-wa { color: var(--wa); }
+
+/* ---------- barra de urgencias ---------- */
+.ubar { background: var(--ink); color: #fff; font: 700 13px/1.2 var(--f-d); letter-spacing: .1em; text-transform: uppercase; }
+.ubar-in { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 34px; padding-top: 6px; padding-bottom: 6px; text-align: center; }
+.ubar i { width: 7px; height: 13px; flex: none; background: var(--y); transform: skewX(-22deg); }
+.ubar span { color: rgba(255,255,255,.8); font-weight: 600; letter-spacing: .06em; }
+.ubar .dot { width: 8px; height: 8px; }
+@media (max-width: 440px) { .ubar-x { display: none; } }
+
+/* ---------- cabecera ---------- */
+.hd { position: sticky; top: 0; z-index: 50; background: var(--y); color: var(--ink); border-bottom: 2px solid var(--ink); transition: box-shadow .25s; }
+.hd.is-scrolled { box-shadow: 0 12px 26px -18px rgba(0,0,0,.6); }
+.hd :focus-visible { outline-color: var(--ink); }
+.hd-in { display: flex; align-items: center; gap: 22px; height: 74px; }
+.logo { display: inline-flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
+.logo-mark { width: 40px; height: 40px; flex: none; }
+.logo-txt { display: grid; }
+.logo-txt b { font: 900 29px/.86 var(--f-d); text-transform: uppercase; letter-spacing: .005em; }
+.logo-txt small { margin-top: 5px; font: 700 12px/1 var(--f-d); text-transform: uppercase; letter-spacing: .17em; }
+.nav { display: flex; gap: 26px; margin-left: auto; }
+.nav a { padding: 8px 0; font: 700 16px/1 var(--f-d); text-transform: uppercase; letter-spacing: .07em; text-decoration: none; background: linear-gradient(var(--ink), var(--ink)) 0 100% / 0 2px no-repeat; transition: background-size .25s; }
+.nav a:hover { background-size: 100% 2px; }
+.langs { display: inline-flex; border: 2px solid var(--ink); border-radius: 6px; overflow: hidden; flex: none; }
+.langs button { border: 0; background: transparent; padding: 7px 9px; font: 800 13px/1 var(--f-d); letter-spacing: .08em; color: var(--ink); }
+.langs button + button { border-left: 2px solid var(--ink); }
+.langs button[aria-pressed="true"] { background: var(--ink); color: var(--y); }
+.hd-call { display: inline-flex; align-items: center; gap: 11px; padding: 8px 18px 8px 12px; border-radius: 6px; background: var(--ink); color: #fff; text-decoration: none; flex: none; transition: transform .15s; }
+.hd-call:hover { transform: translateY(-1px); }
+.hd-call .i { width: 24px; height: 24px; color: var(--y); }
+.hd-call small { display: block; font: 700 11px/1 var(--f-d); letter-spacing: .14em; text-transform: uppercase; color: var(--y); }
+.hd-call b { display: block; margin-top: 3px; font: 800 25px/1 var(--f-d); letter-spacing: .03em; font-variant-numeric: tabular-nums; }
+@media (max-width: 1100px) { .nav { display: none; } .langs { margin-left: auto; } }
+@media (max-width: 640px) {
+  .hd-in { height: 62px; gap: 10px; }
+  .logo-mark { width: 34px; height: 34px; }
+  .logo-txt b { font-size: 25px; }
+  .logo-txt small { font-size: 10.5px; letter-spacing: .1em; white-space: nowrap; }
+  .langs button { padding: 7px 7px; font-size: 12.5px; }
+  .hd-call { width: 46px; height: 46px; padding: 0; justify-content: center; }
+  .hd-call-t { display: none; }
+}
+@media (max-width: 360px) { .logo-txt small { display: none; } }
+
+/* ---------- portada ---------- */
+.hero { position: relative; background: var(--ink); color: #fff; overflow: hidden; isolation: isolate; }
+.hero :focus-visible { outline-color: var(--y); }
+.hero-art { position: absolute; inset: 0; z-index: 1; --x1: 69%; --x0: 57%; animation: artIn .8s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes artIn { from { opacity: 0; transform: translateX(5%); } to { opacity: 1; transform: none; } }
+.hero-ph { position: absolute; inset: 0; clip-path: polygon(var(--x1) 0, 100% 0, 100% 100%, var(--x0) 100%); background: var(--ink-3); }
+.hero-img { position: absolute; top: 0; right: 0; height: 100%; width: calc(100% - var(--x0) + 2%); object-fit: cover; object-position: 40% 50%; }
+.hb { position: absolute; inset: 0; background: var(--y); }
+.hb1 { clip-path: polygon(calc(var(--x1) - 36px) 0, calc(var(--x1) - 12px) 0, calc(var(--x0) - 12px) 100%, calc(var(--x0) - 36px) 100%); }
+.hb2 { clip-path: polygon(calc(var(--x1) - 56px) 0, calc(var(--x1) - 47px) 0, calc(var(--x0) - 47px) 100%, calc(var(--x0) - 56px) 100%); }
+.hero-in { position: relative; z-index: 2; padding-top: clamp(36px, 4.8vw, 70px); padding-bottom: clamp(44px, 5.4vw, 80px); }
+.hero-txt { max-width: min(640px, calc(57vw - 96px - max(0px, (100vw - 1240px) / 2))); animation: up .6s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes up { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+.hero h1 { display: grid; justify-items: start; gap: 16px; }
+.h1-q { display: inline-block; padding: 8px 14px 6px; background: var(--y); color: var(--ink); font: 800 clamp(26px, 2.8vw, 38px)/1 var(--f-d); transform: rotate(-1.6deg); box-shadow: 4px 4px 0 rgba(0,0,0,.35); }
+.h1-a { font: 900 clamp(50px, 6.3vw, 98px)/.88 var(--f-d); letter-spacing: -.004em; }
+.hero-lead { margin-top: 22px; max-width: 44ch; font-size: clamp(17px, 1.45vw, 19.5px); line-height: 1.5; color: rgba(255,255,255,.82); }
+.hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 30px; }
+.call-big { display: inline-flex; align-items: center; gap: 16px; min-height: 86px; padding: 12px 30px 12px 12px; border-radius: 8px; background: var(--y); color: var(--ink); text-decoration: none; transition: transform .15s, background-color .2s; }
+.call-big:hover { background: var(--y-h); transform: translateY(-2px); }
+.call-big:focus-visible { outline-color: #fff; }
+.call-ico { width: 62px; height: 62px; flex: none; display: grid; place-items: center; border-radius: 6px; background: var(--ink); color: var(--y); }
+.call-ico .i { width: 30px; height: 30px; stroke-width: 2.2; }
+.call-big:hover .call-ico .i, .call-big:focus-visible .call-ico .i { animation: ring .7s ease-in-out; }
+@keyframes ring { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(-16deg); } 35% { transform: rotate(13deg); } 55% { transform: rotate(-9deg); } 75% { transform: rotate(5deg); } }
+.call-t b { display: block; font: 900 clamp(31px, 2.7vw, 39px)/.9 var(--f-d); text-transform: uppercase; letter-spacing: .01em; }
+.call-t small { display: block; margin-top: 6px; font: 700 20px/1 var(--f-d); letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.hero .btn-o { min-height: 62px; border-color: rgba(255,255,255,.55); color: #fff; }
+.hero .btn-o:hover { border-color: #fff; background: rgba(255,255,255,.08); }
+.hero-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; margin-top: 26px; }
+.hero-link { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 4px; border-bottom: 2px solid currentColor; color: var(--y); font: 800 18px/1 var(--f-d); text-transform: uppercase; letter-spacing: .05em; text-decoration: none; }
+.hero-link:hover { color: #fff; }
+.avail { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; font-size: 15.5px; color: rgba(255,255,255,.82); }
+.avail > b { color: #fff; font-weight: 700; }
+.avail-n { display: inline-flex; align-items: center; gap: 10px; }
+.avail-n::before { content: ""; width: 1.5px; height: 16px; background: rgba(255,255,255,.3); }
+.avail-n b { color: var(--y); font-weight: 700; }
+.tip-call { position: absolute; z-index: 3; top: 34px; right: var(--gut-r); }
+.tape-hero { animation: tape 1.1s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes tape { from { background-position: -96px 0; } to { background-position: 0 0; } }
+@media (max-width: 900px) {
+  .hero-in { padding-bottom: 34px; }
+  .hero-txt { max-width: none; }
+  .hero-art { position: relative; inset: auto; height: clamp(230px, 56vw, 400px); }
+  .hero-ph { clip-path: polygon(0 74px, 100% 26px, 100% 100%, 0 100%); }
+  .hero-img { width: 100%; }
+  .hb1 { clip-path: polygon(0 48px, 100% 0, 100% 18px, 0 66px); }
+  .hb2 { display: none; }
+  .tip-call { position: relative; top: auto; right: auto; margin-top: 24px; }
+}
+@media (max-width: 560px) {
+  .hero-cta { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .call-big { width: 100%; padding-right: 16px; gap: 14px; }
+  .call-t b { font-size: clamp(27px, 7.6vw, 34px); }
+  .hero .btn-o { width: 100%; min-height: 56px; }
+  .hero-meta { margin-top: 22px; }
+  .avail { display: grid; grid-template-columns: 10px auto; column-gap: 10px; row-gap: 4px; }
+  .avail-n { grid-column: 2; }
+  .avail-n::before { display: none; }
+}
+
+/* ---------- confianza ---------- */
+.trust { position: relative; background: #fff; border-bottom: 1px solid var(--line); }
+.trust-in { position: relative; }
+.trust-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.trust-list li { display: flex; align-items: center; gap: 13px; padding: 24px 16px; border-left: 1px solid var(--line); }
+.trust-list li:first-child { border-left: 0; padding-left: 0; }
+.trust-list a { color: inherit; text-decoration: none; }
+.trust-list a:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.hexi { width: 48px; height: 42px; flex: none; display: grid; place-items: center; background: var(--y); clip-path: var(--hex); }
+.hexi .i { width: 22px; height: 22px; stroke-width: 2.2; }
+.trust-t > b { display: block; font: 800 18.5px/1.02 var(--f-d); text-transform: uppercase; letter-spacing: .015em; }
+.trust-t > small { display: block; margin-top: 5px; font-size: 14px; line-height: 1.3; color: var(--steel); }
+.tip-trust { position: absolute; z-index: 5; right: var(--gut-r); bottom: calc(100% + 40px); }
+@media (max-width: 1140px) {
+  .trust-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .trust-list li:nth-child(3n+1) { border-left: 0; padding-left: 0; }
+  .trust-list li:nth-child(n+4) { border-top: 1px solid var(--line); }
+}
+@media (max-width: 900px) { .tip-trust { position: relative; right: auto; bottom: auto; margin: 4px 0 22px; } }
+@media (max-width: 640px) {
+  .trust-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .trust-list li { padding: 18px 10px; gap: 10px; align-items: flex-start; flex-direction: column; }
+  .trust-list li:nth-child(3n+1) { border-left: 1px solid var(--line); padding-left: 10px; }
+  .trust-list li:nth-child(2n+1) { border-left: 0; padding-left: 0; }
+  .trust-list li:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .trust-list li:last-child { grid-column: 1 / -1; flex-direction: row; align-items: center; }
+  .trust-t > b { font-size: 17px; }
+  .hexi { width: 42px; height: 37px; }
+}
+
+/* ---------- presupuestador ---------- */
+.calc { background: var(--con); }
+.calc-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px 40px; align-items: end; }
+.tip-calc { margin-bottom: 6px; }
+.calc-grid { display: grid; grid-template-columns: minmax(0, 1.42fr) minmax(340px, 1fr); gap: clamp(22px, 3vw, 44px); align-items: start; margin-top: 40px; }
+.step-h { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font: 800 25px/1 var(--f-d); letter-spacing: .02em; }
+.step + .step { margin-top: 34px; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 176px; padding: 18px 16px 16px; border: 2px solid transparent; border-radius: 8px; background: #fff; color: var(--ink); text-align: left; box-shadow: 0 2px 0 var(--con-2); transition: border-color .15s, background-color .15s, transform .15s; }
+.tile:hover { border-color: var(--ink); transform: translateY(-2px); }
+.tile[aria-pressed="true"] { background: var(--y); border-color: var(--ink); box-shadow: 0 2px 0 var(--ink); }
+.tile::after { content: ""; position: absolute; top: 14px; right: 14px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--con-2); background: #fff center / 14px no-repeat; transition: background-color .15s, border-color .15s; }
+.tile[aria-pressed="true"]::after { border-color: var(--ink); background-color: var(--ink); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFC400' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); }
+.tile-i { width: 54px; height: 54px; margin-bottom: 10px; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.tile-n { font: 800 20.5px/1.02 var(--f-d); text-transform: uppercase; letter-spacing: .01em; }
+.tile-s { font-size: 14px; line-height: 1.25; color: var(--steel); }
+.tile-p { margin-top: auto; padding-top: 10px; font: 700 15.5px/1 var(--f-d); letter-spacing: .04em; color: var(--steel); }
+.tile[aria-pressed="true"] .tile-p { color: var(--ink); }
+.step.is-bad .tiles { animation: shake .45s; }
+.step.is-bad .step-h { color: #B4000F; }
+@keyframes shake { 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 52px; padding: 8px 18px; border: 2px solid var(--ink); border-radius: 6px; background: #fff; color: var(--ink); font: 800 17.5px/1.05 var(--f-d); text-transform: uppercase; letter-spacing: .03em; transition: background-color .15s, color .15s; }
+.seg button:hover:not(:disabled) { background: var(--y-3); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--y); }
+.seg button:disabled { cursor: default; }
+.seg button:disabled[aria-pressed="false"] { opacity: .38; }
+.seg-slot button { flex: 1 1 230px; }
+.pct { white-space: nowrap; padding: 4px 6px 3px; border-radius: 3px; background: var(--y); color: var(--ink); font: 800 14px/1 var(--f-d); font-style: normal; letter-spacing: .02em; }
+.sub-h { margin: 22px 0 10px; font-weight: 700; font-size: 16px; }
+.auto-note { display: flex; align-items: center; gap: 8px; min-height: 22px; margin-top: 12px; font-size: 14.5px; color: var(--steel); }
+.auto-note:empty { display: none; }
+.auto-note .i { width: 17px; height: 17px; }
+
+/* el ticket con el precio */
+.ticket { position: relative; padding: 38px 26px 24px; border-radius: 10px; background: var(--ink); color: #fff; overflow: hidden; }
+.ticket::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 10px; background: var(--stripe); }
+.ticket :focus-visible { outline-color: var(--y); }
+.ticket .nut { color: var(--ink); }
+.ticket .nut::before { background: var(--y); }
+.tk-what { display: grid; gap: 4px; min-height: 48px; }
+.tk-what b { font: 800 22px/1.05 var(--f-d); text-transform: uppercase; letter-spacing: .015em; color: var(--y); }
+.tk-what span { font-size: 15px; color: rgba(255,255,255,.75); }
+.meter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; margin-top: 16px; padding: 14px 16px; border-radius: 8px; background: #000; box-shadow: inset 0 3px 12px rgba(0,0,0,.9), 0 0 0 1px #2E2E2E; font: 800 clamp(46px, 4.8vw, 64px)/1 var(--f-d); font-variant-numeric: tabular-nums; }
+.m-num { display: inline-flex; gap: 3px; }
+.wh { display: inline-block; width: .6em; height: 1.12em; overflow: hidden; border-radius: 4px; background: linear-gradient(#050505, #262626 28%, #303030 50%, #262626 72%, #050505); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07); color: #fff; text-align: center; }
+.wh-col { display: block; transition: transform .8s cubic-bezier(.22,.9,.24,1); will-change: transform; }
+.wh-col span { display: block; height: 1.12em; line-height: 1.12em; }
+.m-sep { padding: 0 .06em; color: var(--y); }
+.m-cur { color: var(--y); font-size: .62em; margin: 0 .08em; }
+.m-from { flex-basis: 100%; font: 700 15px/1 var(--f-d); letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.7); }
+.m-suf { align-self: center; margin-left: .2em; font: 700 19px/1.1 var(--f-d); text-transform: uppercase; letter-spacing: .03em; color: #fff; }
+.meter.is-empty .wh { color: #4A4A4A; }
+.meter.is-empty .m-sep, .meter.is-empty .m-cur { color: #4A4A4A; }
+.tk-vat { margin-top: 10px; font-size: 14px; color: rgba(255,255,255,.7); }
+.tk-vat:empty { display: none; }
+.tk-rows { list-style: none; margin: 16px 0 0; padding: 0; border-top: 1px solid var(--line-d); }
+.tk-rows:empty { display: none; }
+.tk-rows li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px dashed var(--line-d); font-size: 15px; line-height: 1.35; color: rgba(255,255,255,.86); }
+.tk-rows b { flex: none; font: 700 18px/1.2 var(--f-d); letter-spacing: .02em; color: #fff; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tk-rows .is-u b { color: var(--y); }
+.tk-note { margin-top: 12px; font-size: 14px; line-height: 1.45; color: rgba(255,255,255,.72); }
+.tk-extra { color: #fff; }
+.tk-caveat { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 12px 14px; border-left: 4px solid var(--y); border-radius: 4px; background: rgba(255,196,0,.13); font-size: 15px; line-height: 1.4; }
+.tk-caveat .i { width: 19px; height: 19px; margin-top: 1px; color: var(--y); }
+.tk-where { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line-d); }
+.tk-eta { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; line-height: 1.4; color: rgba(255,255,255,.86); }
+.tk-eta .dot { margin-top: 5px; }
+.tk-eta b { color: #fff; }
+.tk-cp { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 14px; }
+.tk-cp label { flex-basis: 100%; font-size: 14px; color: rgba(255,255,255,.75); }
+.tk-cp input { width: 7.4em; min-height: 46px; padding: 0 12px; border: 2px solid #3A3A3A; border-radius: 6px; background: var(--ink-2); color: #fff; font: 800 21px/1 var(--f-d); letter-spacing: .14em; }
+.tk-cp input::placeholder { color: #5C5C5C; }
+.tk-cp input:focus { outline: none; border-color: var(--y); }
+.tk-cp output { font-size: 15px; color: #fff; }
+.tk-cp output b { color: var(--y); }
+.tk-btns { display: grid; gap: 10px; margin-top: 16px; }
+.tk-btns .btn { width: 100%; min-height: 58px; font-size: 19px; }
+.ticket .btn-o { border-color: rgba(255,255,255,.55); color: #fff; }
+.ticket .btn-o:hover { border-color: #fff; background: rgba(255,255,255,.08); }
+.tk-reset { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 8px 2px; border: 0; background: none; color: rgba(255,255,255,.72); font: 600 15px/1 var(--f-b); text-decoration: underline; text-underline-offset: 3px; }
+.tk-reset:hover { color: #fff; }
+.tk-reset .i { width: 17px; height: 17px; }
+.ticket.is-empty .tk-reset { display: none; }
+@media (max-width: 1040px) { .calc-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, .9fr); } .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 860px) {
+  .calc-head { grid-template-columns: minmax(0, 1fr); }
+  .tip-calc { margin: 0; }
+  .calc-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .tiles { gap: 10px; }
+  .tile { min-height: 158px; padding: 14px 12px 13px; }
+  .tile-i { width: 46px; height: 46px; margin-bottom: 8px; }
+  .tile-n { font-size: 18.5px; }
+  .tile::after { top: 11px; right: 11px; width: 22px; height: 22px; }
+  .seg-when { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .seg-when button { padding: 8px 6px; font-size: 16px; line-height: 1.05; }
+  .ticket { padding: 36px 20px 22px; }
+}
+
+/* ---------- tarifas ---------- */
+.rates-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: clamp(28px, 4.5vw, 72px); align-items: start; }
+.rate-now { display: flex; align-items: flex-start; gap: 11px; margin-top: 28px; padding: 13px 16px; border: 2px solid var(--ink); border-radius: 6px; font-size: 16px; line-height: 1.4; }
+.rate-now .dot { margin-top: 6px; background: var(--blue); }
+.rate-now.is-u { background: var(--y); }
+.rate-now.is-u .dot { background: var(--ink); }
+.tip-rate { margin-top: 16px; }
+.rtable { margin: 24px 0 0; border-top: 3px solid var(--ink); }
+.rrow { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 24px; align-items: baseline; padding: 18px 12px 18px 0; border-bottom: 1px solid var(--line); transition: background-color .3s, padding .3s, box-shadow .3s; }
+.rrow dt b { display: block; font: 800 22px/1.05 var(--f-d); text-transform: uppercase; letter-spacing: .01em; }
+.rrow dt span { display: block; max-width: 58ch; margin-top: 6px; font-size: 15px; line-height: 1.45; color: var(--steel); }
+.rrow dd { margin: 0; font: 900 clamp(30px, 3vw, 40px)/1 var(--f-d); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rrow.is-now { padding-left: 16px; background: linear-gradient(90deg, rgba(255,196,0,.28), rgba(255,196,0,.05)); box-shadow: inset 5px 0 0 var(--y); }
+.rrow.is-now dt b::after { content: attr(data-now); display: inline-block; margin-left: 10px; padding: 4px 7px 3px; border-radius: 3px; background: var(--ink); color: var(--y); font: 800 13px/1 var(--f-d); letter-spacing: .08em; vertical-align: 3px; }
+.rate-ex { margin-top: 20px; padding: 14px 16px; border-radius: 6px; background: var(--con); font-size: 15.5px; line-height: 1.5; color: var(--steel); }
+.rate-ex b { color: var(--ink); white-space: nowrap; }
+.fixed { border-radius: 10px; overflow: hidden; background: var(--con); }
+.fixed-ph { position: relative; aspect-ratio: 16 / 9; background: var(--ink-3); }
+.fixed-ph img { width: 100%; height: 100%; object-fit: cover; }
+.fixed-ph::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 10px; background: var(--stripe); }
+.fixed-in { padding: 24px 24px 26px; }
+.fixed h3 { font-size: 27px; line-height: 1; }
+.fixed-list { list-style: none; margin: 16px 0 0; padding: 0; border-top: 2px solid var(--ink); }
+.fixed-list li { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15.5px; line-height: 1.35; }
+.fixed-list b { flex: none; font: 800 20px/1 var(--f-d); white-space: nowrap; text-align: right; }
+.fixed-note { margin-top: 12px; font-size: 14px; color: var(--steel); }
+.fixed .btn { width: 100%; margin-top: 18px; }
+@media (min-width: 961px) { .fixed { position: sticky; top: 100px; } }
+@media (max-width: 960px) { .rates-grid { grid-template-columns: minmax(0, 1fr); } .fixed { max-width: 560px; } }
+@media (max-width: 560px) { .rrow dt b { font-size: 20px; } .rrow.is-now dt b::after { display: table; margin: 8px 0 0; } }
+
+/* ---------- cómo trabajamos ---------- */
+.how { background: var(--ink); color: #fff; }
+.how .lead { color: rgba(255,255,255,.74); }
+.pipe { position: relative; list-style: none; margin: 52px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px; }
+.pipe::before { content: ""; position: absolute; left: 0; right: 0; top: 18px; height: 16px; border-radius: 8px; background: linear-gradient(180deg, #5B6066, #B9BEC3 32%, #8C9196 62%, #4C5055); }
+.pipe::after { content: ""; position: absolute; left: 6px; right: 6px; top: 24.5px; height: 3px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--blue) 0 26px, rgba(30,107,255,.35) 26px 34px); }
+.pstep { position: relative; }
+.pstep .nut { width: 60px; height: 52px; font-size: 26px; color: var(--ink); z-index: 1; }
+.pstep .nut::before { background: var(--y); box-shadow: none; }
+.pstep:hover .nut::before { transform: rotate(60deg); }
+.pstep h3 { margin-top: 22px; font-size: 27px; line-height: 1; }
+.pstep p { margin-top: 10px; font-size: 16px; line-height: 1.5; color: rgba(255,255,255,.72); max-width: 34ch; }
+.jobs { margin-top: 72px; }
+.sub-t { font: 800 26px/1 var(--f-d); text-transform: uppercase; letter-spacing: .01em; }
+.jobs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+.job { margin: 0; overflow: hidden; border-radius: 8px; background: var(--ink-2); border: 1px solid var(--line-d); }
+.job-ph { aspect-ratio: 4 / 3; overflow: hidden; background: var(--ink-3); }
+.job-ph img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+.job:hover .job-ph img { transform: scale(1.04); }
+.job figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 14px; padding: 15px 16px; }
+.job figcaption b { font: 800 21px/1 var(--f-d); text-transform: uppercase; letter-spacing: .01em; }
+.job-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border: 2px solid var(--y); border-radius: 6px; background: transparent; color: var(--y); font: 800 15px/1 var(--f-d); text-transform: uppercase; letter-spacing: .05em; transition: background-color .15s, color .15s; }
+.job-btn:hover { background: var(--y); color: var(--ink); }
+.job-btn .i { width: 16px; height: 16px; }
+.team { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 2fr); gap: 24px 48px; align-items: center; margin-top: 64px; padding-top: 36px; border-top: 1px solid var(--line-d); }
+.team-txt p { margin-top: 10px; font-size: 15.5px; color: rgba(255,255,255,.72); max-width: 40ch; }
+.team-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.team-list li { display: flex; align-items: center; gap: 12px; }
+.mono { width: 58px; height: 50px; flex: none; display: grid; place-items: center; position: relative; isolation: isolate; font: 900 21px/1 var(--f-d); letter-spacing: .03em; color: var(--ink); }
+.mono::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--y); clip-path: var(--hex); }
+.mono::after { content: ""; position: absolute; inset: 5px 6px; z-index: -1; border: 1.5px solid rgba(16,16,16,.35); clip-path: var(--hex); }
+.team-list b { display: block; font-size: 15.5px; font-weight: 700; line-height: 1.2; }
+.team-list small { display: block; margin-top: 3px; font-size: 13.5px; line-height: 1.3; color: rgba(255,255,255,.65); }
+.team-list li > span:last-child { min-width: 0; }
+@media (max-width: 1040px) { .team { grid-template-columns: minmax(0, 1fr); } .team-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 860px) {
+  .pipe { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+  .pipe::before { left: 22px; right: auto; top: 6px; bottom: 6px; width: 16px; height: auto; background: linear-gradient(90deg, #5B6066, #B9BEC3 32%, #8C9196 62%, #4C5055); }
+  .pipe::after { left: 28.5px; right: auto; top: 12px; bottom: 12px; width: 3px; height: auto; background: repeating-linear-gradient(180deg, var(--blue) 0 26px, rgba(30,107,255,.35) 26px 34px); }
+  .pstep { display: grid; grid-template-columns: 60px minmax(0, 1fr); column-gap: 18px; }
+  .pstep .nut { grid-row: span 2; }
+  .pstep h3 { margin-top: 12px; font-size: 25px; }
+  .jobs-grid { grid-template-columns: minmax(0, 1fr); }
+  .job { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); }
+  .job-ph { aspect-ratio: auto; min-height: 126px; }
+  .job figcaption { flex-direction: column; align-items: flex-start; justify-content: center; padding: 14px; }
+  .job figcaption b { font-size: 19px; }
+  .job-btn { white-space: nowrap; padding: 7px 10px; font-size: 14px; }
+}
+@media (max-width: 480px) { .team-list { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- antes / después ---------- */
+.ba { background: var(--con); }
+.ba-grid { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; margin: 26px 0 0; border-top: 3px solid var(--ink); }
+.facts div { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.facts dt { font-size: 14px; color: var(--steel); }
+.facts dd { margin: 5px 0 0; font: 800 21px/1.05 var(--f-d); text-transform: uppercase; letter-spacing: .01em; }
+.ba-hint { display: flex; align-items: center; gap: 8px; margin-top: 18px; font-size: 15px; color: var(--steel); }
+.ba-hint::before { content: ""; width: 26px; height: 2px; background: var(--ink); box-shadow: 0 -5px 0 -0px transparent; }
+.ba-fig { position: relative; margin: 0; }
+.cmp { aspect-ratio: 4 / 3; border-radius: 10px; background: var(--ink-3); box-shadow: 0 0 0 2px var(--ink); }
+[data-compare] > img { filter: grayscale(1) contrast(1.08) brightness(.95); }
+.cmp-l { position: absolute; top: 16px; z-index: 2; padding: 7px 11px 6px; border-radius: 4px; font: 800 15px/1 var(--f-d); letter-spacing: .1em; text-transform: uppercase; pointer-events: none; }
+.cmp-b { left: 16px; background: rgba(16,16,16,.86); color: #fff; }
+.cmp-a { right: 16px; background: var(--y); color: var(--ink); }
+.cmp input[type=range] { z-index: 4; }
+.cmp:has(input:focus-visible) .kit-cmp-line::after { outline: 3px solid var(--blue); outline-offset: 3px; }
+.ba-tag { position: absolute; z-index: 5; left: 18px; bottom: -16px; display: inline-flex; align-items: center; gap: 10px; padding: 9px 14px 8px 10px; border-radius: 4px; background: var(--ink); color: #fff; font: 800 15px/1 var(--f-d); letter-spacing: .1em; text-transform: uppercase; }
+.ba-tag::before { content: ""; width: 22px; height: 14px; background: var(--stripe); background-size: 34px 34px; }
+@media (max-width: 900px) { .ba-grid { grid-template-columns: minmax(0, 1fr); } .ba-fig { order: -1; margin-bottom: 18px; } }
+
+/* ---------- zonas ---------- */
+.zones-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); gap: clamp(28px, 5vw, 80px); align-items: center; }
+.cp { margin-top: 30px; }
+.cp label { display: block; margin-bottom: 10px; font-weight: 700; font-size: 17px; }
+.cp-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.cp-row input { width: 8.4em; min-height: 56px; padding: 0 14px; border: 2px solid var(--ink); border-radius: 6px; background: #fff; color: var(--ink); font: 800 27px/1 var(--f-d); letter-spacing: .16em; }
+.cp-row input::placeholder { color: #B5B5B0; }
+.cp-row input:focus { outline: none; box-shadow: 0 0 0 4px var(--y); }
+.cp-row .btn { min-height: 56px; }
+.cp-out { min-height: 26px; margin-top: 12px; font-size: 17px; line-height: 1.45; }
+.cp-out:empty { min-height: 0; margin: 0; }
+.tip-zones { margin-top: 16px; }
+.bands { list-style: none; margin: 28px 0 0; padding: 0; border-top: 3px solid var(--ink); }
+.bands li { display: grid; grid-template-columns: 22px 124px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15.5px; line-height: 1.4; }
+.bands b { font: 800 21px/1 var(--f-d); white-space: nowrap; }
+.sw { width: 18px; height: 18px; align-self: center; border: 2px solid var(--ink); border-radius: 4px; }
+.sw-a { background: var(--y); } .sw-b { background: var(--y-2); } .sw-c { background: var(--y-3); }
+.zones-out { margin-top: 16px; font-size: 15px; color: var(--steel); }
+.tmap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); grid-template-areas: "sar gra hor nou" "cor eix eix and" "san cve smt smt" "pse sea sea sea"; gap: 7px; aspect-ratio: 1; }
+.tz { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 4px; min-width: 0; padding: clamp(8px, 1.2vw, 13px); border: 2px solid var(--ink); border-radius: 6px; background: var(--y-3); transition: transform .25s, box-shadow .25s; }
+.tz[data-b="a"] { background: var(--y); } .tz[data-b="b"] { background: var(--y-2); }
+.tz b { font: 800 clamp(13px, 1.45vw, 18px)/1 var(--f-d); text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere; }
+.tz > span { font: 700 clamp(12px, 1.25vw, 16px)/1 var(--f-d); letter-spacing: .03em; font-variant-numeric: tabular-nums; }
+.tz.is-hit { z-index: 2; transform: scale(1.04); box-shadow: 0 0 0 4px var(--ink), 0 14px 28px -12px rgba(0,0,0,.55); animation: hit .7s cubic-bezier(.2,.8,.2,1); }
+@keyframes hit { 0% { transform: scale(1); } 45% { transform: scale(1.09); } 100% { transform: scale(1.04); } }
+[data-z="sar"] { grid-area: sar; } [data-z="gra"] { grid-area: gra; } [data-z="hor"] { grid-area: hor; } [data-z="nou"] { grid-area: nou; }
+[data-z="cor"] { grid-area: cor; } [data-z="eix"] { grid-area: eix; } [data-z="and"] { grid-area: and; } [data-z="san"] { grid-area: san; }
+[data-z="cve"] { grid-area: cve; } [data-z="smt"] { grid-area: smt; } [data-z="pse"] { grid-area: pse; }
+.tz-sea { grid-area: sea; justify-content: flex-end; border-color: var(--blue); background: var(--blue) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='16' viewBox='0 0 44 16'%3E%3Cpath d='M0 8c5.5 0 5.5-5 11-5s5.5 5 11 5 5.5-5 11-5 5.5 5 11 5' fill='none' stroke='%23fff' stroke-opacity='.28' stroke-width='1.6'/%3E%3C/svg%3E") 0 0 / 44px 16px; color: #fff; }
+.tz-sea span { font: 700 clamp(12px, 1.25vw, 15px)/1.1 var(--f-d); letter-spacing: .12em; text-transform: uppercase; }
+.pin { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; padding: 5px 7px 4px; border-radius: 4px; background: var(--ink); color: var(--y); font: 800 12px/1 var(--f-d); font-style: normal; letter-spacing: .08em; text-transform: uppercase; }
+.pin::before { content: ""; width: 9px; height: 8px; background: var(--y); clip-path: var(--hex); }
+.tmap-cap { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; color: var(--steel); }
+.cap-hex { width: 14px; height: 12px; flex: none; background: var(--ink); clip-path: var(--hex); }
+@media (max-width: 900px) { .zones-grid { grid-template-columns: minmax(0, 1fr); } .tmap-w { max-width: 560px; width: 100%; } }
+@media (max-width: 560px) { .tmap { gap: 5px; } .tz { padding: 7px 6px; } .tz b { font-size: 12px; letter-spacing: 0; } .tz > span { font-size: 11.5px; letter-spacing: 0; } .pin { padding: 5px; } .pin span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .bands li { grid-template-columns: 20px 100px minmax(0, 1fr); } .bands b { font-size: 19px; } }
+
+/* ---------- opiniones ---------- */
+.rev { background: var(--y); }
+.rev :focus-visible { outline-color: var(--ink); }
+.rev-grid { display: grid; grid-template-columns: minmax(0, .72fr) minmax(0, 2fr); gap: clamp(28px, 4vw, 60px); align-items: start; margin-top: 38px; }
+.score-n { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px 16px; }
+.score-n > b { font: 900 clamp(100px, 11vw, 156px)/.78 var(--f-d); letter-spacing: -.02em; }
+.stars { font-size: 26px; letter-spacing: 3px; line-height: 1; }
+.score-c { margin-top: 14px; font-weight: 600; }
+.sample { display: inline-block; margin-top: 12px; padding: 6px 10px; border: 1.5px dashed var(--ink); border-radius: 999px; font: 700 12px/1 var(--f-b); letter-spacing: .1em; text-transform: uppercase; }
+.score .btn { display: flex; width: fit-content; max-width: 100%; margin-top: 22px; }
+.revs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.revc { display: flex; flex-direction: column; gap: 14px; padding: 22px; border: 2px solid var(--ink); border-radius: 10px; background: #fff; }
+.revc > .stars { font-size: 18px; }
+.revc p { font-size: 16px; line-height: 1.5; }
+.revc footer { display: flex; align-items: center; gap: 11px; margin-top: auto; font-size: 14px; color: var(--steel); }
+.revc footer b { display: block; color: var(--ink); font-size: 15px; }
+.mono-s { width: 44px; height: 38px; font-size: 16px; color: var(--y); }
+.mono-s::before { background: var(--ink); }
+.mono-s::after { display: none; }
+@media (max-width: 1000px) { .rev-grid { grid-template-columns: minmax(0, 1fr); } .revs { grid-template-columns: minmax(0, 1fr); max-width: 640px; } .score .btn { min-height: 52px; padding-top: 10px; padding-bottom: 10px; line-height: 1.1; } }
+
+/* ---------- preguntas ---------- */
+.faq { background: #fff; }
+.faq-grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: clamp(28px, 5vw, 80px); align-items: start; }
+.faq .h2 { font-size: clamp(42px, 4.4vw, 62px); }
+.faq-head .btn { margin-top: 24px; font-size: 22px; letter-spacing: .06em; }
+.faq-list details { border-top: 2px solid var(--ink); }
+.faq-list details:last-child { border-bottom: 2px solid var(--ink); }
+.faq-list summary { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 20px 0; cursor: pointer; list-style: none; font: 800 clamp(20px, 2vw, 25px)/1.08 var(--f-d); text-transform: uppercase; letter-spacing: .01em; }
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary::after { content: ""; width: 34px; height: 34px; flex: none; border-radius: 6px; background: var(--y) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23101010' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E") center / 16px no-repeat; transition: transform .25s, background-color .2s; }
+.faq-list summary:hover::after { background-color: var(--y-h); }
+.faq-list details[open] summary::after { transform: rotate(45deg); }
+.faq-list details p { max-width: 62ch; padding: 0 0 22px; color: var(--steel); }
+.faq-list details p a { color: var(--blue); font-weight: 600; }
+@media (max-width: 900px) { .faq-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- pie ---------- */
+.ft { background: var(--ink); color: rgba(255,255,255,.76); padding-bottom: calc(34px + env(safe-area-inset-bottom, 0px)); }
+.ft :focus-visible { outline-color: var(--y); }
+.ft .tape { height: 12px; }
+.ft-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr)); gap: 34px; padding-top: 56px; }
+.ft .logo { color: #fff; }
+.ft .logo-txt small { color: var(--y); }
+.ft-brand p { max-width: 36ch; margin-top: 16px; font-size: 15px; }
+.plate { display: inline-grid; gap: 3px; margin-top: 20px; padding: 13px 22px; border: 2px solid rgba(255,255,255,.28); border-radius: 6px; font-size: 13.5px;
+  background: radial-gradient(circle at 8px 8px, #8A8A8A 2px, transparent 2.6px), radial-gradient(circle at calc(100% - 8px) 8px, #8A8A8A 2px, transparent 2.6px), radial-gradient(circle at 8px calc(100% - 8px), #8A8A8A 2px, transparent 2.6px), radial-gradient(circle at calc(100% - 8px) calc(100% - 8px), #8A8A8A 2px, transparent 2.6px); }
+.plate b { font: 800 24px/1 var(--f-d); letter-spacing: .06em; color: #fff; }
+.plate small { font-size: 12.5px; color: rgba(255,255,255,.6); }
+.ft-h { margin-bottom: 14px; font: 800 15px/1 var(--f-d); letter-spacing: .12em; color: var(--y); }
+.ft ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: 15px; }
+.ft a { text-decoration: none; }
+.ft a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.ft-tel { font: 900 32px/1 var(--f-d); letter-spacing: .03em; color: #fff; }
+.ft-bot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--line-d); font-size: 13.5px; }
+@media (max-width: 960px) { .ft-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ft-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- barra fija del móvil ---------- */
+.mbar { display: none; }
+@media (max-width: 760px) {
+  body { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .mbar { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 56; padding: 13px max(12px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); background: var(--ink); }
+  .mbar::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--stripe); }
+  .mbar a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; min-height: 54px; border-radius: 8px; background: var(--ink-4); color: #fff; text-decoration: none; font: 800 12.5px/1 var(--f-d); letter-spacing: .03em; text-transform: uppercase; }
+  .mbar a .i { width: 20px; height: 20px; }
+  .mbar .mb-call { flex-direction: row; gap: 9px; background: var(--y); color: var(--ink); font-size: clamp(14px, 4.1vw, 19px); letter-spacing: .02em; white-space: nowrap; }
+  .mbar .mb-call .i { width: 21px; height: 21px; stroke-width: 2.3; }
+  .mbar :focus-visible { outline-color: var(--y); outline-offset: 2px; }
+}
+.demo-tip { z-index: 6; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.3.7-2 .9-2.3.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></symbol>
+  <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M8.5 6.5h7v3h-7zM8.6 13.2h.01M12 13.2h.01M15.4 13.2h.01M8.6 17.2h.01M12 17.2h.01M15.4 17.2h.01"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.5 19.5 5.5v6c0 4.6-3.2 8.4-7.5 9.9-4.3-1.5-7.5-5.3-7.5-9.9v-6z"/><path d="m8.8 12 2.2 2.2 4.4-4.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2"/><path d="M8 10.5v-3a4 4 0 0 1 8 0v3M12 14.5V17"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5M9 15l2 2 4-4"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 2.5h12v19l-3-2-3 2-3-2-3 2z"/><path d="M9 7.5h6M9 11.5h6M9 15.5h3"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 3.5v5h5"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+</svg>
+
+<div class="ubar">
+  <div class="wrap ubar-in">
+    <span class="dot" aria-hidden="true"></span>
+    <b data-t="ubar.a">Urgencias 24 h</b><i aria-hidden="true"></i><b data-t="ubar.b">365 días</b><i class="ubar-x" aria-hidden="true"></i><span class="ubar-x" data-t="ubar.c">Llegamos en menos de 45 min</span>
+  </div>
+</div>
+
+<header class="hd" data-header>
+  <div class="wrap hd-in">
+    <a class="logo" href="#top" aria-label="Ramírez Fontaneros 24 h">
+      <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 1.5 36 10.75v18.5L20 38.5 4 29.25v-18.5z" fill="#101010"/><path d="M20 9.5c-4.9 6.3-7.3 10.6-7.3 13.8a7.3 7.3 0 0 0 14.6 0c0-3.2-2.4-7.5-7.3-13.8z" fill="#1E6BFF"/><path d="M16.6 24.3a3.6 3.6 0 0 0 3 3.4" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span class="logo-txt"><b>Ramírez</b><small data-t="logo.sub">Fontaneros 24 h</small></span>
+    </a>
+    <nav class="nav" aria-label="Secciones" data-ta="aria-label:nav.aria">
+      <a href="#presupuesto" data-t="nav.calc">Presupuesto</a>
+      <a href="#tarifas" data-t="nav.rates">Tarifas</a>
+      <a href="#zonas" data-t="nav.zones">Zonas</a>
+      <a href="#preguntas" data-t="nav.faq">Preguntas</a>
+    </nav>
+    <div class="langs" role="group" aria-label="Idioma" data-ta="aria-label:lang.aria">
+      <button type="button" data-lang="es">ES</button><button type="button" data-lang="ca">CA</button><button type="button" data-lang="en">EN</button>
+    </div>
+    <a class="hd-call" href="tel:+34930000000" data-number="930 00 00 00" aria-label="Llamar ahora al 930 00 00 00" data-ta="aria-label:hd.call.aria">
+      <svg class="i" aria-hidden="true"><use href="#i-phone"/></svg>
+      <span class="hd-call-t"><small data-t="hd.call">Urgencias 24 h</small><b>930 00 00 00</b></span>
+    </a>
+  </div>
+</header>
+
+<main id="top">
+  <!-- PORTADA -->
+  <section class="hero" aria-labelledby="h-hero">
+    <div class="wrap hero-in">
+      <div class="hero-txt">
+        <h1 id="h-hero"><span class="h1-q" data-t="hero.q">¿Fuga de agua?</span> <span class="h1-a" data-t="hero.a">Llegamos en menos de 45 minutos.</span></h1>
+        <p class="hero-lead" data-t="hero.lead">Fontaneros en toda Barcelona, de día y de noche, también en festivos. Te damos el precio cerrado antes de empezar.</p>
+        <div class="hero-cta">
+          <a class="call-big" href="tel:+34930000000" data-number="930 00 00 00">
+            <span class="call-ico" aria-hidden="true"><svg class="i"><use href="#i-phone"/></svg></span>
+            <span class="call-t"><b data-t="cta.call">Llamar ahora</b><small>930 00 00 00</small></span>
+          </a>
+          <a class="btn btn-o" href="https://wa.me/34600000000?text=%C2%A1Hola!%20Necesito%20un%20fontanero.%20Te%20env%C3%ADo%20una%20foto%20del%20problema." data-ta="href:wa.href"><svg class="i i-wa" aria-hidden="true"><use href="#i-wa"/></svg><span data-t="cta.wa">Mandar foto por WhatsApp</span></a>
+        </div>
+        <div class="hero-meta">
+          <a class="hero-link" href="#presupuesto"><svg class="i" aria-hidden="true"><use href="#i-calc"/></svg><span data-t="cta.quote">Presupuesto en 1 minuto</span></a>
+          <p class="avail"><span class="dot is-live" aria-hidden="true"></span><b data-t="avail.a">Disponibles 24 h</b><span class="avail-n" data-avail>ahora mismo: <b>3</b> técnicos de guardia</span></p>
+        </div>
+      </div>
+      <div class="demo-tip tip-call" data-th="tip.call"><b>El botón de llamar, siempre visible en el móvil:</b> así entran las urgencias. Y arriba, el número en grande.</div>
+    </div>
+    <div class="hero-art">
+      <span class="hb hb2" aria-hidden="true"></span><span class="hb hb1" aria-hidden="true"></span>
+      <div class="hero-ph"><img class="hero-img" loading="eager" fetchpriority="high" alt="Fontanero reparando las tuberías de un baño" data-ta="alt:hero.alt" src="https://images.unsplash.com/photo-1749532125405-70950966b0e5?auto=format&fit=crop&w=1200&q=72" srcset="https://images.unsplash.com/photo-1749532125405-70950966b0e5?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1749532125405-70950966b0e5?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1749532125405-70950966b0e5?auto=format&fit=crop&w=1200&q=72 1200w, https://images.unsplash.com/photo-1749532125405-70950966b0e5?auto=format&fit=crop&w=1600&q=72 1600w" sizes="(max-width: 900px) 100vw, 46vw" decoding="async"></div>
+    </div>
+  </section>
+  <div class="tape tape-hero" aria-hidden="true"></div>
+
+  <!-- CONFIANZA -->
+  <section class="trust" aria-labelledby="h-trust">
+    <h2 class="sr-only" id="h-trust" data-t="trust.h">Por qué fiarte de nosotros</h2>
+    <div class="wrap trust-in">
+      <ul class="trust-list">
+        <li><span class="hexi" aria-hidden="true"><svg class="i"><use href="#i-shield"/></svg></span><span class="trust-t"><b data-t="trust.1">Empresa instaladora autorizada</b><small data-t="trust.1s">Nº REI 08/000000 (ficticio)</small></span></li>
+        <li><span class="hexi" aria-hidden="true"><svg class="i"><use href="#i-lock"/></svg></span><span class="trust-t"><b data-t="trust.2">Precio cerrado</b><small data-t="trust.2s">antes de empezar</small></span></li>
+        <li><span class="hexi" aria-hidden="true"><svg class="i"><use href="#i-doc"/></svg></span><span class="trust-t"><b data-t="trust.3">Garantía de 1 año</b><small data-t="trust.3s">por escrito, en la factura</small></span></li>
+        <li><span class="hexi" aria-hidden="true"><svg class="i"><use href="#i-star"/></svg></span><a class="trust-t" href="#opiniones"><b data-t="trust.4">4,8 ★ en Google</b><small data-t="trust.4s">540 reseñas</small></a></li>
+        <li><span class="hexi" aria-hidden="true"><svg class="i"><use href="#i-receipt"/></svg></span><span class="trust-t"><b data-t="trust.5">Factura con IVA</b><small data-t="trust.5s">siempre, con el detalle</small></span></li>
+      </ul>
+      <div class="demo-tip tip-trust" data-th="tip.trust"><b>Lo que da confianza antes de llamar:</b> autorización, garantía y precio cerrado.</div>
+    </div>
+  </section>
+
+  <!-- PRESUPUESTADOR -->
+  <section class="calc sec" id="presupuesto" aria-labelledby="h-calc">
+    <div class="wrap">
+      <div class="calc-head">
+        <div>
+          <h2 class="h2" id="h-calc" data-t="calc.h">¿Qué te pasa?</h2>
+          <p class="lead" data-th="calc.lead"><b>Precio orientativo en 1 minuto.</b> Elige el problema y para cuándo lo necesitas: te enseñamos el precio con su desglose, sin dejar tus datos.</p>
+        </div>
+        <div class="demo-tip tip-calc" data-th="tip.calc"><b>Precio orientativo en 1 minuto:</b> el cliente te llama ya convencido. Y te llega por WhatsApp con el problema, la urgencia y una foto.</div>
+      </div>
+
+      <div class="calc-grid">
+        <div class="calc-steps">
+          <div class="step" id="step1" role="group" aria-labelledby="s1-h">
+            <h3 class="step-h" id="s1-h"><span class="nut" aria-hidden="true">1</span><span data-t="s1.h">El problema</span></h3>
+            <div class="tiles">
+              <button type="button" class="tile" data-p="fuga" aria-pressed="false">
+                <svg class="tile-i" viewBox="0 0 48 48" aria-hidden="true"><path d="M3 11h13M3 22h13M32 11h13M32 22h13"/><rect x="16" y="7" width="16" height="19" rx="2.5"/><path d="M21.3 7v19M26.7 7v19"/><path d="M24 30.5c-2.8 3.9-4.2 6.4-4.2 8.3a4.2 4.2 0 0 0 8.4 0c0-1.9-1.4-4.4-4.2-8.3z" fill="#1E6BFF" stroke="#1E6BFF"/><path d="M14.5 29.5 12 33.5M33.5 29.5l2.5 4M10.5 39.5c-1.3 1.8-2 3-2 3.9a2 2 0 0 0 4 0c0-.9-.7-2.1-2-3.9z" stroke="#1E6BFF"/></svg>
+                <span class="tile-n" data-t="p.fuga">Fuga o gotera</span>
+                <span class="tile-p">desde 75 €</span>
+              </button>
+              <button type="button" class="tile" data-p="atasco" aria-pressed="false">
+                <svg class="tile-i" viewBox="0 0 48 48" aria-hidden="true"><rect x="21.5" y="3" width="5" height="20" rx="2.5"/><path d="M11 33c0-6.6 5.8-10.5 13-10.5S37 26.4 37 33z"/><path d="M7.5 33h33"/><path d="M8.5 41c2.3 1.6 4.7 1.6 7 0s4.7-1.6 7 0 4.7 1.6 7 0 4.7-1.6 7 0" stroke="#1E6BFF"/></svg>
+                <span class="tile-n" data-t="p.atasco">Atasco</span>
+                <span class="tile-s" data-t="p.atasco.s">wáter, fregadero o ducha</span>
+                <span class="tile-p">desde 65 €</span>
+              </button>
+              <button type="button" class="tile" data-p="termo" aria-pressed="false">
+                <svg class="tile-i" viewBox="0 0 48 48" aria-hidden="true"><rect x="12" y="3.5" width="24" height="35" rx="7"/><path d="M18 38.5V45M30 38.5V45"/><circle cx="24" cy="13.5" r="3.6"/><path d="M24 21.5v12M18.8 24.5l10.4 6M18.8 30.5l10.4-6" stroke="#1E6BFF"/></svg>
+                <span class="tile-n" data-t="p.termo">Sin agua caliente</span>
+                <span class="tile-s" data-t="p.termo.s">termo o calentador</span>
+                <span class="tile-p">desde 90 €</span>
+              </button>
+              <button type="button" class="tile" data-p="cisterna" aria-pressed="false">
+                <svg class="tile-i" viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="3.5" width="25" height="13.5" rx="2"/><path d="M27.5 8.2h3.5M7 21h31M9.5 21c0 7.6 5.6 12.6 13 12.6S35.5 28.6 35.5 21M16.5 32.6 15.5 44.5h14l-1-11.9"/><path d="M15 25.8h15" stroke="#1E6BFF"/><path d="M42 7.5c-1.8 2.5-2.7 4.1-2.7 5.3a2.7 2.7 0 0 0 5.4 0c0-1.2-.9-2.8-2.7-5.3z" fill="#1E6BFF" stroke="#1E6BFF"/></svg>
+                <span class="tile-n" data-t="p.cisterna">Cisterna que pierde agua</span>
+                <span class="tile-p">desde 55 €</span>
+              </button>
+              <button type="button" class="tile" data-p="grifo" aria-pressed="false">
+                <svg class="tile-i" viewBox="0 0 48 48" aria-hidden="true"><path d="M5 13v17M5 18h21c5 0 9 4 9 9v4h-6v-3c0-1.7-1.3-3-3-3H5M17 18v-6M11 12h12"/><path d="M32 36c-1.9 2.6-2.9 4.3-2.9 5.6a2.9 2.9 0 0 0 5.8 0c0-1.3-1-3-2.9-5.6z" fill="#1E6BFF" stroke="#1E6BFF"/></svg>
+                <span class="tile-n" data-t="p.grifo">Grifo roto o que gotea</span>
+                <span class="tile-p">desde 50 €</span>
+              </button>
+              <button type="button" class="tile" data-p="plato" aria-pressed="false">
+                <svg class="tile-i" viewBox="0 0 48 48" aria-hidden="true"><path d="M5 5h12a6.5 6.5 0 0 1 6.5 6.5V15M14.5 15h18l-2.6 5H17.1z"/><path d="M19 24.5l-1 3.2M24 24.5v3.2M29 24.5l1 3.2M18 31l-1 3M24 31v3M30 31l1 3" stroke="#1E6BFF"/><rect x="5" y="38.5" width="38" height="6" rx="1.5"/><path d="M21 41.5h6"/></svg>
+                <span class="tile-n" data-t="p.plato">Cambiar bañera por plato de ducha</span>
+                <span class="tile-p">desde 690 €</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="step" id="step2" role="group" aria-labelledby="s2-h">
+            <h3 class="step-h" id="s2-h"><span class="nut" aria-hidden="true">2</span><span data-t="s2.h">¿Para cuándo?</span></h3>
+            <div class="seg seg-when" id="when-u">
+              <button type="button" data-when="now" aria-pressed="true" data-t="when.now">Ahora mismo</button>
+              <button type="button" data-when="today" aria-pressed="false" data-t="when.today">Hoy</button>
+              <button type="button" data-when="week" aria-pressed="false" data-t="when.week">Esta semana</button>
+            </div>
+            <div class="seg seg-when" id="when-p" hidden>
+              <button type="button" data-when="asap" aria-pressed="false" data-t="when.asap">Lo antes posible</button>
+              <button type="button" data-when="month" aria-pressed="false" data-t="when.month">Este mes</button>
+              <button type="button" data-when="later" aria-pressed="false" data-t="when.later">Más adelante</button>
+            </div>
+            <div id="slot-wrap">
+              <p class="sub-h" id="slot-h" data-t="s2.slot">¿Qué día y hora?</p>
+              <div class="seg seg-slot" role="group" aria-labelledby="slot-h">
+                <button type="button" data-slot="day" aria-pressed="true"><span data-t="slot.day">Laborable, de 8 a 20 h</span></button>
+                <button type="button" data-slot="night" aria-pressed="false"><span data-t="slot.night">Noche, fin de semana o festivo</span><em class="pct" data-t="pct">+40&nbsp;%</em></button>
+              </div>
+            </div>
+            <p class="auto-note" id="auto-note"></p>
+          </div>
+        </div>
+
+        <aside class="ticket is-empty" id="ticket" aria-labelledby="s3-h">
+          <h3 class="step-h" id="s3-h"><span class="nut" aria-hidden="true">3</span><span data-t="s3.h">Tu precio orientativo</span></h3>
+          <p class="tk-what" id="tk-what"><b>Elige qué te pasa</b><span>En el paso 1. Aquí verás el precio con su desglose.</span></p>
+          <div class="meter is-empty" id="meter" aria-hidden="true"></div>
+          <p class="sr-only" id="tk-sr" aria-live="polite"></p>
+          <p class="tk-vat" id="tk-vat"></p>
+          <ul class="tk-rows" id="tk-rows"></ul>
+          <p class="tk-note" id="tk-mat" hidden></p>
+          <p class="tk-note tk-extra" id="tk-extra" hidden></p>
+          <p class="tk-caveat"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span data-t="res.caveat">Orientativo. El precio cerrado te lo damos antes de empezar.</span></p>
+          <div class="tk-btns">
+            <a class="btn btn-y" href="tel:+34930000000" data-number="930 00 00 00"><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg><span data-t="cta.call">Llamar ahora</span></a>
+            <button type="button" class="btn btn-o" id="tk-wa"><svg class="i i-wa" aria-hidden="true"><use href="#i-wa"/></svg><span data-t="cta.wa">Mandar foto por WhatsApp</span></button>
+          </div>
+          <div class="tk-where">
+            <p class="tk-eta"><span class="dot" aria-hidden="true"></span><span id="tk-eta-t">Ahora mismo hay <b>3 técnicos de guardia</b>: llegamos en 25–40 min según tu barrio.</span></p>
+            <div class="tk-cp">
+              <label for="cp2" data-t="cp.label2">Tu código postal (opcional)</label>
+              <input id="cp2" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="08014" data-ta="placeholder:cp.ph">
+              <output id="cp2-out" for="cp2" aria-live="polite"></output>
+            </div>
+          </div>
+          <button type="button" class="tk-reset" id="tk-reset"><svg class="i" aria-hidden="true"><use href="#i-reset"/></svg><span data-t="res.reset">Reiniciar</span></button>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- TARIFAS -->
+  <section class="rates sec" id="tarifas" aria-labelledby="h-rates">
+    <div class="wrap rates-grid">
+      <div class="rates-main">
+        <h2 class="h2" id="h-rates" data-t="rates.h">Tarifas claras</h2>
+        <p class="lead" data-t="rates.lead">Con IVA incluido. Antes de empezar te damos el precio cerrado; si no te convence, solo pagas el desplazamiento.</p>
+        <p class="rate-now" id="rate-now"><span class="dot" aria-hidden="true"></span><span id="rate-now-t"><b>Ahora mismo: tarifa normal</b>.</span></p>
+        <div class="demo-tip tip-rate" data-th="tip.rate"><b>La tarifa de urgencia se pone sola</b> por la noche, en fin de semana y en festivos, con la hora de Barcelona. Nadie se lleva sorpresas en la factura.</div>
+        <dl class="rtable">
+          <div class="rrow"><dt><b data-t="r.trip">Desplazamiento en Barcelona</b><span data-t="r.trip.s">A cualquier barrio de la ciudad.</span></dt><dd data-t="r.trip.v">30 €</dd></div>
+          <div class="rrow" data-rate-row="n"><dt><b data-t="r.labor">Mano de obra</b><span data-t="r.labor.s">La primera hora, completa; después, por fracciones de 15 minutos (11,25 €).</span></dt><dd data-t="r.labor.v">45 €/h</dd></div>
+          <div class="rrow" data-rate-row="u"><dt><b data-t="r.urg">Urgencias: noches (de 20 a 8 h), fines de semana y festivos</b><span data-t="r.urg.s">Sobre el desplazamiento y la mano de obra, nunca sobre los materiales.</span></dt><dd data-t="r.urg.v">+40&nbsp;%</dd></div>
+          <div class="rrow"><dt><b data-t="r.quote">Presupuesto de obra</b><span data-t="r.quote.s">Reformas de baño, cambios de tubería o de termo: venimos, medimos y te lo damos por escrito.</span></dt><dd data-t="r.quote.v">Gratis</dd></div>
+          <div class="rrow"><dt><b data-t="r.mat">Materiales</b><span data-t="r.mat.s">Al precio de tarifa del fabricante y con factura: ves lo que cuesta cada pieza.</span></dt><dd data-t="r.mat.v">Tarifa</dd></div>
+        </dl>
+        <p class="rate-ex" data-th="r.ex"><b>Ejemplo:</b> una fuga que nos lleva 1 h 30 min un martes por la mañana: 30 + 45 + 22,50 = <b>97,50 €</b>. El mismo trabajo un domingo: <b>136,50 €</b>.</p>
+      </div>
+      <aside class="fixed" aria-labelledby="h-fixed">
+        <div class="fixed-ph"><img alt="Mano sujetando una herramienta amarilla y gris" data-ta="alt:fixed.alt" src="https://images.unsplash.com/photo-1620653713380-7a34b773fef8?auto=format&fit=crop&w=1000&q=72" srcset="https://images.unsplash.com/photo-1620653713380-7a34b773fef8?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1620653713380-7a34b773fef8?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1620653713380-7a34b773fef8?auto=format&fit=crop&w=1000&q=72 1000w" sizes="(max-width: 960px) 92vw, 34vw" loading="lazy" decoding="async"></div>
+        <div class="fixed-in">
+          <h3 id="h-fixed" data-t="fixed.h">Trabajos habituales, a precio cerrado</h3>
+          <ul class="fixed-list">
+            <li><span data-t="fx.1">Desatasco manual de wáter, fregadero o ducha</span><b data-t="fx.1v">65 €</b></li>
+            <li><span data-t="fx.2">Ajuste o cambio de mecanismo de cisterna</span><b data-t="fx.2v">55 € + pieza</b></li>
+            <li><span data-t="fx.3">Cambio de grifo</span><b data-t="fx.3v">50 € + grifo</b></li>
+            <li><span data-t="fx.4">Termo eléctrico de 80 litros, instalado</span><b data-t="fx.4v">desde 390 €</b></li>
+            <li><span data-t="fx.5">Bañera por plato de ducha, instalado</span><b data-t="fx.5v">desde 690 €</b></li>
+          </ul>
+          <p class="fixed-note" data-t="fixed.note">Con desplazamiento e IVA incluidos. En urgencias, +40&nbsp;% sobre el trabajo.</p>
+          <a class="btn btn-k" href="#presupuesto"><svg class="i" aria-hidden="true"><use href="#i-calc"/></svg><span data-t="fixed.cta">Calcular mi precio</span></a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- CÓMO TRABAJAMOS -->
+  <section class="how sec" id="como" aria-labelledby="h-how">
+    <div class="wrap">
+      <h2 class="h2" id="h-how" data-t="how.h">Cómo trabajamos</h2>
+      <p class="lead" data-t="how.lead">Cuatro pasos y ninguna sorpresa: sabes el precio antes de que toquemos nada.</p>
+      <ol class="pipe">
+        <li class="pstep"><span class="nut" aria-hidden="true">1</span><h3 data-t="how.1">Llamas o mandas foto</h3><p data-t="how.1p">Por teléfono o por WhatsApp, a cualquier hora. Con una foto ya sabemos qué pieza traer.</p></li>
+        <li class="pstep"><span class="nut" aria-hidden="true">2</span><h3 data-t="how.2">Llegamos</h3><p data-t="how.2p">Te avisamos 10 minutos antes. La furgoneta va cargada para arreglarlo en la primera visita.</p></li>
+        <li class="pstep"><span class="nut" aria-hidden="true">3</span><h3 data-t="how.3">Precio cerrado antes de empezar</h3><p data-t="how.3p">Lo miramos, te decimos cuánto es y empezamos cuando digas que sí.</p></li>
+        <li class="pstep"><span class="nut" aria-hidden="true">4</span><h3 data-t="how.4">Arreglamos y te damos garantía por escrito</h3><p data-t="how.4p">Factura con IVA y 1 año de garantía. Si vuelve a fallar, volvemos sin coste.</p></li>
+      </ol>
+
+      <div class="jobs">
+        <h3 class="sub-t" data-t="jobs.h">Lo que más arreglamos</h3>
+        <div class="jobs-grid">
+          <figure class="job">
+            <div class="job-ph"><img alt="Fontanero trabajando en una tubería dentro de la pared" data-ta="alt:job.1.alt" src="https://images.unsplash.com/photo-1676210134188-4c05dd172f89?auto=format&fit=crop&w=900&q=72" srcset="https://images.unsplash.com/photo-1676210134188-4c05dd172f89?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1676210134188-4c05dd172f89?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1676210134188-4c05dd172f89?auto=format&fit=crop&w=900&q=72 900w" sizes="(max-width: 860px) 46vw, 30vw" loading="lazy" decoding="async"></div>
+            <figcaption><b data-t="job.1">Fugas y tuberías</b><button type="button" class="job-btn" data-pick="fuga"><svg class="i" aria-hidden="true"><use href="#i-calc"/></svg><span data-t="job.calc">Calcular precio</span></button></figcaption>
+          </figure>
+          <figure class="job">
+            <div class="job-ph"><img alt="Técnico reparando un termo de agua caliente" data-ta="alt:job.2.alt" src="https://images.unsplash.com/photo-1676210134190-3f2c0d5cf58d?auto=format&fit=crop&w=900&q=72" srcset="https://images.unsplash.com/photo-1676210134190-3f2c0d5cf58d?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1676210134190-3f2c0d5cf58d?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1676210134190-3f2c0d5cf58d?auto=format&fit=crop&w=900&q=72 900w" sizes="(max-width: 860px) 46vw, 30vw" loading="lazy" decoding="async"></div>
+            <figcaption><b data-t="job.2">Termos y calentadores</b><button type="button" class="job-btn" data-pick="termo"><svg class="i" aria-hidden="true"><use href="#i-calc"/></svg><span data-t="job.calc">Calcular precio</span></button></figcaption>
+          </figure>
+          <figure class="job">
+            <div class="job-ph"><img alt="Fontanero revisando las tuberías bajo un mueble de cocina" data-ta="alt:job.3.alt" src="https://images.unsplash.com/photo-1676210133055-eab6ef033ce3?auto=format&fit=crop&w=900&q=72" srcset="https://images.unsplash.com/photo-1676210133055-eab6ef033ce3?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1676210133055-eab6ef033ce3?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1676210133055-eab6ef033ce3?auto=format&fit=crop&w=900&q=72 900w" sizes="(max-width: 860px) 46vw, 30vw" loading="lazy" decoding="async"></div>
+            <figcaption><b data-t="job.3">Desatascos y desagües</b><button type="button" class="job-btn" data-pick="atasco"><svg class="i" aria-hidden="true"><use href="#i-calc"/></svg><span data-t="job.calc">Calcular precio</span></button></figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="team">
+        <div class="team-txt">
+          <h3 class="sub-t" data-t="team.h">Técnicos de la casa, no subcontratas</h3>
+          <p data-t="team.p">Siempre viene alguien del equipo, con uniforme y tarjeta. Si vuelves a llamar, te atiende quien ya conoce tu casa.</p>
+        </div>
+        <ul class="team-list">
+          <li><span class="mono" aria-hidden="true">JR</span><span><b>Jordi Ramírez</b><small data-t="team.1">Fundador, 28 años de oficio</small></span></li>
+          <li><span class="mono" aria-hidden="true">MR</span><span><b>Marta Ramírez</b><small data-t="team.2">Urgencias y presupuestos</small></span></li>
+          <li><span class="mono" aria-hidden="true">OH</span><span><b>Omar Haddad</b><small data-t="team.3">Termos y calderas</small></span></li>
+          <li><span class="mono" aria-hidden="true">LF</span><span><b>Laia Ferrer</b><small data-t="team.4">Baños y reformas</small></span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANTES / DESPUÉS -->
+  <section class="ba sec" id="trabajos" aria-labelledby="h-ba">
+    <div class="wrap ba-grid">
+      <div class="ba-txt">
+        <h2 class="h2" id="h-ba" data-t="ba.h">Antes y después</h2>
+        <p class="lead" data-t="ba.lead">Un grifo de cocina que goteaba día y noche: monomando nuevo, latiguillos nuevos y prueba de presión.</p>
+        <dl class="facts">
+          <div><dt data-t="ba.f1">Trabajo</dt><dd data-t="ba.f1v">Cambio de grifo de cocina</dd></div>
+          <div><dt data-t="ba.f2">Tiempo</dt><dd data-t="ba.f2v">1 hora</dd></div>
+          <div><dt data-t="ba.f3">Precio</dt><dd data-t="ba.f3v">50 € + el grifo</dd></div>
+          <div><dt data-t="ba.f4">Garantía</dt><dd data-t="ba.f4v">1 año, por escrito</dd></div>
+        </dl>
+        <p class="ba-hint" data-t="ba.hint">Arrastra la línea para comparar.</p>
+      </div>
+      <figure class="ba-fig">
+        <div class="cmp" data-compare>
+          <img alt="Antes: grifo viejo de cocina" data-ta="alt:ba.before.alt" src="https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?auto=format&fit=crop&w=1200&q=72" srcset="https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?auto=format&fit=crop&w=1200&q=72 1200w, https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?auto=format&fit=crop&w=1400&q=72 1400w" sizes="(max-width: 900px) 100vw, 56vw" loading="lazy" decoding="async">
+          <div class="kit-cmp-after"><img alt="Después: grifo moderno de cocina con el agua corriendo" data-ta="alt:ba.after.alt" src="https://images.unsplash.com/photo-1784790601912-b30717b805b8?auto=format&fit=crop&w=1200&q=72" srcset="https://images.unsplash.com/photo-1784790601912-b30717b805b8?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1784790601912-b30717b805b8?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1784790601912-b30717b805b8?auto=format&fit=crop&w=1200&q=72 1200w, https://images.unsplash.com/photo-1784790601912-b30717b805b8?auto=format&fit=crop&w=1400&q=72 1400w" sizes="(max-width: 900px) 100vw, 56vw" loading="lazy" decoding="async"></div>
+          <div class="kit-cmp-line"></div>
+          <span class="cmp-l cmp-b" aria-hidden="true" data-t="ba.before">Antes</span>
+          <span class="cmp-l cmp-a" aria-hidden="true" data-t="ba.after">Después</span>
+          <input type="range" min="0" max="100" value="50" aria-label="Comparar antes y después" data-ta="aria-label:ba.range">
+        </div>
+        <figcaption class="ba-tag" data-t="ba.tag">Trabajo de ejemplo</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ZONAS -->
+  <section class="zones sec" id="zonas" aria-labelledby="h-zones">
+    <div class="wrap zones-grid">
+      <div class="zones-txt">
+        <h2 class="h2" id="h-zones" data-t="z.h">Toda Barcelona, en menos de 45 minutos</h2>
+        <p class="lead" data-t="z.lead">Salimos del taller de Sants. Son tiempos medios de llegada en urgencias, con tráfico normal.</p>
+        <form class="cp" id="cp-form" novalidate>
+          <label for="cp1" data-t="cp.label">¿Llegáis a mi casa? Escribe tu código postal</label>
+          <div class="cp-row">
+            <input id="cp1" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="08014" data-ta="placeholder:cp.ph">
+            <button type="submit" class="btn btn-k" data-t="cp.go">Comprobar</button>
+          </div>
+          <p class="cp-out" id="cp1-out" aria-live="polite"></p>
+        </form>
+        <div class="demo-tip tip-zones" data-th="tip.zones"><b>Cada vecino ve en cuánto llegas a su calle.</b> Prueba con un código postal: 08014, 08025, 08035…</div>
+        <ul class="bands">
+          <li><span class="sw sw-a" aria-hidden="true"></span><b>25 min</b><span data-t="band.a">Sants, Les Corts, Eixample y Ciutat Vella</span></li>
+          <li><span class="sw sw-b" aria-hidden="true"></span><b>30–35 min</b><span data-t="band.b">Gràcia, Poble-sec y Sant Martí</span></li>
+          <li><span class="sw sw-c" aria-hidden="true"></span><b>40 min</b><span data-t="band.c">Horta-Guinardó, Nou Barris, Sant Andreu y Sarrià-Sant Gervasi</span></li>
+        </ul>
+        <p class="zones-out" data-t="z.out">¿Fuera de Barcelona? Llámanos: también vamos a L’Hospitalet, Esplugues y Sant Adrià.</p>
+      </div>
+      <div class="tmap-w">
+        <div class="tmap" aria-hidden="true">
+          <div class="tz" data-z="sar" data-b="c"><b>Sarrià-Sant Gervasi</b><span>40 min</span></div>
+          <div class="tz" data-z="gra" data-b="b"><b>Gràcia</b><span>30–35 min</span></div>
+          <div class="tz" data-z="hor" data-b="c"><b>Horta-Guinardó</b><span>40 min</span></div>
+          <div class="tz" data-z="nou" data-b="c"><b>Nou Barris</b><span>40 min</span></div>
+          <div class="tz" data-z="cor" data-b="a"><b>Les Corts</b><span>25 min</span></div>
+          <div class="tz" data-z="eix" data-b="a"><b>Eixample</b><span>25 min</span></div>
+          <div class="tz" data-z="and" data-b="c"><b>Sant Andreu</b><span>40 min</span></div>
+          <div class="tz" data-z="san" data-b="a"><b>Sants</b><em class="pin"><span data-t="z.base">Taller</span></em><span>25 min</span></div>
+          <div class="tz" data-z="cve" data-b="a"><b>Ciutat Vella</b><span>25 min</span></div>
+          <div class="tz" data-z="smt" data-b="b"><b>Sant Martí</b><span>30–35 min</span></div>
+          <div class="tz" data-z="pse" data-b="b"><b>Poble-sec</b><span>30–35 min</span></div>
+          <div class="tz tz-sea"><span data-t="z.sea">Mar Mediterráneo</span></div>
+        </div>
+        <p class="tmap-cap"><i class="cap-hex" aria-hidden="true"></i><span data-t="z.cap">Mapa esquemático: cada casilla es un distrito. El hexágono marca nuestro taller, en Sants.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPINIONES -->
+  <section class="rev sec" id="opiniones" aria-labelledby="h-rev">
+    <div class="wrap">
+      <h2 class="h2" id="h-rev" data-t="rev.h">Lo que dicen los vecinos</h2>
+      <div class="rev-grid">
+      <div class="score">
+        <p class="score-n"><b data-t="rev.score">4,8</b><span class="stars" role="img" aria-label="4,8 de 5" data-ta="aria-label:rev.stars">★★★★★</span></p>
+        <p class="score-c" data-t="rev.count">540 reseñas en Google</p>
+        <span class="sample" data-t="rev.sample">Reseñas de ejemplo</span>
+        <a class="btn btn-k" href="#" data-demo-note="note.reviews" data-t="rev.btn">Ver las reseñas en Google</a>
+      </div>
+      <div class="revs">
+        <article class="revc"><span class="stars" role="img" aria-label="5 de 5" data-ta="aria-label:rev.s5">★★★★★</span><p>“Vinieron a las dos de la mañana por una fuga en la cocina. Nos dijeron el precio antes de tocar nada y fue exactamente ese.”</p><footer><span class="mono mono-s" aria-hidden="true">NP</span><span><b>Núria P.</b><span data-t="rev.t1">Les Corts, hace 2 semanas</span></span></footer></article>
+        <article class="revc"><span class="stars" role="img" aria-label="5 de 5" data-ta="aria-label:rev.s5">★★★★★</span><p>“Les mandé una foto del termo por WhatsApp y vinieron con la pieza. En menos de una hora teníamos agua caliente otra vez.”</p><footer><span class="mono mono-s" aria-hidden="true">AM</span><span><b>Andrés M.</b><span data-t="rev.t2">Sants, hace 1 mes</span></span></footer></article>
+        <article class="revc"><span class="stars" role="img" aria-label="4 de 5" data-ta="aria-label:rev.s4">★★★★☆</span><p>“They swapped our bath for a shower tray in one day. Tidy work, and the final price matched the quote. Booking took a few days.”</p><footer><span class="mono mono-s" aria-hidden="true">CD</span><span><b>Claire D.</b><span data-t="rev.t3">Eixample, hace 3 semanas</span></span></footer></article>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PREGUNTAS -->
+  <section class="faq sec" id="preguntas" aria-labelledby="h-faq">
+    <div class="wrap faq-grid">
+      <div class="faq-head">
+        <h2 class="h2" id="h-faq" data-t="faq.h">Preguntas frecuentes</h2>
+        <p class="lead" data-t="faq.lead">Lo que más nos preguntan antes de llamar. ¿Otra duda? Llámanos: contestamos a cualquier hora.</p>
+        <a class="btn btn-y" href="tel:+34930000000" data-number="930 00 00 00"><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg><span>930 00 00 00</span></a>
+      </div>
+      <div class="faq-list">
+        <details><summary data-t="faq.1q">¿Cobráis por venir si no lo arregláis?</summary><p data-t="faq.1a">Solo el desplazamiento: 30 €. Si al llegar vemos que no tiene arreglo, o el precio cerrado no te convence, no pagas nada más. Si nos encargas el trabajo, el desplazamiento ya va dentro del precio.</p></details>
+        <details><summary data-t="faq.2q">¿Dais factura?</summary><p data-t="faq.2a">Siempre, con IVA y con el detalle de horas y materiales. Te la enviamos al momento por email o WhatsApp, y te sirve para el seguro.</p></details>
+        <details><summary data-t="faq.3q">¿Trabajáis con seguros?</summary><p data-t="faq.3a">Sí. Si tu seguro de hogar cubre los daños por agua, te preparamos el informe, las fotos y la factura que pide la aseguradora.</p></details>
+        <details><summary data-t="faq.4q">¿En cuánto llegáis?</summary><p data-th="faq.4a">En Sants, Les Corts, Eixample y Ciutat Vella, en unos 25 minutos; en el resto de Barcelona, entre 30 y 40. Te avisamos 10 minutos antes de llegar. <a href="#zonas">Mira tu barrio</a>.</p></details>
+        <details><summary data-t="faq.5q">¿Qué pasa si vuelve a fallar?</summary><p data-t="faq.5a">Volvemos sin coste. Todos los trabajos tienen 1 año de garantía por escrito, en la misma factura: piezas y mano de obra.</p></details>
+        <details><summary data-t="faq.6q">¿Cómo se paga?</summary><p data-t="faq.6a">Al terminar, con tarjeta, en efectivo o por transferencia. En una urgencia nunca pedimos dinero por adelantado.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="ft">
+  <div class="tape" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="ft-grid">
+      <div class="ft-brand">
+        <a class="logo" href="#top" aria-label="Ramírez Fontaneros 24 h">
+          <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 1.5 36 10.75v18.5L20 38.5 4 29.25v-18.5z" fill="#FFC400"/><path d="M20 9.5c-4.9 6.3-7.3 10.6-7.3 13.8a7.3 7.3 0 0 0 14.6 0c0-3.2-2.4-7.5-7.3-13.8z" fill="#1E6BFF"/><path d="M16.6 24.3a3.6 3.6 0 0 0 3 3.4" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span class="logo-txt"><b>Ramírez</b><small data-t="logo.sub">Fontaneros 24 h</small></span>
+        </a>
+        <p data-t="ft.p">Fontanería y urgencias en Barcelona, las 24 horas de los 365 días del año.</p>
+        <p class="plate"><span data-t="ft.rei">Empresa instaladora autorizada</span><b>REI 08/000000</b><small data-t="ft.rei.s">Número ficticio</small></p>
+      </div>
+      <div>
+        <h2 class="ft-h" data-t="ft.h1">Contacto</h2>
+        <ul>
+          <li><a class="ft-tel" href="tel:+34930000000" data-number="930 00 00 00">930 00 00 00</a></li>
+          <li><a href="https://wa.me/34600000000?text=%C2%A1Hola!%20Necesito%20un%20fontanero.%20Te%20env%C3%ADo%20una%20foto%20del%20problema." data-ta="href:wa.href" data-t="ft.wa">WhatsApp: manda una foto</a></li>
+          <li>Carrer de Sants, 00<br>08014 Barcelona</li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="ft-h" data-t="ft.h2">Horario</h2>
+        <ul><li data-t="ft.hours1">Urgencias: 24 h, 365 días</li><li data-t="ft.hours2">Taller y presupuestos: de lunes a viernes, de 8 a 20 h</li></ul>
+      </div>
+      <div>
+        <h2 class="ft-h" data-t="ft.h3">En esta web</h2>
+        <ul>
+          <li><a href="#presupuesto" data-t="nav.calc">Presupuesto</a></li>
+          <li><a href="#tarifas" data-t="nav.rates">Tarifas</a></li>
+          <li><a href="#como" data-t="nav.how">Cómo trabajamos</a></li>
+          <li><a href="#zonas" data-t="nav.zones">Zonas</a></li>
+          <li><a href="#opiniones" data-t="nav.reviews">Opiniones</a></li>
+          <li><a href="#preguntas" data-t="nav.faq">Preguntas</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="ft-bot">
+      <span>© 2026 Ramírez Fontaneros 24 h · <a href="#" data-demo-note="note.legal" data-t="ft.legal">Aviso legal y privacidad</a> · <span data-t="ft.cookies">Esta web no usa cookies</span></span>
+      <span data-t="ft.made">Negocio ficticio · Web de muestra de OOOX</span>
+    </div>
+  </div>
+</footer>
+
+<nav class="mbar" aria-label="Acciones rápidas" data-ta="aria-label:mbar.aria">
+  <a class="mb-call" href="tel:+34930000000" data-number="930 00 00 00"><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg><span data-t="mbar.call">Llamar ahora</span></a>
+  <a href="https://wa.me/34600000000?text=%C2%A1Hola!%20Necesito%20un%20fontanero.%20Te%20env%C3%ADo%20una%20foto%20del%20problema." data-ta="href:wa.href"><svg class="i i-wa" aria-hidden="true"><use href="#i-wa"/></svg><span data-t="mbar.wa">WhatsApp</span></a>
+  <a href="#presupuesto"><svg class="i" aria-hidden="true"><use href="#i-calc"/></svg><span data-t="mbar.quote">Presupuesto</span></a>
+</nav>
+
+<script type="application/json" id="site">
+{
+  "surcharge": 0.4,
+  "holidays": ["2026-01-01","2026-01-06","2026-04-03","2026-04-06","2026-05-01","2026-05-25","2026-06-24","2026-08-15","2026-09-11","2026-09-24","2026-10-12","2026-12-08","2026-12-25","2026-12-26",
+               "2027-01-01","2027-01-06","2027-03-26","2027-03-29","2027-05-17","2027-06-24","2027-09-24","2027-10-12","2027-11-01","2027-12-08"],
+  "problems": [
+    {"id":"fuga","rows":[
+      {"l":{"es":"Desplazamiento en Barcelona","ca":"Desplaçament a Barcelona","en":"Call-out within Barcelona"},"min":30,"max":30,"u":true},
+      {"l":{"es":"Mano de obra estimada: de 1 a 2 h","ca":"Mà d’obra estimada: d’1 a 2 h","en":"Estimated labour: 1 to 2 h"},"min":45,"max":90,"u":true},
+      {"l":{"es":"Material habitual: juntas y racores","ca":"Material habitual: juntes i racords","en":"Usual parts: seals and fittings"},"min":0,"max":20,"u":false}],
+     "mat":{"es":"Si hay que cambiar un tramo de tubería o una llave de paso, va aparte: a precio de tarifa y con factura.","ca":"Si cal canviar un tram de canonada o una clau de pas, va a part: a preu de tarifa i amb factura.","en":"If a length of pipe or a stopcock needs replacing, it’s extra: at list price, on the invoice."}},
+    {"id":"atasco","sub":true,"rows":[
+      {"l":{"es":"Desatasco manual, precio cerrado con desplazamiento","ca":"Desembús manual, preu tancat amb desplaçament","en":"Unblocking by hand, fixed price incl. call-out"},"min":65,"max":65,"u":true},
+      {"l":{"es":"Si hace falta máquina o más tiempo","ca":"Si cal màquina o més temps","en":"If we need the machine or more time"},"min":0,"max":55,"u":true}],
+     "mat":{"es":"Sin materiales, salvo que haya que cambiar el sifón: aparte, desde 12 €.","ca":"Sense materials, tret que calgui canviar el sifó: a part, des de 12 €.","en":"No parts needed unless the trap has to be replaced: extra, from €12."}},
+    {"id":"termo","sub":true,"rows":[
+      {"l":{"es":"Desplazamiento en Barcelona","ca":"Desplaçament a Barcelona","en":"Call-out within Barcelona"},"min":30,"max":30,"u":true},
+      {"l":{"es":"Mano de obra estimada: de 1 a 2 h","ca":"Mà d’obra estimada: d’1 a 2 h","en":"Estimated labour: 1 to 2 h"},"min":45,"max":90,"u":true},
+      {"l":{"es":"Recambio: resistencia, termostato o válvula","ca":"Recanvi: resistència, termòstat o vàlvula","en":"Spare part: element, thermostat or valve"},"min":15,"max":60,"u":false}],
+     "extra":{"es":"¿Hay que cambiarlo? Termo eléctrico de 80 litros, instalado, desde 390 €.","ca":"Cal canviar-lo? Termo elèctric de 80 litres, instal·lat, des de 390 €.","en":"Does it need replacing? An 80-litre electric water heater, installed, from €390."}},
+    {"id":"cisterna","rows":[
+      {"l":{"es":"Ajuste o cambio de mecanismo, precio cerrado con desplazamiento","ca":"Ajust o canvi de mecanisme, preu tancat amb desplaçament","en":"Adjusting or replacing the mechanism, fixed price incl. call-out"},"min":55,"max":55,"u":true},
+      {"l":{"es":"Mecanismo nuevo, si hace falta","ca":"Mecanisme nou, si cal","en":"New mechanism, if needed"},"min":0,"max":40,"u":false}]},
+    {"id":"grifo","rows":[
+      {"l":{"es":"Cambio o reparación, precio cerrado con desplazamiento","ca":"Canvi o reparació, preu tancat amb desplaçament","en":"Replacement or repair, fixed price incl. call-out"},"min":50,"max":50,"u":true},
+      {"l":{"es":"Latiguillos o llave de paso nuevos, si hacen falta","ca":"Flexos o clau de pas nous, si calen","en":"New flexi hoses or stopcock, if needed"},"min":0,"max":40,"u":false}],
+     "suffix":{"es":"+ el grifo","ca":"+ l’aixeta","en":"+ the tap"},
+     "extra":{"es":"¿No tienes grifo nuevo? Te llevamos uno de calidad, desde 35 €.","ca":"No tens aixeta nova? Te’n portem una de qualitat, des de 35 €.","en":"No new tap yet? We can bring a good one, from €35."}},
+    {"id":"plato","planned":true,"from":690,"rows":[
+      {"l":{"es":"Visita, medición y presupuesto por escrito","ca":"Visita, mesures i pressupost per escrit","en":"Visit, measuring and written quote"},"v":{"es":"Gratis","ca":"Gratuït","en":"Free"}},
+      {"l":{"es":"Retirada de la bañera y de los escombros","ca":"Retirada de la banyera i de la runa","en":"Removing the bath and the rubble"},"v":{"es":"Incluido","ca":"Inclòs","en":"Included"}},
+      {"l":{"es":"Plato de resina a medida, válvula y desagüe","ca":"Plat de resina a mida, vàlvula i desguàs","en":"Made-to-measure resin tray, valve and drain"},"v":{"es":"Incluido","ca":"Inclòs","en":"Included"}},
+      {"l":{"es":"Fontanería, sellado y remates de azulejo","ca":"Lampisteria, segellat i acabats de rajola","en":"Plumbing, sealing and tile finishing"},"v":{"es":"Incluido","ca":"Inclòs","en":"Included"}}],
+     "mat":{"es":"Precio para un plato de hasta 140 × 80 cm, en un día de trabajo. La mampara, aparte.","ca":"Preu per a un plat de fins a 140 × 80 cm, en un dia de feina. La mampara, a part.","en":"Price for a tray up to 140 × 80 cm, done in one day. Shower screen extra."}}
+  ],
+  "bands": {
+    "a": {"t":{"es":"unos 25 min","ca":"uns 25 min","en":"about 25 min"}},
+    "b": {"t":{"es":"30–35 min","ca":"30–35 min","en":"30–35 min"}},
+    "c": {"t":{"es":"unos 40 min","ca":"uns 40 min","en":"about 40 min"}}
+  },
+  "zones": {
+    "san":{"n":"Sants","b":"a"}, "cor":{"n":"Les Corts","b":"a"}, "eix":{"n":"Eixample","b":"a"}, "cve":{"n":"Ciutat Vella","b":"a"},
+    "gra":{"n":"Gràcia","b":"b"}, "pse":{"n":"Poble-sec","b":"b"}, "smt":{"n":"Sant Martí","b":"b"},
+    "hor":{"n":"Horta-Guinardó","b":"c"}, "nou":{"n":"Nou Barris","b":"c"}, "and":{"n":"Sant Andreu","b":"c"}, "sar":{"n":"Sarrià-Sant Gervasi","b":"c"}
+  },
+  "cp": {
+    "08001":"cve","08002":"cve","08003":"cve","08004":"pse","08005":"smt","08006":"sar","08007":"eix","08008":"eix","08009":"eix","08010":"eix",
+    "08011":"eix","08012":"gra","08013":"eix","08014":"san","08015":"eix","08016":"nou","08017":"sar","08018":"smt","08019":"smt","08020":"smt",
+    "08021":"sar","08022":"sar","08023":"gra","08024":"gra","08025":"gra","08026":"smt","08027":"and","08028":"cor","08029":"eix","08030":"and",
+    "08031":"nou","08032":"hor","08033":"nou","08034":"cor","08035":"hor","08036":"eix","08037":"eix","08038":"pse","08039":"cve","08040":"pse",
+    "08041":"hor","08042":"nou"
+  }
+}
+</script>
+
+<script type="application/json" id="i18n">
+{
+  "ca": {
+    "meta.title": "Ramírez Fontaneros 24 h · Lampisteria i urgències a Barcelona",
+    "ubar.a": "Urgències 24 h", "ubar.b": "365 dies", "ubar.c": "Arribem en menys de 45 min",
+    "logo.sub": "Lampistes 24 h",
+    "nav.aria": "Seccions", "nav.calc": "Pressupost", "nav.rates": "Tarifes", "nav.zones": "Zones", "nav.faq": "Preguntes", "nav.how": "Com treballem", "nav.reviews": "Opinions",
+    "lang.aria": "Idioma", "hd.call.aria": "Trucar ara al 930 00 00 00", "hd.call": "Urgències 24 h",
+    "hero.alt": "Lampista reparant les canonades d’un bany",
+    "hero.q": "Fuita d’aigua?", "hero.a": "Arribem en menys de 45 minuts.",
+    "hero.lead": "Lampistes a tot Barcelona, de dia i de nit, també els festius. Et donem el preu tancat abans de començar.",
+    "cta.call": "Trucar ara", "cta.wa": "Enviar foto per WhatsApp", "cta.quote": "Pressupost en 1 minut",
+    "wa.href": "https://wa.me/34600000000?text=Hola!%20Necessito%20un%20lampista.%20T%E2%80%99envio%20una%20foto%20del%20problema.",
+    "avail.a": "Disponibles 24 h",
+    "tip.call": "<b>El botó de trucar, sempre visible al mòbil:</b> així entren les urgències. I a dalt, el número ben gran.",
+    "trust.h": "Per què te’n pots refiar",
+    "trust.1": "Empresa instal·ladora autoritzada", "trust.1s": "Núm. REI 08/000000 (fictici)",
+    "trust.2": "Preu tancat", "trust.2s": "abans de començar",
+    "trust.3": "Garantia d’1 any", "trust.3s": "per escrit, a la factura",
+    "trust.4": "4,8 ★ a Google", "trust.4s": "540 ressenyes",
+    "trust.5": "Factura amb IVA", "trust.5s": "sempre, amb el detall",
+    "tip.trust": "<b>El que dona confiança abans de trucar:</b> autorització, garantia i preu tancat.",
+    "calc.h": "Què et passa?",
+    "calc.lead": "<b>Preu orientatiu en 1 minut.</b> Tria el problema i per a quan el necessites: et mostrem el preu amb el desglossament, sense deixar les teves dades.",
+    "tip.calc": "<b>Preu orientatiu en 1 minut:</b> el client et truca ja convençut. I t’arriba per WhatsApp amb el problema, la urgència i una foto.",
+    "s1.h": "El problema",
+    "p.fuga": "Fuita o gotera", "p.atasco": "Embús", "p.atasco.s": "vàter, aigüera o dutxa", "p.termo": "Sense aigua calenta", "p.termo.s": "termo o escalfador",
+    "p.cisterna": "Cisterna que perd aigua", "p.grifo": "Aixeta trencada o que goteja", "p.plato": "Canviar la banyera per un plat de dutxa",
+    "s2.h": "Per a quan?",
+    "when.now": "Ara mateix", "when.today": "Avui", "when.week": "Aquesta setmana", "when.asap": "Com més aviat millor", "when.month": "Aquest mes", "when.later": "Més endavant",
+    "s2.slot": "Quin dia i a quina hora?", "slot.day": "Feiner, de 8 a 20 h", "slot.night": "Nit, cap de setmana o festiu", "pct": "+40\u00a0%",
+    "s3.h": "El teu preu orientatiu",
+    "res.caveat": "Orientatiu. El preu tancat te’l donem abans de començar.",
+    "cp.label2": "El teu codi postal (opcional)", "cp.ph": "08014",
+    "res.reset": "Tornar a començar",
+    "rates.h": "Tarifes clares",
+    "rates.lead": "Amb IVA inclòs. Abans de començar et donem el preu tancat; si no et convenç, només pagues el desplaçament.",
+    "tip.rate": "<b>La tarifa d’urgència es posa sola</b> de nit, el cap de setmana i els festius, amb l’hora de Barcelona. Ningú no s’emporta sorpreses a la factura.",
+    "r.trip": "Desplaçament a Barcelona", "r.trip.s": "A qualsevol barri de la ciutat.", "r.trip.v": "30 €",
+    "r.labor": "Mà d’obra", "r.labor.s": "La primera hora, completa; després, per fraccions de 15 minuts (11,25 €).", "r.labor.v": "45 €/h",
+    "r.urg": "Urgències: nits (de 20 a 8 h), caps de setmana i festius", "r.urg.s": "Sobre el desplaçament i la mà d’obra, mai sobre els materials.", "r.urg.v": "+40\u00a0%",
+    "r.quote": "Pressupost d’obra", "r.quote.s": "Reformes de bany, canvis de canonada o de termo: venim, mesurem i t’ho donem per escrit.", "r.quote.v": "Gratuït",
+    "r.mat": "Materials", "r.mat.s": "A preu de tarifa del fabricant i amb factura: veus què costa cada peça.", "r.mat.v": "Tarifa",
+    "r.ex": "<b>Exemple:</b> una fuita que ens porta 1 h 30 min un dimarts al matí: 30 + 45 + 22,50 = <b>97,50 €</b>. La mateixa feina un diumenge: <b>136,50 €</b>.",
+    "fixed.alt": "Mà que subjecta una eina groga i grisa", "fixed.h": "Feines habituals, a preu tancat",
+    "fx.1": "Desembús manual de vàter, aigüera o dutxa", "fx.1v": "65 €",
+    "fx.2": "Ajust o canvi de mecanisme de cisterna", "fx.2v": "55 € + peça",
+    "fx.3": "Canvi d’aixeta", "fx.3v": "50 € + aixeta",
+    "fx.4": "Termo elèctric de 80 litres, instal·lat", "fx.4v": "des de 390 €",
+    "fx.5": "Banyera per plat de dutxa, instal·lat", "fx.5v": "des de 690 €",
+    "fixed.note": "Amb desplaçament i IVA inclosos. En urgències, +40\u00a0% sobre la feina.", "fixed.cta": "Calcular el meu preu",
+    "how.h": "Com treballem", "how.lead": "Quatre passos i cap sorpresa: saps el preu abans que toquem res.",
+    "how.1": "Truques o envies una foto", "how.1p": "Per telèfon o per WhatsApp, a qualsevol hora. Amb una foto ja sabem quina peça portar.",
+    "how.2": "Arribem", "how.2p": "T’avisem 10 minuts abans. La furgoneta va carregada per arreglar-ho a la primera visita.",
+    "how.3": "Preu tancat abans de començar", "how.3p": "Ho mirem, et diem quant és i comencem quan diguis que sí.",
+    "how.4": "Ho arreglem i et donem garantia per escrit", "how.4p": "Factura amb IVA i 1 any de garantia. Si torna a fallar, tornem sense cost.",
+    "jobs.h": "El que més arreglem",
+    "job.1": "Fuites i canonades", "job.1.alt": "Lampista treballant en una canonada dins la paret",
+    "job.2": "Termos i escalfadors", "job.2.alt": "Tècnic reparant un termo d’aigua calenta",
+    "job.3": "Desembussos i desguassos", "job.3.alt": "Lampista revisant les canonades sota un moble de cuina",
+    "job.calc": "Calcular preu",
+    "team.h": "Tècnics de la casa, no subcontractes",
+    "team.p": "Sempre ve algú de l’equip, amb uniforme i targeta. Si tornes a trucar, t’atén qui ja coneix casa teva.",
+    "team.1": "Fundador, 28 anys d’ofici", "team.2": "Urgències i pressupostos", "team.3": "Termos i calderes", "team.4": "Banys i reformes",
+    "ba.h": "Abans i després",
+    "ba.lead": "Una aixeta de cuina que gotejava dia i nit: monocomandament nou, flexos nous i prova de pressió.",
+    "ba.f1": "Feina", "ba.f1v": "Canvi d’aixeta de cuina", "ba.f2": "Temps", "ba.f2v": "1 hora", "ba.f3": "Preu", "ba.f3v": "50 € + l’aixeta", "ba.f4": "Garantia", "ba.f4v": "1 any, per escrit",
+    "ba.hint": "Arrossega la línia per comparar.",
+    "ba.before.alt": "Abans: aixeta vella de cuina", "ba.after.alt": "Després: aixeta moderna de cuina amb l’aigua rajant",
+    "ba.before": "Abans", "ba.after": "Després", "ba.range": "Comparar abans i després", "ba.tag": "Feina d’exemple",
+    "z.h": "Tot Barcelona, en menys de 45 minuts",
+    "z.lead": "Sortim del taller de Sants. Són temps mitjans d’arribada en urgències, amb trànsit normal.",
+    "cp.label": "Arribeu a casa meva? Escriu el teu codi postal", "cp.go": "Comprovar",
+    "tip.zones": "<b>Cada veí veu quant trigues a arribar al seu carrer.</b> Prova amb un codi postal: 08014, 08025, 08035…",
+    "band.a": "Sants, les Corts, l’Eixample i Ciutat Vella", "band.b": "Gràcia, el Poble-sec i Sant Martí", "band.c": "Horta-Guinardó, Nou Barris, Sant Andreu i Sarrià-Sant Gervasi",
+    "z.out": "Fora de Barcelona? Truca’ns: també anem a l’Hospitalet, Esplugues i Sant Adrià.",
+    "z.base": "Taller", "z.sea": "Mar Mediterrània", "z.cap": "Mapa esquemàtic: cada casella és un districte. L’hexàgon marca el nostre taller, a Sants.",
+    "rev.h": "Què en diuen els veïns", "rev.score": "4,8", "rev.stars": "4,8 de 5", "rev.count": "540 ressenyes a Google", "rev.sample": "Ressenyes d’exemple", "rev.btn": "Veure les ressenyes a Google",
+    "rev.s5": "5 de 5", "rev.s4": "4 de 5", "rev.t1": "Les Corts, fa 2 setmanes", "rev.t2": "Sants, fa 1 mes", "rev.t3": "Eixample, fa 3 setmanes",
+    "faq.h": "Preguntes freqüents",
+    "faq.lead": "El que més ens pregunten abans de trucar. Tens un altre dubte? Truca’ns: responem a qualsevol hora.",
+    "faq.1q": "Cobreu per venir si no ho arregleu?", "faq.1a": "Només el desplaçament: 30 €. Si en arribar veiem que no té arreglo, o el preu tancat no et convenç, no pagues res més. Si ens encarregues la feina, el desplaçament ja hi va inclòs.",
+    "faq.2q": "Feu factura?", "faq.2a": "Sempre, amb IVA i amb el detall d’hores i materials. Te l’enviem al moment per correu o per WhatsApp, i et serveix per a l’assegurança.",
+    "faq.3q": "Treballeu amb assegurances?", "faq.3a": "Sí. Si l’assegurança de la llar cobreix els danys per aigua, et preparem l’informe, les fotos i la factura que demana l’asseguradora.",
+    "faq.4q": "Quant trigueu a arribar?", "faq.4a": "A Sants, les Corts, l’Eixample i Ciutat Vella, uns 25 minuts; a la resta de Barcelona, entre 30 i 40. T’avisem 10 minuts abans d’arribar. <a href=\"#zonas\">Mira el teu barri</a>.",
+    "faq.5q": "Què passa si torna a fallar?", "faq.5a": "Tornem sense cost. Totes les feines tenen 1 any de garantia per escrit, a la mateixa factura: peces i mà d’obra.",
+    "faq.6q": "Com es paga?", "faq.6a": "En acabar, amb targeta, en efectiu o per transferència. En una urgència mai no demanem diners per avançat.",
+    "ft.p": "Lampisteria i urgències a Barcelona, les 24 hores dels 365 dies de l’any.",
+    "ft.rei": "Empresa instal·ladora autoritzada", "ft.rei.s": "Número fictici",
+    "ft.h1": "Contacte", "ft.h2": "Horari", "ft.h3": "En aquesta web", "ft.wa": "WhatsApp: envia una foto",
+    "ft.hours1": "Urgències: 24 h, 365 dies", "ft.hours2": "Taller i pressupostos: de dilluns a divendres, de 8 a 20 h",
+    "ft.legal": "Avís legal i privacitat", "ft.cookies": "Aquesta web no fa servir galetes", "ft.made": "Negoci fictici · Web de mostra d’OOOX",
+    "mbar.aria": "Accions ràpides", "mbar.call": "Trucar ara", "mbar.wa": "WhatsApp", "mbar.quote": "Pressupost",
+
+    "avail.now": "ara mateix: <b>{n}</b> tècnics de guàrdia",
+    "rate.n": "<b>Ara mateix: tarifa normal</b>, fins {w}.", "rate.u": "<b>Ara mateix: tarifa d’urgència (+40\u00a0%)</b>, fins {w}.", "rate.chip": "Ara",
+    "w.today": "a les {t}", "w.tomorrow": "demà a les {t}", "w.day": "{d} a les {t}",
+    "from": "des de {x}", "from.short": "Des de", "upto": "fins a {x}",
+    "res.empty.t": "Tria què et passa", "res.empty.d": "Al pas 1. Aquí veuràs el preu amb el desglossament.",
+    "res.vat": "IVA inclòs.", "res.vat.u": "IVA i recàrrec d’urgència (+40\u00a0%) inclosos.", "res.vat.planned": "Instal·lat i amb IVA. Sense recàrrecs d’urgència.",
+    "res.surcharge": "Recàrrec d’urgència (+40\u00a0% sobre desplaçament i mà d’obra)",
+    "slot.day.s": "feiner, de 8 a 20 h", "slot.night.s": "nit, cap de setmana o festiu",
+    "s2.auto": "Automàtic, amb l’hora de Barcelona: {d}, {t}.", "s2.planned": "Obra planificada: sense recàrrecs d’urgència. Venim a mesurar gratis i et donem el preu tancat per escrit.", "holiday": "(festiu)",
+    "eta.now": "Ara mateix hi ha <b>{n} tècnics de guàrdia</b>: arribem en 25–40 min segons el teu barri.",
+    "eta.zone": "Ara mateix: a <b>{z}</b> hi arribem en <b>{t}</b>.",
+    "eta.today": "Et donem hora per a avui quan truquis o per WhatsApp.",
+    "eta.week": "Et donem cita el dia i l’hora que et vagin millor.",
+    "eta.planned": "Venim a mesurar sense compromís, també a la tarda.",
+    "cp.ok": "<b>{z}</b> ({cp}): hi arribem en <b>{t}</b>.", "cp.out": "El {cp} queda fora de Barcelona ciutat. Truca’ns i et direm si hi arribem.", "cp.bad": "Escriu els 5 números del codi postal, per exemple 08014.",
+    "cp.short": "<b>{z}</b>: {t}", "cp.short.out": "Fora de Barcelona ciutat: truca’ns",
+    "calc.pick": "Primer tria què et passa (pas 1)",
+    "wa.hi": "Hola! T’escric des de la web.", "wa.problem": "• Problema: *{x}*", "wa.job": "• Feina: *{x}*", "wa.when": "• Per a quan: {x}",
+    "wa.price": "• Preu orientatiu a la web: *{x}*", "wa.priceU": "• Preu orientatiu a la web: *{x}* (amb el +40\u00a0% d’urgència)", "wa.priceFrom": "• Preu orientatiu a la web: *des de {x}*, instal·lat",
+    "wa.cp": "• Codi postal: {cp} ({z})", "wa.cpOut": "• Codi postal: {cp}",
+    "wa.photo": "T’envio una foto ara.", "wa.photoBath": "T’envio una foto del bany. Quan podeu venir a mesurar?",
+    "note.reviews.t": "Les teves ressenyes de Google, en un toc", "note.reviews.d": "A la web real, aquest botó obre la teva fitxa de Google amb totes les ressenyes. I et preparem un QR perquè els clients deixin la seva en acabar la feina.",
+    "note.legal.t": "Avís legal, privacitat i galetes", "note.legal.d": "A la web real, amb les dades de la teva empresa (titular, NIF, adreça i número d’instal·lador), com demana la llei. Sense galetes i sense bàner."
+  },
+  "en": {
+    "meta.title": "Ramírez Fontaneros 24 h · 24-hour emergency plumbers in Barcelona",
+    "ubar.a": "24-hour emergencies", "ubar.b": "365 days", "ubar.c": "With you in under 45 min",
+    "logo.sub": "24-hour plumbers",
+    "nav.aria": "Sections", "nav.calc": "Quote", "nav.rates": "Prices", "nav.zones": "Areas", "nav.faq": "FAQ", "nav.how": "How we work", "nav.reviews": "Reviews",
+    "lang.aria": "Language", "hd.call.aria": "Call now on 930 00 00 00", "hd.call": "24-hour line",
+    "hero.alt": "Plumber repairing the pipes in a bathroom",
+    "hero.q": "Water leak?", "hero.a": "We’ll be there in under 45 minutes.",
+    "hero.lead": "Plumbers all over Barcelona, day and night, public holidays included. You get a fixed price before we start.",
+    "cta.call": "Call now", "cta.wa": "Send a photo on WhatsApp", "cta.quote": "Price in 1 minute",
+    "wa.href": "https://wa.me/34600000000?text=Hi!%20I%20need%20a%20plumber.%20I%E2%80%99m%20sending%20you%20a%20photo%20of%20the%20problem.",
+    "avail.a": "Available 24/7",
+    "tip.call": "<b>The call button, always visible on mobile:</b> that’s how emergencies come in. And the number, big, at the top.",
+    "trust.h": "Why you can trust us",
+    "trust.1": "Licensed installer", "trust.1s": "REI no. 08/000000 (fictional)",
+    "trust.2": "Fixed price", "trust.2s": "before we start",
+    "trust.3": "1-year guarantee", "trust.3s": "in writing, on the invoice",
+    "trust.4": "4.8 ★ on Google", "trust.4s": "540 reviews",
+    "trust.5": "VAT invoice", "trust.5s": "always, itemised",
+    "tip.trust": "<b>What builds trust before the call:</b> licence, guarantee and a fixed price.",
+    "calc.h": "What’s wrong?",
+    "calc.lead": "<b>An estimated price in 1 minute.</b> Choose the problem and when you need us: we show you the price, broken down, without asking for your details.",
+    "tip.calc": "<b>An estimated price in 1 minute:</b> customers call you already convinced. And it reaches you on WhatsApp with the problem, the urgency and a photo.",
+    "s1.h": "The problem",
+    "p.fuga": "Leak or drip", "p.atasco": "Blockage", "p.atasco.s": "toilet, sink or shower", "p.termo": "No hot water", "p.termo.s": "water heater or boiler",
+    "p.cisterna": "Leaking cistern", "p.grifo": "Broken or dripping tap", "p.plato": "Swap the bath for a shower tray",
+    "s2.h": "When?",
+    "when.now": "Right now", "when.today": "Today", "when.week": "This week", "when.asap": "As soon as possible", "when.month": "This month", "when.later": "Later on",
+    "s2.slot": "What day and time?", "slot.day": "Weekday, 8 am to 8 pm", "slot.night": "Night, weekend or holiday", "pct": "+40%",
+    "s3.h": "Your estimated price",
+    "res.caveat": "An estimate. You get the fixed price before we start.",
+    "cp.label2": "Your postcode (optional)", "cp.ph": "08014",
+    "res.reset": "Start again",
+    "rates.h": "Clear prices",
+    "rates.lead": "VAT included. Before we start you get a fixed price; if you don’t like it, you only pay the call-out.",
+    "tip.rate": "<b>The emergency rate switches on by itself</b> at night, at weekends and on public holidays, using Barcelona time. No surprises on the invoice.",
+    "r.trip": "Call-out within Barcelona", "r.trip.s": "To any neighbourhood in the city.", "r.trip.v": "€30",
+    "r.labor": "Labour", "r.labor.s": "The first hour is charged in full; after that, in 15-minute blocks (€11.25).", "r.labor.v": "€45/h",
+    "r.urg": "Emergencies: nights (8 pm to 8 am), weekends and public holidays", "r.urg.s": "On the call-out and labour, never on materials.", "r.urg.v": "+40%",
+    "r.quote": "Quotes for bigger jobs", "r.quote.s": "Bathroom refits, new pipes or a new water heater: we come, measure and put it in writing.", "r.quote.v": "Free",
+    "r.mat": "Materials", "r.mat.s": "At the manufacturer’s list price, on the invoice: you see what each part costs.", "r.mat.v": "List price",
+    "r.ex": "<b>Example:</b> a leak that takes us 1 h 30 min on a Tuesday morning: 30 + 45 + 22.50 = <b>€97.50</b>. The same job on a Sunday: <b>€136.50</b>.",
+    "fixed.alt": "Hand holding a yellow and grey tool", "fixed.h": "Common jobs, fixed price",
+    "fx.1": "Unblocking a toilet, sink or shower by hand", "fx.1v": "€65",
+    "fx.2": "Adjusting or replacing a cistern mechanism", "fx.2v": "€55 + part",
+    "fx.3": "Replacing a tap", "fx.3v": "€50 + tap",
+    "fx.4": "80-litre electric water heater, installed", "fx.4v": "from €390",
+    "fx.5": "Bath to shower tray, installed", "fx.5v": "from €690",
+    "fixed.note": "Call-out and VAT included. Emergencies: +40% on the work.", "fixed.cta": "Work out my price",
+    "how.h": "How we work", "how.lead": "Four steps, no surprises: you know the price before we touch anything.",
+    "how.1": "You call or send a photo", "how.1p": "By phone or WhatsApp, any time. A photo tells us which part to bring.",
+    "how.2": "We arrive", "how.2p": "We let you know 10 minutes before. The van is stocked to fix it on the first visit.",
+    "how.3": "Fixed price before we start", "how.3p": "We take a look, tell you the price and start when you say yes.",
+    "how.4": "We fix it and give you a written guarantee", "how.4p": "VAT invoice and a 1-year guarantee. If it fails again, we come back at no cost.",
+    "jobs.h": "What we fix most",
+    "job.1": "Leaks and pipes", "job.1.alt": "Plumber working on a pipe inside a wall",
+    "job.2": "Water heaters and boilers", "job.2.alt": "Technician fixing a water heater",
+    "job.3": "Blockages and drains", "job.3.alt": "Plumber checking the pipes under a kitchen cabinet",
+    "job.calc": "Get a price",
+    "team.h": "Our own plumbers, never subcontractors",
+    "team.p": "It’s always someone from the team, in uniform and with ID. Call again and you get someone who already knows your home.",
+    "team.1": "Founder, 28 years in the trade", "team.2": "Emergencies and quotes", "team.3": "Water heaters and boilers", "team.4": "Bathrooms and refits",
+    "ba.h": "Before and after",
+    "ba.lead": "A kitchen tap that dripped day and night: new mixer tap, new flexi hoses and a pressure test.",
+    "ba.f1": "Job", "ba.f1v": "Kitchen tap replacement", "ba.f2": "Time", "ba.f2v": "1 hour", "ba.f3": "Price", "ba.f3v": "€50 + the tap", "ba.f4": "Guarantee", "ba.f4v": "1 year, in writing",
+    "ba.hint": "Drag the line to compare.",
+    "ba.before.alt": "Before: old kitchen tap", "ba.after.alt": "After: modern kitchen tap with running water",
+    "ba.before": "Before", "ba.after": "After", "ba.range": "Compare before and after", "ba.tag": "Example job",
+    "z.h": "All of Barcelona, in under 45 minutes",
+    "z.lead": "We set off from our base in Sants. These are average emergency arrival times, in normal traffic.",
+    "cp.label": "Do you come to my street? Type your postcode", "cp.go": "Check",
+    "tip.zones": "<b>Every neighbour sees how fast you get to their street.</b> Try a postcode: 08014, 08025, 08035…",
+    "band.a": "Sants, Les Corts, Eixample and Ciutat Vella", "band.b": "Gràcia, Poble-sec and Sant Martí", "band.c": "Horta-Guinardó, Nou Barris, Sant Andreu and Sarrià-Sant Gervasi",
+    "z.out": "Outside Barcelona? Call us: we also cover L’Hospitalet, Esplugues and Sant Adrià.",
+    "z.base": "Base", "z.sea": "Mediterranean Sea", "z.cap": "Schematic map: each square is a district. The hexagon marks our base in Sants.",
+    "rev.h": "What the neighbours say", "rev.score": "4.8", "rev.stars": "4.8 out of 5", "rev.count": "540 reviews on Google", "rev.sample": "Sample reviews", "rev.btn": "See the reviews on Google",
+    "rev.s5": "5 out of 5", "rev.s4": "4 out of 5", "rev.t1": "Les Corts, 2 weeks ago", "rev.t2": "Sants, 1 month ago", "rev.t3": "Eixample, 3 weeks ago",
+    "faq.h": "Questions people ask",
+    "faq.lead": "What people ask us most before calling. Anything else? Call us: we answer at any hour.",
+    "faq.1q": "Do you charge for coming if you can’t fix it?", "faq.1a": "Only the call-out: €30. If we find it can’t be fixed, or you don’t like the fixed price, you pay nothing else. If you go ahead, the call-out is already part of the price.",
+    "faq.2q": "Do you give an invoice?", "faq.2a": "Always, with VAT, hours and materials itemised. We send it right away by email or WhatsApp, and it works for your insurance.",
+    "faq.3q": "Do you work with insurers?", "faq.3a": "Yes. If your home insurance covers water damage, we prepare the report, photos and invoice your insurer asks for.",
+    "faq.4q": "How fast can you get here?", "faq.4a": "Sants, Les Corts, Eixample and Ciutat Vella: about 25 minutes; the rest of Barcelona: 30 to 40. We let you know 10 minutes before we arrive. <a href=\"#zonas\">Check your area</a>.",
+    "faq.5q": "What if it fails again?", "faq.5a": "We come back at no cost. Every job has a 1-year written guarantee on the invoice itself: parts and labour.",
+    "faq.6q": "How do I pay?", "faq.6a": "When we finish, by card, cash or bank transfer. We never ask for money upfront in an emergency.",
+    "ft.p": "Plumbing and emergencies in Barcelona, 24 hours a day, 365 days a year.",
+    "ft.rei": "Licensed installer", "ft.rei.s": "Fictional number",
+    "ft.h1": "Contact", "ft.h2": "Hours", "ft.h3": "On this site", "ft.wa": "WhatsApp: send a photo",
+    "ft.hours1": "Emergencies: 24 h, 365 days", "ft.hours2": "Base and quotes: Monday to Friday, 8 am to 8 pm",
+    "ft.legal": "Legal notice & privacy", "ft.cookies": "This site uses no cookies", "ft.made": "Fictional business · OOOX sample website",
+    "mbar.aria": "Quick actions", "mbar.call": "Call now", "mbar.wa": "WhatsApp", "mbar.quote": "Quote",
+
+    "avail.now": "right now: <b>{n}</b> plumbers on call",
+    "rate.n": "<b>Right now: standard rate</b>, until {w}.", "rate.u": "<b>Right now: emergency rate (+40%)</b>, until {w}.", "rate.chip": "Now",
+    "w.today": "{t}", "w.tomorrow": "tomorrow at {t}", "w.day": "{d} at {t}",
+    "from": "from {x}", "from.short": "From", "upto": "up to {x}",
+    "res.empty.t": "Choose what’s wrong", "res.empty.d": "In step 1. Your price and its breakdown will appear here.",
+    "res.vat": "VAT included.", "res.vat.u": "VAT and the emergency rate (+40%) included.", "res.vat.planned": "Installed, VAT included. No emergency surcharge.",
+    "res.surcharge": "Emergency rate (+40% on call-out and labour)",
+    "slot.day.s": "weekday, 8 am to 8 pm", "slot.night.s": "night, weekend or holiday",
+    "s2.auto": "Set automatically from Barcelona time: {d}, {t}.", "s2.planned": "A planned job: no emergency surcharge. We measure for free and give you a fixed price in writing.", "holiday": "(public holiday)",
+    "eta.now": "Right now <b>{n} plumbers are on call</b>: we get to you in 25–40 min, depending on your area.",
+    "eta.zone": "Right now: we get to <b>{z}</b> in <b>{t}</b>.",
+    "eta.today": "We’ll give you a time for today when you call or message.",
+    "eta.week": "We’ll book the day and time that suit you best.",
+    "eta.planned": "We come and measure with no obligation, evenings too.",
+    "cp.ok": "<b>{z}</b> ({cp}): we get there in <b>{t}</b>.", "cp.out": "{cp} is outside Barcelona city. Call us and we’ll tell you if we can come.", "cp.bad": "Type the 5 digits of your postcode, for example 08014.",
+    "cp.short": "<b>{z}</b>: {t}", "cp.short.out": "Outside Barcelona city: call us",
+    "calc.pick": "First choose what’s wrong (step 1)",
+    "wa.hi": "Hi! I’m writing from your website.", "wa.problem": "• Problem: *{x}*", "wa.job": "• Job: *{x}*", "wa.when": "• When: {x}",
+    "wa.price": "• Estimate on your website: *{x}*", "wa.priceU": "• Estimate on your website: *{x}* (incl. the +40% emergency rate)", "wa.priceFrom": "• Estimate on your website: *from {x}*, installed",
+    "wa.cp": "• Postcode: {cp} ({z})", "wa.cpOut": "• Postcode: {cp}",
+    "wa.photo": "I’m sending you a photo now.", "wa.photoBath": "I’m sending you a photo of the bathroom. When could you come and measure?",
+    "note.reviews.t": "Your Google reviews, one tap away", "note.reviews.d": "On the real site, this button opens your Google listing with all the reviews. We also make you a QR code so customers can leave one when the job is done.",
+    "note.legal.t": "Legal notice, privacy and cookies", "note.legal.d": "On the real site, with your company details (owner, tax ID, address and installer number), as the law requires. No cookies, no banner."
+  },
+  "es": {
+    "meta.title": "Ramírez Fontaneros 24 h · Fontanería y urgencias en Barcelona",
+    "avail.now": "ahora mismo: <b>{n}</b> técnicos de guardia",
+    "rate.n": "<b>Ahora mismo: tarifa normal</b>, hasta {w}.", "rate.u": "<b>Ahora mismo: tarifa de urgencia (+40\u00a0%)</b>, hasta {w}.", "rate.chip": "Ahora",
+    "w.today": "las {t}", "w.tomorrow": "mañana a las {t}", "w.day": "el {d} a las {t}",
+    "from": "desde {x}", "from.short": "Desde", "upto": "hasta {x}",
+    "res.empty.t": "Elige qué te pasa", "res.empty.d": "En el paso 1. Aquí verás el precio con su desglose.",
+    "res.vat": "IVA incluido.", "res.vat.u": "IVA y recargo de urgencia (+40\u00a0%) incluidos.", "res.vat.planned": "Instalado y con IVA. Sin recargos de urgencia.",
+    "res.surcharge": "Recargo de urgencia (+40\u00a0% sobre desplazamiento y mano de obra)",
+    "slot.day.s": "laborable, de 8 a 20 h", "slot.night.s": "noche, fin de semana o festivo",
+    "s2.auto": "Automático, con la hora de Barcelona: {d}, {t}.", "s2.planned": "Obra planificada: sin recargos de urgencia. Venimos a medir gratis y te damos el precio cerrado por escrito.", "holiday": "(festivo)",
+    "eta.now": "Ahora mismo hay <b>{n} técnicos de guardia</b>: llegamos en 25–40 min según tu barrio.",
+    "eta.zone": "Ahora mismo: a <b>{z}</b> llegamos en <b>{t}</b>.",
+    "eta.today": "Te damos hora para hoy al llamar o por WhatsApp.",
+    "eta.week": "Te damos cita el día y la hora que mejor te vayan.",
+    "eta.planned": "Venimos a medir sin compromiso, también por la tarde.",
+    "cp.ok": "<b>{z}</b> ({cp}): llegamos en <b>{t}</b>.", "cp.out": "El {cp} queda fuera de Barcelona ciudad. Llámanos y te decimos si llegamos.", "cp.bad": "Escribe los 5 números de tu código postal, por ejemplo 08014.",
+    "cp.short": "<b>{z}</b>: {t}", "cp.short.out": "Fuera de Barcelona ciudad: llámanos",
+    "calc.pick": "Primero elige qué te pasa (paso 1)",
+    "wa.hi": "¡Hola! Te escribo desde la web.", "wa.problem": "• Problema: *{x}*", "wa.job": "• Trabajo: *{x}*", "wa.when": "• Para cuándo: {x}",
+    "wa.price": "• Precio orientativo en la web: *{x}*", "wa.priceU": "• Precio orientativo en la web: *{x}* (con el +40\u00a0% de urgencia)", "wa.priceFrom": "• Precio orientativo en la web: *desde {x}*, instalado",
+    "wa.cp": "• Código postal: {cp} ({z})", "wa.cpOut": "• Código postal: {cp}",
+    "wa.photo": "Te envío una foto ahora.", "wa.photoBath": "Te envío una foto del baño. ¿Cuándo podéis venir a medir?",
+    "note.reviews.t": "Tus reseñas de Google, en un toque", "note.reviews.d": "En la web real, este botón abre tu ficha de Google con todas las reseñas. Y te preparamos un QR para que los clientes dejen la suya al terminar el trabajo.",
+    "note.legal.t": "Aviso legal, privacidad y cookies", "note.legal.d": "En la web real, con los datos de tu empresa (titular, NIF, dirección y número de instalador), como pide la ley. Sin cookies y sin banner."
+  }
+}
+</script>
+
+<script defer src="../_kit/kit.js?v=2b9233e9"></script>
+<script>
+document.addEventListener('kit:ready', function () {
+  'use strict';
+  var K = window.Kit, $ = K.$, $$ = K.$$, h = K.h;
+  var S = JSON.parse(document.getElementById('site').textContent);
+  var BIZ = 'Ramírez Fontaneros 24 h', WA_TO = '34600000000';
+  var RM = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  function go(el, block) { if (el) el.scrollIntoView({ behavior: RM.matches ? 'auto' : 'smooth', block: block || 'start' }); }
+
+  /* ---------------- hora de Barcelona: ¿tarifa normal o de urgencia? ---------------- */
+  // Urgencia: de 20 a 8 h, sábados, domingos y festivos (lista en #site, fácil de actualizar).
+  function urgentAt(m) { return m.day === 0 || m.day === 6 || S.holidays.indexOf(m.date) !== -1 || m.min < 480 || m.min >= 1200; }
+  function dayL(d) { var s = K.dayName(d); return K.lang === 'en' ? s : s.toLowerCase(); }
+  function isoDiff(a, b) { var x = a.split('-'), y = b.split('-'); return Math.round((Date.UTC(+y[0], y[1] - 1, +y[2]) - Date.UTC(+x[0], x[1] - 1, +x[2])) / 864e5); }
+  function rate() {
+    // Los cambios de tarifa caen siempre en hora en punto: se busca el siguiente de hora en hora.
+    var now = Date.now(), m = K.madrid(new Date(now)), u = urgentAt(m), step = 36e5, t0 = now - (now % step) + step, until = null;
+    for (var i = 0; i < 24 * 8 && !until; i++) { var x = K.madrid(new Date(t0 + i * step)); if (urgentAt(x) !== u) until = x; }
+    return { m: m, urgent: u, until: until, holiday: S.holidays.indexOf(m.date) !== -1 };
+  }
+  function untilTxt(r) {
+    if (!r.until) return '';
+    var t = K.fmtMin(r.until.min), d = isoDiff(r.m.date, r.until.date);
+    return d === 0 ? K.t('w.today', { t: t }) : d === 1 ? K.t('w.tomorrow', { t: t }) : K.t('w.day', { d: dayL(r.until.day), t: t });
+  }
+  var NR = rate();
+
+  /* ---------------- técnicos de guardia: entre 2 y 4, fijo durante cada hora ---------------- */
+  function techs() { var m = K.madrid(); return 2 + Math.floor(K.rand('guardia' + m.date + 'h' + Math.floor(m.min / 60)) * 3); }
+  function renderAvail() { var n = techs(); $$('[data-avail]').forEach(function (el) { el.innerHTML = K.t('avail.now', { n: n }); }); }
+
+  /* ---------------- tarifas: lo que se aplica ahora mismo ---------------- */
+  function renderRate() {
+    $('#rate-now').classList.toggle('is-u', NR.urgent);
+    $('#rate-now-t').innerHTML = K.t(NR.urgent ? 'rate.u' : 'rate.n', { w: untilTxt(NR) });
+    $$('[data-rate-row]').forEach(function (row) {
+      row.classList.toggle('is-now', row.getAttribute('data-rate-row') === (NR.urgent ? 'u' : 'n'));
+      row.querySelector('dt b').setAttribute('data-now', K.t('rate.chip'));
+    });
+  }
+
+  /* ---------------- presupuestador ---------------- */
+  var P = {}; S.problems.forEach(function (p) { P[p.id] = p; });
+  var C = { p: null, when: 'now', slot: null, cp: '' };
+  function planned() { return !!(C.p && P[C.p].planned); }
+  function slot() {
+    if (planned()) return null;
+    if (C.when === 'now') return NR.urgent ? 'night' : 'day';        // «ahora mismo»: lo decide el reloj
+    return C.slot || (C.when === 'today' && NR.urgent ? 'night' : 'day');
+  }
+  function totals(p, urgent) {
+    var u = [0, 0], n = [0, 0];
+    p.rows.forEach(function (r) { var a = r.u ? u : n; a[0] += r.min; a[1] += r.max; });
+    var s = urgent ? [Math.round(u[0] * S.surcharge), Math.round(u[1] * S.surcharge)] : [0, 0];
+    return { min: u[0] + n[0] + s[0], max: u[1] + n[1] + s[1], s: s };
+  }
+  function fromPrice(p) { return p.planned ? p.from : totals(p, false).min; }
+  function nf(n) { return new Intl.NumberFormat(K.lang === 'en' ? 'en-GB' : 'es-ES', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }).format(n); }
+  function eur(a, b) { if (b == null || a === b) return K.money(a); return K.lang === 'en' ? '€' + nf(a) + '–' + nf(b) : nf(a) + '–' + nf(b) + ' €'; }
+  function amt(r) { if (r.v) return K.L(r.v); if (r.min === r.max) return K.money(r.min); if (!r.min) return K.t('upto', { x: K.money(r.max) }); return eur(r.min, r.max); }
+  function pname(id) { return K.t('p.' + id) + (P[id].sub ? ' (' + K.t('p.' + id + '.s') + ')' : ''); }
+  function whenTxt() { var w = K.t('when.' + C.when); return planned() ? w : w + ' (' + K.t(slot() === 'night' ? 'slot.night.s' : 'slot.day.s') + ')'; }
+
+  // El precio, en ruedas de contador de agua: cada cifra gira desde la que había antes.
+  var prevGroups = [];
+  function meter(text, opt) {
+    var el = $('#meter'); opt = opt || {};
+    el.innerHTML = '';
+    el.classList.toggle('is-empty', !text);
+    if (!text) {
+      var blank = function (n) { var g = h('span', { class: 'm-num' }); for (var i = 0; i < n; i++) g.appendChild(h('span', { class: 'wh' }, h('span', { class: 'wh-col' }, h('span', { text: '–' })))); return g; };
+      if (K.lang === 'en') el.appendChild(h('span', { class: 'm-cur', text: '€' }));
+      el.appendChild(blank(2)); el.appendChild(h('span', { class: 'm-sep', text: '–' })); el.appendChild(blank(3));
+      if (K.lang !== 'en') el.appendChild(h('span', { class: 'm-cur', text: '€' }));
+      prevGroups = []; return;
+    }
+    if (opt.from) el.appendChild(h('span', { class: 'm-from', text: K.t('from.short') }));
+    var groups = [], cols = [];
+    (text.match(/\d+|\D+/g) || []).forEach(function (tk) {
+      if (/^\d+$/.test(tk)) {
+        var gi = groups.length, g = h('span', { class: 'm-num' });
+        tk.split('').forEach(function (ch, i) {
+          var col = h('span', { class: 'wh-col' }, '0123456789'.split('').map(function (x) { return h('span', { text: x }); }));
+          g.appendChild(h('span', { class: 'wh' }, col));
+          cols.push({ col: col, d: +ch, gi: gi, k: tk.length - 1 - i });
+        });
+        groups.push(tk); el.appendChild(g);
+      } else {
+        var s = tk.trim(); if (!s) return;
+        el.appendChild(h('span', { class: s === '€' ? 'm-cur' : 'm-sep', text: s }));
+      }
+    });
+    if (opt.suffix) el.appendChild(h('span', { class: 'm-suf', text: opt.suffix }));
+    var prev = prevGroups; prevGroups = groups;
+    cols.forEach(function (c) {
+      var p = prev[c.gi], pd = p && p.length > c.k ? +p.charAt(p.length - 1 - c.k) : 0;
+      c.col.style.transition = 'none';
+      c.col.style.transform = 'translateY(' + (-pd * 10) + '%)';
+    });
+    void el.offsetWidth;
+    cols.forEach(function (c) {
+      c.col.style.transition = '';
+      c.col.style.transitionDelay = (c.k * 70) + 'ms';
+      c.col.style.transform = 'translateY(' + (-c.d * 10) + '%)';
+    });
+  }
+
+  function renderTiles() {
+    $$('[data-p]').forEach(function (b) {
+      var id = b.getAttribute('data-p');
+      b.setAttribute('aria-pressed', String(C.p === id));
+      b.querySelector('.tile-p').textContent = K.t('from', { x: K.money(fromPrice(P[id])) });
+    });
+  }
+  function renderStep2() {
+    var pl = planned(), auto = !pl && C.when === 'now', s = slot() || 'day';
+    $('#when-u').hidden = pl; $('#when-p').hidden = !pl; $('#slot-wrap').hidden = pl;
+    $$('[data-when]').forEach(function (b) { b.setAttribute('aria-pressed', String(C.when === b.getAttribute('data-when'))); });
+    $$('[data-slot]').forEach(function (b) { b.setAttribute('aria-pressed', String(s === b.getAttribute('data-slot'))); b.disabled = auto; });
+    var note = $('#auto-note');
+    if (pl) note.innerHTML = '<svg class="i" aria-hidden="true"><use href="#i-info"/></svg><span>' + K.t('s2.planned') + '</span>';
+    else if (auto) note.innerHTML = '<svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span>' + K.t('s2.auto', { d: dayL(NR.m.day) + (NR.holiday ? ' ' + K.t('holiday') : ''), t: K.fmtMin(NR.m.min) }) + '</span>';
+    else note.innerHTML = '';
+  }
+  function zoneOf(cp) { var id = /^\d{5}$/.test(cp) ? S.cp[cp] : null; return id ? { id: id, z: S.zones[id] } : null; }
+  function renderEta() {
+    var p = P[C.p], z = zoneOf(C.cp), key, vars = {};
+    if (p && p.planned) key = 'eta.planned';
+    else if (C.when === 'today') key = 'eta.today';
+    else if (C.when === 'week') key = 'eta.week';
+    else if (z) { key = 'eta.zone'; vars = { z: z.z.n, t: K.L(S.bands[z.z.b].t) }; }
+    else { key = 'eta.now'; vars = { n: techs() }; }
+    $('#tk-eta-t').innerHTML = K.t(key, vars);
+  }
+  function renderResult() {
+    var p = P[C.p], rows = $('#tk-rows'), what = $('#tk-what');
+    rows.innerHTML = ''; what.innerHTML = '';
+    $('#ticket').classList.toggle('is-empty', !p);
+    if (!p) {
+      what.appendChild(h('b', { text: K.t('res.empty.t') }));
+      what.appendChild(h('span', { text: K.t('res.empty.d') }));
+      meter('');
+      $('#tk-vat').textContent = ''; $('#tk-mat').hidden = true; $('#tk-extra').hidden = true; $('#tk-sr').textContent = '';
+      renderEta(); return;
+    }
+    what.appendChild(h('b', { text: pname(C.p) }));
+    what.appendChild(h('span', { text: whenTxt() }));
+    var said;
+    if (p.planned) {
+      said = eur(p.from);
+      meter(said, { from: true });
+      said = K.t('from', { x: said });
+      $('#tk-vat').textContent = K.t('res.vat.planned');
+    } else {
+      var urgent = slot() === 'night', tt = totals(p, urgent), suf = p.suffix ? K.L(p.suffix) : '';
+      said = eur(tt.min, tt.max);
+      meter(said, { suffix: suf });
+      if (suf) said += ' ' + suf;
+      $('#tk-vat').textContent = K.t(urgent ? 'res.vat.u' : 'res.vat');
+    }
+    p.rows.forEach(function (r) { rows.appendChild(h('li', null, h('span', { text: K.L(r.l) }), h('b', { text: amt(r) }))); });
+    if (!p.planned && slot() === 'night') {
+      var t2 = totals(p, true);
+      rows.appendChild(h('li', { class: 'is-u' }, h('span', { text: K.t('res.surcharge') }), h('b', { text: '+' + eur(t2.s[0], t2.s[1]) })));
+    }
+    $('#tk-mat').hidden = !p.mat; $('#tk-mat').textContent = p.mat ? K.L(p.mat) : '';
+    $('#tk-extra').hidden = !p.extra; $('#tk-extra').textContent = p.extra ? K.L(p.extra) : '';
+    $('#tk-sr').textContent = pname(C.p) + ': ' + said + '. ' + K.t('res.caveat');
+    renderEta();
+  }
+  function renderCalc() { renderTiles(); renderStep2(); renderResult(); }
+
+  function pick(id, nudge) {
+    var was = planned();
+    C.p = id;
+    $('#step1').classList.remove('is-bad');
+    if (planned() !== was) { C.when = planned() ? 'asap' : 'now'; C.slot = null; }
+    renderCalc();
+    // En el móvil, deja a la vista el paso 2 y el precio sin que el cliente tenga que buscarlo.
+    if (nudge && window.innerWidth < 860) { var s2 = $('#step2'); if (s2.getBoundingClientRect().top > window.innerHeight * 0.55) go(s2); }
+  }
+  $$('[data-p]').forEach(function (b) { b.addEventListener('click', function () { pick(b.getAttribute('data-p'), true); }); });
+  $$('[data-when]').forEach(function (b) { b.addEventListener('click', function () { C.when = b.getAttribute('data-when'); C.slot = null; renderCalc(); }); });
+  $$('[data-slot]').forEach(function (b) { b.addEventListener('click', function () { if (b.disabled) return; C.slot = b.getAttribute('data-slot'); renderCalc(); }); });
+  $$('[data-pick]').forEach(function (b) { b.addEventListener('click', function () { pick(b.getAttribute('data-pick'), false); go($('#presupuesto')); }); });
+  $('#tk-reset').addEventListener('click', function () {
+    C.p = null; C.when = 'now'; C.slot = null;
+    renderCalc();
+    var first = $('.tile'); if (first) first.focus({ preventScroll: true });
+    go($('#step1'));
+  });
+
+  function waText() {
+    var p = P[C.p], w = whenTxt(), lines = [K.t('wa.hi'), K.t(p.planned ? 'wa.job' : 'wa.problem', { x: pname(C.p) }), K.t('wa.when', { x: w.charAt(0).toLowerCase() + w.slice(1) })];
+    if (p.planned) lines.push(K.t('wa.priceFrom', { x: eur(p.from) }));
+    else {
+      var u = slot() === 'night', tt = totals(p, u);
+      lines.push(K.t(u ? 'wa.priceU' : 'wa.price', { x: eur(tt.min, tt.max) + (p.suffix ? ' ' + K.L(p.suffix) : '') }));
+    }
+    var z = zoneOf(C.cp);
+    if (z) lines.push(K.t('wa.cp', { cp: C.cp, z: z.z.n }));
+    else if (/^\d{5}$/.test(C.cp)) lines.push(K.t('wa.cpOut', { cp: C.cp }));
+    lines.push('', K.t(p.planned ? 'wa.photoBath' : 'wa.photo'));
+    return lines.join('\n');
+  }
+  $('#tk-wa').addEventListener('click', function () {
+    if (!C.p) {
+      K.toast(K.t('calc.pick'));
+      var s1 = $('#step1'); s1.classList.remove('is-bad'); void s1.offsetWidth; s1.classList.add('is-bad');
+      go(s1); return;
+    }
+    K.wa(waText(), { business: BIZ, to: WA_TO });
+  });
+
+  /* ---------------- código postal → barrio y tiempo de llegada ---------------- */
+  var cp1 = $('#cp1'), cp2 = $('#cp2');
+  function cpMsg(cp, full) {
+    if (!cp) return '';
+    if (!/^\d{5}$/.test(cp)) return full ? K.t('cp.bad') : '';
+    var z = zoneOf(cp), t = z ? K.L(S.bands[z.z.b].t) : '';
+    if (full) return z ? K.t('cp.ok', { cp: cp, z: z.z.n, t: t }) : K.t('cp.out', { cp: cp });
+    return z ? K.t('cp.short', { z: z.z.n, t: t }) : K.t('cp.short.out');
+  }
+  function setCP(v, src, force) {
+    C.cp = v;
+    if (src !== cp1) cp1.value = v;
+    if (src !== cp2) cp2.value = v;
+    $('#cp1-out').innerHTML = (v.length === 5 || force) ? cpMsg(v, true) : '';
+    $('#cp2-out').innerHTML = cpMsg(v, false);
+    var z = zoneOf(v);
+    $$('.tz[data-z]').forEach(function (t) { t.classList.toggle('is-hit', !!z && t.getAttribute('data-z') === z.id); });
+    renderEta();
+  }
+  [cp1, cp2].forEach(function (inp) {
+    inp.addEventListener('input', function () { var v = inp.value.replace(/\D/g, '').slice(0, 5); if (inp.value !== v) inp.value = v; setCP(v, inp, false); });
+  });
+  $('#cp-form').addEventListener('submit', function (e) { e.preventDefault(); setCP(cp1.value.replace(/\D/g, '').slice(0, 5), cp1, true); });
+
+  /* ---------------- arranque, idioma y reloj ---------------- */
+  function renderAll() { NR = rate(); renderAvail(); renderRate(); renderCalc(); setCP(C.cp, null, false); }
+  renderAll();
+  K.onLang(renderAll);
+  var lastSlot = slot();
+  setInterval(function () {
+    if (document.hidden) return;
+    NR = rate(); renderAvail(); renderRate();
+    var s = slot();
+    if (s !== lastSlot) { lastSlot = s; renderCalc(); } else { renderStep2(); renderEta(); }
+  }, 60000);
+});
+</script>
+</body>
+</html>
