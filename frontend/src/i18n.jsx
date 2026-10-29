@@ -603,7 +603,9 @@ const Ctx = createContext({ lang: "en", setLang: () => {}, t: (k) => k, tLabel: 
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(() => {
     if (typeof window === "undefined") return "en";
-    return window.localStorage.getItem("ooox_lang") || "en";
+    // El enlace para negocios de Barcelona (ooox.es/#/webs) abre en castellano si aún no se ha elegido idioma.
+    const fallback = window.location.hash.startsWith("#/webs") ? "es" : "en";
+    return window.localStorage.getItem("ooox_lang") || fallback;
   });
 
   useEffect(() => {

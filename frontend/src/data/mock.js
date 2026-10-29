@@ -414,7 +414,7 @@ export const projects = [
     longDescription: "Este es un proyecto demo: la floristería no existe, pero el encargo funciona de principio a fin. Flors & Fulles parece una revista botánica: tipografía de moda con cursivas, tonos de papel e ilustraciones de tallos y hojas. Lo importante va arriba: la hora límite para que llegue hoy, con una cuenta atrás en directo, y lo que cuesta la entrega en cada barrio. En el catálogo eliges ramo por ocasión, tamaño, día y entrega o recogida, y escribes la dedicatoria mientras ves cómo queda la tarjeta. Todo llega a la tienda por WhatsApp. Y como es Barcelona, tiene su apartado de Sant Jordi, bodas y una suscripción semanal.",
     highlights: ["Encargo completo: tamaño, día, entrega por barrios y dedicatoria", "Cuenta atrás de la hora límite para entregar hoy", "Reserva de rosas para Sant Jordi y bodas con precio «desde»", "Flores cada semana por suscripción, sin permanencia"],
     stack: ["HTML", "CSS", "JavaScript"], tags: ["Floristería", "Pedidos", "WhatsApp"],
-    metrics: [{ label: "Ramos", value: "8" }, { label: "Zonas de entrega", value: "4" }, { label: "Hora límite", value: "14:00" }],
+    metrics: [{ label: "Ramos", value: "8" }, { label: "Zonas de entrega", value: "3" }, { label: "Hora límite", value: "14:00" }],
   },
   {
     id: "ramirez-24h", category: "local", title: "Ramírez Fontaneros", kicker: "Urgencias de fontanería en Barcelona, las 24 horas", year: "2026",
