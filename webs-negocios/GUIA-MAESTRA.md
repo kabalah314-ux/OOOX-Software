@@ -16,7 +16,7 @@
 5. **Por qué nos cuesta poco:** una sola fábrica (6 estilos × 16 bloques × 1 archivo de datos por cliente). Una web nueva son 60–90 minutos, casi todo recopilar fotos y textos. Hosting a 0 €, sin servidores, sin base de datos.
 6. **Cómo se vende:** visita de 20 segundos para pedir permiso, la maqueta por WhatsApp esa misma noche, el dueño la mira con calma y escribe él. Nada de spam.
 7. **Qué cobramos cada mes y por qué lo pagan:** dominio, hosting, cambios por WhatsApp, respuestas a sus reseñas cada semana (la IA redacta, el dueño aprueba) y un informe mensual de su ficha de Google.
-8. **Dónde se enseña:** en `webs.ooox.es`, una página escaparate con 6 webs de muestra de sectores y estilos distintos. Desde ooox.es solo hay un enlace: la web principal no se toca.
+8. **Dónde se enseña:** en ooox.es, en la sección de proyectos **Local** (enlace para compartir: `ooox.es/#/webs`), con 6 webs de muestra de sectores y estilos distintos que se pueden probar en `ooox.es/demos/<nombre>/`. Todo lo que ya había en ooox.es sigue igual. `webs.ooox.es` queda como opción para más adelante (§7).
 9. **Dónde se aloja:** Cloudflare Pages (gratis y permite uso comercial). Nunca en Vercel Hobby, que es solo para uso no comercial.
 10. **Qué toca antes de cobrar:** darse de alta como autónomo o facturar desde OOOX (misma consulta al gestor que en Chollector) y tener listas las 3 páginas legales de OOOX Webs.
 
@@ -130,7 +130,13 @@ Todo sin servidor, sin base de datos y sin cuotas: HTML estático + un poco de J
 
 ---
 
-## 4. Los 6 escaparates (webs de muestra para `webs.ooox.es`)
+## 4. Los 6 escaparates (webs de muestra)
+
+### 4.0 Estado: hechas y en ooox.es
+- **Dónde:** cada demo en `https://ooox.es/demos/<slug>/` y todas juntas en la sección **Local** de proyectos de ooox.es, con enlace directo para mandar: `https://ooox.es/#/webs`. Cada una tiene su ficha de proyecto (`ooox.es/#/proyecto/<slug>`).
+- **Las 6:** `la-vermuteria` · `nomada-barbers` · `clinica-dental-horta` · `flors-fulles` · `ramirez-24h` · `estudio-lua`. La 7.ª (Asesoría Vallès) no está hecha.
+- **Lo que llevan todas:** castellano, catalán e inglés; «abierto ahora» con la hora de Madrid; móvil de primera (barra fija con las 3 acciones); banner «Web de muestra hecha por OOOX · Quiero una así» (lleva a `ooox.es/#/webs`); **notas amarillas para el dueño** (botón «Notas para el negocio») que explican qué gana con cada parte; y los botones de llamar y de WhatsApp enseñan **cómo le llega el mensaje al negocio** en vez de abrir un número inventado.
+- La tabla de abajo era el plan; las tipografías y algunos detalles cambiaron al construirlas (manda lo publicado).
 
 Negocios **inventados** (sin marcas reales), uno por sector, cada uno con un estilo claramente distinto para que el dueño diga «la mía como esa». Cada demo es una web completa y real: se puede navegar, reservar (va a un WhatsApp de OOOX) y leer la carta. Las fotos son de bancos gratuitos con licencia comercial (Pexels, Unsplash) o ilustración propia; nunca fotos sacadas de Google.
 
@@ -187,6 +193,13 @@ Condiciones: sin permanencia; se cancela por WhatsApp; la web se apaga a los 30 
 ## 6. La fábrica de webs (especificación técnica)
 
 > Esta sección es para la IA que lo construya. Objetivo: que una web nueva sean **un archivo JSON, un tema y un comando**.
+
+### 6.0 Lo que hay hoy: las demos y su kit (sin dependencias)
+- **Un HTML por demo** en `webs-negocios/demos/src/<slug>.html` (estilos y guion dentro) + **kit común** en `webs-negocios/demos/kit/` (`kit.js` y `kit.css`): idiomas ES/CA/EN (`data-t`, `data-th`, `data-ta` y un JSON `#i18n`), horario con «abierto ahora», días y franjas para citas, mensajes de WhatsApp ya escritos (`Kit.wa`), ventanas, antes/después, fase lunar y modo demo. Los datos de cada negocio van en un JSON `#site` dentro de la página.
+- **Construir:** `node webs-negocios/demos/build.mjs [slug]` → `frontend/public/demos/<slug>/index.html` (convierte las fotos de Unsplash en `srcset` y pone versión al kit).
+- **Capturas con fotos y tipografías reales:** al subir cambios de las demos a una rama que no sea `main`, GitHub Actions (`.github/workflows/demo-shots.yml` con `shots.mjs` y `shots.json`) abre cada demo en Chromium y deja en la rama `demo-shots`: `portfolio/` (portada, página entera, móvil, secciones e imagen para compartir) y `qa/` (como la ve el cliente, también tras rellenar una reserva). Las de `portfolio/` se copian a `frontend/public/projects/demos/`.
+- **Parámetros útiles:** `?lang=ca|en` fuerza idioma; `?shot` enseña la web limpia (sin banner, sin notas, sin animaciones); `?shot=<id>` además empieza en esa sección.
+- **Web de un cliente real con lo que ya hay** (mientras no exista la fábrica de §6.1–6.3): copiar la demo de su sector, cambiar textos, `#site` y fotos, quitar `data-demo` y `noindex`, poner `<html data-wa="34XXXXXXXXX">` con su WhatsApp (el kit abrirá WhatsApp de verdad), añadir legales y desplegar la carpeta en Cloudflare Pages (`wrangler pages deploy`). Las demos viven en ooox.es porque son portfolio; **las webs de clientes, siempre en Cloudflare**.
 
 ### 6.1 Stack
 - **Astro** (sitio estático, componentes, i18n por rutas, optimización de imágenes). Sin React en el cliente; solo islas pequeñas de JS vanilla para carrito, formularios y horarios.
@@ -313,6 +326,7 @@ Reglas:
 ## 7. El escaparate: `webs.ooox.es`
 
 ### 7.1 Dónde y cómo
+- **Hoy:** el escaparate es la sección **Local** de ooox.es (`ooox.es/#/webs`), con las 6 demos como proyectos. Lo de abajo es el plan para cuando haga falta una página de venta propia, con precios y preguntas frecuentes.
 - Es un sitio más de la fábrica (`sites/escaparate`) con sus mismos bloques, alojado en Cloudflare Pages y servido en `webs.ooox.es` (un registro CNAME en el DNS de ooox.es; lo añade Oscar donde tenga el dominio).
 - **ooox.es no se toca.** Solo se añade un enlace: en la lista de servicios («Webs que convierten») o una tarjeta «Webs para negocios de barrio» en la categoría Business que lleve a `webs.ooox.es`.
 - Diseño propio, distinto de ooox.es (que es cinematográfico y oscuro): aquí claro, directo, rápido, pensado para el dueño de un bar que lo abre desde el móvil en la barra.

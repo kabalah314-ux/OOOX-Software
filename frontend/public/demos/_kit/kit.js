@@ -14,6 +14,8 @@
  *
  * Modo demo: <html data-demo> → banner «Web de muestra de OOOX», y las llamadas y WhatsApp
  * enseñan una vista previa en vez de llamar a un número inventado.
+ * Web real: sin data-demo y con <html data-wa="34600000000"> (WhatsApp del negocio).
+ * Captura limpia para el portfolio: ?shot (o ?shot=<id> para empezar en una sección).
  */
 (function () {
   'use strict';
@@ -318,8 +320,10 @@
   }
   function wa(text, opts) {
     opts = opts || {};
-    if (!DEMO && opts.to) {
-      window.open('https://wa.me/' + String(opts.to).replace(/\D/g, '') + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
+    // En una web real (sin data-demo) abre WhatsApp con el negocio: número en opts.to o en <html data-wa="34600000000">.
+    var to = opts.to || root.getAttribute('data-wa');
+    if (!DEMO && to) {
+      window.open('https://wa.me/' + String(to).replace(/\D/g, '') + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
       return;
     }
     var biz = opts.business || document.title.split('·')[0].trim();

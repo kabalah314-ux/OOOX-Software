@@ -4,6 +4,7 @@
 //
 // Salida:
 //   portfolio/<slug>.jpg        portada 1440×900 (vista limpia ?shot)
+//   portfolio/<slug>_og.jpg     1200×630, la imagen que sale al compartir el enlace (og:image)
 //   portfolio/<slug>_long.jpg   página entera a 1200 de ancho (para el navegador simulado del caso)
 //   portfolio/<slug>_m.jpg      móvil 390×844 a 2x
 //   portfolio/<slug>_<id>.jpg   secciones de shots.json (vista previa de las tarjetas)
@@ -42,6 +43,7 @@ const browser = await chromium.launch();
 const report = {};
 const common = { locale: 'es-ES', timezoneId: 'Europe/Madrid' };
 const desk = await browser.newContext({ ...common, viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+const og = await browser.newContext({ ...common, viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 const deskLong = await browser.newContext({ ...common, viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
 const mob2x = await browser.newContext({ ...common, ...devices['Pixel 7'], viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 const mob1x = await browser.newContext({ ...common, ...devices['Pixel 7'], viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
@@ -85,6 +87,9 @@ for (const slug of slugs) {
   try {
     let p = await open(desk, `${url}?shot=1`, slug, 'cover');
     await p.screenshot({ path: join(out, 'portfolio', `${slug}.jpg`), ...jpg(84) }); await p.close();
+
+    p = await open(og, `${url}?shot=1`, slug, 'og');
+    await p.screenshot({ path: join(out, 'portfolio', `${slug}_og.jpg`), ...jpg(84) }); await p.close();
 
     p = await open(deskLong, `${url}?shot=1`, slug, 'long');
     await p.screenshot({ path: join(out, 'portfolio', `${slug}_long.jpg`), fullPage: true, ...jpg(70) }); await p.close();
