@@ -78,7 +78,8 @@ async function open(ctx, url, slug, tag) {
   }));
   return page;
 }
-const jpg = (q) => ({ type: 'jpeg', quality: q });
+// animations: 'disabled' deja cada animación en su estado final (la captura de página entera las reinicia)
+const jpg = (q) => ({ type: 'jpeg', quality: q, animations: 'disabled' });
 
 for (const slug of slugs) {
   const c = conf[slug] || {};
