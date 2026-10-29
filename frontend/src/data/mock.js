@@ -407,7 +407,7 @@ export const projects = [
   {
     id: "flors-fulles", category: "local", title: "Flors & Fulles", kicker: "Flores frescas cada mañana, en Sant Antoni", year: "2026",
     type: "Web de floristería · Pedidos con entrega", status: "Online", statusTone: "live", access: "public",
-    ...demoWeb("flors-fulles", [["ramos", "Encargo con dedicatoria"], ["sant-jordi", "Sant Jordi"]]),
+    ...demoWeb("flors-fulles", [["catalogo", "Encargo con dedicatoria"], ["sant-jordi", "Sant Jordi"]]),
     accent: "#E8608A", accentSoft: "#1F3A2B",
     demo: true,
     description: "Proyecto demo · Web para una floristería de Sant Antoni: catálogo por ocasiones y encargo con tamaño, fecha, entrega por barrios y dedicatoria con vista previa, que llega por WhatsApp.",
