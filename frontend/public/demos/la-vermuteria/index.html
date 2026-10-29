@@ -136,9 +136,10 @@ p { margin: 0; }
 .qr b { display: block; font-size: 15px; line-height: 1.25; }
 .qr span { display: block; font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
 @media (max-width: 860px) { .menu-head { grid-template-columns: 1fr; } }
-.controls { position: relative; display: grid; gap: 16px; margin-top: 34px; }
+.controls { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 34px; }
 .seg { display: inline-flex; background: var(--cream); border-radius: 999px; padding: 4px; width: max-content; max-width: 100%; }
 .seg button { border: 0; background: transparent; padding: 11px 18px; border-radius: 999px; font: 700 15px/1 var(--f-body); color: var(--green); display: inline-flex; align-items: center; gap: 8px; }
+@media (max-width: 400px) { .seg button { padding: 10px 14px; font-size: 14px; } }
 .seg button[aria-pressed="true"] { background: var(--green); color: var(--bone); box-shadow: 0 6px 16px -8px rgba(14,42,30,.8); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .chips-l { font: 600 12px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-right: 6px; }
@@ -274,7 +275,7 @@ p { margin: 0; }
 .gal-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
 .gal-grid figure:hover img { transform: scale(1.05); }
 .gal-grid figcaption { position: absolute; left: 12px; bottom: 10px; font: 700 24px/1 var(--f-chalk); color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
-.g1 { grid-column: span 3; grid-row: span 3; } .g2 { grid-column: span 3; grid-row: span 2; } .g3 { grid-column: span 2; grid-row: span 2; } .g4 { grid-column: span 1; grid-row: span 2; } .g5 { grid-column: span 3; grid-row: span 2; }
+.g1 { grid-column: span 3; grid-row: span 3; } .g2 { grid-column: span 3; grid-row: span 2; } .g3 { grid-column: span 2; grid-row: span 3; } .g4 { grid-column: span 1; grid-row: span 3; } .g5 { grid-column: span 3; grid-row: span 2; }
 @media (max-width: 760px) { .gal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 150px; } .g1 { grid-column: span 2; grid-row: span 2; } .g2, .g5 { grid-column: span 2; grid-row: span 1; } .g3, .g4 { grid-column: span 1; grid-row: span 1; } }
 
 /* ---------- reseñas ---------- */
@@ -439,7 +440,7 @@ p { margin: 0; }
         <div class="controls">
           <div class="seg" role="group" aria-label="Modo">
             <button type="button" data-mode="here" aria-pressed="true" data-t="mode.here">Para tomar aquí</button>
-            <button type="button" data-mode="take" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span data-t="mode.take">Pedir para llevar</span></button>
+            <button type="button" data-mode="take" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span data-t="mode.take">Para llevar</span></button>
           </div>
           <div class="chips" id="filters" role="group" aria-label="Filtros"><span class="chips-l" data-t="filters.l">Filtrar</span></div>
           <div class="demo-tip tip-take" data-th="tip.take" hidden><b>0 € de comisión por pedido.</b> El pedido llega por WhatsApp. Con una app de reparto se irían entre el 15 y el 35 % de cada uno.</div>
@@ -714,7 +715,7 @@ p { margin: 0; }
     "stat.3v": "3,50 €", "stat.1": "anys a la mateixa cantonada de Gràcia", "stat.2": "tapes casolanes, fetes aquí", "stat.3": "el vermut d'aixeta, de tota la vida",
     "carta.k": "Cuina casolana · tot el dia", "carta.h": "La carta", "carta.lead": "Mira-la com vulguis: per prendre aquí o per emportar. Marca un filtre i et mostrem només el que pots menjar.",
     "qr.alt": "Codi QR de la carta", "qr.h": "La carta a la taula, amb QR", "qr.p": "Escaneja'l i tindràs aquesta carta al mòbil, en el teu idioma.",
-    "mode.here": "Per prendre aquí", "mode.take": "Demanar per emportar", "filters.l": "Filtrar",
+    "mode.here": "Per prendre aquí", "mode.take": "Per emportar", "filters.l": "Filtrar",
     "carta.legal": "Informació d'al·lèrgens facilitada per l'establiment. Si tens una al·lèrgia, avisa'ns en demanar: de vegades podem adaptar el plat.",
     "menu.k": "De dimarts a divendres · de 13 a 16 h", "menu.h": "Menú del dia", "menu.lead": "La pissarra s'actualitza sola cada matí. Primer, segon, postres o cafè, pa i beguda.", "menu.inc": "Pa, beguda i postres o cafè inclosos",
     "res.k": "Sense trucades, en 20 segons", "res.h": "Reserva la teva taula", "res.p": "Tria dia, hora i quants sou. Et confirmem per WhatsApp en un moment.", "res.alt": "Taules de terrassa al carrer",
@@ -770,7 +771,7 @@ p { margin: 0; }
     "stat.3v": "€3.50", "stat.1": "years on the same Gràcia corner", "stat.2": "homemade tapas, made here", "stat.3": "vermouth on tap, as always",
     "carta.k": "Home cooking · all day", "carta.h": "The menu", "carta.lead": "Choose how you want it: to eat here or to take away. Tick a filter and we'll only show what you can eat.",
     "qr.alt": "QR code for the menu", "qr.h": "Menu at the table, by QR", "qr.p": "Scan it to get this menu on your phone, in your language.",
-    "mode.here": "Eat here", "mode.take": "Order to take away", "filters.l": "Filter",
+    "mode.here": "Eat here", "mode.take": "Takeaway", "filters.l": "Filter",
     "carta.legal": "Allergen information provided by the restaurant. If you have an allergy, tell us when you order: sometimes we can adapt the dish.",
     "menu.k": "Tuesday to Friday · 1 to 4 pm", "menu.h": "Set lunch", "menu.lead": "The board updates itself every morning. Starter, main, dessert or coffee, bread and a drink.", "menu.inc": "Bread, a drink and dessert or coffee included",
     "res.k": "No phone calls, in 20 seconds", "res.h": "Book your table", "res.p": "Pick a day, a time and how many of you. We'll confirm on WhatsApp in a moment.", "res.alt": "Terrace tables on the street",

@@ -54,10 +54,12 @@ async function open(ctx, url, slug, tag) {
   page.on('requestfailed', (q) => r.failed.push(`[${tag}] ${q.url().slice(0, 140)} ${q.failure()?.errorText || ''}`));
   page.on('response', (s) => { if (s.status() >= 400) r.failed.push(`[${tag}] ${s.status()} ${s.url().slice(0, 140)}`); });
   await page.goto(base + url, { waitUntil: 'networkidle', timeout: 60000 });
-  // Recorre la página para que carguen las imágenes diferidas y vuelve arriba.
+  // Carga ya todas las imágenes diferidas (la captura de página entera no hace scroll) y recorre la página
+  // sin desplazamiento suave para que salte todo lo que dependa del scroll; luego vuelve arriba.
   await page.evaluate(async () => {
-    for (let y = 0; y < document.documentElement.scrollHeight; y += 500) { window.scrollTo(0, y); await new Promise((z) => setTimeout(z, 60)); }
-    window.scrollTo(0, 0);
+    document.querySelectorAll('img[loading="lazy"]').forEach((im) => { im.loading = 'eager'; });
+    for (let y = 0; y < document.documentElement.scrollHeight; y += 600) { window.scrollTo({ top: y, behavior: 'instant' }); await new Promise((z) => setTimeout(z, 90)); }
+    window.scrollTo({ top: 0, behavior: 'instant' });
   });
   await page.waitForLoadState('networkidle').catch(() => {});
   await page.evaluate(async () => {
