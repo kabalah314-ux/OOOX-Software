@@ -9,17 +9,21 @@ import Contact from "@/components/site/Contact";
 import Footer from "@/components/site/Footer";
 import { useSmooth } from "@/lib/smooth";
 
+// Enlaces directos a una sección de proyectos, para compartir: ooox.es/#/webs → webs para negocios.
+const DIRECT = { "/webs": "local" };
+
 export default function Home({ ready }) {
   const location = useLocation();
   const { scrollTo } = useSmooth();
-  const [category, setCategory] = useState(location.state?.category || sessionStorage.getItem("ooox_cat") || "crypto");
+  const direct = DIRECT[location.pathname];
+  const [category, setCategory] = useState(direct || location.state?.category || sessionStorage.getItem("ooox_cat") || "crypto");
 
   useEffect(() => {
     sessionStorage.setItem("ooox_cat", category);
   }, [category]);
 
   useEffect(() => {
-    const target = location.state?.scrollTo;
+    const target = location.state?.scrollTo || (direct ? "proyectos" : null);
     if (target) {
       const t = setTimeout(() => scrollTo(`#${target}`, { immediate: true }), 80);
       return () => clearTimeout(t);

@@ -25,7 +25,8 @@ export const brand = {
 export const categories = [
   { id: "crypto", n: "01", label: "Crypto", description: "Web3 products, games and experiences." },
   { id: "business", n: "02", label: "Business", description: "Digital products built around real business needs." },
-  { id: "experiments", n: "03", label: "Experiments", description: "Ideas, prototypes and things I'm exploring." },
+  { id: "local", n: "03", label: "Local", description: "Websites for neighbourhood businesses." },
+  { id: "experiments", n: "04", label: "Experiments", description: "Ideas, prototypes and things I'm exploring." },
 ];
 
 // ------------------------------------------------------------
@@ -111,6 +112,73 @@ export const workCards = {
       ["Status", "Online"],
     ],
   },
+  // ---------------------------------------------------------- LOCAL · webs para negocios de barrio
+  "la-vermuteria": {
+    typeEn: "Bar website · Menu & bookings",
+    short: "A vermouth bar in Gràcia: menu with allergens and table QR, daily set menu, and bookings and takeaway orders that reach the bar on WhatsApp.",
+    route: ["Menu", "Set menu", "Booking", "Takeaway"],
+    facts: [
+      ["Type", "Website"],
+      ["Languages", "ES · CA · EN"],
+      ["Year", "2026"],
+      ["Key feature", "Bookings by WhatsApp"],
+    ],
+  },
+  "nomada-barbers": {
+    typeEn: "Barbershop website · Online booking",
+    short: "A Poblenou barbershop: clients pick service, barber, day and time, and the appointment arrives on WhatsApp. Prices with durations, team and a monthly club.",
+    route: ["Service", "Barber", "Time", "WhatsApp"],
+    facts: [
+      ["Type", "Website"],
+      ["Languages", "ES · CA · EN"],
+      ["Year", "2026"],
+      ["Key feature", "Online booking"],
+    ],
+  },
+  "clinica-dental-horta": {
+    typeEn: "Dental clinic website · Appointments & financing",
+    short: "A neighbourhood dental clinic: free first visit, guide prices, a monthly instalment calculator and appointment requests by WhatsApp, with same-day emergencies.",
+    route: ["Treatments", "Instalments", "First visit", "Appointment"],
+    facts: [
+      ["Type", "Website"],
+      ["Languages", "ES · CA · EN"],
+      ["Year", "2026"],
+      ["Key feature", "Instalment calculator"],
+    ],
+  },
+  "flors-fulles": {
+    typeEn: "Florist website · Orders & delivery",
+    short: "A Sant Antoni florist: bouquets by occasion, order with size, date, delivery by neighbourhood and a card message with live preview, sent by WhatsApp.",
+    route: ["Occasion", "Bouquet", "Card", "Delivery"],
+    facts: [
+      ["Type", "Website"],
+      ["Languages", "ES · CA · EN"],
+      ["Year", "2026"],
+      ["Key feature", "Orders with card message"],
+    ],
+  },
+  "ramirez-24h": {
+    typeEn: "Plumber website · Emergencies & quotes",
+    short: "A 24-hour emergency plumber in Barcelona: call button always at hand, clear rates, arrival times by area and a 1-minute guide quote sent by WhatsApp with a photo.",
+    route: ["Problem", "Urgency", "Price", "Call"],
+    facts: [
+      ["Type", "Website"],
+      ["Languages", "ES · CA · EN"],
+      ["Year", "2026"],
+      ["Key feature", "1-minute quote"],
+    ],
+  },
+  "estudio-lua": {
+    typeEn: "Yoga studio website · Timetable & booking",
+    short: "A yoga and pilates studio in Sants: weekly timetable with free spots and filters, class booking by WhatsApp, free first class, passes and tonight's moon.",
+    route: ["Timetable", "Class", "Spot", "WhatsApp"],
+    facts: [
+      ["Type", "Website"],
+      ["Languages", "ES · CA · EN"],
+      ["Year", "2026"],
+      ["Key feature", "Timetable with spots"],
+    ],
+  },
 };
 
 const shots = (k) => ({
@@ -130,6 +198,22 @@ const mobileShot = (url) => `https://image.thum.io/get/viewportWidth/390/width/3
 
 const AUREA = "https://casa-aurea-lake.vercel.app/";
 const AUREA_FULL = fullShot(AUREA);
+
+// Webs para negocios: cada demo vive en /demos/<slug>/ (webs-negocios/demos) y sus capturas en
+// /projects/demos/ (las hace .github/workflows/demo-shots.yml con fotos y tipografías reales).
+// secciones: [id de la sección en la demo, etiqueta] → vistas previas de la tarjeta y galería del caso.
+const demoWeb = (slug, secciones) => {
+  const cap = (k = "") => img(`/projects/demos/${slug}${k}.jpg`);
+  const extra = secciones.map(([id, label]) => ({ src: cap(`_${id}`), y: 0, label }));
+  return {
+    url: asset(`/demos/${slug}/`),
+    cover: cap(),
+    long: cap("_long"),
+    mobile: cap("_m"),
+    previews: [{ src: cap(), y: 0, label: "Portada" }, ...extra],
+    gallery: extra.map((e) => e.src),
+  };
+};
 
 export const projects = [
   {
@@ -283,6 +367,79 @@ export const projects = [
     stack: ["React", "Three.js", "Supabase", "Solana"], tags: ["Memecoin", "Juego social", "3D", "Comunidad"],
     metrics: [{ label: "Minijuegos", value: "15" }, { label: "Salas", value: "5" }, { label: "Supply", value: "1B" }],
   },
+  // ---------------------------------------------------------- LOCAL · webs para negocios de barrio (demos)
+  {
+    id: "la-vermuteria", category: "local", title: "La Vermutería", kicker: "Vermut de grifo y tapas en Gràcia", year: "2026",
+    type: "Web de bar · Carta y reservas", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("la-vermuteria", [["carta", "Carta con alérgenos"], ["reserva", "Reserva por WhatsApp"]]),
+    accent: "#E0A526", accentSoft: "#0E2A1E",
+    demo: true,
+    description: "Proyecto demo · Web para un bar de vermut de Gràcia: carta con alérgenos y QR para las mesas, menú del día, reservas y pedidos para llevar que llegan al bar por WhatsApp.",
+    longDescription: "Este es un proyecto demo: el bar no existe, pero todo lo que ves funciona y se puede probar. La Vermutería del Carrer tiene identidad propia —el panot de flor de Barcelona, la carta de papel y la pizarra del menú— y resuelve lo que más preguntan los clientes: si está abierto ahora, qué hay en la carta (con los 14 alérgenos), cuál es el menú de hoy y cómo reservar. Las reservas y los pedidos para llevar llegan al móvil del bar como un WhatsApp ya escrito, sin apps ni comisiones. Está en castellano, catalán e inglés, y unas notas amarillas explican al dueño para qué sirve cada parte.",
+    highlights: ["Carta con filtros, los 14 alérgenos y QR para las mesas", "Reserva en 20 segundos: personas, día, turno, hora y zona", "Pedidos para llevar sin comisiones de plataformas", "Abierto ahora, horario y menú del día que cambia solo"],
+    stack: ["HTML", "CSS", "JavaScript"], tags: ["Hostelería", "Reservas", "WhatsApp"],
+    metrics: [{ label: "Idiomas", value: "3" }, { label: "Alérgenos", value: "14" }, { label: "Comisiones", value: "0 %" }],
+  },
+  {
+    id: "nomada-barbers", category: "local", title: "Nómada Barbers", kicker: "Corte, barba y cita en 20 segundos", year: "2026",
+    type: "Web de barbería · Cita online", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("nomada-barbers", [["cita", "Cita en 5 pasos"], ["precios", "Precios y duración"]]),
+    accent: "#E5484D", accentSoft: "#0E0E0E",
+    demo: true,
+    description: "Proyecto demo · Web para una barbería de Poblenou: el cliente elige servicio, barbero, día y hora, y la cita llega por WhatsApp. Precios con duración, equipo y club de cuota mensual.",
+    longDescription: "Este es un proyecto demo: la barbería no existe, pero la cita online funciona de verdad. Nómada Barbers mezcla el Poblenou industrial con una revista de moda masculina: blanco y negro, tipografía condensada gigante y el poste de barbero como firma. La web hace lo que más pide un cliente: ver precios con lo que dura cada servicio, elegir barbero y pedir cita sin llamar. El asistente de 5 pasos solo ofrece horas libres dentro del horario y que encajan con lo que dura el servicio, y el resumen llega al barbero por WhatsApp. Además, el Club Nómada convierte clientes sueltos en una cuota mensual.",
+    highlights: ["Cita en 5 pasos: servicio, barbero, día, hora y nombre", "Solo horas libres que encajan con lo que dura el servicio", "Precios y duración a la vista, con extras", "Club Nómada: cortes ilimitados por cuota mensual"],
+    stack: ["HTML", "CSS", "JavaScript"], tags: ["Barbería", "Citas", "WhatsApp"],
+    metrics: [{ label: "Pasos", value: "5" }, { label: "Barberos", value: "3" }, { label: "Club", value: "39 €" }],
+  },
+  {
+    id: "clinica-dental-horta", category: "local", title: "Clínica Dental Horta", kicker: "Una clínica de barrio donde no da miedo ir al dentista", year: "2026",
+    type: "Web de clínica dental · Citas y financiación", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("clinica-dental-horta", [["cuotas", "Calculadora de cuotas"], ["cita", "Pedir cita"]]),
+    accent: "#8FD3C9", accentSoft: "#0B2545",
+    demo: true,
+    description: "Proyecto demo · Web para una clínica dental de Horta: primera visita gratis, precios orientativos, calculadora de cuotas y petición de cita por WhatsApp, con urgencias en el día.",
+    longDescription: "Este es un proyecto demo: la clínica no existe, pero la calculadora y la petición de cita funcionan. La web está pensada para quitar miedo y dudas antes de llamar: confianza a la vista (años en el barrio, reseñas, equipo colegiado), la primera visita gratis bien destacada, tratamientos con precios «desde» y una calculadora que convierte el presupuesto en una cuota al mes. Las preguntas que más se hacen por teléfono ya están contestadas, y pedir cita es elegir motivo, mañana o tarde y día: llega a recepción por WhatsApp. Si es una urgencia, la web pone delante el botón de llamar.",
+    highlights: ["Calculadora de cuotas de 6 a 24 meses", "Primera visita gratis y tratamientos con precio «desde»", "Petición de cita por WhatsApp, con atajo para urgencias", "Preguntas frecuentes que ahorran llamadas"],
+    stack: ["HTML", "CSS", "JavaScript"], tags: ["Salud", "Citas", "Financiación"],
+    metrics: [{ label: "Tratamientos", value: "6" }, { label: "Meses de cuota", value: "6–24" }, { label: "Primera visita", value: "0 €" }],
+  },
+  {
+    id: "flors-fulles", category: "local", title: "Flors & Fulles", kicker: "Flores frescas cada mañana, en Sant Antoni", year: "2026",
+    type: "Web de floristería · Pedidos con entrega", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("flors-fulles", [["ramos", "Encargo con dedicatoria"], ["sant-jordi", "Sant Jordi"]]),
+    accent: "#E8608A", accentSoft: "#1F3A2B",
+    demo: true,
+    description: "Proyecto demo · Web para una floristería de Sant Antoni: catálogo por ocasiones y encargo con tamaño, fecha, entrega por barrios y dedicatoria con vista previa, que llega por WhatsApp.",
+    longDescription: "Este es un proyecto demo: la floristería no existe, pero el encargo funciona de principio a fin. Flors & Fulles parece una revista botánica: tipografía de moda con cursivas, tonos de papel e ilustraciones de tallos y hojas. Lo importante va arriba: la hora límite para que llegue hoy, con una cuenta atrás en directo, y lo que cuesta la entrega en cada barrio. En el catálogo eliges ramo por ocasión, tamaño, día y entrega o recogida, y escribes la dedicatoria mientras ves cómo queda la tarjeta. Todo llega a la tienda por WhatsApp. Y como es Barcelona, tiene su apartado de Sant Jordi, bodas y una suscripción semanal.",
+    highlights: ["Encargo completo: tamaño, día, entrega por barrios y dedicatoria", "Cuenta atrás de la hora límite para entregar hoy", "Reserva de rosas para Sant Jordi y bodas con precio «desde»", "Flores cada semana por suscripción, sin permanencia"],
+    stack: ["HTML", "CSS", "JavaScript"], tags: ["Floristería", "Pedidos", "WhatsApp"],
+    metrics: [{ label: "Ramos", value: "8" }, { label: "Zonas de entrega", value: "4" }, { label: "Hora límite", value: "14:00" }],
+  },
+  {
+    id: "ramirez-24h", category: "local", title: "Ramírez Fontaneros", kicker: "Urgencias de fontanería en Barcelona, las 24 horas", year: "2026",
+    type: "Web de fontanería · Urgencias y presupuestos", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("ramirez-24h", [["presupuesto", "Presupuesto en 1 minuto"], ["tarifas", "Tarifas claras"]]),
+    accent: "#FFC400", accentSoft: "#101010",
+    demo: true,
+    description: "Proyecto demo · Web para un fontanero de urgencias en Barcelona: llamar siempre a mano, tarifas claras, tiempos de llegada por barrio y un presupuesto orientativo en 1 minuto que se manda por WhatsApp con foto.",
+    longDescription: "Este es un proyecto demo: la empresa no existe, pero el presupuestador funciona. La web de Ramírez Fontaneros está hecha como su furgoneta: amarillo de seguridad, negro y rayas de aviso, con una tipografía condensada que se lee de un vistazo en el móvil. Primero lo urgente: el botón de llamar siempre visible, lo que tardan en llegar a cada barrio y lo que da confianza antes de llamar (empresa autorizada, precio cerrado, garantía por escrito). Para lo que no corre prisa, el cliente elige qué le pasa y para cuándo, ve un precio orientativo con su desglose y lo manda por WhatsApp con una foto. Incluye un antes y después de un trabajo.",
+    highlights: ["Presupuesto orientativo en 1 minuto, con desglose y recargo de urgencia", "Botón de llamar siempre visible en el móvil", "Tarifas transparentes y tiempos de llegada por barrio", "Antes y después con deslizador"],
+    stack: ["HTML", "CSS", "JavaScript"], tags: ["Oficios", "Urgencias", "Presupuestos"],
+    metrics: [{ label: "Llegada", value: "< 45′" }, { label: "Servicio", value: "24 h" }, { label: "Garantía", value: "1 año" }],
+  },
+  {
+    id: "estudio-lua", category: "local", title: "Estudio Lúa", kicker: "Yoga y pilates en Sants: respira, muévete, vuelve a ti", year: "2026",
+    type: "Web de estudio de yoga · Horario y reservas", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("estudio-lua", [["horario", "Horario con plazas"], ["precios", "Bonos y precios"]]),
+    accent: "#B8A6F2", accentSoft: "#23202E",
+    demo: true,
+    description: "Proyecto demo · Web para un estudio de yoga y pilates en Sants: horario semanal con plazas libres y filtros, reserva de clase por WhatsApp, primera clase gratis, bonos y la luna de hoy.",
+    longDescription: "Este es un proyecto demo: el estudio no existe, pero el horario y las reservas funcionan. Estudio Lúa («luna» en gallego) es calma y luz: tipografía fina con cursivas, tonos arena y lavanda, y dos detalles que hacen que la web se recuerde: la fase real de la luna de hoy y un ejercicio de respiración de un minuto. El corazón es el horario: la semana entera en el ordenador y día a día en el móvil, con filtros por tipo y nivel, plazas libres y el día de hoy marcado. Al tocar una clase ves qué es, quién la da y qué traer, y reservas plaza por WhatsApp; si es tu primera clase, es gratis.",
+    highlights: ["Horario semanal con plazas libres, filtros y hoy marcado", "Reserva de plaza por WhatsApp desde cada clase", "Primera clase gratis, bonos e ilimitado con precios claros", "La luna de hoy y un ejercicio de respiración de 1 minuto"],
+    stack: ["HTML", "CSS", "JavaScript"], tags: ["Bienestar", "Clases", "WhatsApp"],
+    metrics: [{ label: "Tipos de clase", value: "7" }, { label: "Primera clase", value: "0 €" }, { label: "Ilimitado", value: "79 €" }],
+  },
 ];
 
 // ------------------------------------------------------------
@@ -293,7 +450,10 @@ export const projects = [
 //  basta con meterlo en `projects` dentro de esa sección (al final): el que era
 //  último pasa a enlazar con el nuevo y el nuevo con el que enlazaba el antiguo.
 // ------------------------------------------------------------
-export const ORDER = ["neuron", "elementia", "crossia", "usain-bot", "casa-aurea", "massflow", "moog-barcelona"];
+export const ORDER = [
+  "neuron", "elementia", "crossia", "usain-bot", "casa-aurea", "massflow", "moog-barcelona",
+  "la-vermuteria", "nomada-barbers", "clinica-dental-horta", "flors-fulles", "ramirez-24h", "estudio-lua",
+];
 
 const rank = (id) => (ORDER.indexOf(id) === -1 ? ORDER.length : ORDER.indexOf(id));
 
