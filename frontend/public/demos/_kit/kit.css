@@ -93,3 +93,59 @@ html[data-demo].tips-on .demo-tip { display: block; }
 /* captura limpia (?shot) para el portfolio de OOOX: todo en su estado final, sin animaciones */
 html.kit-shot { scroll-behavior: auto; }
 html.kit-shot *, html.kit-shot *::before, html.kit-shot *::after { animation-delay: 0s !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-delay: 0s !important; transition-duration: .001ms !important; }
+
+/* ======================================================================
+   v2 (30-oct-2026) · detalles que se ven: revelado al hacer scroll, galería a pantalla completa,
+   botón de WhatsApp flotante en escritorio, sección activa en el menú, cifras que cuentan,
+   fotos que aparecen en fundido y afinado tipográfico. Todo opcional por atributo:
+   data-reveal · data-reveal="stagger" · data-gallery · data-count · <html data-no-fab>
+   ====================================================================== */
+h1, h2, h3 { text-wrap: balance; }
+p, li, figcaption, dd, blockquote { text-wrap: pretty; }
+::selection { background: var(--k-accent, #111); color: var(--k-accent-ink, #fff); }
+button:active, a[class*="btn"]:active { scale: .985; }
+
+/* revelado al entrar en pantalla (solo con JS; sin JS todo se ve) */
+html.kit-js [data-reveal]:not(.is-in) { opacity: 0; }
+html.kit-js [data-reveal].is-in { animation: kit-rv .8s cubic-bezier(.2,.7,.2,1) backwards; }
+html.kit-js [data-reveal~="stagger"]:not(.is-in) { opacity: 1; }
+html.kit-js [data-reveal~="stagger"]:not(.is-in) > * { opacity: 0; }
+html.kit-js [data-reveal~="stagger"].is-in { animation: none; }
+html.kit-js [data-reveal~="stagger"].is-in > * { animation: kit-rv .7s cubic-bezier(.2,.7,.2,1) backwards; animation-delay: calc(var(--i, 0) * 85ms); }
+@keyframes kit-rv { from { opacity: 0; translate: 0 22px; } }
+
+/* sección activa en el menú de la cabecera */
+[data-header] a[aria-current="true"] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .38em; text-decoration-color: var(--k-accent, currentColor); }
+
+/* fotos en fundido al cargar */
+html.kit-js img.kit-img { opacity: 0; transition: opacity .7s ease; }
+html.kit-js img.kit-img.is-loaded { opacity: 1; }
+
+/* galería a pantalla completa */
+[data-gallery] img { cursor: zoom-in; }
+.kit-lb { border: 0; padding: 0; margin: 0; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; background: transparent; color: #fff; }
+.kit-lb::backdrop { background: rgba(8,8,8,.93); backdrop-filter: blur(4px); }
+.kit-lb-fig { position: fixed; inset: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; place-items: center; padding: 60px 18px 22px; }
+.kit-lb-fig img { max-width: 100%; max-height: calc(100vh - 124px); width: auto; height: auto; object-fit: contain; border-radius: 8px; box-shadow: 0 40px 90px rgba(0,0,0,.65); animation: kit-in .3s cubic-bezier(.2,.8,.2,1); }
+.kit-lb-cap { color: rgba(255,255,255,.82); font: 400 14.5px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; text-align: center; padding-top: 12px; max-width: 70ch; }
+.kit-lb-n { position: fixed; top: 16px; left: 20px; font: 600 13px/1 system-ui, sans-serif; letter-spacing: .06em; color: rgba(255,255,255,.7); }
+.kit-lb-x, .kit-lb-prev, .kit-lb-next { position: fixed; width: 46px; height: 46px; border-radius: 50%; border: 0; background: rgba(255,255,255,.12); color: #fff; font-size: 24px; line-height: 1; display: grid; place-items: center; backdrop-filter: blur(6px); transition: background .2s; }
+.kit-lb-x:hover, .kit-lb-prev:hover, .kit-lb-next:hover { background: rgba(255,255,255,.26); }
+.kit-lb-x { top: 10px; right: 12px; }
+.kit-lb-prev { left: 10px; top: 50%; translate: 0 -50%; }
+.kit-lb-next { right: 10px; top: 50%; translate: 0 -50%; }
+@media (max-width: 640px) { .kit-lb-prev, .kit-lb-next { top: auto; bottom: 14px; translate: none; } .kit-lb-prev { left: 14px; } .kit-lb-next { right: 14px; } .kit-lb-fig { padding-bottom: 76px; } }
+
+/* WhatsApp flotante (escritorio; en el móvil ya está la barra de acciones) */
+.kit-fab { position: fixed; z-index: 58; right: max(20px, env(safe-area-inset-right, 0px)); bottom: max(20px, env(safe-area-inset-bottom, 0px)); display: none; align-items: center; gap: 10px; text-decoration: none; opacity: 0; translate: 0 14px; transition: opacity .35s, translate .35s; }
+.kit-fab.is-on { opacity: 1; translate: none; }
+@media (min-width: 900px) and (hover: hover) { html.kit-js .kit-fab { display: inline-flex; } }
+.kit-fab-lbl { background: #fff; color: #111; font: 600 14px/1 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 11px 15px; border-radius: 999px; box-shadow: 0 12px 30px -12px rgba(0,0,0,.45); opacity: 0; translate: 8px 0; transition: opacity .25s, translate .25s; white-space: nowrap; }
+.kit-fab:hover .kit-fab-lbl, .kit-fab:focus-visible .kit-fab-lbl { opacity: 1; translate: none; }
+.kit-fab-btn { width: 58px; height: 58px; border-radius: 50%; background: #25d366; color: #fff; display: grid; place-items: center; box-shadow: 0 14px 32px -10px rgba(37,211,102,.75), 0 2px 6px rgba(0,0,0,.22); transition: scale .2s; }
+.kit-fab:hover .kit-fab-btn { scale: 1.07; }
+.kit-fab-btn svg { width: 30px; height: 30px; }
+
+/* compartir (en el banner de la demo) */
+.kit-demobar-share { background: transparent; color: #f1ede6; border: 1.5px solid rgba(241,237,230,.45); border-radius: 999px; padding: 3px 10px; font-weight: 600; font-size: 12px; }
+.kit-demobar-share:hover { border-color: #f1ede6; }

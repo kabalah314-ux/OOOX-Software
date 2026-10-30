@@ -1,5 +1,5 @@
 /*!
- * OOOX Webs · kit común de las webs de negocio (v1, 29-oct-2026)
+ * OOOX Webs · kit común de las webs de negocio (v2, 30-oct-2026)
  * Sin dependencias. Lo usan todas las demos y servirá de base para las webs de clientes.
  *
  *  Kit.lang / Kit.t(key) / Kit.L({es,ca,en}) / Kit.onLang(fn)   idiomas (ES · CA · EN)
@@ -11,6 +11,9 @@
  *  Kit.moon(date)                                                fase lunar (Estudio Lúa)
  *  Kit.compare(el)                                               antes / después arrastrable
  *  Kit.money(n)                                                  12,50 €
+ *  v2: data-reveal / data-reveal="stagger" (revelado al hacer scroll) · data-gallery (galería a pantalla completa)
+ *      · data-count (cifras que cuentan) · sección activa en el menú · WhatsApp flotante en escritorio (<html data-no-fab> lo quita)
+ *      · «Compartir» en el banner de la demo · fotos en fundido · fab.text en #i18n = mensaje del botón flotante
  *
  * Modo demo: <html data-demo> → banner «Web de muestra de OOOX», y las llamadas y WhatsApp
  * enseñan una vista previa en vez de llamar a un número inventado.
@@ -35,6 +38,7 @@
   var SHOT = location.search.match(/[?&]shot(?:=([\w-]*))?(?:&|$)/);
   var SHOT_AT = SHOT && SHOT[1] && SHOT[1] !== '1' ? SHOT[1] : '';
   if (SHOT) root.classList.add('kit-shot');
+  root.classList.add('kit-js');
 
   /* ------------------------------------------------------------------ utilidades */
   function $(sel, ctx) { return (ctx || document).querySelector(sel); }
@@ -81,6 +85,7 @@
       callNote: 'En la web real, este botón llama al negocio con un toque. En la demo no llamamos a nadie.',
       online: 'en línea', now: 'ahora', required: 'Completa los campos marcados', sent: 'Listo',
       before: 'Antes', after: 'Después',
+      fabLabel: 'Escríbenos por WhatsApp', fabText: 'Hola, quiero más información', share: 'Compartir', copied: 'Enlace copiado', gallery: 'Galería', prev: 'Anterior', next: 'Siguiente', of: 'de',
     },
     ca: {
       open: 'Obert ara', closed: 'Tancat ara', closesAt: 'tanca a les {t}', opensAt: 'obre {d} a les {t}',
@@ -91,6 +96,7 @@
       callNote: 'A la web real, aquest botó truca al negoci amb un toc. A la demo no truquem a ningú.',
       online: 'en línia', now: 'ara', required: 'Omple els camps marcats', sent: 'Fet',
       before: 'Abans', after: 'Després',
+      fabLabel: 'Escriu-nos per WhatsApp', fabText: 'Hola, vull més informació', share: 'Compartir', copied: 'Enllaç copiat', gallery: 'Galeria', prev: 'Anterior', next: 'Següent', of: 'de',
     },
     en: {
       open: 'Open now', closed: 'Closed now', closesAt: 'closes at {t}', opensAt: 'opens {d} at {t}',
@@ -101,6 +107,7 @@
       callNote: 'On the real site, this button calls the business in one tap. In the demo we don’t call anyone.',
       online: 'online', now: 'now', required: 'Please fill in the highlighted fields', sent: 'Done',
       before: 'Before', after: 'After',
+      fabLabel: 'Message us on WhatsApp', fabText: 'Hi, I’d like some information', share: 'Share', copied: 'Link copied', gallery: 'Gallery', prev: 'Previous', next: 'Next', of: 'of',
     },
   };
 
@@ -399,6 +406,7 @@
       h('button', { class: 'kit-demobar-tips', type: 'button', 'aria-pressed': 'true', onclick: function (e) {
         var on = !root.classList.contains('tips-on'); root.classList.toggle('tips-on', on); e.currentTarget.setAttribute('aria-pressed', String(on)); store.set('tips', on ? '1' : '0');
       }, 'data-kit': 'tips' }),
+      h('button', { class: 'kit-demobar-share', type: 'button', 'data-kit': 'share', onclick: function () { share(); } }),
       h('a', { class: 'kit-demobar-cta', href: OOOX.contact, target: '_blank', rel: 'noopener', 'data-kit': 'demoCta' }),
       h('button', { class: 'kit-demobar-x', type: 'button', 'aria-label': k('close'), onclick: function () { bar.remove(); store.set('demobar-off', document.location.pathname); } }, '×'));
     document.body.insertBefore(bar, document.body.firstChild);
@@ -456,6 +464,172 @@
     window.scrollTo(0, 0);
   }
 
+
+  /* ------------------------------------------------------------------ v2 · compartir (el dueño se la manda a su socio) */
+  function share() {
+    var url = location.href.split('?')[0];
+    if (navigator.share) { navigator.share({ title: document.title, url: url }).catch(function () {}); return; }
+    var done = function () { toast(k('copied')); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, done);
+    else { prompt(k('share'), url); }
+  }
+
+  /* ------------------------------------------------------------------ v2 · revelado al hacer scroll */
+  function reveal() {
+    var els = $$('[data-reveal]');
+    if (!els.length) return;
+    els.forEach(function (el) {
+      if ((el.getAttribute('data-reveal') || '').indexOf('stagger') !== -1) {
+        $$(':scope > *', el).forEach(function (c, i) { c.style.setProperty('--i', Math.min(i, 14)); });
+      }
+    });
+    var still = SHOT || !('IntersectionObserver' in window) || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (still) { els.forEach(function (el) { el.classList.add('is-in'); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
+    els.forEach(function (el) { io.observe(el); });
+    // Si algo quedara sin observar (p. ej. salto por ancla), a los 6 s se enseña todo.
+    setTimeout(function () { els.forEach(function (el) { if (!el.classList.contains('is-in') && el.getBoundingClientRect().top < innerHeight) el.classList.add('is-in'); }); }, 6000);
+  }
+
+  /* ------------------------------------------------------------------ v2 · cifras que cuentan (data-count) */
+  function counters() {
+    var els = $$('[data-count]');
+    if (!els.length) return;
+    function fmt(v, dec) { return new Intl.NumberFormat(lang === 'en' ? 'en-GB' : 'es-ES', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v); }
+    function run(el) {
+      var txt = el.textContent.trim();
+      var m = txt.match(/^([^\d]*)([\d.,]+)(.*)$/);
+      if (!m) return;
+      var raw = m[2];
+      var dec = (raw.split(',')[1] || '').length;
+      var target = parseFloat(raw.replace(/\./g, '').replace(',', '.'));
+      if (isNaN(target)) return;
+      var t0 = performance.now(), dur = 1300;
+      (function step(now) {
+        var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = m[1] + fmt(target * e, dec) + m[3];
+        if (p < 1) requestAnimationFrame(step); else el.textContent = txt;
+      })(t0);
+    }
+    var still = SHOT || !('IntersectionObserver' in window) || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (still) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { io.unobserve(en.target); run(en.target); } });
+    }, { threshold: 0.4 });
+    els.forEach(function (el) { io.observe(el); });
+  }
+
+  /* ------------------------------------------------------------------ v2 · fotos en fundido */
+  function imgFade() {
+    if (SHOT) return;
+    $$('img[loading="lazy"]').forEach(function (im) {
+      if (im.complete) return;
+      im.classList.add('kit-img');
+      var done = function () {
+        im.classList.add('is-loaded');
+        // Al acabar el fundido se quitan las clases para no pisar las transiciones propias de cada web (p. ej. el color al pasar el ratón).
+        setTimeout(function () { im.classList.remove('kit-img', 'is-loaded'); }, 800);
+      };
+      im.addEventListener('load', done); im.addEventListener('error', done);
+    });
+  }
+
+  /* ------------------------------------------------------------------ v2 · galería a pantalla completa (data-gallery) */
+  function bigSrc(img) {
+    var ss = img.getAttribute('srcset');
+    if (!ss) return img.currentSrc || img.src;
+    var best = null, bw = 0;
+    ss.split(',').forEach(function (c) { var p = c.trim().split(/\s+/); var w = parseInt(p[1] || '0', 10); if (w > bw) { bw = w; best = p[0]; } });
+    return best || img.currentSrc || img.src;
+  }
+  function openGallery(imgs, idx) {
+    var pic = h('img', { alt: '' });
+    var cap = h('figcaption', { class: 'kit-lb-cap' });
+    var num = h('span', { class: 'kit-lb-n', 'aria-live': 'polite' });
+    var fig = h('figure', { class: 'kit-lb-fig' }, pic, cap);
+    var dlg = h('dialog', { class: 'kit-lb', 'aria-label': k('gallery') });
+    function show(i) {
+      idx = (i + imgs.length) % imgs.length;
+      var im = imgs[idx];
+      pic.src = bigSrc(im); pic.alt = im.alt || '';
+      var f = im.closest('figure'); var fc = f && f.querySelector('figcaption');
+      cap.textContent = fc ? fc.textContent.trim() : (im.alt || '');
+      num.textContent = (idx + 1) + ' ' + k('of') + ' ' + imgs.length;
+      // precarga de la siguiente
+      if (imgs.length > 1) { var nx = new Image(); nx.src = bigSrc(imgs[(idx + 1) % imgs.length]); }
+    }
+    dlg.appendChild(fig); dlg.appendChild(num);
+    dlg.appendChild(h('button', { class: 'kit-lb-x', type: 'button', 'aria-label': k('close'), onclick: function () { dlg.close(); } }, '×'));
+    if (imgs.length > 1) {
+      dlg.appendChild(h('button', { class: 'kit-lb-prev', type: 'button', 'aria-label': k('prev'), onclick: function () { show(idx - 1); } }, '‹'));
+      dlg.appendChild(h('button', { class: 'kit-lb-next', type: 'button', 'aria-label': k('next'), onclick: function () { show(idx + 1); } }, '›'));
+    }
+    dlg.addEventListener('click', function (e) { if (e.target === dlg || e.target === fig) dlg.close(); });
+    dlg.addEventListener('keydown', function (e) { if (e.key === 'ArrowRight') show(idx + 1); if (e.key === 'ArrowLeft') show(idx - 1); });
+    var x0 = null;
+    dlg.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    dlg.addEventListener('touchend', function (e) { if (x0 == null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 40) show(idx + (dx < 0 ? 1 : -1)); }, { passive: true });
+    dlg.addEventListener('close', function () { setTimeout(function () { dlg.remove(); }, 250); });
+    document.body.appendChild(dlg);
+    show(idx);
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+  }
+  function gallery() {
+    $$('[data-gallery]').forEach(function (g) {
+      g.addEventListener('click', function (e) {
+        var img = e.target.closest && e.target.closest('img');
+        if (!img || !g.contains(img) || e.target.closest('a, button, [data-compare]')) return;
+        var imgs = $$('img', g).filter(function (i) { return i.offsetWidth > 0 && !i.closest('[data-compare]'); });
+        if (!imgs.length) return;
+        e.preventDefault();
+        openGallery(imgs, Math.max(0, imgs.indexOf(img)));
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------ v2 · sección activa en el menú */
+  function navSpy() {
+    var hd = $('[data-header]');
+    if (!hd) return;
+    var links = $$('a[href^="#"]', hd).filter(function (a) { var id = a.getAttribute('href').slice(1); return id && document.getElementById(id); });
+    if (!links.length) return;
+    var line = 150, ticking = false, current = null;
+    var tick = function () {
+      ticking = false;
+      var best = null, bestTop = -Infinity;
+      links.forEach(function (a) {
+        var r = document.getElementById(a.getAttribute('href').slice(1)).getBoundingClientRect();
+        if (r.top <= line && r.bottom > line && r.top > bestTop) { bestTop = r.top; best = a; }
+      });
+      if (best === current) return;
+      current = best;
+      links.forEach(function (a) { if (a === best) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+    };
+    var onScroll = function () { if (!ticking) { ticking = true; requestAnimationFrame(tick); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    tick();
+  }
+
+  /* ------------------------------------------------------------------ v2 · WhatsApp flotante (escritorio) */
+  function fab() {
+    if (SHOT || root.hasAttribute('data-no-fab')) return;
+    var to = String(root.getAttribute('data-wa') || '').replace(/\D/g, '');
+    var text = function () { return (dict[lang] && dict[lang]['fab.text']) || dict.es['fab.text'] || k('fabText'); };
+    var icon = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2m0 1.67c4.54 0 8.24 3.7 8.24 8.24s-3.7 8.24-8.24 8.24c-1.5 0-2.97-.41-4.25-1.18l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.35c0-4.54 3.7-8.24 8.24-8.24M8.53 7.33c-.16 0-.43.06-.66.31-.22.25-.87.86-.87 2.07 0 1.22.89 2.39 1 2.56.14.17 1.76 2.67 4.25 3.73.59.27 1.05.42 1.41.53.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.16-.48-.27-.25-.14-1.47-.74-1.69-.82-.23-.08-.37-.12-.56.12-.16.25-.64.81-.78.97-.15.17-.29.19-.53.07-.26-.13-1.06-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.12-.24-.01-.39.11-.5.11-.11.27-.29.37-.44.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.11-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43-.14 0-.3-.01-.47-.01"/></svg>';
+    var lbl = h('span', { class: 'kit-fab-lbl', 'data-kit': 'fabLabel' });
+    var el = h('a', { class: 'kit-fab', href: 'https://wa.me/' + to + '?text=' + encodeURIComponent(text()), target: '_blank', rel: 'noopener', 'aria-label': k('fabLabel') },
+      lbl, h('span', { class: 'kit-fab-btn', 'aria-hidden': 'true', html: icon }));
+    document.body.appendChild(el);
+    var fill = function () { lbl.textContent = k('fabLabel'); el.setAttribute('aria-label', k('fabLabel')); el.setAttribute('href', 'https://wa.me/' + to + '?text=' + encodeURIComponent(text())); };
+    fill(); langFns.push(fill);
+    var on = false;
+    var tick = function () { var y = window.scrollY || 0; if ((y > 380) !== on) { on = y > 380; el.classList.toggle('is-on', on); } };
+    window.addEventListener('scroll', tick, { passive: true }); tick();
+  }
+
   /* ------------------------------------------------------------------ arranque */
   var Kit = {
     $: $, $$: $$, h: h, esc: esc, store: store,
@@ -465,6 +639,7 @@
     hours: hours, days: days, slots: slots, rand: rand,
     dialog: dialog, toast: toast, wa: wa, callPreview: callPreview,
     compare: compare, moon: moon, money: money, demo: DEMO, shot: !!SHOT, ooox: OOOX,
+    reveal: reveal, gallery: openGallery, share: share,
   };
   window.Kit = Kit;
 
@@ -476,6 +651,7 @@
     stickyHeader();
     $$('[data-compare]').forEach(compare);
     applyLang();
+    imgFade(); reveal(); counters(); gallery(); navSpy(); fab();
     root.classList.add('kit-ready');
     document.dispatchEvent(new CustomEvent('kit:ready'));
   }

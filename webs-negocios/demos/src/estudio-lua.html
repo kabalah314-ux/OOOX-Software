@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://images.unsplash.com">
 <link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{kit}}/kit.css?v={{v}}">
+<script>document.documentElement.classList.add('kit-js');setTimeout(function(){if(!window.Kit)document.documentElement.classList.remove('kit-js')},4000)</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"ExerciseGym","name":"Estudio Lúa","description":"Estudio de yoga y pilates en Sants–Les Corts: hatha, vinyasa, yin, pilates suelo y máquina, meditación guiada y yoga prenatal en grupos pequeños.","image":"https://images.unsplash.com/photo-1761971975973-cbb3e59263de?auto=format&fit=crop&w=1200&q=72","telephone":"+34930000000","priceRange":"€€","address":{"@type":"PostalAddress","streetAddress":"Carrer de Galileu, 00","postalCode":"08028","addressLocality":"Barcelona","addressRegion":"Catalunya","addressCountry":"ES"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"07:30","closes":"21:30"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"09:00","closes":"13:30"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Sunday","opens":"10:00","closes":"12:00"}],"makesOffer":[{"@type":"Offer","name":"Primera clase","price":"0","priceCurrency":"EUR"},{"@type":"Offer","name":"Clase suelta","price":"16","priceCurrency":"EUR"},{"@type":"Offer","name":"Ilimitado mensual","price":"79","priceCurrency":"EUR"}]}
 </script>
@@ -595,7 +596,7 @@ p { margin: 0; }
   </section>
 
   <!-- RESPIRA -->
-  <section class="breath night" id="respira" aria-labelledby="h-breath">
+  <section class="breath night" id="respira" aria-labelledby="h-breath" data-reveal>
     <div class="wrap breath-in">
       <div class="breath-txt">
         <h2 class="h2" id="h-breath" data-t="br.h">Respira un minuto</h2>
@@ -613,7 +614,7 @@ p { margin: 0; }
   </section>
 
   <!-- HORARIO -->
-  <section class="sched" id="horario" aria-labelledby="h-sched">
+  <section class="sched" id="horario" aria-labelledby="h-sched" data-reveal>
     <div class="wrap">
       <div class="sched-top">
         <div class="sh">
@@ -657,13 +658,13 @@ p { margin: 0; }
   </section>
 
   <!-- CLASES -->
-  <section class="cls" id="clases" aria-labelledby="h-cls">
+  <section class="cls" id="clases" aria-labelledby="h-cls" data-reveal>
     <div class="wrap">
       <div class="sh">
         <h2 class="h2" id="h-cls" data-t="cls.h">Siete clases, cada una con su ritmo</h2>
         <p class="lead" data-t="cls.lead">Grupos de doce personas como máximo, seis en máquina. Si no sabes por dónde empezar, prueba hatha suave o pilates suelo.</p>
       </div>
-      <div class="cgs">
+      <div class="cgs" data-reveal="stagger">
         <div class="cg">
           <figure class="cg-ph ph-a"><img data-u="photo-1761035005546-62b8018b212a" data-w="1200" data-sizes="(max-width: 860px) 90vw, 40vw" alt="Grupo estirando sobre esterillas en el estudio" data-ta="alt:cg.yoga.alt"></figure>
           <div>
@@ -690,7 +691,7 @@ p { margin: 0; }
   </section>
 
   <!-- PRECIOS -->
-  <section class="prices" id="precios" aria-labelledby="h-pr">
+  <section class="prices" id="precios" aria-labelledby="h-pr" data-reveal>
     <div class="wrap">
       <div class="pr-top">
         <div class="sh">
@@ -761,7 +762,7 @@ p { margin: 0; }
   </section>
 
   <!-- PROFES -->
-  <section class="team" id="profes" aria-labelledby="h-team">
+  <section class="team" id="profes" aria-labelledby="h-team" data-reveal>
     <div class="wrap">
       <div class="sh">
         <h2 class="h2" id="h-team" data-t="team.h">Las profes</h2>
@@ -794,7 +795,7 @@ p { margin: 0; }
   </section>
 
   <!-- PRIMERA CLASE -->
-  <section class="first" id="primera" aria-labelledby="h-first">
+  <section class="first" id="primera" aria-labelledby="h-first" data-reveal>
     <div class="wrap first-grid">
       <div>
         <div class="sh">
@@ -828,7 +829,7 @@ p { margin: 0; }
   </section>
 
   <!-- RESEÑAS -->
-  <section class="rev" aria-labelledby="h-rev">
+  <section class="rev" aria-labelledby="h-rev" data-reveal>
     <div class="wrap rev-grid">
       <div class="score">
         <h2 id="h-rev" data-t="rev.h">Lo que dicen de Lúa</h2>
@@ -848,7 +849,7 @@ p { margin: 0; }
   </section>
 
   <!-- PREGUNTAS -->
-  <section class="faq" id="preguntas" aria-labelledby="h-faq">
+  <section class="faq" id="preguntas" aria-labelledby="h-faq" data-reveal>
     <div class="wrap faq-grid">
       <div class="faq-side">
         <h2 class="h2" id="h-faq" data-t="faq.h">Lo que siempre nos preguntáis</h2>
@@ -867,7 +868,7 @@ p { margin: 0; }
   </section>
 
   <!-- DÓNDE -->
-  <section class="visit" id="visita" aria-labelledby="h-visit">
+  <section class="visit" id="visita" aria-labelledby="h-visit" data-reveal>
     <div class="wrap">
       <div class="visit-top">
         <div class="sh">
@@ -1015,6 +1016,7 @@ p { margin: 0; }
 <script type="application/json" id="i18n">
 {
   "ca": {
+    "fab.text": "Hola, vull provar una classe",
     "meta.title": "Estudio Lúa · Ioga i pilates a Sants–les Corts",
     "skip": "Anar a l'horari",
     "logo.sub": "Ioga i pilates a Sants",
@@ -1157,6 +1159,7 @@ p { margin: 0; }
     "note.legal.t": "Avís legal, privacitat i galetes", "note.legal.d": "A la web real, amb les dades del teu negoci (titular, NIF, adreça i correu), com demana la llei. Sense galetes, sense bàner."
   },
   "en": {
+    "fab.text": "Hi, I’d like to try a class",
     "meta.title": "Estudio Lúa · Yoga & pilates in Sants–Les Corts",
     "skip": "Skip to the timetable",
     "logo.sub": "Yoga & pilates in Sants",
@@ -1299,6 +1302,7 @@ p { margin: 0; }
     "note.legal.t": "Legal notice, privacy and cookies", "note.legal.d": "On the real site, with your business details (owner, tax ID, address and email), as the law requires. No cookies, no banner."
   },
   "es": {
+    "fab.text": "Hola, quiero probar una clase",
     "meta.title": "Estudio Lúa · Yoga y pilates en Sants–Les Corts",
     "moon.today": "Hoy: {name} · {pct}",
     "moon.s0": "Luna nueva: buen momento para empezar algo. Tu primera clase es gratis.",

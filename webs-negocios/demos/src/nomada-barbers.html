@@ -20,6 +20,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{kit}}/kit.css?v={{v}}">
+<script>document.documentElement.classList.add('kit-js');setTimeout(function(){if(!window.Kit)document.documentElement.classList.remove('kit-js')},4000)</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"HairSalon","name":"Nómada Barbers","description":"Barbería de barrio en Poblenou, Barcelona: cortes, degradados, barba a navaja y toalla caliente.","telephone":"+34930000000","priceRange":"€€","image":"https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=72","address":{"@type":"PostalAddress","streetAddress":"Carrer de Pujades, 00","postalCode":"08005","addressLocality":"Barcelona","addressRegion":"Barcelona","addressCountry":"ES"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Tuesday","Wednesday","Thursday","Friday"],"opens":"10:00","closes":"20:30"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"09:30","closes":"15:00"}],"hasOfferCatalog":{"@type":"OfferCatalog","name":"Servicios","itemListElement":[{"@type":"Offer","price":"18","priceCurrency":"EUR","itemOffered":{"@type":"Service","name":"Corte clásico"}},{"@type":"Offer","price":"22","priceCurrency":"EUR","itemOffered":{"@type":"Service","name":"Corte + lavado"}},{"@type":"Offer","price":"20","priceCurrency":"EUR","itemOffered":{"@type":"Service","name":"Degradado (fade)"}},{"@type":"Offer","price":"14","priceCurrency":"EUR","itemOffered":{"@type":"Service","name":"Corte infantil"}},{"@type":"Offer","price":"12","priceCurrency":"EUR","itemOffered":{"@type":"Service","name":"Arreglo de barba"}},{"@type":"Offer","price":"20","priceCurrency":"EUR","itemOffered":{"@type":"Service","name":"Afeitado a navaja con toalla caliente"}},{"@type":"Offer","price":"28","priceCurrency":"EUR","itemOffered":{"@type":"Service","name":"Corte + barba"}},{"@type":"Offer","price":"38","priceCurrency":"EUR","itemOffered":{"@type":"Service","name":"Ritual Nómada"}}]}}
 </script>
@@ -602,7 +603,7 @@ p { margin: 0; }
   <div class="band" aria-hidden="true"></div>
 
   <!-- PRECIOS -->
-  <section class="sec" id="precios" aria-labelledby="h-precios">
+  <section class="sec" id="precios" aria-labelledby="h-precios" data-reveal>
     <div class="wrap">
       <div class="sh">
         <h2 class="t" id="h-precios" data-t="pr.h">Precios</h2>
@@ -625,7 +626,7 @@ p { margin: 0; }
   </section>
 
   <!-- CITA -->
-  <section class="sec dark bk-sec" id="cita" aria-labelledby="h-cita">
+  <section class="sec dark bk-sec" id="cita" aria-labelledby="h-cita" data-reveal>
     <div class="wrap">
       <div class="sh">
         <h2 class="t" id="h-cita" data-t="bk.h">Pide cita en 20 segundos</h2>
@@ -695,7 +696,7 @@ p { margin: 0; }
   </section>
 
   <!-- EQUIPO -->
-  <section class="sec" id="equipo" aria-labelledby="h-eq">
+  <section class="sec" id="equipo" aria-labelledby="h-eq" data-reveal>
     <div class="wrap">
       <div class="sh">
         <h2 class="t" id="h-eq" data-t="eq.h">Tres sillones</h2>
@@ -704,7 +705,7 @@ p { margin: 0; }
           <div class="demo-tip" data-th="tip.eq"><b>Cada barbero, su botón.</b> El cliente fiel reserva directamente con el suyo y ve su próximo hueco libre.</div>
         </div>
       </div>
-      <div class="team-grid">
+      <div class="team-grid" data-reveal="stagger">
         <article class="barber" aria-labelledby="b-alex">
           <div class="b-head"><span class="av av-alex" aria-hidden="true">AF</span><span class="b-chair" data-t="eq.c1">Sillón 1</span></div>
           <h3 class="b-name" id="b-alex">Álex Ferrer</h3>
@@ -746,7 +747,7 @@ p { margin: 0; }
   </section>
 
   <!-- CLUB -->
-  <section class="sec club" id="club" aria-labelledby="h-club">
+  <section class="sec club" id="club" aria-labelledby="h-club" data-reveal>
     <div class="wrap club-grid">
       <div class="club-txt">
         <h2 class="t" id="h-club">Club Nómada</h2>
@@ -793,13 +794,13 @@ p { margin: 0; }
   </section>
 
   <!-- LA NAVE -->
-  <section class="sec dark" id="nave" aria-labelledby="h-gal">
+  <section class="sec dark" id="nave" aria-labelledby="h-gal" data-reveal>
     <div class="wrap">
       <div class="sh">
         <h2 class="t" id="h-gal" data-t="gal.h">La nave</h2>
         <p class="lead" data-t="gal.lead">Ladrillo de 1912, techos de seis metros y tres sillones de barbero. Antes aquí se tejía algodón; ahora se corta pelo.</p>
       </div>
-      <div class="gal-grid">
+      <div class="gal-grid" data-reveal="stagger" data-gallery>
         <figure class="g g1 photo"><img data-u="photo-1585747860715-2ba37e788b70" data-w="1600" data-sizes="(max-width: 760px) 100vw, 56vw" alt="Sillón de barbero de piel junto a una pared de ladrillo" data-ta="alt:gal.a1"><figcaption data-t="gal.c1">Ladrillo de 1912</figcaption></figure>
         <figure class="g g2 photo"><img data-u="photo-1599351431202-1e0f0137899a" data-w="1200" data-sizes="(max-width: 760px) 50vw, 40vw" alt="Barbero tatuado con una navaja en la mano" data-ta="alt:gal.a2"><figcaption data-t="gal.c2">Navaja</figcaption></figure>
         <figure class="g g3 photo"><img data-u="photo-1599011176306-4a96f1516d4d" data-w="1200" data-sizes="(max-width: 760px) 50vw, 40vw" alt="Barbero arreglando una barba" data-ta="alt:gal.a3"><figcaption data-t="gal.c3">Arreglo de barba</figcaption></figure>
@@ -811,7 +812,7 @@ p { margin: 0; }
   </section>
 
   <!-- RESEÑAS -->
-  <section class="sec" id="resenas" aria-labelledby="h-rev">
+  <section class="sec" id="resenas" aria-labelledby="h-rev" data-reveal>
     <div class="wrap rev-grid">
       <div class="score">
         <h2 class="score-n" id="h-rev"><span data-t="rev.score">4,9</span><span class="sr-only" data-t="rev.sr">de 5 en Google</span></h2>
@@ -821,7 +822,7 @@ p { margin: 0; }
         <a class="btn btn-ink" href="#" data-demo-note="note.review" data-t="rev.btn">Déjanos tu reseña</a>
         <div class="demo-tip" data-th="tip.rev"><b>Tus reseñas de Google, en tu web.</b> El botón abre la ventana para dejar una: más reseñas, más arriba en Maps.</div>
       </div>
-      <div class="revs">
+      <div class="revs" data-reveal="stagger">
         <figure class="rv">
           <p class="stars" role="img" aria-label="5/5">★★★★★</p>
           <blockquote><p>El mejor degradado que me han hecho en años. Álex no tiene prisa y se nota.</p></blockquote>
@@ -842,7 +843,7 @@ p { margin: 0; }
   </section>
 
   <!-- VISÍTANOS -->
-  <section class="sec visit" id="visita" aria-labelledby="h-vis">
+  <section class="sec visit" id="visita" aria-labelledby="h-vis" data-reveal>
     <div class="wrap">
       <div class="sh">
         <h2 class="t" id="h-vis">Pujades, 00</h2>
@@ -974,6 +975,7 @@ p { margin: 0; }
 <script type="application/json" id="i18n">
 {
   "ca": {
+    "fab.text": "Hola, vull demanar hora",
     "meta.title": "Nómada Barbers · Barberia al Poblenou, Barcelona",
     "nav.aria": "Seccions", "nav.precios": "Preus", "nav.equipo": "Equip", "nav.club": "Club", "nav.visita": "Vine a veure'ns", "langs.aria": "Idioma",
     "cta.book": "Demana hora", "cta.prices": "Veure preus",
@@ -1052,6 +1054,7 @@ p { margin: 0; }
     "note.legal.t": "Avís legal, privacitat i galetes", "note.legal.d": "A la web real, amb les dades del teu negoci (titular, NIF, adreça i correu), com demana la llei. Sense galetes, sense bàner."
   },
   "en": {
+    "fab.text": "Hi, I’d like to book an appointment",
     "meta.title": "Nómada Barbers · Barbershop in Poblenou, Barcelona",
     "nav.aria": "Sections", "nav.precios": "Prices", "nav.equipo": "Team", "nav.club": "Club", "nav.visita": "Visit us", "langs.aria": "Language",
     "cta.book": "Book now", "cta.prices": "See prices",
@@ -1130,6 +1133,7 @@ p { margin: 0; }
     "note.legal.t": "Legal notice, privacy and cookies", "note.legal.d": "On the real site, with your business details (owner, tax ID, address and email), as the law requires. No cookies, no banner."
   },
   "es": {
+    "fab.text": "Hola, quiero pedir cita",
     "meta.title": "Nómada Barbers · Barbería en Poblenou, Barcelona",
     "min": "{n} min", "tag.top": "Más pedido", "pr.book": "Pedir cita",
     "bk.any": "Me da igual", "bk.anyd": "El primero que esté libre", "bk.spec": "Especialista",

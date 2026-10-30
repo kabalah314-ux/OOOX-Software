@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://images.unsplash.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{kit}}/kit.css?v={{v}}">
+<script>document.documentElement.classList.add('kit-js');setTimeout(function(){if(!window.Kit)document.documentElement.classList.remove('kit-js')},4000)</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Plumber","name":"Ramírez Fontaneros 24 h","description":"Fontanería y urgencias en Barcelona las 24 horas, los 365 días del año.","telephone":"+34930000000","priceRange":"€€","currenciesAccepted":"EUR","address":{"@type":"PostalAddress","streetAddress":"Carrer de Sants, 00","postalCode":"08014","addressLocality":"Barcelona","addressRegion":"Barcelona","addressCountry":"ES"},"areaServed":{"@type":"City","name":"Barcelona"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],"opens":"00:00","closes":"23:59"}]}
 </script>
@@ -152,6 +153,7 @@ p { margin: 0; }
 .avail-n { display: inline-flex; align-items: center; gap: 10px; }
 .avail-n::before { content: ""; width: 1.5px; height: 16px; background: rgba(255,255,255,.3); }
 .avail-n b { color: var(--y); font-weight: 700; }
+.avail.eta { margin-top: -6px; } .avail.eta .dot { background: var(--y); } .avail.eta b { color: var(--y); font-weight: 800; font-variant-numeric: tabular-nums; }
 .tip-call { position: absolute; z-index: 3; top: 34px; right: var(--gut-r); }
 .tape-hero { animation: tape 1.1s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes tape { from { background-position: -96px 0; } to { background-position: 0 0; } }
@@ -582,6 +584,7 @@ p { margin: 0; }
         <div class="hero-meta">
           <a class="hero-link" href="#presupuesto"><svg class="i" aria-hidden="true"><use href="#i-calc"/></svg><span data-t="cta.quote">Presupuesto en 1 minuto</span></a>
           <p class="avail"><span class="dot is-live" aria-hidden="true"></span><b data-t="avail.a">Disponibles 24 h</b><span class="avail-n" data-avail>ahora mismo: <b>3</b> técnicos de guardia</span></p>
+          <p class="avail eta"><span class="dot" aria-hidden="true"></span><span data-eta>Si llamas ahora, llegamos antes de las <b>14:30</b></span></p>
         </div>
       </div>
       <div class="demo-tip tip-call" data-th="tip.call"><b>El botón de llamar, siempre visible en el móvil:</b> así entran las urgencias. Y arriba, el número en grande.</div>
@@ -594,7 +597,7 @@ p { margin: 0; }
   <div class="tape tape-hero" aria-hidden="true"></div>
 
   <!-- CONFIANZA -->
-  <section class="trust" aria-labelledby="h-trust">
+  <section class="trust" aria-labelledby="h-trust" data-reveal>
     <h2 class="sr-only" id="h-trust" data-t="trust.h">Por qué fiarte de nosotros</h2>
     <div class="wrap trust-in">
       <ul class="trust-list">
@@ -609,7 +612,7 @@ p { margin: 0; }
   </section>
 
   <!-- PRESUPUESTADOR -->
-  <section class="calc sec" id="presupuesto" aria-labelledby="h-calc">
+  <section class="calc sec" id="presupuesto" aria-labelledby="h-calc" data-reveal>
     <div class="wrap">
       <div class="calc-head">
         <div>
@@ -711,7 +714,7 @@ p { margin: 0; }
   </section>
 
   <!-- TARIFAS -->
-  <section class="rates sec" id="tarifas" aria-labelledby="h-rates">
+  <section class="rates sec" id="tarifas" aria-labelledby="h-rates" data-reveal>
     <div class="wrap rates-grid">
       <div class="rates-main">
         <h2 class="h2" id="h-rates" data-t="rates.h">Tarifas claras</h2>
@@ -746,7 +749,7 @@ p { margin: 0; }
   </section>
 
   <!-- CÓMO TRABAJAMOS -->
-  <section class="how sec" id="como" aria-labelledby="h-how">
+  <section class="how sec" id="como" aria-labelledby="h-how" data-reveal>
     <div class="wrap">
       <h2 class="h2" id="h-how" data-t="how.h">Cómo trabajamos</h2>
       <p class="lead" data-t="how.lead">Cuatro pasos y ninguna sorpresa: sabes el precio antes de que toquemos nada.</p>
@@ -759,7 +762,7 @@ p { margin: 0; }
 
       <div class="jobs">
         <h3 class="sub-t" data-t="jobs.h">Lo que más arreglamos</h3>
-        <div class="jobs-grid">
+        <div class="jobs-grid" data-reveal="stagger" data-gallery>
           <figure class="job">
             <div class="job-ph"><img data-u="photo-1676210134188-4c05dd172f89" data-w="900" data-sizes="(max-width: 860px) 46vw, 30vw" alt="Fontanero trabajando en una tubería dentro de la pared" data-ta="alt:job.1.alt"></div>
             <figcaption><b data-t="job.1">Fugas y tuberías</b><button type="button" class="job-btn" data-pick="fuga"><svg class="i" aria-hidden="true"><use href="#i-calc"/></svg><span data-t="job.calc">Calcular precio</span></button></figcaption>
@@ -791,7 +794,7 @@ p { margin: 0; }
   </section>
 
   <!-- ANTES / DESPUÉS -->
-  <section class="ba sec" id="trabajos" aria-labelledby="h-ba">
+  <section class="ba sec" id="trabajos" aria-labelledby="h-ba" data-reveal>
     <div class="wrap ba-grid">
       <div class="ba-txt">
         <h2 class="h2" id="h-ba" data-t="ba.h">Antes y después</h2>
@@ -819,7 +822,7 @@ p { margin: 0; }
   </section>
 
   <!-- ZONAS -->
-  <section class="zones sec" id="zonas" aria-labelledby="h-zones">
+  <section class="zones sec" id="zonas" aria-labelledby="h-zones" data-reveal>
     <div class="wrap zones-grid">
       <div class="zones-txt">
         <h2 class="h2" id="h-zones" data-t="z.h">Toda Barcelona, en menos de 45 minutos</h2>
@@ -861,7 +864,7 @@ p { margin: 0; }
   </section>
 
   <!-- OPINIONES -->
-  <section class="rev sec" id="opiniones" aria-labelledby="h-rev">
+  <section class="rev sec" id="opiniones" aria-labelledby="h-rev" data-reveal>
     <div class="wrap">
       <h2 class="h2" id="h-rev" data-t="rev.h">Lo que dicen los vecinos</h2>
       <div class="rev-grid">
@@ -871,7 +874,7 @@ p { margin: 0; }
         <span class="sample" data-t="rev.sample">Reseñas de ejemplo</span>
         <a class="btn btn-k" href="#" data-demo-note="note.reviews" data-t="rev.btn">Ver las reseñas en Google</a>
       </div>
-      <div class="revs">
+      <div class="revs" data-reveal="stagger">
         <article class="revc"><span class="stars" role="img" aria-label="5 de 5" data-ta="aria-label:rev.s5">★★★★★</span><p>“Vinieron a las dos de la mañana por una fuga en la cocina. Nos dijeron el precio antes de tocar nada y fue exactamente ese.”</p><footer><span class="mono mono-s" aria-hidden="true">NP</span><span><b>Núria P.</b><span data-t="rev.t1">Les Corts, hace 2 semanas</span></span></footer></article>
         <article class="revc"><span class="stars" role="img" aria-label="5 de 5" data-ta="aria-label:rev.s5">★★★★★</span><p>“Les mandé una foto del termo por WhatsApp y vinieron con la pieza. En menos de una hora teníamos agua caliente otra vez.”</p><footer><span class="mono mono-s" aria-hidden="true">AM</span><span><b>Andrés M.</b><span data-t="rev.t2">Sants, hace 1 mes</span></span></footer></article>
         <article class="revc"><span class="stars" role="img" aria-label="4 de 5" data-ta="aria-label:rev.s4">★★★★☆</span><p>“They swapped our bath for a shower tray in one day. Tidy work, and the final price matched the quote. Booking took a few days.”</p><footer><span class="mono mono-s" aria-hidden="true">CD</span><span><b>Claire D.</b><span data-t="rev.t3">Eixample, hace 3 semanas</span></span></footer></article>
@@ -881,7 +884,7 @@ p { margin: 0; }
   </section>
 
   <!-- PREGUNTAS -->
-  <section class="faq sec" id="preguntas" aria-labelledby="h-faq">
+  <section class="faq sec" id="preguntas" aria-labelledby="h-faq" data-reveal>
     <div class="wrap faq-grid">
       <div class="faq-head">
         <h2 class="h2" id="h-faq" data-t="faq.h">Preguntas frecuentes</h2>
@@ -1007,6 +1010,7 @@ p { margin: 0; }
 <script type="application/json" id="i18n">
 {
   "ca": {
+    "fab.text": "Hola, tinc una avaria",
     "meta.title": "Ramírez Fontaneros 24 h · Lampisteria i urgències a Barcelona",
     "ubar.a": "Urgències 24 h", "ubar.b": "365 dies", "ubar.c": "Arribem en menys de 45 min",
     "logo.sub": "Lampistes 24 h",
@@ -1098,6 +1102,7 @@ p { margin: 0; }
     "ft.legal": "Avís legal i privacitat", "ft.cookies": "Aquesta web no fa servir galetes", "ft.made": "Negoci fictici · Web de mostra d’OOOX",
     "mbar.aria": "Accions ràpides", "mbar.call": "Trucar ara", "mbar.wa": "WhatsApp", "mbar.quote": "Pressupost",
 
+    "avail.eta": "Si truques ara, arribem abans de les <b>{t}</b>",
     "avail.now": "ara mateix: <b>{n}</b> tècnics de guàrdia",
     "rate.n": "<b>Ara mateix: tarifa normal</b>, fins {w}.", "rate.u": "<b>Ara mateix: tarifa d’urgència (+40\u00a0%)</b>, fins {w}.", "rate.chip": "Ara",
     "w.today": "a les {t}", "w.tomorrow": "demà a les {t}", "w.day": "{d} a les {t}",
@@ -1123,6 +1128,7 @@ p { margin: 0; }
     "note.legal.t": "Avís legal, privacitat i galetes", "note.legal.d": "A la web real, amb les dades de la teva empresa (titular, NIF, adreça i número d’instal·lador), com demana la llei. Sense galetes i sense bàner."
   },
   "en": {
+    "fab.text": "Hi, I have a plumbing problem",
     "meta.title": "Ramírez Fontaneros 24 h · 24-hour emergency plumbers in Barcelona",
     "ubar.a": "24-hour emergencies", "ubar.b": "365 days", "ubar.c": "With you in under 45 min",
     "logo.sub": "24-hour plumbers",
@@ -1214,6 +1220,7 @@ p { margin: 0; }
     "ft.legal": "Legal notice & privacy", "ft.cookies": "This site uses no cookies", "ft.made": "Fictional business · OOOX sample website",
     "mbar.aria": "Quick actions", "mbar.call": "Call now", "mbar.wa": "WhatsApp", "mbar.quote": "Quote",
 
+    "avail.eta": "Call now and we’ll be there before <b>{t}</b>",
     "avail.now": "right now: <b>{n}</b> plumbers on call",
     "rate.n": "<b>Right now: standard rate</b>, until {w}.", "rate.u": "<b>Right now: emergency rate (+40%)</b>, until {w}.", "rate.chip": "Now",
     "w.today": "{t}", "w.tomorrow": "tomorrow at {t}", "w.day": "{d} at {t}",
@@ -1239,7 +1246,9 @@ p { margin: 0; }
     "note.legal.t": "Legal notice, privacy and cookies", "note.legal.d": "On the real site, with your company details (owner, tax ID, address and installer number), as the law requires. No cookies, no banner."
   },
   "es": {
+    "fab.text": "Hola, tengo una avería",
     "meta.title": "Ramírez Fontaneros 24 h · Fontanería y urgencias en Barcelona",
+    "avail.eta": "Si llamas ahora, llegamos antes de las <b>{t}</b>",
     "avail.now": "ahora mismo: <b>{n}</b> técnicos de guardia",
     "rate.n": "<b>Ahora mismo: tarifa normal</b>, hasta {w}.", "rate.u": "<b>Ahora mismo: tarifa de urgencia (+40\u00a0%)</b>, hasta {w}.", "rate.chip": "Ahora",
     "w.today": "las {t}", "w.tomorrow": "mañana a las {t}", "w.day": "el {d} a las {t}",
@@ -1297,7 +1306,7 @@ document.addEventListener('kit:ready', function () {
 
   /* ---------------- técnicos de guardia: entre 2 y 4, fijo durante cada hora ---------------- */
   function techs() { var m = K.madrid(); return 2 + Math.floor(K.rand('guardia' + m.date + 'h' + Math.floor(m.min / 60)) * 3); }
-  function renderAvail() { var n = techs(); $$('[data-avail]').forEach(function (el) { el.innerHTML = K.t('avail.now', { n: n }); }); }
+  function renderAvail() { var n = techs(); $$('[data-avail]').forEach(function (el) { el.innerHTML = K.t('avail.now', { n: n }); }); var eta = K.fmtMin(K.nowMin() + 45); $$('[data-eta]').forEach(function (el) { el.innerHTML = K.t('avail.eta', { t: eta }); }); }
 
   /* ---------------- tarifas: lo que se aplica ahora mismo ---------------- */
   function renderRate() {

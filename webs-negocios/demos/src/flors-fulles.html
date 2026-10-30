@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://images.unsplash.com">
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Caveat:wght@500;600&family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{kit}}/kit.css?v={{v}}">
+<script>document.documentElement.classList.add('kit-js');setTimeout(function(){if(!window.Kit)document.documentElement.classList.remove('kit-js')},4000)</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Florist","name":"Flors & Fulles","description":"Floristería de barrio en Sant Antoni, junto al Mercat. Ramos frescos cada mañana, entrega en Barcelona, bodas y eventos, Sant Jordi y suscripción semanal.","image":"https://images.unsplash.com/photo-1709294728779-6be509d45255?auto=format&fit=crop&w=1200&q=72","priceRange":"€€","telephone":"+34930000000","currenciesAccepted":"EUR","address":{"@type":"PostalAddress","streetAddress":"Carrer del Comte Borrell, 00","postalCode":"08015","addressLocality":"Barcelona","addressRegion":"Catalunya","addressCountry":"ES"},"areaServed":{"@type":"City","name":"Barcelona"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"09:30","closes":"20:30"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"09:30","closes":"14:30"}],"hasOfferCatalog":{"@type":"OfferCatalog","name":"Ramos","itemListElement":[{"@type":"Offer","name":"Ramo de flores","priceCurrency":"EUR","price":"25.00"},{"@type":"Offer","name":"Ramo de novia","priceCurrency":"EUR","price":"120.00"},{"@type":"Offer","name":"Suscripción semanal de flores","priceCurrency":"EUR","price":"19.00"}]}}
 </script>
@@ -685,7 +686,7 @@ p { margin: 0; }
   </section>
 
   <!-- CATÁLOGO -->
-  <section class="sec cat" id="catalogo" aria-labelledby="h-cat">
+  <section class="sec cat" id="catalogo" aria-labelledby="h-cat" data-reveal>
     <div class="wrap">
       <div class="cat-head">
         <div>
@@ -775,7 +776,7 @@ p { margin: 0; }
   </section>
 
   <!-- ENTREGAS -->
-  <section class="sec ship" id="entregas" aria-labelledby="h-ship">
+  <section class="sec ship" id="entregas" aria-labelledby="h-ship" data-reveal>
     <div class="wrap ship-grid">
       <div>
         <p class="folio"><i>02</i><span data-t="ship.k">Entregas</span></p>
@@ -818,7 +819,7 @@ p { margin: 0; }
   </section>
 
   <!-- SANT JORDI -->
-  <section class="sec sj" id="sant-jordi" aria-labelledby="h-sj">
+  <section class="sec sj" id="sant-jordi" aria-labelledby="h-sj" data-reveal>
     <svg class="sj-deco la" viewBox="0 0 120 180" aria-hidden="true"><use href="#rose" x="2" y="10" width="60" height="150" transform="rotate(-8 32 90)"/><use href="#wheat" x="52" y="0" width="50" height="180" transform="rotate(14 77 90)"/></svg>
     <div class="wrap">
       <div class="sj-grid">
@@ -863,7 +864,7 @@ p { margin: 0; }
   </section>
 
   <!-- BODAS Y EVENTOS -->
-  <section class="sec wed" id="bodas" aria-labelledby="h-wed">
+  <section class="sec wed" id="bodas" aria-labelledby="h-wed" data-reveal>
     <div class="wrap wed-grid">
       <figure class="wed-art">
         <div class="wed-arch">
@@ -974,7 +975,7 @@ p { margin: 0; }
   </section>
 
   <!-- SUSCRIPCIÓN -->
-  <section class="sec sub" id="suscripcion" aria-labelledby="h-sub">
+  <section class="sec sub" id="suscripcion" aria-labelledby="h-sub" data-reveal>
     <div class="wrap sub-grid">
       <div>
         <p class="folio"><i>05</i><span data-t="sub.k">Suscripción</span></p>
@@ -1011,7 +1012,7 @@ p { margin: 0; }
   </section>
 
   <!-- NOSOTRAS -->
-  <section class="sec about" id="nosotras" aria-labelledby="h-about">
+  <section class="sec about" id="nosotras" aria-labelledby="h-about" data-reveal>
     <div class="wrap about-grid">
       <figure class="about-fig">
         <div class="ph"><img data-u="photo-1639696194673-67b86204b885" data-w="1200" data-sizes="(max-width: 900px) 92vw, 42vw" alt="Interior de una floristería llena de flores" data-ta="alt:ab.alt"></div>
@@ -1037,7 +1038,7 @@ p { margin: 0; }
   </section>
 
   <!-- RESEÑAS -->
-  <section class="sec rev" id="resenas" aria-labelledby="h-rev">
+  <section class="sec rev" id="resenas" aria-labelledby="h-rev" data-reveal>
     <div class="wrap rev-grid">
       <div class="score">
         <p class="folio"><i>07</i><span data-t="rev.k">Lo que dicen</span></p>
@@ -1047,7 +1048,7 @@ p { margin: 0; }
         <span class="sample" data-t="rev.sample">Reseñas de ejemplo</span>
         <a class="btn btn-soft" href="#" data-demo-note="note.review" data-t="rev.btn">Déjanos tu reseña</a>
       </div>
-      <div class="revs">
+      <div class="revs" data-reveal="stagger">
         <article class="revc"><span class="stars" role="img" aria-label="5/5" style="font-size:16px">★★★★★</span><p>Encargué el ramo de cumpleaños de mi madre desde la oficina en dos minutos. Llegó esa misma tarde, precioso y con la tarjeta escrita a mano.</p><footer><span class="av" style="background:#B8255A" aria-hidden="true">N</span><span><b>Núria P.</b><span data-t="rev.t1">hace 2 semanas</span></span></footer></article>
         <article class="revc"><span class="stars" role="img" aria-label="5/5" style="font-size:16px">★★★★★</span><p>Les flors del nostre casament van ser un somni. La Berta va entendre a la primera què volíem i ho va fer encara més bonic.</p><footer><span class="av" style="background:#1F3A2B" aria-hidden="true">M</span><span><b>Marc i Anna</b><span data-t="rev.t2">hace 2 meses</span></span></footer></article>
         <article class="revc"><span class="stars" role="img" aria-label="5/5" style="font-size:16px">★★★★★</span><p>Ordered sympathy flowers for a colleague from abroad. Delivered the same afternoon, simple and beautiful. Kind, careful service.</p><footer><span class="av" style="background:#4A735A" aria-hidden="true">E</span><span><b>Emma W.</b><span data-t="rev.t3">hace 1 mes</span></span></footer></article>
@@ -1056,7 +1057,7 @@ p { margin: 0; }
   </section>
 
   <!-- VISÍTANOS -->
-  <section class="sec visit" id="visita" aria-labelledby="h-visit">
+  <section class="sec visit" id="visita" aria-labelledby="h-visit" data-reveal>
     <div class="wrap">
       <p class="folio"><i>08</i><span data-t="vis.k">Visítanos</span></p>
       <h2 class="h2" id="h-visit" data-th="vis.h">Junto al <em>Mercat de Sant Antoni</em></h2>
@@ -1187,6 +1188,7 @@ p { margin: 0; }
 <script type="application/json" id="i18n">
 {
   "ca": {
+    "fab.text": "Hola, vull encarregar un ram",
     "meta.title": "Flors & Fulles · Floristeria a Sant Antoni, Barcelona",
     "logo.sub": "Floristeria · Sant Antoni",
     "a.nav": "Seccions", "a.lang": "Idioma", "a.occ": "Ocasió", "a.zmap": "Mapa de les zones d'entrega a Barcelona", "a.less": "Treure'n una", "a.more": "Afegir-ne una", "a.mbar": "Accions ràpides",
@@ -1306,6 +1308,7 @@ p { margin: 0; }
     "note.legal.t": "Avís legal, privacitat i galetes", "note.legal.d": "A la web real, amb les dades del teu negoci (titular, NIF, adreça i correu), com demana la llei. Sense galetes, sense bàner."
   },
   "en": {
+    "fab.text": "Hi, I’d like to order a bouquet",
     "meta.title": "Flors & Fulles · Florist in Sant Antoni, Barcelona",
     "logo.sub": "Florist · Sant Antoni",
     "a.nav": "Sections", "a.lang": "Language", "a.occ": "Occasion", "a.zmap": "Map of delivery areas in Barcelona", "a.less": "Remove one", "a.more": "Add one", "a.mbar": "Quick actions",
@@ -1425,6 +1428,7 @@ p { margin: 0; }
     "note.legal.t": "Legal notice, privacy and cookies", "note.legal.d": "On the real site, with your business details (owner, tax ID, address and email), as the law requires. No cookies, no banner."
   },
   "es": {
+    "fab.text": "Hola, quiero encargar un ramo",
     "meta.title": "Flors & Fulles · Floristería en Sant Antoni, Barcelona",
     "sym.wa": "Hola, quería información sobre una corona o un centro para un tanatorio.", "wa.hello": "¡Hola, Flors & Fulles!", "sj.todayBig": "Hoy",
     "and": "y", "from": "desde {x}",

@@ -18,7 +18,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://images.unsplash.com">
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Caveat:wght@500;700&family=Work+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../_kit/kit.css?v=df2b2f48">
+<link rel="stylesheet" href="../_kit/kit.css?v=92ce93d2">
+<script>document.documentElement.classList.add('kit-js');setTimeout(function(){if(!window.Kit)document.documentElement.classList.remove('kit-js')},4000)</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"BarOrPub","name":"La Vermutería del Carrer","servesCuisine":["Tapas","Catalana"],"priceRange":"€","telephone":"+34930000000","address":{"@type":"PostalAddress","streetAddress":"Carrer de Verdi, 00","postalCode":"08012","addressLocality":"Barcelona","addressCountry":"ES"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Tuesday","Wednesday","Thursday"],"opens":"12:00","closes":"23:30"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Friday","opens":"12:00","closes":"00:30"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"11:30","closes":"00:30"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Sunday","opens":"11:30","closes":"17:00"}],"acceptsReservations":true}
 </script>
@@ -404,7 +405,7 @@ p { margin: 0; }
   </div>
 
   <!-- HISTORIA -->
-  <section class="story panot-bg" aria-labelledby="h-story">
+  <section class="story panot-bg" aria-labelledby="h-story" data-reveal>
     <div class="wrap story-grid">
       <figure class="arch">
         <img alt="Vaso de vermut con piel de naranja" data-ta="alt:story.alt" src="https://images.unsplash.com/photo-1603048004570-6a82fc507364?auto=format&fit=crop&w=1200&q=72" srcset="https://images.unsplash.com/photo-1603048004570-6a82fc507364?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1603048004570-6a82fc507364?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1603048004570-6a82fc507364?auto=format&fit=crop&w=1200&q=72 1200w" sizes="(max-width: 860px) 90vw, 42vw" loading="lazy" decoding="async">
@@ -415,17 +416,17 @@ p { margin: 0; }
         <h2 class="quote" id="h-story" data-th="story.h">A la una, la plaza huele a <em>vermut</em> y a bravas.</h2>
         <p class="lead" data-t="story.p1">Abrimos en 1998 con un grifo de vermut negro y seis taburetes. Hoy seguimos igual de pequeños y de tozudos: vermut de Reus con su piel de naranja y su aceituna, bravas con la salsa de la abuela Montse y croquetas hechas cada mañana.</p>
         <p class="lead" data-t="story.p2">Sin prisas, sin reservas imposibles y con la barra llena de vecinos.</p>
-        <div class="stats">
-          <div class="stat"><b>26</b><span data-t="stat.1">años en la misma esquina de Gràcia</span></div>
-          <div class="stat"><b>14</b><span data-t="stat.2">tapas caseras, hechas aquí</span></div>
-          <div class="stat"><b data-t="stat.3v">3,50 €</b><span data-t="stat.3">el vermut de grifo, desde siempre</span></div>
+        <div class="stats" data-reveal="stagger">
+          <div class="stat"><b data-count>26</b><span data-t="stat.1">años en la misma esquina de Gràcia</span></div>
+          <div class="stat"><b data-count>14</b><span data-t="stat.2">tapas caseras, hechas aquí</span></div>
+          <div class="stat"><b data-t="stat.3v" data-count>3,50 €</b><span data-t="stat.3">el vermut de grifo, desde siempre</span></div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- CARTA -->
-  <section class="carta" id="carta" aria-labelledby="h-carta">
+  <section class="carta" id="carta" aria-labelledby="h-carta" data-reveal>
     <div class="wrap">
       <div class="menu-card">
         <div class="demo-tip tip-carta" data-th="tip.carta"><b>Los 14 alérgenos, con filtro.</b> Informar de ellos es obligatorio; aquí el cliente ve en dos toques qué puede comer.</div>
@@ -460,7 +461,7 @@ p { margin: 0; }
   </section>
 
   <!-- MENÚ DEL DÍA -->
-  <section class="board-sec" id="menu-dia" aria-labelledby="h-menu">
+  <section class="board-sec" id="menu-dia" aria-labelledby="h-menu" data-reveal>
     <div class="wrap board-grid">
       <div>
         <p class="k" data-t="menu.k">De martes a viernes · de 13 a 16 h</p>
@@ -479,7 +480,7 @@ p { margin: 0; }
   </section>
 
   <!-- RESERVA -->
-  <section class="res" id="reserva" aria-labelledby="h-res">
+  <section class="res" id="reserva" aria-labelledby="h-res" data-reveal>
     <div class="wrap res-grid">
       <div class="res-txt">
         <p class="k" data-t="res.k">Sin llamadas, en 20 segundos</p>
@@ -517,10 +518,10 @@ p { margin: 0; }
   </section>
 
   <!-- GALERÍA -->
-  <section class="gal" aria-labelledby="h-gal">
+  <section class="gal" aria-labelledby="h-gal" data-reveal>
     <div class="wrap">
       <div class="gal-head"><div><p class="k" data-t="gal.k">La casa</p><h2 class="h2" id="h-gal" style="margin-top:12px" data-t="gal.h">Pasa y siéntate</h2></div><p class="lead" data-t="gal.p">La barra de siempre, la terraza al sol y la cocina abierta todo el día los sábados.</p></div>
-      <div class="gal-grid">
+      <div class="gal-grid" data-reveal="stagger" data-gallery>
         <figure class="g1"><img alt="Mesa llena de tapas y bebidas" data-ta="alt:gal.a1" src="https://images.unsplash.com/photo-1767096088529-1ba1ecc457ee?auto=format&fit=crop&w=1200&q=72" srcset="https://images.unsplash.com/photo-1767096088529-1ba1ecc457ee?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1767096088529-1ba1ecc457ee?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1767096088529-1ba1ecc457ee?auto=format&fit=crop&w=1200&q=72 1200w, https://images.unsplash.com/photo-1767096088529-1ba1ecc457ee?auto=format&fit=crop&w=1400&q=72 1400w" sizes="(max-width: 760px) 100vw, 50vw" loading="lazy" decoding="async"><figcaption data-t="gal.c1">Hora del vermut</figcaption></figure>
         <figure class="g2"><img alt="Tapas para compartir" data-ta="alt:gal.a2" src="https://images.unsplash.com/photo-1656423521731-9665583f100c?auto=format&fit=crop&w=1200&q=72" srcset="https://images.unsplash.com/photo-1656423521731-9665583f100c?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1656423521731-9665583f100c?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1656423521731-9665583f100c?auto=format&fit=crop&w=1200&q=72 1200w, https://images.unsplash.com/photo-1656423521731-9665583f100c?auto=format&fit=crop&w=1400&q=72 1400w" sizes="(max-width: 760px) 100vw, 50vw" loading="lazy" decoding="async"><figcaption data-t="gal.c2">Para compartir</figcaption></figure>
         <figure class="g3"><img alt="Croquetas" data-ta="alt:gal.a3" src="https://images.unsplash.com/photo-1767974963436-2208b3553561?auto=format&fit=crop&w=900&q=72" srcset="https://images.unsplash.com/photo-1767974963436-2208b3553561?auto=format&fit=crop&w=480&q=72 480w, https://images.unsplash.com/photo-1767974963436-2208b3553561?auto=format&fit=crop&w=800&q=72 800w, https://images.unsplash.com/photo-1767974963436-2208b3553561?auto=format&fit=crop&w=900&q=72 900w" sizes="(max-width: 760px) 50vw, 33vw" loading="lazy" decoding="async"><figcaption data-t="gal.c3">Croquetas</figcaption></figure>
@@ -531,7 +532,7 @@ p { margin: 0; }
   </section>
 
   <!-- RESEÑAS -->
-  <section class="rev" aria-labelledby="h-rev">
+  <section class="rev" aria-labelledby="h-rev" data-reveal>
     <div class="wrap rev-grid">
       <div class="score">
         <p class="k" data-t="rev.k">Lo que dicen</p>
@@ -542,7 +543,7 @@ p { margin: 0; }
         <a class="btn btn-red" href="#" data-demo-note="note.review" data-t="rev.btn">Déjanos tu reseña</a>
         <div class="demo-tip tip-inline" data-th="tip.rev"><b>Más reseñas, más arriba en Google Maps.</b> El botón abre directamente la ventana de reseña de tu ficha. Y te las contestamos cada semana.</div>
       </div>
-      <div class="revs">
+      <div class="revs" data-reveal="stagger">
         <article class="revc"><span class="stars" aria-label="5/5" style="font-size:18px">★★★★★</span><p>“Las bravas son de otro planeta y el vermut de grifo, como el de antes. Volvemos cada domingo.”</p><footer><span class="av" style="background:#9E2A2B">M</span><span><b>Marta G.</b><span data-t="rev.t1">hace 2 semanas</span></span></footer></article>
         <article class="revc"><span class="stars" aria-label="5/5" style="font-size:18px">★★★★★</span><p>“Reservé por WhatsApp en un minuto para 8 personas y nos guardaron la mesa grande de la terraza.”</p><footer><span class="av" style="background:#173F2F">J</span><span><b>Jordi P.</b><span data-t="rev.t2">hace 1 mes</span></span></footer></article>
         <article class="revc"><span class="stars" aria-label="4/5" style="font-size:18px">★★★★☆</span><p>“Great local spot in Gràcia. Ask for the gilda and the croquetas. Friendly staff, fair prices.”</p><footer><span class="av" style="background:#B7811A">E</span><span><b>Emma L.</b><span data-t="rev.t3">hace 3 semanas</span></span></footer></article>
@@ -551,7 +552,7 @@ p { margin: 0; }
   </section>
 
   <!-- VISÍTANOS -->
-  <section class="visit panot-bg" id="visita" aria-labelledby="h-visit">
+  <section class="visit panot-bg" id="visita" aria-labelledby="h-visit" data-reveal>
     <div class="wrap">
       <p class="k" data-t="visit.k">Visítanos</p>
       <h2 class="h2" id="h-visit" style="margin-top:12px" data-t="visit.h">En Gràcia, a dos minutos de la plaza</h2>
@@ -701,6 +702,7 @@ p { margin: 0; }
 <script type="application/json" id="i18n">
 {
   "ca": {
+    "fab.text": "Hola, vull reservar una taula",
     "meta.title": "La Vermutería del Carrer · Vermut i tapes a Gràcia",
     "logo.sub": "del Carrer · Gràcia",
     "nav.carta": "La carta", "nav.menu": "Menú del dia", "nav.reserva": "Reservar", "nav.visita": "Vine a veure'ns",
@@ -757,6 +759,7 @@ p { margin: 0; }
     "note.legal.t": "Avís legal, privacitat i galetes", "note.legal.d": "A la web real, amb les dades del teu negoci (titular, NIF, adreça i correu), com demana la llei. Sense galetes, sense bàner."
   },
   "en": {
+    "fab.text": "Hi, I’d like to book a table",
     "meta.title": "La Vermutería del Carrer · Vermouth & tapas in Gràcia",
     "logo.sub": "del Carrer · Gràcia",
     "nav.carta": "Menu", "nav.menu": "Set lunch", "nav.reserva": "Book a table", "nav.visita": "Find us",
@@ -813,6 +816,7 @@ p { margin: 0; }
     "note.legal.t": "Legal notice, privacy and cookies", "note.legal.d": "On the real site, with your business details (owner, tax ID, address and email), as the law requires. No cookies, no banner."
   },
   "es": {
+    "fab.text": "Hola, quiero reservar una mesa",
     "take.see": "Ver la comanda", "take.title": "Tu comanda", "take.empty": "Todavía no has añadido nada.", "take.total": "Total", "take.when": "¿Cuándo la recoges?", "take.today": "Hoy", "take.tomorrow": "Mañana",
     "take.name": "Tu nombre", "take.send": "Pedir por WhatsApp", "take.pay": "Pagas al recogerla", "take.closed": "Este día ya no hacemos pedidos para llevar. Elige mañana.",
     "take.save": "0 € de comisión. Con una app de reparto, de este pedido se irían unos {x}.",
@@ -829,7 +833,7 @@ p { margin: 0; }
 }
 </script>
 
-<script defer src="../_kit/kit.js?v=df2b2f48"></script>
+<script defer src="../_kit/kit.js?v=92ce93d2"></script>
 <script>
 document.addEventListener('kit:ready', function () {
   'use strict';
