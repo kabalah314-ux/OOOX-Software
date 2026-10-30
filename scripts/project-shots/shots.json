@@ -1,14 +1,3 @@
 {
-  "chollector": {
-    "url": "https://chollector.vercel.app/",
-    "extra": {
-      "demo": "https://chollector.vercel.app/demo"
-    },
-    "wait": 2500
-  },
-  "followthesun": {
-    "url": "https://followthesun-three.vercel.app/",
-    "wait": 9000,
-    "time": "2026-10-30T13:30:00+01:00"
-  }
+  "qa-ooox": { "url": "https://ooox.es/#/experimentos", "extra": { "chollector": "https://ooox.es/#/proyecto/chollector", "sun": "https://ooox.es/#/proyecto/followthesun" }, "wait": 7000 }
 }
