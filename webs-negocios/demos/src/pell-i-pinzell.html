@@ -81,7 +81,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
 .status { display: inline-flex; align-items: center; padding: 9px 15px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); color: var(--ink); font-size: 14.5px; line-height: 1.3; box-shadow: var(--sh-1); }
 
 /* cabecera */
-.hd { position: sticky; top: 0; z-index: 50; background: rgba(248,242,236,.9); -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px); transition: box-shadow .3s, background .3s; }
+.hd { position: sticky; top: 0; z-index: 50; background: var(--cream); -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px); transition: box-shadow .3s, background .3s; }
 .hd.is-scrolled { background: rgba(248,242,236,.96); box-shadow: 0 1px 0 var(--line), 0 16px 32px -28px rgba(58,42,49,.55); }
 .hd-in { display: flex; align-items: center; gap: 18px; height: var(--hd); }
 .logo { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); flex: none; }
@@ -202,17 +202,18 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
 .bono-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: clamp(24px, 4vw, 60px); align-items: start; }
 .bonos { display: grid; gap: 12px; }
 .bono { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 18px; align-items: center; padding: 20px 22px; border-radius: 20px; border: 1px solid var(--dline-2); background: var(--plum-2); }
-.bono h3 { font-size: 26px; line-height: 1; }
+.bono h3 { grid-column: 1; grid-row: 1; font-size: 26px; line-height: 1; }
+.bono > p { grid-column: 1; grid-row: 2; }
 .bono p { font-size: 14.5px; color: var(--dmuted); line-height: 1.45; }
-.bono-p { grid-row: 1 / span 2; text-align: right; display: grid; justify-items: end; gap: 6px; }
+.bono-p { grid-column: 2; grid-row: 1 / span 2; text-align: right; display: grid; justify-items: end; gap: 6px; }
 .bono-p b { font: 600 36px/.9 var(--f-d); color: #fff; font-variant-numeric: tabular-nums; }
 .bono-p small { font: 600 12px/1 var(--f-b); letter-spacing: .06em; text-transform: uppercase; color: var(--rose); }
 .bono-p s { font: 400 13px/1 var(--f-b); color: var(--dmuted); }
-.bono .btn { grid-column: 1 / -1; justify-self: start; margin-top: 8px; }
+.bono .btn { grid-column: 1 / -1; grid-row: 3; justify-self: start; margin-top: 8px; }
 .gift { position: relative; display: grid; gap: 18px; padding: clamp(22px, 3vw, 32px); border-radius: 26px; background: var(--plum-2); border: 1px solid var(--dline-2); }
 .gcard { position: relative; aspect-ratio: 1.586; border-radius: 18px; padding: 22px 24px; background: linear-gradient(135deg, var(--rose) 0%, #E6BDB4 45%, var(--rose-d) 100%); color: var(--plum); box-shadow: 0 30px 50px -30px rgba(0,0,0,.6); overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; }
 .gcard::before { content: ""; position: absolute; right: -40px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,.22); }
-.gcard-h { display: flex; justify-content: space-between; align-items: center; font: 700 11.5px/1 var(--f-b); letter-spacing: .2em; text-transform: uppercase; }
+.gcard-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font: 700 11.5px/1 var(--f-b); letter-spacing: .2em; text-transform: uppercase; }
 .gcard-a { align-self: center; font: 600 clamp(44px, 5vw, 60px)/1 var(--f-d); font-variant-numeric: tabular-nums; }
 .gcard-a small { font: 500 15px/1 var(--f-b); margin-left: 8px; letter-spacing: .02em; }
 .gcard-f { display: flex; justify-content: space-between; align-items: end; gap: 12px; font-size: 13.5px; }
@@ -228,7 +229,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
 .gift-note { font-size: 13.5px; color: var(--dmuted); }
 .bono-sec .demo-tip { color: #2a2300; }
 @media (max-width: 900px) { .bono-grid { grid-template-columns: 1fr; } }
-@media (max-width: 520px) { .bono { grid-template-columns: 1fr; } .bono-p { grid-row: auto; justify-items: start; text-align: left; } .gfld { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .bono { grid-template-columns: 1fr; } .bono h3, .bono > p, .bono-p, .bono .btn { grid-column: 1; grid-row: auto; } .bono-p { justify-items: start; text-align: left; } .gfld { grid-template-columns: 1fr; } .gcard-h { font-size: 10px; letter-spacing: .14em; } }
 
 /* cita en 20 segundos */
 .bk-sec { position: relative; }
@@ -372,17 +373,18 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
 
 /* el estudio */
 .studio { background: var(--paper); border-block: 1px solid var(--line); }
-.gal-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 12px; }
+.gal-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .gal-grid figure { position: relative; margin: 0; overflow: hidden; border-radius: 20px; background: var(--rose-l); }
 .gal-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease); }
 .gal-grid figure:hover img { transform: scale(1.04); }
 .gal-grid figcaption { position: absolute; left: 12px; bottom: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(43,35,38,.75); color: #fff; font: 600 12px/1 var(--f-b); backdrop-filter: blur(6px); }
-.g1 { grid-column: span 3; grid-row: span 2; aspect-ratio: 4 / 3; }
-.g2 { grid-column: span 3; aspect-ratio: 16 / 9; }
-.g3, .g4 { grid-column: span 2; aspect-ratio: 1; }
-.g5 { grid-column: span 2; aspect-ratio: 1; }
-.g6 { grid-column: span 2; aspect-ratio: 1; }
-@media (max-width: 760px) { .gal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .gal-grid figure { grid-column: span 1 !important; grid-row: auto !important; aspect-ratio: 1 !important; } .g1 { grid-column: span 2 !important; aspect-ratio: 4 / 3 !important; } }
+.g1 { grid-column: 1 / 3; grid-row: 1 / 3; min-height: 0; }
+.g2 { grid-column: 3 / 5; grid-row: 1; aspect-ratio: 2 / 1; }
+.g3 { grid-column: 3; grid-row: 2; aspect-ratio: 1; }
+.g4 { grid-column: 4; grid-row: 2; aspect-ratio: 1; }
+.g5 { grid-column: 1 / 3; grid-row: 3; aspect-ratio: 2 / 1; }
+.g6 { grid-column: 3 / 5; grid-row: 3; aspect-ratio: 2 / 1; }
+@media (max-width: 760px) { .gal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .gal-grid figure { grid-column: auto !important; grid-row: auto !important; aspect-ratio: 1 !important; } .g1 { grid-column: 1 / 3 !important; aspect-ratio: 4 / 3 !important; } }
 
 /* reseñas */
 .rev-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: clamp(24px, 4vw, 60px); align-items: start; }
@@ -563,7 +565,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
             <div class="svc-m"><span class="svc-p"><span data-t="from">desde</span> 22 €<small>35–60 min</small></span><button type="button" class="btn btn-sm btn-ink" data-pick="ped-spa"><span data-t="pr.book">Pedir cita</span></button></div></div>
         </article>
         <article class="svc">
-          <figure class="svc-ph"><img data-u="photo-1772236617396-2f8460293c07" data-w="1000" data-sizes="(max-width: 560px) 92vw, 33vw" loading="lazy" alt="Aplicando extensiones de pestañas" data-ta="alt:svc.4.alt"></figure>
+          <figure class="svc-ph"><img data-u="photo-1772235616130-b80e12f0ab7a" data-w="1000" data-sizes="(max-width: 560px) 92vw, 33vw" loading="lazy" alt="Aplicando extensiones de pestañas" data-ta="alt:svc.4.alt"></figure>
           <div class="svc-b"><h3 data-t="svc.4">Pestañas</h3><p data-t="svc.4p">Extensiones pelo a pelo, relleno o lifting con tinte. Naturales de verdad.</p>
             <div class="svc-m"><span class="svc-p"><span data-t="from">desde</span> 40 €<small>60–120 min</small></span><button type="button" class="btn btn-sm btn-ink" data-pick="lash-new"><span data-t="pr.book">Pedir cita</span></button></div></div>
         </article>
@@ -710,7 +712,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
         <article class="tm">
           <figure class="tm-ph"><img data-u="photo-1672794776762-18dddc72982e" data-w="900" data-sizes="(max-width: 900px) 40vw, 30vw" loading="lazy" alt="Aina" data-ta="alt:eq.aina.alt"></figure>
           <h3>Aina Roig</h3>
-          <p class="tm-role" data-t="eq.aina.s">Uñas y nail art · fundadora</p>
+          <p class="tm-role" data-t="eq.aina.role">Uñas y nail art · fundadora</p>
           <p class="tm-bio" data-t="eq.aina.bio">Abrió el estudio en 2016 después de diez años en salones del centro. Si le llevas una foto, te lo hace igual. O mejor.</p>
           <dl><dt data-t="eq.next">Próximo hueco</dt><dd data-next="aina">—</dd><dt>Instagram</dt><dd><a href="#" data-demo-note="note.ig">@aina.pinzell</a></dd></dl>
           <button type="button" class="btn btn-sm btn-ink" data-book-pro="aina"><span data-t="eq.aina.cta">Cita con Aina</span></button>
@@ -718,7 +720,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
         <article class="tm">
           <figure class="tm-ph"><img data-u="photo-1637325262485-5cf1abb98c05" data-w="900" data-sizes="(max-width: 900px) 40vw, 30vw" loading="lazy" alt="Laia" data-ta="alt:eq.laia.alt"></figure>
           <h3>Laia Font</h3>
-          <p class="tm-role" data-t="eq.laia.s">Pestañas y cejas</p>
+          <p class="tm-role" data-t="eq.laia.role">Pestañas y cejas</p>
           <p class="tm-bio" data-t="eq.laia.bio">Extensiones pelo a pelo que parecen tuyas y cejas con hilo sin dramas. Si es tu primera vez, te hace la prueba de alergia gratis.</p>
           <dl><dt data-t="eq.next">Próximo hueco</dt><dd data-next="laia">—</dd><dt>Instagram</dt><dd><a href="#" data-demo-note="note.ig">@laia.lashes</a></dd></dl>
           <button type="button" class="btn btn-sm btn-ink" data-book-pro="laia"><span data-t="eq.laia.cta">Cita con Laia</span></button>
@@ -726,7 +728,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
         <article class="tm">
           <figure class="tm-ph"><img data-u="photo-1593351799227-75df2026356b" data-w="900" data-sizes="(max-width: 900px) 40vw, 30vw" loading="lazy" alt="Noa" data-ta="alt:eq.noa.alt"></figure>
           <h3>Noa Benítez</h3>
-          <p class="tm-role" data-t="eq.noa.s">Facial, pies y depilación</p>
+          <p class="tm-role" data-t="eq.noa.role">Facial, pies y depilación</p>
           <p class="tm-bio" data-t="eq.noa.bio">Esteticista desde 2012. La limpieza facial profunda es suya, y la pedicura spa, también. Manos tranquilas.</p>
           <dl><dt data-t="eq.next">Próximo hueco</dt><dd data-next="noa">—</dd><dt>Instagram</dt><dd><a href="#" data-demo-note="note.ig">@noa.pell</a></dd></dl>
           <button type="button" class="btn btn-sm btn-ink" data-book-pro="noa"><span data-t="eq.noa.cta">Cita con Noa</span></button>
@@ -903,7 +905,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
   ],
   "bonos": [
     {"id":"b-semi","svc":"man-semi","n":5,"p":125},
-    {"id":"b-face","svc":"face-deep","n":3,"p":140},
+    {"id":"b-face","svc":"face-deep","n":3,"p":135},
     {"id":"b-lash","svc":"lash-fill","n":3,"p":105}
   ]
 }
@@ -1038,9 +1040,9 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
     "next.today": "avui a les {t}", "next.tomorrow": "demà a les {t}", "next.day": "{d} a les {t}", "next.none": "consulta'ns",
     "eq.k": "Equip", "eq.h": "Tres mans, <em>tres especialitats.</em>", "eq.lead": "Demana hora amb la teva o deixa que t'atengui la primera que estigui lliure.",
     "eq.next": "Proper forat", "eq.none": "Agenda plena aquests dies",
-    "eq.aina.s": "Ungles i nail art · fundadora", "eq.aina.bio": "Va obrir l'estudi el 2016 després de deu anys en salons del centre. Si li portes una foto, t'ho fa igual. O millor.", "eq.aina.cta": "Hora amb l'Aina", "eq.aina.alt": "Aina",
-    "eq.laia.s": "Pestanyes i celles", "eq.laia.bio": "Extensions pèl a pèl que semblen teves i celles amb fil sense drames. Si és el teu primer cop, et fa la prova d'al·lèrgia gratis.", "eq.laia.cta": "Hora amb la Laia", "eq.laia.alt": "Laia",
-    "eq.noa.s": "Facial, peus i depilació", "eq.noa.bio": "Esteticista des del 2012. La neteja facial profunda és seva, i la pedicura spa, també. Mans tranquil·les.", "eq.noa.cta": "Hora amb la Noa", "eq.noa.alt": "Noa",
+    "eq.aina.s": "Ungles i nail art", "eq.aina.role": "Ungles i nail art · fundadora", "eq.aina.bio": "Va obrir l'estudi el 2016 després de deu anys en salons del centre. Si li portes una foto, t'ho fa igual. O millor.", "eq.aina.cta": "Hora amb l'Aina", "eq.aina.alt": "Aina",
+    "eq.laia.s": "Pestanyes i celles", "eq.laia.role": "Pestanyes i celles", "eq.laia.bio": "Extensions pèl a pèl que semblen teves i celles amb fil sense drames. Si és el teu primer cop, et fa la prova d'al·lèrgia gratis.", "eq.laia.cta": "Hora amb la Laia", "eq.laia.alt": "Laia",
+    "eq.noa.s": "Facial, peus i depilació", "eq.noa.role": "Facial, peus i depilació", "eq.noa.bio": "Esteticista des del 2012. La neteja facial profunda és seva, i la pedicura spa, també. Mans tranquil·les.", "eq.noa.cta": "Hora amb la Noa", "eq.noa.alt": "Noa",
     "gal.k": "L'estudi", "gal.h": "Petit, <em>amb llum.</em>", "gal.lead": "Quatre llocs, una cabina i una paret d'esmalts per triar amb calma. Toca una foto per veure-la gran.",
     "gal.1": "La paret d'esmalts", "gal.2": "La sala d'espera", "gal.3": "Nail art", "gal.4": "Lífting de pestanyes", "gal.5": "Francesa", "gal.6": "Material per clienta",
     "rev.k": "El que diuen", "rev.lbl": "4,9 de 5", "rev.n": "186 ressenyes a Google · totes contestades", "rev.btn": "Deixa'ns una ressenya",
@@ -1131,9 +1133,9 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
     "next.today": "today at {t}", "next.tomorrow": "tomorrow at {t}", "next.day": "{d} at {t}", "next.none": "ask us",
     "eq.k": "Team", "eq.h": "Three pairs of hands, <em>three specialities.</em>", "eq.lead": "Book with yours, or let whoever is free first look after you.",
     "eq.next": "Next free slot", "eq.none": "Fully booked these days",
-    "eq.aina.s": "Nails and nail art · founder", "eq.aina.bio": "Opened the studio in 2016 after ten years in city-centre salons. Bring her a photo and she’ll match it. Or better it.", "eq.aina.cta": "Book with Aina", "eq.aina.alt": "Aina",
-    "eq.laia.s": "Lashes and brows", "eq.laia.bio": "Classic extensions that look like your own and threaded brows without drama. First time? She does the patch test for free.", "eq.laia.cta": "Book with Laia", "eq.laia.alt": "Laia",
-    "eq.noa.s": "Facials, feet and waxing", "eq.noa.bio": "Beautician since 2012. The deep cleansing facial is hers, and so is the spa pedicure. Calm hands.", "eq.noa.cta": "Book with Noa", "eq.noa.alt": "Noa",
+    "eq.aina.s": "Nails and nail art", "eq.aina.role": "Nails and nail art · founder", "eq.aina.bio": "Opened the studio in 2016 after ten years in city-centre salons. Bring her a photo and she’ll match it. Or better it.", "eq.aina.cta": "Book with Aina", "eq.aina.alt": "Aina",
+    "eq.laia.s": "Lashes and brows", "eq.laia.role": "Lashes and brows", "eq.laia.bio": "Classic extensions that look like your own and threaded brows without drama. First time? She does the patch test for free.", "eq.laia.cta": "Book with Laia", "eq.laia.alt": "Laia",
+    "eq.noa.s": "Facials, feet and waxing", "eq.noa.role": "Facials, feet and waxing", "eq.noa.bio": "Beautician since 2012. The deep cleansing facial is hers, and so is the spa pedicure. Calm hands.", "eq.noa.cta": "Book with Noa", "eq.noa.alt": "Noa",
     "gal.k": "The studio", "gal.h": "Small, <em>and bright.</em>", "gal.lead": "Four stations, one cabin and a wall of polish to choose from at your own pace. Tap a photo to see it larger.",
     "gal.1": "The polish wall", "gal.2": "The waiting area", "gal.3": "Nail art", "gal.4": "Lash lift", "gal.5": "French tips", "gal.6": "Fresh tools for every client",
     "rev.k": "What people say", "rev.lbl": "4.9 out of 5", "rev.n": "186 Google reviews · all answered", "rev.btn": "Leave us a review",
