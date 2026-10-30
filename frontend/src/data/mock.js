@@ -179,6 +179,29 @@ export const workCards = {
       ["Key feature", "Timetable with spots"],
     ],
   },
+  // ---------------------------------------------------------- EXPERIMENTS
+  chollector: {
+    typeEn: "Web app · Second-hand resale",
+    short: "A deal radar for Wallapop and Vinted resellers: it watches your searches and tells you, in minutes, if a listing is a bargain compared with what really sells.",
+    route: ["Search", "Alert", "Real price", "Profit"],
+    facts: [
+      ["Type", "Web app"],
+      ["Platforms", "Wallapop · Vinted"],
+      ["Year", "2026"],
+      ["Status", "Beta"],
+    ],
+  },
+  followthesun: {
+    typeEn: "Map app · Barcelona",
+    short: "Where the sun is shining in Barcelona, right now: a map with building shadows and clouds that finds the best sunny spot for what you want to do.",
+    route: ["Plan", "When", "How long", "Sunny spot"],
+    facts: [
+      ["Type", "Map web app"],
+      ["City", "Barcelona"],
+      ["Year", "2026"],
+      ["Status", "Beta"],
+    ],
+  },
 };
 
 const shots = (k) => ({
@@ -440,6 +463,54 @@ export const projects = [
     stack: ["HTML", "CSS", "JavaScript"], tags: ["Bienestar", "Clases", "WhatsApp"],
     metrics: [{ label: "Tipos de clase", value: "7" }, { label: "Primera clase", value: "0 €" }, { label: "Ilimitado", value: "79 €" }],
   },
+  // ---------------------------------------------------------- EXPERIMENTS
+  {
+    id: "chollector", category: "experiments", title: "Chollector", kicker: "Lo que se vende, no lo que se pide", year: "2026",
+    type: "Web app · Reventa de segunda mano", status: "Beta", statusTone: "build", access: "public",
+    url: "https://chollector.vercel.app/",
+    socials: { web: "https://chollector.vercel.app/" },
+    ...shots("chollector"),
+    previews: [
+      { src: img("/projects/chollector.jpg"), y: 0, label: "Portada" },
+      { src: img("/projects/chollector_demo.jpg"), y: 0, label: "Demo del panel" },
+      { src: img("/projects/chollector_m.jpg"), y: 0, label: "Móvil" },
+    ],
+    gallery: [img("/projects/chollector_demo.jpg"), img("/projects/chollector_m.jpg")],
+    accent: "#FBBF24", accentSoft: "#0B1526",
+    description: "Radar de chollos para revendedores de Wallapop y Vinted: vigila tus búsquedas y te avisa en minutos si un anuncio es un chollo frente a lo que se vende de verdad, con el margen que sacarías.",
+    longDescription: "Chollector nace de un problema de quien compra y vende de segunda mano: el precio que se pide en los anuncios no dice nada; lo que importa es a cuánto se vende de verdad. La app vigila tus búsquedas cada pocos minutos y te avisa en el móvil o por Telegram con un veredicto frente a las ventas reales, el margen neto y el precio máximo que deberías pagar. Tiene tablas de precios por producto y estado (anunciado frente a vendido, días en venderse, rebaja típica), una calculadora de reventa con las tarifas reales de cada plataforma y una cartera de compras y ventas con el beneficio real. Está en beta.",
+    highlights: [
+      "Avisos en 5–10 minutos con veredicto frente a lo que se vende",
+      "Tablas de precio anunciado frente a vendido por producto y estado",
+      "Calculadora de reventa con las tarifas de Wallapop y Vinted",
+      "Cartera de compras y ventas con beneficio real",
+    ],
+    stack: ["Next.js", "Postgres", "Vercel", "Telegram"], tags: ["Reventa", "Precios", "Avisos"],
+    metrics: [{ label: "Plataformas", value: "2" }, { label: "Avisos", value: "5–10′" }, { label: "Estado", value: "Beta" }],
+  },
+  {
+    id: "followthesun", category: "experiments", title: "I Follow the Sun", kicker: "Dónde da el sol en Barcelona, ahora", year: "2026",
+    type: "Web app · Mapa de sol y sombra", status: "Beta", statusTone: "build", access: "public",
+    url: "https://followthesun-three.vercel.app/",
+    socials: { web: "https://followthesun-three.vercel.app/" },
+    ...shots("followthesun"),
+    previews: [
+      { src: img("/projects/followthesun.jpg"), y: 0, label: "Mapa de sol" },
+      { src: img("/projects/followthesun_m.jpg"), y: 0, label: "Móvil" },
+    ],
+    gallery: [img("/projects/followthesun.jpg"), img("/projects/followthesun_m.jpg")],
+    accent: "#FFB547", accentSoft: "#14110A",
+    description: "Un mapa de Barcelona con la luz del sol de verdad: sombras de los edificios y nubes. Le dices qué quieres hacer fuera, cuándo y cuánto rato, y te encuentra el mejor sitio al sol.",
+    longDescription: "I Follow the Sun contesta a una pregunta muy de Barcelona: ¿dónde da el sol ahora? Es un mapa a pantalla completa que calcula la posición del sol, la sombra que hacen los edificios calle a calle y lo que tapan las nubes según la previsión y el satélite. Encima, un buscador: eliges qué quieres hacer (tomar el sol, un café, leer, playa, atardecer o pasear), cuándo y durante cuánto tiempo, y te propone los mejores lugares con su mejor franja de sol, una puntuación explicada y cómo llegar. Usa solo datos abiertos y herramientas gratuitas, y dice con honestidad qué es cálculo a pie de calle y qué es estimación.",
+    highlights: [
+      "Sombra de los edificios calculada a nivel de calle",
+      "Nubes de la previsión y del satélite fusionadas en la luz efectiva",
+      "Buscador: qué, cuándo y cuánto rato, con la mejor franja de sol",
+      "Parques, plazas, playas, terrazas y miradores con datos abiertos",
+    ],
+    stack: ["React", "MapLibre", "Vite", "Open-Meteo"], tags: ["Mapas", "Barcelona", "Datos abiertos"],
+    metrics: [{ label: "Ciudad", value: "Barcelona" }, { label: "Sombras", value: "Calle a calle" }, { label: "Coste", value: "0 €" }],
+  },
 ];
 
 // ------------------------------------------------------------
@@ -453,6 +524,7 @@ export const projects = [
 export const ORDER = [
   "neuron", "elementia", "crossia", "usain-bot", "casa-aurea", "massflow", "moog-barcelona",
   "la-vermuteria", "nomada-barbers", "pell-i-pinzell", "flors-fulles", "ramirez-24h", "estudio-lua",
+  "chollector", "followthesun",
 ];
 
 const rank = (id) => (ORDER.indexOf(id) === -1 ? ORDER.length : ORDER.indexOf(id));

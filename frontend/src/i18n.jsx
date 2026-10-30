@@ -136,6 +136,12 @@ const dict = {
       "Meses de cuota": "Instalment months", "Primera visita": "First visit", Ramos: "Bouquets", "Zonas de entrega": "Delivery areas",
       "Hora límite": "Order by", Llegada: "Arrival", Servicio: "Service", Garantía: "Guarantee", "Tipos de clase": "Class types",
       "Primera clase": "First class", Ilimitado: "Unlimited",
+      // experiments
+      Plataformas: "Platforms", Avisos: "Alerts", Reventa: "Resale", Precios: "Prices", Mapas: "Maps",
+      Barcelona: "Barcelona", "Datos abiertos": "Open data", Ciudad: "City", Sombras: "Shadows",
+      "Calle a calle": "Street by street", Coste: "Cost", Beta: "Beta",
+      "Web app · Reventa de segunda mano": "Web app · Second-hand resale",
+      "Web app · Mapa de sol y sombra": "Web app · Sun & shade map",
     },
   },
 
@@ -288,6 +294,18 @@ const dict = {
           route: ["Horario", "Clase", "Plaza", "WhatsApp"],
           facts: [["", "Web"], ["", "ES · CA · EN"], ["", "2026"], ["", "Horario con plazas"]],
         },
+        chollector: {
+          typeEn: "Web app · Reventa de segunda mano",
+          short: "Radar de chollos para revendedores de Wallapop y Vinted: vigila tus búsquedas y te dice en minutos si un anuncio es un chollo frente a lo que se vende de verdad.",
+          route: ["Búsqueda", "Aviso", "Precio real", "Beneficio"],
+          facts: [["Tipo", "Web app"], ["Plataformas", "Wallapop · Vinted"], ["Año", "2026"], ["Estado", "Beta"]],
+        },
+        followthesun: {
+          typeEn: "Mapa · Barcelona",
+          short: "Dónde da el sol en Barcelona, ahora: un mapa con la sombra de los edificios y las nubes que te encuentra el mejor sitio al sol para lo que quieras hacer.",
+          route: ["Plan", "Cuándo", "Cuánto rato", "Sitio al sol"],
+          facts: [["Tipo", "Mapa web"], ["Ciudad", "Barcelona"], ["Año", "2026"], ["Estado", "Beta"]],
+        },
       },
     },
     about: {
@@ -415,6 +433,9 @@ const dict = {
         "flors-fulles": {},
         "ramirez-24h": {},
         "estudio-lua": {},
+        // Experiments: en castellano, los textos de data/mock.js
+        chollector: {},
+        followthesun: {},
       },
     },
   },
@@ -590,6 +611,32 @@ dict.en.case.projects = {
       "Book a spot by WhatsApp from any class",
       "Free first class, passes and unlimited with clear prices",
       "Tonight's moon and a 1-minute breathing exercise",
+    ],
+  },
+  chollector: {
+    kicker: "What sells, not what's asked",
+    description:
+      "A deal radar for Wallapop and Vinted resellers: it watches your searches and alerts you within minutes when a listing is a bargain compared with what really sells, with the margin you would make.",
+    longDescription:
+      "Chollector comes from a problem every second-hand reseller knows: the asking price in a listing says very little; what matters is what things actually sell for. The app checks your searches every few minutes and alerts you on your phone or on Telegram with a verdict against real sales, the net margin and the maximum price you should pay. It has price tables by product and condition (asked vs sold, days to sell, typical discount), a resale calculator with each platform's real fees and a portfolio of purchases and sales with real profit. It is in beta.",
+    highlights: [
+      "Alerts within 5–10 minutes with a verdict against real sales",
+      "Asked vs sold price tables by product and condition",
+      "Resale calculator with Wallapop and Vinted fees",
+      "Purchases and sales portfolio with real profit",
+    ],
+  },
+  followthesun: {
+    kicker: "Where the sun is shining in Barcelona, right now",
+    description:
+      "A map of Barcelona with real sunlight: building shadows and clouds. Tell it what you want to do outside, when and for how long, and it finds you the best sunny spot.",
+    longDescription:
+      "I Follow the Sun answers a very Barcelona question: where is it sunny right now? It is a full-screen map that computes the sun's position, the shadows buildings cast street by street and what the clouds block according to forecasts and satellite data. On top sits a search: pick what you want to do (sunbathe, coffee, read, beach, sunset or a walk), when and for how long, and it suggests the best places with their best sunny window, an explained score and directions. It uses only open data and free tools, and it is honest about what is computed at street level and what is an estimate.",
+    highlights: [
+      "Building shadows computed at street level",
+      "Forecast and satellite clouds fused into effective sunlight",
+      "Search by what, when and how long, with the best sunny window",
+      "Parks, squares, beaches, terraces and viewpoints from open data",
     ],
   },
 };

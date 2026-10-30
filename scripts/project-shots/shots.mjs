@@ -18,9 +18,12 @@ const common = { locale: 'es-ES', timezoneId: 'Europe/Madrid', geolocation: { la
 const desk = await browser.newContext({ ...common, viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
 const mob = await browser.newContext({ ...common, ...devices['Pixel 7'], viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 
-async function shoot(ctx, url, file, { wait = 2000, full = false } = {}) {
+async function shoot(ctx, url, file, { wait = 2000, full = false, time } = {}) {
   const page = await ctx.newPage();
+  page.setDefaultTimeout(120000);
   try {
+    // Hora fija opcional (p. ej. mediodía para una app de sol) sin parar los temporizadores
+    if (time) await page.clock.setFixedTime(new Date(time));
     await page.goto(url, { waitUntil: 'networkidle', timeout: 90000 }).catch(() => page.waitForLoadState('load'));
     await page.waitForTimeout(wait);
     if (full) {
@@ -30,14 +33,14 @@ async function shoot(ctx, url, file, { wait = 2000, full = false } = {}) {
       });
       await page.waitForTimeout(800);
     }
-    await page.screenshot({ path: join(out, file), type: 'jpeg', quality: 82, fullPage: full });
+    await page.screenshot({ path: join(out, file), type: 'jpeg', quality: 82, fullPage: full, timeout: 120000 });
     console.log('ok', file, page.url());
   } catch (e) { console.log('ERROR', file, e.message); }
   await page.close();
 }
 
 for (const [k, c] of Object.entries(conf)) {
-  const o = { wait: c.wait };
+  const o = { wait: c.wait, time: c.time };
   await shoot(desk, c.url, `${k}.jpg`, o);
   await shoot(desk, c.url, `${k}_long.jpg`, { ...o, full: true });
   await shoot(mob, c.url, `${k}_m.jpg`, o);
