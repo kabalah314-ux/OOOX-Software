@@ -264,11 +264,11 @@ const dict = {
           route: ["Servicio", "Barbero", "Hora", "WhatsApp"],
           facts: [["", "Web"], ["", "ES · CA · EN"], ["", "2026"], ["", "Cita online"]],
         },
-        "clinica-dental-horta": {
-          typeEn: "Web de clínica dental · Citas y financiación",
-          short: "Una clínica dental de barrio: primera visita gratis, precios orientativos, calculadora de cuotas y petición de cita por WhatsApp, con urgencias en el día.",
-          route: ["Tratamientos", "Cuotas", "Primera visita", "Cita"],
-          facts: [["", "Web"], ["", "ES · CA · EN"], ["", "2026"], ["", "Calculadora de cuotas"]],
+        "pell-i-pinzell": {
+          typeEn: "Web de estética · Citas, bonos y cheques regalo",
+          short: "Un centro de estética y uñas de Les Corts: la clienta elige servicio, profesional, día y hora, y la cita llega por WhatsApp. Precios con duración, bonos y cheques regalo desde el móvil.",
+          route: ["Servicio", "Profesional", "Hora", "WhatsApp"],
+          facts: [["", "Web"], ["", "ES · CA · EN"], ["", "2026"], ["", "Bonos y cheques regalo"]],
         },
         "flors-fulles": {
           typeEn: "Web de floristería · Pedidos con entrega",
@@ -411,7 +411,7 @@ const dict = {
         // Webs para negocios: en castellano se usan los textos de data/mock.js (el {} evita caer en el inglés)
         "la-vermuteria": {},
         "nomada-barbers": {},
-        "clinica-dental-horta": {},
+        "pell-i-pinzell": {},
         "flors-fulles": {},
         "ramirez-24h": {},
         "estudio-lua": {},
@@ -540,17 +540,17 @@ dict.en.case.projects = {
       "Club Nómada: unlimited cuts for a monthly fee",
     ],
   },
-  "clinica-dental-horta": {
-    kicker: "A neighbourhood clinic where the dentist isn't scary",
+  "pell-i-pinzell": {
+    kicker: "An hour for you, in Les Corts",
     description:
-      "Demo project · A website for a dental clinic in Horta: free first visit, guide prices, an instalment calculator and appointment requests by WhatsApp, with same-day emergencies.",
+      "Demo project · A website for a beauty and nail studio in Les Corts: clients pick service, specialist, day and time, and the booking arrives on WhatsApp. Prices with durations, session packs and gift cards ordered from the phone.",
     longDescription:
-      "This is a demo project: the clinic doesn't exist, but the calculator and the appointment request work. The site is designed to remove fear and doubts before calling: trust in plain sight (years in the neighbourhood, reviews, registered team), a prominent free first visit, treatments with 'from' prices and a calculator that turns the estimate into a monthly instalment. The questions people ask most on the phone are already answered, and requesting an appointment is choosing a reason, morning or afternoon and a day: it reaches reception on WhatsApp. If it's an emergency, the site puts the call button right in front of you.",
+      "This is a demo project: the studio doesn't exist, but the booking, the packs and the gift card work. Pell & Pinzell is cream, powder pink and plum, with an elegant serif and arched photos, like a dressing-table mirror. The first thing a client sees is what she asks most on Instagram: what each service costs and how long it takes, plus a genuinely free next slot. Booking takes five steps without a call and reaches the studio on WhatsApp, already sorted. And what brings in the most cash: five-session packs and gift cards chosen, ordered and paid from the phone.",
     highlights: [
-      "Instalment calculator from 6 to 24 months",
-      "Free first visit and treatments with 'from' prices",
-      "Appointment requests by WhatsApp, with an emergency shortcut",
-      "FAQs that save phone calls",
+      "Booking in 5 steps: service, specialist, day, time and name",
+      "Prices and durations in plain sight, with extras",
+      "Session packs with the saving worked out",
+      "Gift cards ordered from the phone",
     ],
   },
   "flors-fulles": {

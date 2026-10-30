@@ -140,5 +140,36 @@
         "query": "?lang=ca"
       }
     ]
+  },
+  "pell-i-pinzell": {
+    "sections": [
+      "cita",
+      "bonos"
+    ],
+    "qa": [
+      {
+        "name": "cita-hora",
+        "js": "document.querySelector('[data-go=\"4\"]').click(); document.querySelector('#cita').scrollIntoView({ block: 'start', behavior: 'instant' });"
+      },
+      {
+        "name": "cita-wa",
+        "mobile": true,
+        "wait": 1500,
+        "js": "document.querySelector('[data-go=\"4\"]').click(); setTimeout(function () { var t = [].slice.call(document.querySelectorAll('#o-time button')).find(function (b) { return !b.disabled; }); if (t) t.click(); setTimeout(function () { document.querySelector('#bk-name').value = 'Marta'; document.querySelector('#bk').requestSubmit(); }, 300); }, 300);"
+      },
+      {
+        "name": "regalo",
+        "js": "document.querySelector('[data-amt=\"80\"]').click(); document.querySelector('#g-name').value = 'Carla'; document.querySelector('#g-name').dispatchEvent(new Event('input')); document.querySelector('#bonos').scrollIntoView({ block: 'start', behavior: 'instant' });"
+      },
+      {
+        "name": "en",
+        "query": "?lang=en"
+      },
+      {
+        "name": "ca-movil",
+        "mobile": true,
+        "query": "?lang=ca"
+      }
+    ]
   }
 }

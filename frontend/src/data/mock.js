@@ -135,15 +135,15 @@ export const workCards = {
       ["Key feature", "Online booking"],
     ],
   },
-  "clinica-dental-horta": {
-    typeEn: "Dental clinic website · Appointments & financing",
-    short: "A neighbourhood dental clinic: free first visit, guide prices, a monthly instalment calculator and appointment requests by WhatsApp, with same-day emergencies.",
-    route: ["Treatments", "Instalments", "First visit", "Appointment"],
+  "pell-i-pinzell": {
+    typeEn: "Beauty & nails website · Booking, packs and gift cards",
+    short: "A beauty and nail studio in Les Corts: clients pick service, specialist, day and time and the booking arrives on WhatsApp. Prices with durations, session packs and gift cards ordered from the phone.",
+    route: ["Service", "Specialist", "Time", "WhatsApp"],
     facts: [
       ["Type", "Website"],
       ["Languages", "ES · CA · EN"],
       ["Year", "2026"],
-      ["Key feature", "Instalment calculator"],
+      ["Key feature", "Packs & gift cards"],
     ],
   },
   "flors-fulles": {
@@ -393,16 +393,16 @@ export const projects = [
     metrics: [{ label: "Pasos", value: "5" }, { label: "Barberos", value: "3" }, { label: "Club", value: "39 €" }],
   },
   {
-    id: "clinica-dental-horta", category: "local", title: "Clínica Dental Horta", kicker: "Una clínica de barrio donde no da miedo ir al dentista", year: "2026",
-    type: "Web de clínica dental · Citas y financiación", status: "Online", statusTone: "live", access: "public",
-    ...demoWeb("clinica-dental-horta", [["cuotas", "Calculadora de cuotas"], ["cita", "Pedir cita"]]),
-    accent: "#8FD3C9", accentSoft: "#0B2545",
+    id: "pell-i-pinzell", category: "local", title: "Pell & Pinzell", kicker: "Una hora para ti, en Les Corts", year: "2026",
+    type: "Web de estética · Citas, bonos y cheques regalo", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("pell-i-pinzell", [["cita", "Cita en 20 segundos"], ["bonos", "Bonos y cheque regalo"]]),
+    accent: "#D9A79F", accentSoft: "#3A2A31",
     demo: true,
-    description: "Proyecto demo · Web para una clínica dental de Horta: primera visita gratis, precios orientativos, calculadora de cuotas y petición de cita por WhatsApp, con urgencias en el día.",
-    longDescription: "Este es un proyecto demo: la clínica no existe, pero la calculadora y la petición de cita funcionan. La web está pensada para quitar miedo y dudas antes de llamar: confianza a la vista (años en el barrio, reseñas, equipo colegiado), la primera visita gratis bien destacada, tratamientos con precios «desde» y una calculadora que convierte el presupuesto en una cuota al mes. Las preguntas que más se hacen por teléfono ya están contestadas, y pedir cita es elegir motivo, mañana o tarde y día: llega a recepción por WhatsApp. Si es una urgencia, la web pone delante el botón de llamar.",
-    highlights: ["Calculadora de cuotas de 6 a 24 meses", "Primera visita gratis y tratamientos con precio «desde»", "Petición de cita por WhatsApp, con atajo para urgencias", "Preguntas frecuentes que ahorran llamadas"],
-    stack: ["HTML", "CSS", "JavaScript"], tags: ["Salud", "Citas", "Financiación"],
-    metrics: [{ label: "Tratamientos", value: "6" }, { label: "Meses de cuota", value: "6–24" }, { label: "Primera visita", value: "0 €" }],
+    description: "Proyecto demo · Web para un centro de estética y uñas de Les Corts: la clienta elige servicio, profesional, día y hora, y la cita llega por WhatsApp. Precios con duración, bonos de sesiones y cheques regalo que se piden desde el móvil.",
+    longDescription: "Este es un proyecto demo: el estudio no existe, pero la cita, los bonos y el cheque regalo funcionan. Pell & Pinzell es crema, rosa empolvado y ciruela, con una serif elegante y fotos en arco, como el espejo de un tocador. Lo primero que ve la clienta es lo que más pregunta por Instagram: cuánto cuesta cada cosa y cuánto dura, y el próximo hueco libre de verdad. La cita se pide en cinco pasos sin llamar y llega al estudio por WhatsApp ya ordenada. Y lo que más caja hace: bonos de cinco sesiones y cheques regalo que se eligen, se piden y se pagan desde el móvil.",
+    highlights: ["Cita en 5 pasos: servicio, profesional, día, hora y nombre", "Precios y duración a la vista, con extras", "Bonos de sesiones con el ahorro calculado", "Cheque regalo que se pide desde el móvil"],
+    stack: ["HTML", "CSS", "JavaScript"], tags: ["Estética", "Citas", "Bonos"],
+    metrics: [{ label: "Servicios", value: "18" }, { label: "Profesionales", value: "3" }, { label: "Bono de 5", value: "125 €" }],
   },
   {
     id: "flors-fulles", category: "local", title: "Flors & Fulles", kicker: "Flores frescas cada mañana, en Sant Antoni", year: "2026",
@@ -452,7 +452,7 @@ export const projects = [
 // ------------------------------------------------------------
 export const ORDER = [
   "neuron", "elementia", "crossia", "usain-bot", "casa-aurea", "massflow", "moog-barcelona",
-  "la-vermuteria", "nomada-barbers", "clinica-dental-horta", "flors-fulles", "ramirez-24h", "estudio-lua",
+  "la-vermuteria", "nomada-barbers", "pell-i-pinzell", "flors-fulles", "ramirez-24h", "estudio-lua",
 ];
 
 const rank = (id) => (ORDER.indexOf(id) === -1 ? ORDER.length : ORDER.indexOf(id));
