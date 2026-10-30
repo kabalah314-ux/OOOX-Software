@@ -1,0 +1,8 @@
+ok qa-ooox.jpg https://ooox.es/#/experimentos
+ok qa-ooox_long.jpg https://ooox.es/#/experimentos
+ok qa-ooox_m.jpg https://ooox.es/#/experimentos
+ok qa-ooox_m_long.jpg https://ooox.es/#/experimentos
+ok qa-ooox_chollector.jpg https://ooox.es/#/proyecto/chollector
+ok qa-ooox_chollector_m.jpg https://ooox.es/#/proyecto/chollector
+ok qa-ooox_sun.jpg https://ooox.es/#/proyecto/followthesun
+ok qa-ooox_sun_m.jpg https://ooox.es/#/proyecto/followthesun
