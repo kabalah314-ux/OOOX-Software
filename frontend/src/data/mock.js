@@ -476,7 +476,7 @@ export const projects = [
       { src: img("/projects/chollector_m.jpg"), y: 0, label: "Móvil" },
     ],
     gallery: [img("/projects/chollector_demo.jpg"), img("/projects/chollector_m.jpg")],
-    accent: "#FBBF24", accentSoft: "#0B1526",
+    accent: "#1FC2AA", accentSoft: "#0B1526",
     description: "Radar de chollos para revendedores de Wallapop y Vinted: vigila tus búsquedas y te avisa en minutos si un anuncio es un chollo frente a lo que se vende de verdad, con el margen que sacarías.",
     longDescription: "Chollector nace de un problema de quien compra y vende de segunda mano: el precio que se pide en los anuncios no dice nada; lo que importa es a cuánto se vende de verdad. La app vigila tus búsquedas cada pocos minutos y te avisa en el móvil o por Telegram con un veredicto frente a las ventas reales, el margen neto y el precio máximo que deberías pagar. Tiene tablas de precios por producto y estado (anunciado frente a vendido, días en venderse, rebaja típica), una calculadora de reventa con las tarifas reales de cada plataforma y una cartera de compras y ventas con el beneficio real. Está en beta.",
     highlights: [
