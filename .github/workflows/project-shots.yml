@@ -1,0 +1,49 @@
+# Capturas de proyectos publicados fuera de este repo (Experiments de ooox.es: Chollector, I Follow the Sun…).
+# Se lanza al cambiar scripts/project-shots en cualquier rama que no sea main y publica las imágenes en la rama `project-shots`.
+name: Capturas de proyectos
+
+on:
+  push:
+    branches-ignore: [main, demo-shots, project-shots]
+    paths:
+      - 'scripts/project-shots/**'
+      - '.github/workflows/project-shots.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: project-shots
+  cancel-in-progress: true
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TZ: Europe/Madrid
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Instalar Playwright (Chromium)
+        working-directory: scripts/project-shots
+        run: |
+          npm i --no-save --no-package-lock --no-audit --no-fund playwright@1.49.1
+          npx playwright install --with-deps chromium
+      - name: Hacer las capturas
+        run: node scripts/project-shots/shots.mjs /tmp/out 2>&1 | tee /tmp/log.txt
+      - name: Publicar en la rama project-shots
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/out && cp /tmp/log.txt /tmp/out/log.txt || true
+          cd /tmp/out
+          echo '{ "git": { "deploymentEnabled": false } }' > vercel.json
+          git init -q -b project-shots
+          git add -A
+          git -c user.name="OOOX bot" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Capturas de proyectos · ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:project-shots

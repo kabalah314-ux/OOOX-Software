@@ -1,0 +1,14 @@
+{
+  "chollector": {
+    "url": "https://chollector.vercel.app/",
+    "extra": {
+      "demo": "https://chollector.vercel.app/demo"
+    },
+    "wait": 2500
+  },
+  "followthesun": {
+    "url": "https://followthesun-three.vercel.app/",
+    "wait": 9000,
+    "time": "2026-10-30T13:30:00+01:00"
+  }
+}
