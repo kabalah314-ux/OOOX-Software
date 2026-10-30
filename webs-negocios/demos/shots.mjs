@@ -80,6 +80,9 @@ async function open(ctx, url, slug, tag) {
 }
 // animations: 'disabled' deja cada animación en su estado final (la captura de página entera las reinicia)
 const jpg = (q) => ({ type: 'jpeg', quality: q, animations: 'disabled' });
+// Las capturas de revisión (sin ?shot) también se congelan en su estado final justo antes de disparar:
+// la captura de página entera reinicia las animaciones de entrada (p. ej. el ticket de La Vermutería salía en blanco).
+const freeze = (p) => p.evaluate(() => { document.documentElement.classList.add('kit-shot'); }).then(() => p.waitForTimeout(120));
 
 for (const slug of slugs) {
   const c = conf[slug] || {};
@@ -104,14 +107,14 @@ for (const slug of slugs) {
     }
 
     p = await open(desk, url, slug, 'qa-desktop');
-    await p.screenshot({ path: join(out, 'qa', `${slug}-desktop.jpg`), fullPage: true, ...jpg(62) }); await p.close();
+    await freeze(p); await p.screenshot({ path: join(out, 'qa', `${slug}-desktop.jpg`), fullPage: true, ...jpg(62) }); await p.close();
     p = await open(mob1x, url, slug, 'qa-mobile');
-    await p.screenshot({ path: join(out, 'qa', `${slug}-mobile.jpg`), fullPage: true, ...jpg(66) }); await p.close();
+    await freeze(p); await p.screenshot({ path: join(out, 'qa', `${slug}-mobile.jpg`), fullPage: true, ...jpg(66) }); await p.close();
 
     for (const step of c.qa || []) {
       p = await open(step.mobile ? mob1x : desk, url + (step.query || ''), slug, `qa-${step.name}`);
       if (step.js) { await p.evaluate(step.js); await p.waitForTimeout(step.wait || 900); }
-      await p.screenshot({ path: join(out, 'qa', `${slug}-${step.name}.jpg`), fullPage: !!step.full, ...jpg(70) }); await p.close();
+      await freeze(p); await p.screenshot({ path: join(out, 'qa', `${slug}-${step.name}.jpg`), fullPage: !!step.full, ...jpg(70) }); await p.close();
     }
   } catch (e) {
     (report[slug] ||= { errors: [], failed: [], pages: {} }).errors.push(`SHOTS ${e.message}`);

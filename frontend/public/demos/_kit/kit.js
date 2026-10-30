@@ -593,7 +593,11 @@
   function navSpy() {
     var hd = $('[data-header]');
     if (!hd) return;
-    var links = $$('a[href^="#"]', hd).filter(function (a) { var id = a.getAttribute('href').slice(1); return id && document.getElementById(id); });
+    // Solo los enlaces del menú: ni el logo (#top) ni los botones de la cabecera.
+    var links = $$('a[href^="#"]', hd).filter(function (a) {
+      var id = a.getAttribute('href').slice(1);
+      return id && id !== 'top' && !/\b(btn|logo)\b/.test(a.className) && document.getElementById(id);
+    });
     if (!links.length) return;
     var line = 150, ticking = false, current = null;
     var tick = function () {
