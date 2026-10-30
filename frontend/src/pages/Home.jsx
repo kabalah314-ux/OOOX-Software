@@ -9,8 +9,9 @@ import Contact from "@/components/site/Contact";
 import Footer from "@/components/site/Footer";
 import { useSmooth } from "@/lib/smooth";
 
-// Enlaces directos a una sección de proyectos, para compartir: ooox.es/#/webs → webs para negocios.
-const DIRECT = { "/webs": "local" };
+// Enlaces directos a una sección de proyectos, para compartir: ooox.es/#/webs → webs para negocios,
+// ooox.es/#/experimentos → experimentos.
+const DIRECT = { "/webs": "local", "/experimentos": "experiments", "/experiments": "experiments" };
 
 export default function Home({ ready }) {
   const location = useLocation();
