@@ -379,6 +379,8 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
 .gal-grid figure:hover img { transform: scale(1.04); }
 .gal-grid figcaption { position: absolute; left: 12px; bottom: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(43,35,38,.75); color: #fff; font: 600 12px/1 var(--f-b); backdrop-filter: blur(6px); }
 .g1 { grid-column: 1 / 3; grid-row: 1 / 3; min-height: 0; }
+.g1 img { position: absolute; inset: 0; }
+@media (max-width: 760px) { .g1 img { position: static; } }
 .g2 { grid-column: 3 / 5; grid-row: 1; aspect-ratio: 2 / 1; }
 .g3 { grid-column: 3; grid-row: 2; aspect-ratio: 1; }
 .g4 { grid-column: 4; grid-row: 2; aspect-ratio: 1; }
@@ -565,7 +567,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
             <div class="svc-m"><span class="svc-p"><span data-t="from">desde</span> 22 €<small>35–60 min</small></span><button type="button" class="btn btn-sm btn-ink" data-pick="ped-spa"><span data-t="pr.book">Pedir cita</span></button></div></div>
         </article>
         <article class="svc">
-          <figure class="svc-ph"><img data-u="photo-1772235616130-b80e12f0ab7a" data-w="1000" data-sizes="(max-width: 560px) 92vw, 33vw" loading="lazy" alt="Aplicando extensiones de pestañas" data-ta="alt:svc.4.alt"></figure>
+          <figure class="svc-ph"><img data-u="photo-1639629509821-c54cdd984227" data-w="1000" data-sizes="(max-width: 560px) 92vw, 33vw" loading="lazy" alt="Pestañas con extensiones" data-ta="alt:svc.4.alt"></figure>
           <div class="svc-b"><h3 data-t="svc.4">Pestañas</h3><p data-t="svc.4p">Extensiones pelo a pelo, relleno o lifting con tinte. Naturales de verdad.</p>
             <div class="svc-m"><span class="svc-p"><span data-t="from">desde</span> 40 €<small>60–120 min</small></span><button type="button" class="btn btn-sm btn-ink" data-pick="lash-new"><span data-t="pr.book">Pedir cita</span></button></div></div>
         </article>
@@ -748,7 +750,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
         <figure class="g1"><img data-u="photo-1619607146034-5a05296c8f9a" data-w="1600" data-sizes="(max-width: 760px) 92vw, 50vw" loading="lazy" alt="La pared de esmaltes" data-ta="alt:gal.1"><figcaption data-t="gal.1">La pared de esmaltes</figcaption></figure>
         <figure class="g2"><img data-u="photo-1792792747504-35e67572f529" data-w="1400" data-sizes="(max-width: 760px) 46vw, 50vw" loading="lazy" alt="La sala de espera" data-ta="alt:gal.2"><figcaption data-t="gal.2">La sala de espera</figcaption></figure>
         <figure class="g3"><img data-u="photo-1754799670312-8e7da8e40ad7" data-w="1000" data-sizes="(max-width: 760px) 46vw, 33vw" loading="lazy" alt="Nail art en azul y dorado" data-ta="alt:gal.3"><figcaption data-t="gal.3">Nail art</figcaption></figure>
-        <figure class="g4"><img data-u="photo-1639629509821-c54cdd984227" data-w="1000" data-sizes="(max-width: 760px) 46vw, 33vw" loading="lazy" alt="Pestañas tras un lifting" data-ta="alt:gal.4"><figcaption data-t="gal.4">Lifting de pestañas</figcaption></figure>
+        <figure class="g4"><img data-u="photo-1589710751893-f9a6770ad71b" data-w="1000" data-sizes="(max-width: 760px) 46vw, 33vw" loading="lazy" alt="Poniendo extensiones de pestañas" data-ta="alt:gal.4"><figcaption data-t="gal.4">Extensiones, pelo a pelo</figcaption></figure>
         <figure class="g5"><img data-u="photo-1762373349045-c2decd4ec3f3" data-w="1000" data-sizes="(max-width: 760px) 46vw, 33vw" loading="lazy" alt="Manicura francesa" data-ta="alt:gal.5"><figcaption data-t="gal.5">Francesa</figcaption></figure>
         <figure class="g6"><img data-u="photo-1775500835259-d3b3f6d6e2f2" data-w="1000" data-sizes="(max-width: 760px) 46vw, 33vw" loading="lazy" alt="Material esterilizado para cada clienta" data-ta="alt:gal.6"><figcaption data-t="gal.6">Material por clienta</figcaption></figure>
       </div>
@@ -1003,7 +1005,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
     "svc.1": "Manicura", "svc.1p": "Clàssica o semipermanent. Llimat, cutícules, hidratació i el color que triïs.", "svc.1.alt": "Mans amb manicura rosa",
     "svc.2": "Ungles de gel", "svc.2p": "Noves o reompliment, ametlla o quadrades. Amb nail art si et ve de gust.", "svc.2.alt": "Ungles ametllades en to daurat",
     "svc.3": "Pedicura", "svc.3p": "Exprés per sortir del pas o spa amb bany, exfoliació i massatge.", "svc.3.alt": "Peus amb les ungles pintades",
-    "svc.4": "Pestanyes", "svc.4p": "Extensions pèl a pèl, reompliment o lífting amb tint. Naturals de veritat.", "svc.4.alt": "Aplicant extensions de pestanyes",
+    "svc.4": "Pestanyes", "svc.4p": "Extensions pèl a pèl, reompliment o lífting amb tint. Naturals de veritat.", "svc.4.alt": "Pestanyes amb extensions",
     "svc.5": "Celles", "svc.5p": "Disseny amb fil, laminat o tint. Les teves, però ordenades.", "svc.5.alt": "Disseny de celles",
     "svc.6": "Facial", "svc.6p": "Neteja profunda amb extracció i massatge, o un facial exprés de 40 minuts.", "svc.6.alt": "Tractament facial",
     "pr.k": "Preus", "pr.h": "El que costa, <em>sense sorpreses.</em>",
@@ -1044,7 +1046,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
     "eq.laia.s": "Pestanyes i celles", "eq.laia.role": "Pestanyes i celles", "eq.laia.bio": "Extensions pèl a pèl que semblen teves i celles amb fil sense drames. Si és el teu primer cop, et fa la prova d'al·lèrgia gratis.", "eq.laia.cta": "Hora amb la Laia", "eq.laia.alt": "Laia",
     "eq.noa.s": "Facial, peus i depilació", "eq.noa.role": "Facial, peus i depilació", "eq.noa.bio": "Esteticista des del 2012. La neteja facial profunda és seva, i la pedicura spa, també. Mans tranquil·les.", "eq.noa.cta": "Hora amb la Noa", "eq.noa.alt": "Noa",
     "gal.k": "L'estudi", "gal.h": "Petit, <em>amb llum.</em>", "gal.lead": "Quatre llocs, una cabina i una paret d'esmalts per triar amb calma. Toca una foto per veure-la gran.",
-    "gal.1": "La paret d'esmalts", "gal.2": "La sala d'espera", "gal.3": "Nail art", "gal.4": "Lífting de pestanyes", "gal.5": "Francesa", "gal.6": "Material per clienta",
+    "gal.1": "La paret d'esmalts", "gal.2": "La sala d'espera", "gal.3": "Nail art", "gal.4": "Extensions, pèl a pèl", "gal.5": "Francesa", "gal.6": "Material per clienta",
     "rev.k": "El que diuen", "rev.lbl": "4,9 de 5", "rev.n": "186 ressenyes a Google · totes contestades", "rev.btn": "Deixa'ns una ressenya",
     "tip.rev": "<b>El QR del taulell porta aquí.</b> Cada dilluns et preparem les respostes a les ressenyes noves; tu dius «ok» i es publiquen.",
     "rev.d1": "fa 2 setmanes", "rev.d2": "fa 1 mes", "rev.d3": "fa 2 mesos",
@@ -1096,7 +1098,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
     "svc.1": "Manicure", "svc.1p": "Classic or gel polish. Shaping, cuticles, hydration and the colour you choose.", "svc.1.alt": "Hands with a pink manicure",
     "svc.2": "Gel nails", "svc.2p": "Full set or infill, almond or square. With nail art if you fancy.", "svc.2.alt": "Almond-shaped golden nails",
     "svc.3": "Pedicure", "svc.3p": "Express to get by, or spa with soak, scrub and massage.", "svc.3.alt": "Feet with painted toenails",
-    "svc.4": "Lashes", "svc.4p": "Classic extensions, infill or lift and tint. Genuinely natural.", "svc.4.alt": "Applying lash extensions",
+    "svc.4": "Lashes", "svc.4p": "Classic extensions, infill or lift and tint. Genuinely natural.", "svc.4.alt": "Lashes with extensions",
     "svc.5": "Brows", "svc.5p": "Threading, lamination or tint. Yours, but tidy.", "svc.5.alt": "Brow shaping",
     "svc.6": "Facial", "svc.6p": "Deep cleanse with extraction and massage, or a 40-minute express facial.", "svc.6.alt": "Facial treatment",
     "pr.k": "Prices", "pr.h": "What it costs, <em>no surprises.</em>",
@@ -1137,7 +1139,7 @@ html.tips-on .sh:has(.demo-tip) { align-items: start; }
     "eq.laia.s": "Lashes and brows", "eq.laia.role": "Lashes and brows", "eq.laia.bio": "Classic extensions that look like your own and threaded brows without drama. First time? She does the patch test for free.", "eq.laia.cta": "Book with Laia", "eq.laia.alt": "Laia",
     "eq.noa.s": "Facials, feet and waxing", "eq.noa.role": "Facials, feet and waxing", "eq.noa.bio": "Beautician since 2012. The deep cleansing facial is hers, and so is the spa pedicure. Calm hands.", "eq.noa.cta": "Book with Noa", "eq.noa.alt": "Noa",
     "gal.k": "The studio", "gal.h": "Small, <em>and bright.</em>", "gal.lead": "Four stations, one cabin and a wall of polish to choose from at your own pace. Tap a photo to see it larger.",
-    "gal.1": "The polish wall", "gal.2": "The waiting area", "gal.3": "Nail art", "gal.4": "Lash lift", "gal.5": "French tips", "gal.6": "Fresh tools for every client",
+    "gal.1": "The polish wall", "gal.2": "The waiting area", "gal.3": "Nail art", "gal.4": "Extensions, lash by lash", "gal.5": "French tips", "gal.6": "Fresh tools for every client",
     "rev.k": "What people say", "rev.lbl": "4.9 out of 5", "rev.n": "186 Google reviews · all answered", "rev.btn": "Leave us a review",
     "tip.rev": "<b>The counter QR code leads here.</b> Every Monday we draft replies to new reviews; you say “ok” and they go live.",
     "rev.d1": "2 weeks ago", "rev.d2": "1 month ago", "rev.d3": "2 months ago",
