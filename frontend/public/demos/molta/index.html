@@ -573,7 +573,7 @@ function pila(){if(!PILA){PILA=[$('.stage'),...SECS.map(id=>document.getElementB
   PILA.forEach((el,i)=>{if(i<PILA.length-1){const d=document.createElement('i');d.className='pila-dim';d.setAttribute('aria-hidden','true');el.appendChild(d);el._dim=d}
    if(i){const s=document.createElement('i');s.className='pila-sombra';s.setAttribute('aria-hidden','true');el.appendChild(s)}})}
  const y=scrollY,vh=innerHeight;if(y===pY&&vh===pH)return;pY=y;pH=vh;
- for(let i=0;i<PILA.length-1;i++){const el=PILA[i],box=i?el:$('#track'),over=y+vh-(topOf(box)+box.offsetHeight),c=RM?0:Math.min(1,Math.max(0,over/vh));
+ for(let i=0;i<PILA.length-1;i++){const el=PILA[i],box=i?el:$('#track'),over=y+vh-(topOf(box)+box.offsetHeight),c=RM||over<1.5?0:over>vh-1.5?1:over/vh; /* margen de 1,5 px: con zoom o pantallas de 1,25x el scroll se para en medio píxel y no debe dejar una sección a medio apilar */
   if(c===el._c)continue;el._c=c;
   if(!c){el.style.transform='';el.style.transformOrigin='';el.style.visibility='';el.classList.remove('atras');el._dim.style.opacity='0';continue}
   el.classList.add('atras');el.style.transformOrigin=`50% ${Math.round(el.offsetHeight-vh/2)}px`;
