@@ -23,11 +23,17 @@ body[data-hdr="carta"] .top{background:transparent}
 body[data-hdr="cupones"] .top,body[data-hdr="fin"] .top{background:var(--field);color:var(--field-ink);--tb:var(--field-ink);--tf:var(--field)}
 .wm{display:flex;align-items:center;gap:.45em;min-height:44px;font:700 1.625rem/1 var(--font);letter-spacing:-.05em;text-decoration:none}
 .wm small{display:none;font:400 var(--step-small)/1 var(--font);letter-spacing:0;padding-top:.45em}
-.tlinks{display:none;align-items:center;gap:clamp(20px,2.8vw,40px)}
+.tlinks{position:relative;display:none;align-items:center;gap:clamp(20px,2.8vw,40px)}
 .tlinks a{position:relative;display:inline-flex;align-items:center;min-height:44px;font-weight:500;text-decoration:none}
 .tlinks a::after{content:"";position:absolute;left:0;right:0;bottom:5px;height:4px;border-radius:2px;background:currentColor;transform:scaleX(0);transform-origin:0 50%;transition:transform var(--t-ui) var(--ease-out)}
 .tlinks a.on::after{transform:scaleX(1)}
 @media (hover:hover){.tlinks a:hover::after{transform:scaleX(1)}}
+/* la marca de la sección actual es una sola raya que viaja de un enlace a otro, con la curva del cambio de sección */
+.tind{position:absolute;left:0;width:100px;background:currentColor;transform-origin:0 50%;opacity:0;pointer-events:none;transition:transform .9s cubic-bezier(.77,0,.175,1),opacity .3s ease}
+.tlinks.viaja a.on::after{transform:scaleX(0)}
+/* titulares de sección: cada línea sube desde detrás de su máscara */
+.ln{display:block;overflow:clip;padding-bottom:.12em;margin-bottom:-.12em}
+.ln>span{display:block}
 .tact{display:flex;align-items:center;gap:6px}
 .cartpill{display:none;min-height:44px;padding:0 .6em 0 1.05em;gap:.5em;background:var(--tb);color:var(--tf)}
 .cartpill b{display:grid;place-items:center;min-width:26px;height:26px;padding:0 6px;border-radius:13px;background:var(--tf);color:var(--tb);font:500 var(--step-small)/1 var(--font)}
@@ -85,6 +91,13 @@ html.snap{scroll-snap-type:y mandatory}
 .snap0,.snapT{position:absolute;left:0;right:0;bottom:0;height:100svh;pointer-events:none;scroll-snap-align:start;scroll-snap-stop:always}
 .snapT{top:0;bottom:auto}
 #carta,#cupones,#visita,#fin{scroll-snap-align:start;scroll-snap-stop:always}
+/* ===== pila: la sección que llega pasa por encima de la anterior, que se queda atrás, más pequeña y en sombra ===== */
+body{background:transparent}            /* detrás de la pila se ve el fondo de la página (el color de campo) */
+:where(.sx){background:var(--bg)}
+.pila-dim{position:absolute;inset:0;z-index:60;background:#000;opacity:0;pointer-events:none}
+.pila-sombra{position:absolute;left:0;right:0;bottom:100%;height:90px;background:linear-gradient(to top,rgba(0,0,0,.24),rgba(0,0,0,0));pointer-events:none} /* taste-skill-ignore: sombra del borde de la sección que sube */
+.atras{border-radius:22px;overflow:clip;scroll-snap-align:none!important}
+@media (max-width:699px){.atras{border-radius:16px}}
 .cartaemb{position:relative;height:100svh;background:var(--bg)}
 .cartaemb iframe{display:block;width:100%;height:100%;border:0;background:var(--bg)}
 .sx{position:relative;min-height:100svh;overflow-x:clip;display:flex;flex-direction:column;justify-content:center;padding:calc(var(--top) + 14px) var(--m) calc(24px + var(--sb))}
@@ -539,12 +552,12 @@ function tick(){
  fases();
  const o=Math.max(0,1-cur*6.2);intro.style.opacity=o;intro.style.visibility=o<.02?'hidden':'visible';scrimB.style.opacity=ready?0:Math.max(0,1-cur*4);
  roller.style.transform=`translate3d(${(cur*run).toFixed(1)}px,0,0) rotate(${(cur*run*360/(Math.PI*44)).toFixed(1)}deg)`;
- if(cur>.985&&!ready)arrive();requestAnimationFrame(tick)}
+ if(cur>.985&&!ready)arrive();pila();requestAnimationFrame(tick)}
 let gliding=false,holdUntil=0;
 let inTrack=true;
 function onScroll(){target=prog();if(Math.abs(target-cur)>.4)cur=target;
  const t=scrollY<tmax()-4;if(inTrack&&!t&&!gliding)holdUntil=performance.now()+1100;inTrack=t;
- if(!gliding)HTML.classList.toggle('snap',scrollY>=tmax()-4);if(ready&&target<.9)leave();spy()}
+ if(!gliding)HTML.classList.toggle('snap',scrollY>=tmax()-4);if(ready&&target<.9)leave();spy();pila()}
 addEventListener('scroll',onScroll,{passive:true});
 requestAnimationFrame(tick);
 function arrive(){if(ready)return;ready=true;document.body.classList.add('ready');index.removeAttribute('aria-hidden');index.inert=false;
@@ -552,6 +565,22 @@ function arrive(){if(ready)return;ready=true;document.body.classList.add('ready'
  if(!RM){gsap.fromTo('#hola',{y:46,opacity:0},{y:0,opacity:1,duration:1,ease:'expo.out',delay:.12});
   gsap.fromTo('#index .lead,#index .ix',{y:30,opacity:0},{y:0,opacity:1,stagger:.06,duration:.7,ease:'power3.out',delay:.5})}}
 function leave(){ready=false;document.body.classList.remove('ready');index.setAttribute('aria-hidden','true');index.inert=true}
+
+/* ===== pila de secciones: la que llega sube por encima; la anterior casi no se mueve, encoge un poco y se oscurece.
+   Va con el scroll (también hacia arriba) y solo mueve transform y opacity, directamente en cada pieza ===== */
+let PILA=null,pY=-1,pH=0;
+function pila(){if(!PILA){PILA=[$('.stage'),...SECS.map(id=>document.getElementById(id))];
+  PILA.forEach((el,i)=>{if(i<PILA.length-1){const d=document.createElement('i');d.className='pila-dim';d.setAttribute('aria-hidden','true');el.appendChild(d);el._dim=d}
+   if(i){const s=document.createElement('i');s.className='pila-sombra';s.setAttribute('aria-hidden','true');el.appendChild(s)}})}
+ const y=scrollY,vh=innerHeight;if(y===pY&&vh===pH)return;pY=y;pH=vh;
+ for(let i=0;i<PILA.length-1;i++){const el=PILA[i],box=i?el:$('#track'),over=y+vh-(topOf(box)+box.offsetHeight),c=RM?0:Math.min(1,Math.max(0,over/vh));
+  if(c===el._c)continue;el._c=c;
+  if(!c){el.style.transform='';el.style.transformOrigin='';el.style.visibility='';el.classList.remove('atras');el._dim.style.opacity='0';continue}
+  el.classList.add('atras');el.style.transformOrigin=`50% ${Math.round(el.offsetHeight-vh/2)}px`;
+  el.style.transform=`translate3d(0,${(over*.86).toFixed(1)}px,0) scale(${(1-.075*c).toFixed(4)})`;
+  el._dim.style.opacity=(c*.62).toFixed(3);el.style.visibility=c>=1?'hidden':''}}
+/* también justo después de que GSAP mueva la página, en el mismo fotograma: si no, la sección de atrás va un fotograma tarde y tiembla */
+gsap.ticker.add(pila);
 
 /* ===== la entrada se reproduce sola: un gesto hacia abajo y el vídeo te lleva de la calle a la bienvenida ===== */
 function corta(){if(preTw){preTw.kill();preTw=null}if(auto){auto=0;v.pause()}}
@@ -568,13 +597,15 @@ function salir(){if(gliding||auto||scrollY<4)return;glide(0,1.5)}
 
 /* ===== una sección por gesto, anclada arriba ===== */
 const SECS=['carta','cupones','visita','fin'];
+/* posición de una sección en la página, sin contar lo que la pila la mueve */
+const topOf=el=>{let t=0;for(let e=el;e;e=e.offsetParent)t+=e.offsetTop;return t};
 function stops(){const vh=innerHeight,max=HTML.scrollHeight-vh,S=[tmax()];
- SECS.forEach(id=>{const e=document.getElementById(id),t=Math.round(e.getBoundingClientRect().top+scrollY);S.push(t);if(e.offsetHeight>vh+40)S.push(Math.min(max,t+e.offsetHeight-vh))});
+ SECS.forEach(id=>{const e=document.getElementById(id),t=topOf(e);S.push(t);if(e.offsetHeight>vh+40)S.push(Math.min(max,t+e.offsetHeight-vh))});
  S.push(max);return[...new Set(S.map(x=>Math.round(Math.min(x,max))))].sort((a,b)=>a-b)}
 let wAcc=0,wT=0,openP=null;
 const blocked=()=>!!openP;
 function page(dir){const y=scrollY,S=stops(),to=dir>0?S.find(x=>x>y+4):[...S].reverse().find(x=>x<y-4);
- if(to==null)return false;if(dir<0&&y<=tmax()+4)return false;glide(to,.85);return true}
+ if(to==null)return false;if(dir<0&&y<=tmax()+4)return false;glide(to,1.05,'power3.inOut');return true}
 /* un gesto de rueda = un paso, por fuerte que sea: mientras sigan llegando eventos del mismo gesto (sin una pausa), no cuenta otro */
 let wLock=false,wQ=0;
 function onWheelDy(dy,ev){if(ev)ev.preventDefault();
@@ -602,8 +633,8 @@ addEventListener('touchend',e=>{if(!ts)return;const t=e.changedTouches[0],dx=t.c
  if(scrollY<tmax()-4||(dy>0&&scrollY<=tmax()+4)){if(dy<0)entrar();else salir();return}
  page(dy<0?1:-1)},{passive:true});
 addEventListener('message',e=>{const m=e.data||{};if(m.ooox==='swipe'&&!blocked()&&!gliding)page(m.dir)});
-function glide(y,d){corta();gliding=true;HTML.classList.remove('snap');HTML.classList.add('viaje');const tw={v:scrollY};gsap.to(tw,{v:y,duration:RM?0:(d||1.1),ease:'power2.inOut',onUpdate:()=>scrollTo(0,tw.v),onComplete:()=>{gliding=false;HTML.classList.remove('viaje');onScroll()}})}
-const yOf=id=>Math.round(document.getElementById(id).getBoundingClientRect().top+scrollY);
+function glide(y,d,ease){corta();gliding=true;HTML.classList.remove('snap');HTML.classList.add('viaje');const tw={v:scrollY};gsap.to(tw,{v:y,duration:RM?0:(d||1.1),ease:ease||'power2.inOut',onUpdate:()=>scrollTo(0,tw.v),onComplete:()=>{gliding=false;HTML.classList.remove('viaje');onScroll()}})}
+const yOf=id=>topOf(document.getElementById(id));
 function goSec(id){closeAll();if(id==='resena'){openPanel('resena');return}glide(yOf(id),scrollY<tmax()-4?2:1)}
 $('#skip').onclick=()=>glide(yOf('carta'),2.4);
 $('#home').onclick=e=>{e.preventDefault();closeAll();glide(0,1.4)};
@@ -612,8 +643,14 @@ $$('[data-go]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();goS
 
 /* qué sección se ve y cuál queda bajo la cabecera */
 let curSec=null;const cf=$('#cartaF');
+const TL=$('.tlinks'),TIND=document.createElement('i');
+if(TL){TIND.className='tind';TIND.setAttribute('aria-hidden','true');TL.appendChild(TIND);TL.classList.add('viaja');
+ const a0=TL.querySelector('a'),cs=a0&&getComputedStyle(a0,'::after');if(cs){TIND.style.height=cs.height;TIND.style.bottom=cs.bottom;TIND.style.borderRadius=cs.borderRadius}}
+function raya(){const a=TL&&curSec&&TL.querySelector(`a[data-go="${curSec}"]`);if(!a){TIND.style.opacity='0';return}
+ TIND.style.transform=`translateX(${a.offsetLeft}px) scaleX(${(a.offsetWidth/100).toFixed(3)})`;TIND.style.opacity='1'}
+addEventListener('resize',raya);
 function spy(){let on=null,hd='track';SECS.forEach(id=>{const t=document.getElementById(id).getBoundingClientRect().top;if(t<innerHeight*.45)on=id;if(t<=34)hd=id});
- if(on!==curSec){curSec=on;if(on==='carta'&&cf.contentWindow)cf.contentWindow.postMessage({ooox:'enter'},'*');$$('.tlinks a').forEach(a=>a.classList.toggle('on',a.dataset.go===on))}
+ if(on!==curSec){curSec=on;if(on==='carta'&&cf.contentWindow)cf.contentWindow.postMessage({ooox:'enter'},'*');$$('.tlinks a').forEach(a=>a.classList.toggle('on',a.dataset.go===on));raya()}
  document.body.dataset.hdr=hd;document.body.classList.toggle('in-carta',on==='carta')}
 
 /* ===== hojas ===== */
@@ -625,20 +662,26 @@ $$('[data-close]').forEach(b=>b.onclick=closeAll);$('#pscrim').onclick=closeAll;
 $('#navOpen').onclick=()=>openPanel('nav');$('#navClose').onclick=closeAll;
 {const p=$('#p-resena');let y0=null;p.addEventListener('touchstart',e=>{y0=p.querySelector('.sbody').scrollTop>2?null:e.touches[0].clientY},{passive:true});p.addEventListener('touchend',e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>80)closeAll();y0=null},{passive:true})}
 
+/* titulares por líneas: cada línea (separada por <br>) va en su máscara; LN guarda las que esperan su entrada escondidas */
+const LN={};
+function partir(h){if(!h)return[];if(!h.querySelector('.ln'))h.innerHTML=h.innerHTML.split(/<br\s*\/?>/i).map(p=>`<span class="ln"><span>${p.trim()}</span></span>`).join('');return[...h.querySelectorAll('.ln>span')]}
 /* entradas: cada sección coloca sus piezas una vez, a su manera (el disco siempre llega rodando) */
 if(!RM&&'IntersectionObserver'in window){
- const sube=(a,b,c)=>gsap.timeline().fromTo(a,{y:40,opacity:0},{y:0,opacity:1,duration:.8,ease:'expo.out'}).fromTo(b,{y:46,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out',stagger:.08},.08).fromTo(c,{y:22,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.2);
+ const L=sel=>partir($(sel));
+ const lineas=(tl,sel,at)=>{LN[sel]=false;return tl.fromTo(L(sel),{yPercent:108},{yPercent:0,duration:1,ease:'expo.out',stagger:.09},at||0)};
+ const sube=(h,a,b,c)=>{const tl=gsap.timeline();if(h)lineas(tl,h);if(a)tl.fromTo(a,{y:40,opacity:0},{y:0,opacity:1,duration:.8,ease:'expo.out'},.08);
+  tl.fromTo(b,{y:46,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out',stagger:.08},.1).fromTo(c,{y:22,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.22);return tl};
  const E=MO!=='disco'?{
-  cupones:{pre:['#cupones .chead','#cupones .cbody>*','#mcw','#mcHint'],run(){sube('#cupones .chead','#mcw,#mcHint','#cupones .cbody>*')}},
-  visita:{pre:['#visita .vhead','#visita .vbody>*','#visita .vpics img'],run(){sube('#visita .vhead','#visita .vpics img','#visita .vbody>*')}},
-  fin:{pre:['#fin .mark','#fin .fgrid>*','#fin .fnav a'],run(){gsap.fromTo('#fin .mark',{opacity:0},{opacity:1,duration:.9,ease:'power2.out'});sube('#fin .fnav','#fin .fnav a','#fin .fgrid>*')}}}:{
-  cupones:{pre:['#cupones .chead','#cupones .cbody>*','#mcw','#mcHint'],run(){const tl=gsap.timeline();
-   tl.fromTo('#cupones .chead',{y:44,opacity:0},{y:0,opacity:1,duration:.8,ease:'expo.out'})
+  cupones:{ln:'#cT',pre:['#cupones .cbody>*','#mcw','#mcHint'],run(){sube('#cT',null,'#mcw,#mcHint','#cupones .cbody>*')}},
+  visita:{ln:'#vT',pre:['#openLine','#visita .vbody>*','#visita .vpics img'],run(){sube('#vT','#openLine','#visita .vpics img','#visita .vbody>*')}},
+  fin:{pre:['#fin .mark','#fin .fgrid>*','#fin .fnav a'],run(){gsap.fromTo('#fin .mark',{opacity:0},{opacity:1,duration:.9,ease:'power2.out'});sube(null,'#fin .fnav','#fin .fnav a','#fin .fgrid>*')}}}:{
+  cupones:{ln:'#cT',pre:['#cupones .cbody>*','#mcw','#mcHint'],run(){const tl=gsap.timeline();
+   lineas(tl,'#cT')
      .fromTo('#mcw',{y:70,rotation:-7,opacity:0},{y:0,rotation:0,opacity:1,duration:.9,ease:'expo.out'},.1)
      .fromTo('#cupones .cbody>*',{y:26,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.22)
      .fromTo('#mcHint',{opacity:0},{opacity:1,duration:.4},.7)}},
-  visita:{pre:['#visita .vhead','#visita .vbody>*','#visita .vpics img'],run(){const tl=gsap.timeline(),w=innerWidth*.6;
-   tl.fromTo('#visita .vhead',{y:44,opacity:0},{y:0,opacity:1,duration:.8,ease:'expo.out'})
+  visita:{ln:'#vT',pre:['#openLine','#visita .vbody>*','#visita .vpics img'],run(){const tl=gsap.timeline(),w=innerWidth*.6;
+   lineas(tl,'#vT').fromTo('#openLine',{y:20,opacity:0},{y:0,opacity:1,duration:.7,ease:'power3.out'},.16)
      .fromTo('#visita .vpics img',{x:w,rotation:200,opacity:0},{x:0,rotation:0,opacity:1,duration:1,ease:'expo.out',stagger:.09},.08)
      .fromTo('#visita .vbody>*',{y:26,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.22)}},
   fin:{pre:['#fin .mark','#fin .fgrid>*'],run(){const tl=gsap.timeline();
@@ -646,7 +689,7 @@ if(!RM&&'IntersectionObserver'in window){
      .fromTo('#fin .mark .o',{x:-innerWidth*.5,rotation:-420},{x:0,rotation:0,duration:1.2,ease:'expo.out'},0)
      .fromTo('#fin .fgrid>*',{y:24,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.08},.35)}}};
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;io.unobserve(e.target);E[e.target.id].run()}),{threshold:.22});
- Object.keys(E).forEach(id=>{const el=document.getElementById(id);if(el.getBoundingClientRect().top<innerHeight*.8)return;gsap.set(E[id].pre.join(','),{opacity:0});io.observe(el)})}
+ Object.keys(E).forEach(id=>{const el=document.getElementById(id);if(el.getBoundingClientRect().top<innerHeight*.8)return;gsap.set(E[id].pre.join(','),{opacity:0});if(E[id].ln){LN[E[id].ln]=true;gsap.set(L(E[id].ln),{yPercent:108})}io.observe(el)})}
 
 /* llegar con enlace (#carta, #cupones, #visita, #resena) */
 (function(){let h=location.hash.slice(1);if(!h)return;if(h==='cafes'||h==='comidas')h='carta';history.replaceState(null,'',location.pathname);
@@ -744,7 +787,7 @@ function render(){const u=user,c=u?u.count:0,sec=$('#cupones');document.body.cla
  $('#mLeft').textContent=!u?'Únete y llévate el primer sello':c>=6?F.final_listo:c>=MED?F.medio_ganado+' '+Falta(6-c)+' '+F.falta_final:Falta(MED-c)+' '+F.falta_medio;
  drawStamps();$('#mCode').textContent=u?u.code:PRE+'-····';drawQr(u?u.code:PRE);
  $('#mHist').innerHTML=u&&u.uses.length?'<b>Lo último</b>'+u.uses.slice(-3).reverse().map(x=>`<span>${x.date} ${x.item}</span>`).join(''):'<span>Aquí verás lo último que te has tomado.</span>';
- $('#cT').innerHTML=u?'hola, '+(u.name||'socio').split(' ')[0].replace(/[<>&]/g,'')+'.':LOCAL.esc(TX.tarjeta.titulo).replace(/\n/g,' <br>');
+ $('#cT').innerHTML=u?'hola, '+(u.name||'socio').split(' ')[0].replace(/[<>&]/g,'')+'.':LOCAL.esc(TX.tarjeta.titulo).replace(/\n/g,' <br>');{const ls=partir($('#cT'));if(LN['#cT']&&window.gsap)gsap.set(ls,{yPercent:108})}
  $('#cLead').textContent=!u?TX.tarjeta.lead:c>=6?F.final_completo:c>=MED?`Llevas ${c} de 6 sellos. ${F.medio_tuyo} y ${falta(6-c)} ${F.falta_final_largo}.`:`Llevas ${c} de 6 sellos: ${falta(MED-c)} ${F.falta_medio_largo}.`;
  $$('#rewards li').forEach(li=>li.classList.toggle('got',c>=+li.dataset.at));
  $('#cJoin').hidden=!!u||sec.classList.contains('joining');$('#jform').hidden=!!u||!sec.classList.contains('joining');$('#mon').hidden=!u;
