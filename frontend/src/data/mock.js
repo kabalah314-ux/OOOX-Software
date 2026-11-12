@@ -113,12 +113,12 @@ export const workCards = {
     ],
   },
   // ---------------------------------------------------------- LOCAL · webs para negocios de barrio
-  "ooox-local": {
-    typeEn: "Café & bar system · Website, table ordering, calls",
-    short: "The website, the table menu and the phone of a neighbourhood café in one system, shown on Fonik in Sant Antoni. Five designs on the same engine.",
-    route: ["Website", "Table QR", "Bar & kitchen", "Calls"],
+  molta: {
+    typeEn: "Café website · Table ordering, venue panel, calls",
+    short: "A specialty café in Gràcia: a website you walk into like a video, a table QR menu that sends orders to the bar and kitchen, a stamp card and an assistant that answers the phone. Five designs on the same engine.",
+    route: ["Street", "Table QR", "Bar & kitchen", "Stamp card"],
     facts: [
-      ["Type", "System"],
+      ["Type", "Website + system"],
       ["Designs", "5"],
       ["Year", "2026"],
       ["Key feature", "Table ordering"],
@@ -403,35 +403,22 @@ export const projects = [
   },
   // ---------------------------------------------------------- LOCAL · webs para negocios de barrio (demos)
   {
-    id: "ooox-local", category: "local", title: "OOOX Local", kicker: "La web, la carta en la mesa y el teléfono de tu local, en un solo sistema", year: "2026",
-    type: "Sistema para cafeterías y bares · Web, pedido en mesa y llamadas", status: "Online", statusTone: "live", access: "public",
-    ...demoWeb("ooox-local", [["plato", "Diseño «el plato»"], ["rotulo", "Diseño «el rótulo»"], ["pelicula", "Diseño «la película»"], ["mitad", "Diseño «la mitad»"], ["carta", "Carta desde la mesa"], ["prueba", "Pedido que llega a la barra"]]),
-    url: "https://fonik.ooox.es/",
-    video: { src: asset("/videos/ooox-local.mp4"), poster: asset("/videos/ooox-local.jpg"), label: "Cinco diseños · Un mismo local" },
-    accent: "#F8CF4B", accentSoft: "#13223F",
+    id: "molta", category: "local", title: "Molta", kicker: "Café tostado aquí y desayunos sin prisa, en Gràcia", year: "2026",
+    type: "Web de cafetería · Pedido en mesa, panel y llamadas", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("molta", [["plato", "Diseño «el plato»"], ["rotulo", "Diseño «el rótulo»"], ["pelicula", "Diseño «la película»"], ["mitad", "Diseño «la mitad»"], ["carta", "Pedir desde la mesa"], ["prueba", "El pedido llega a la barra"]]),
+    video: { src: asset("/videos/molta.mp4"), poster: asset("/videos/molta.jpg"), label: "Cinco diseños · Un mismo local" },
+    accent: "#E08A5C", accentSoft: "#22160F",
     demo: true,
-    description: "Proyecto demo · Un sistema para cafeterías y bares de barrio, enseñado sobre Fonik, un café de Sant Antoni: web con vídeo que se recorre al hacer scroll, carta con QR para pedir desde la mesa, pedidos que llegan a barra y cocina, tarjeta de sellos y un asistente que atiende el teléfono.",
-    longDescription: "Este es un proyecto demo: Fonik es un café de Sant Antoni, pero esta web no es un encargo suyo, y la carta, los precios y los premios son de ejemplo. OOOX Local es lo que le llevo a un bar o a una cafetería. Primero, una web que se recorre como un vídeo: al bajar, el local se abre. Después, una carta con la foto de cada plato que el cliente abre escaneando el QR de su mesa; el pedido llega al momento a la barra y a la cocina. El local lo lleva todo desde un panel: mesas, agotados, la cuenta y el resumen del día. Se suma una tarjeta de sellos en el móvil y, en el pack más completo, un asistente que contesta al teléfono, reserva y apunta encargos. La misma web tiene cinco diseños (el disco, el plato, el rótulo, la película y la mitad), y cada local se monta desde una ficha con sus datos, sin programarlo de nuevo.",
+    description: "Proyecto demo · Web y sistema para una cafetería de especialidad de Gràcia: entras al local como en un vídeo, pides desde la mesa con un QR, el pedido llega a barra y cocina, la tarjeta de sellos va en el móvil y un asistente atiende el teléfono.",
+    longDescription: "Este es un proyecto demo: Molta no existe, pero todo lo que ves funciona y se puede probar. Es el nivel nuevo de lo que hago para bares y cafeterías. La portada es un vídeo que avanza con el dedo: empiezas en la calle, frente a la fachada, y entras andando hasta la barra. La carta enseña cada plato en su plato, con lo que lleva, cuánto llena y los alérgenos, y se pide desde la mesa escaneando su QR; el pedido llega al momento a la barra y a la cocina. El local lo lleva todo desde un panel: mesas, agotados, la cuenta y el resumen del día. La tarjeta de sellos va en el móvil, sin app ni contraseña, y en el pack más completo un asistente contesta al teléfono, apunta encargos y reservas de grupo. La misma web tiene cinco diseños (el disco, el plato, el rótulo, la película y la mitad) y cada local se monta desde una ficha con sus datos.",
     highlights: [
-      "Cinco diseños sobre el mismo motor: el local elige el que va con él",
-      "Pedido desde la mesa con QR, que llega al momento a barra y cocina",
+      "Portada en vídeo: de la calle a la barra al deslizar",
+      "Pedido desde la mesa con QR, que llega a barra y cocina",
       "Panel del local: mesas, agotados, cuenta y resumen del día",
-      "Tres packs: la web, el pedido en mesa y un asistente que atiende llamadas",
+      "Tarjeta de sellos en el móvil y asistente que atiende llamadas",
     ],
     stack: ["HTML", "GSAP", "Cloudflare Workers", "Durable Objects"], tags: ["Hostelería", "Pedido en mesa", "Vídeo", "Llamadas"],
-    metrics: [{ label: "Diseños", value: "5" }, { label: "Packs", value: "3" }, { label: "Comisión por pedido", value: "0 %" }],
-  },
-  {
-    id: "la-vermuteria", category: "local", title: "La Vermutería", kicker: "Vermut de grifo y tapas en Gràcia", year: "2026",
-    type: "Web de bar · Carta y reservas", status: "Online", statusTone: "live", access: "public",
-    ...demoWeb("la-vermuteria", [["carta", "Carta con alérgenos"], ["reserva", "Reserva por WhatsApp"]]),
-    accent: "#E0A526", accentSoft: "#0E2A1E",
-    demo: true,
-    description: "Proyecto demo · Web para un bar de vermut de Gràcia: carta con alérgenos y QR para las mesas, menú del día, reservas y pedidos para llevar que llegan al bar por WhatsApp.",
-    longDescription: "Este es un proyecto demo: el bar no existe, pero todo lo que ves funciona y se puede probar. La Vermutería del Carrer tiene identidad propia —el panot de flor de Barcelona, la carta de papel y la pizarra del menú— y resuelve lo que más preguntan los clientes: si está abierto ahora, qué hay en la carta (con los 14 alérgenos), cuál es el menú de hoy y cómo reservar. Las reservas y los pedidos para llevar llegan al móvil del bar como un WhatsApp ya escrito, sin apps ni comisiones. Está en castellano, catalán e inglés, y unas notas amarillas explican al dueño para qué sirve cada parte.",
-    highlights: ["Carta con filtros, los 14 alérgenos y QR para las mesas", "Reserva en 20 segundos: personas, día, turno, hora y zona", "Pedidos para llevar sin comisiones de plataformas", "Abierto ahora, horario y menú del día que cambia solo"],
-    stack: ["HTML", "CSS", "JavaScript"], tags: ["Hostelería", "Reservas", "WhatsApp"],
-    metrics: [{ label: "Idiomas", value: "3" }, { label: "Alérgenos", value: "14" }, { label: "Comisiones", value: "0 %" }],
+    metrics: [{ label: "Diseños", value: "5" }, { label: "Platos en carta", value: "26" }, { label: "Comisión por pedido", value: "0 %" }],
   },
   {
     id: "nomada-barbers", category: "local", title: "Nómada Barbers", kicker: "Corte, barba y cita en 20 segundos", year: "2026",
@@ -553,7 +540,7 @@ export const projects = [
 // ------------------------------------------------------------
 export const ORDER = [
   "neuron", "elementia", "crossia", "usain-bot", "casa-aurea", "massflow", "moog-barcelona",
-  "ooox-local", "la-vermuteria", "nomada-barbers", "pell-i-pinzell", "flors-fulles", "ramirez-24h", "estudio-lua",
+  "molta", "nomada-barbers", "pell-i-pinzell", "flors-fulles", "ramirez-24h", "estudio-lua",
   "chollector", "followthesun",
 ];
 

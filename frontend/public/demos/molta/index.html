@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es" data-pg="index">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>molta, cafè d'especialitat: café tostado aquí y desayunos en Gràcia</title>
+<meta name="description" content="molta: café de especialidad tostado en el local y desayunos sin prisa en el Carrer de Verdi, Gràcia, Barcelona. Mira la carta, pide desde tu mesa y saca tu tarjeta de la casa.">
+<meta name="theme-color" content="#22160f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2322160f'/%3E%3Ccircle cx='50' cy='50' r='24' fill='%23e08a5c'/%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/pilcrow-rounded-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/base.css">
+<script src="data/negocio.js"></script>
+<script src="js/local.js"></script>
+<style>
+html{background:var(--field);overflow-x:clip}
+body{overflow-x:clip}
+
+/* ===== cabecera: marca, cuatro enlaces y el pedido. Toma el fondo de la sección que tiene debajo ===== */
+.top{--tb:var(--ink);--tf:var(--bg);position:fixed;left:0;right:0;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:16px;height:var(--top);padding:env(safe-area-inset-top,0px) var(--m) 0;background:var(--bg);color:var(--ink);transition:background-color .3s ease,color .3s ease}
+body[data-hdr="track"] .top{background:transparent;color:var(--field-ink);--tb:var(--field-ink);--tf:var(--field)}
+body[data-hdr="carta"] .top{background:transparent}
+.carta-ov .top{opacity:0;visibility:hidden}
+body[data-hdr="cupones"] .top,body[data-hdr="fin"] .top{background:var(--field);color:var(--field-ink);--tb:var(--field-ink);--tf:var(--field)}
+.wm{display:flex;align-items:center;gap:.45em;min-height:44px;font:700 1.625rem/1 var(--font);letter-spacing:-.05em;text-decoration:none}
+.wm small{display:none;font:400 var(--step-small)/1 var(--font);letter-spacing:0;padding-top:.45em}
+.tlinks{display:none;align-items:center;gap:clamp(20px,2.8vw,40px)}
+.tlinks a{position:relative;display:inline-flex;align-items:center;min-height:44px;font-weight:500;text-decoration:none}
+.tlinks a::after{content:"";position:absolute;left:0;right:0;bottom:5px;height:4px;border-radius:2px;background:currentColor;transform:scaleX(0);transform-origin:0 50%;transition:transform var(--t-ui) var(--ease-out)}
+.tlinks a.on::after{transform:scaleX(1)}
+@media (hover:hover){.tlinks a:hover::after{transform:scaleX(1)}}
+.tact{display:flex;align-items:center;gap:6px}
+.cartpill{display:none;min-height:44px;padding:0 .6em 0 1.05em;gap:.5em;background:var(--tb);color:var(--tf)}
+.cartpill b{display:grid;place-items:center;min-width:26px;height:26px;padding:0 6px;border-radius:13px;background:var(--tf);color:var(--tb);font:500 var(--step-small)/1 var(--font)}
+.cartpill #cpT{display:none}
+.in-carta .cartpill,.hascart .cartpill{display:inline-flex}
+.cartpill.bump{animation:bump .45s var(--ease-out)}
+@keyframes bump{40%{transform:scale(1.08)}}
+.navb{display:grid;place-items:center;width:44px;height:44px;margin-right:-10px;border-radius:50%;color:inherit}
+.navb svg{width:26px;height:26px}
+@media (min-width:520px){.wm small{display:block}}
+@media (min-width:700px){.top{display:grid;grid-template-columns:1fr auto 1fr}.tact{justify-self:end}.tlinks{display:flex}.navb{display:none}.hascart .cartpill{padding-right:1.05em}.hascart .cartpill #cpT{display:inline}}
+
+/* ===== entrada: el vídeo avanza con el scroll y te deja dentro ===== */
+.track{position:relative;height:420svh}
+.stage{position:sticky;top:0;height:100svh;overflow:hidden;background:#0e0f12;color:var(--field-ink)}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(10,12,16,.5),rgba(10,12,16,0) 20%)} /* taste-skill-ignore: velo neutro bajo la cabecera */
+.scrim.b{background:linear-gradient(rgba(10,12,16,0) 30%,rgba(10,12,16,.56) 58%,rgba(10,12,16,.84))} /* taste-skill-ignore: velo neutro para leer el título sobre el vídeo */
+.veil{position:absolute;inset:0;pointer-events:none;background:rgba(10,12,16,.56);opacity:0;transition:opacity .5s ease}
+.ready .veil{opacity:1}
+.intro{position:absolute;left:var(--m);right:var(--m);top:0;z-index:2;height:100svh;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:18px;padding-bottom:calc(84px + var(--sb));color:var(--field-ink);pointer-events:none}
+.intro>*{pointer-events:auto}
+.intro .lead{max-width:31ch}
+.iact{display:flex;align-items:center;flex-wrap:wrap;gap:10px 18px}
+.intro .btn.pri{background:var(--field-ink);color:var(--field)}
+@media (hover:hover){.intro .btn.pri:hover{background:var(--accent);color:var(--accent-ink)}}
+@media (max-height:620px){.intro .lead{display:none}}
+.roller{position:absolute;left:var(--m);bottom:calc(22px + var(--sb));width:44px;height:44px;border-radius:50%;will-change:transform}
+.roller img{width:100%;height:100%;border-radius:50%}
+.ready .roller{visibility:hidden}
+@media (prefers-reduced-motion:reduce){.roller{display:none}}
+
+/* al llegar: el índice de la casa, en grande */
+.index{position:absolute;left:var(--m);right:var(--m);bottom:calc(34px + var(--sb));display:grid;justify-items:start;opacity:0;visibility:hidden;transition:opacity .4s ease,visibility 0s .4s}
+.ready .index{opacity:1;visibility:visible;transition:opacity .5s ease .1s,visibility 0s}
+.index .lead{margin-bottom:12px}
+.ix{position:relative;display:block;color:inherit;text-decoration:none;font-size:min(var(--step-display),13svh);line-height:1}
+.iw{display:flex;align-items:baseline;gap:.3em;transition:transform .45s var(--ease-out)}
+.ix b{font:700 1em/1 var(--font);letter-spacing:-.05em;text-transform:lowercase;margin-left:-.04em}
+.ix i{font:400 var(--step-small)/1 var(--font);white-space:nowrap}
+.ix img{position:absolute;left:0;top:50%;width:.72em;height:.72em;margin-top:-.38em;border-radius:50%;opacity:0;visibility:hidden;transform:translateX(-1.3em) rotate(-220deg);transition:transform .5s var(--ease-out),opacity .25s ease,visibility 0s .5s}
+@media (hover:hover){
+  .ix:hover .iw,.ix:focus-visible .iw{transform:translateX(.86em)}
+  .ix:hover img,.ix:focus-visible img{opacity:1;visibility:visible;transform:none;transition:transform .5s var(--ease-out),opacity .25s ease,visibility 0s}
+}
+@media (min-width:700px){.ix i{font-size:var(--step-lead)}.intro{padding-bottom:calc(96px + var(--sb))}}
+
+/* ===== secciones: cada una entra y se queda anclada ===== */
+main{position:relative}
+html.snap{scroll-snap-type:y mandatory}
+.snap0,.snapT{position:absolute;left:0;right:0;bottom:0;height:100svh;pointer-events:none;scroll-snap-align:start;scroll-snap-stop:always}
+.snapT{top:0;bottom:auto}
+#carta,#cupones,#visita,#fin{scroll-snap-align:start;scroll-snap-stop:always}
+.cartaemb{position:relative;height:100svh;background:var(--bg)}
+.cartaemb iframe{display:block;width:100%;height:100%;border:0;background:var(--bg)}
+.sx{position:relative;min-height:100svh;overflow-x:clip;display:flex;flex-direction:column;justify-content:center;padding:calc(var(--top) + 14px) var(--m) calc(24px + var(--sb))}
+.in{width:100%}
+.cact{display:flex;align-items:center;flex-wrap:wrap;gap:10px 18px}
+
+/* ===== tarjeta de socio ===== */
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "card" "body";gap:16px}
+.ctext{display:contents}
+.chead{grid-area:head}
+.ccard{grid-area:card;display:grid;gap:8px}
+.cbody{grid-area:body;display:grid;gap:14px;justify-items:start}
+.cbody>p{max-width:44ch}
+.rewards{display:grid;gap:8px}
+.rewards li{display:flex;align-items:center;gap:12px}
+.rewards i{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--field-surface);color:var(--field);transition:background-color .4s ease}
+.rewards i svg{width:16px;height:16px;opacity:0;transition:opacity .4s ease}
+.rewards li.got i{background:var(--accent)}
+.rewards li.got i svg{opacity:1}
+.rewards b{font-weight:500;margin-right:.45em}
+.hist{display:grid;gap:8px;width:100%;max-width:440px}
+.hist h3{font:500 var(--step-small)/1.3 var(--font);color:var(--field-muted)}
+.hist li{display:flex;align-items:center;gap:12px;line-height:1.25}
+.hist img{width:36px;height:36px;border-radius:50%}
+.hist span{flex:1;min-width:0}
+.hist time{font-size:var(--step-small);color:var(--field-muted);white-space:nowrap}
+.field .tb{color:var(--field-ink)}
+/* el alta: un cupón de papel con sus muescas */
+.coupon{position:relative;width:100%;max-width:470px;display:grid;gap:14px;padding:22px 24px 24px;background:var(--bg);color:var(--ink)}
+.coupon::before,.coupon::after{content:"";position:absolute;top:72px;width:28px;height:28px;margin-top:-14px;border-radius:50%;background:var(--field)}
+.coupon::before{left:-14px}
+.coupon::after{right:-14px}
+.coupon h3{font:700 var(--step-lead)/1.1 var(--font);letter-spacing:-.03em;text-transform:lowercase;height:36px;display:flex;align-items:center}
+.coupon .perf{border-top:4px dotted var(--surface);margin:0 -6px 2px}
+.coupon .btn.pri{background:var(--ink);color:var(--bg)}
+@media (hover:hover){.coupon .btn.pri:hover{background:var(--accent);color:var(--accent-ink)}}
+.coupon .small{color:var(--muted)}
+/* la tarjeta: un objeto con su propio material (metal y cobre) */
+.bcw{position:relative;perspective:1100px;container-type:inline-size;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.bcard{position:relative;width:100%;aspect-ratio:1.586;transform-style:preserve-3d;will-change:transform;cursor:pointer;--mx:50%;--my:50%}
+.bface{position:absolute;inset:0;border-radius:4.2cqw;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background-size:100% 100%;background-repeat:no-repeat;color:#e8b48f}
+.mfront{background-image:url(assets/tarjeta/front.jpg)}
+.mback{background-image:url(assets/tarjeta/back.jpg);transform:rotateY(180deg)}
+.bc-glare{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;background:radial-gradient(circle at var(--mx) var(--my),rgba(255,255,255,.34) 0%,rgba(255,255,255,.07) 30%,rgba(255,255,255,0) 56%)} /* taste-skill-ignore: reflejo del metal al inclinar la tarjeta */
+.m-name{position:absolute;left:6%;top:53.6%;font:700 5.2cqw/1 var(--font);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.m-num{position:absolute;left:6%;top:62.8%;font:500 2.9cqw/1 var(--font);letter-spacing:.05em}
+.m-left{position:absolute;left:6%;top:69.2%;font:400 2.6cqw/1 var(--font);color:#f1c9a8}
+.m-stamps{position:absolute;inset:0;pointer-events:none}
+.m-st{position:absolute;top:86%;width:10.8%;aspect-ratio:1;margin:-5.4% 0 0 -5.4%;border-radius:50%;background-size:cover}
+.m-st.gift{display:grid;place-items:center;background:var(--accent);color:var(--accent-ink)}
+.m-st.gift svg{width:54%;height:54%}
+.m-rip{position:absolute;top:86%;width:12.4%;aspect-ratio:1;margin:-6.2% 0 0 -6.2%;border-radius:50%;border:.6cqw solid #f1c9a8}
+.m-code{position:absolute;left:6%;top:36%;width:61%;height:15%;display:flex;flex-direction:column;justify-content:center;gap:.7cqw;padding-left:3.5cqw;color:#2b1a0f}
+.m-code small{font:400 2.4cqw/1 var(--font)}
+.m-code b{font:700 5cqw/1 var(--font);letter-spacing:.06em}
+.m-qr{position:absolute;left:73.6%;top:37.5%;width:19%;height:auto;aspect-ratio:1}
+.m-hist{position:absolute;left:6%;top:69%;width:60%;display:flex;flex-direction:column;gap:.5cqw;font:400 2.5cqw/1.35 var(--font);color:#e2b590}
+.m-hist b{font-weight:500}
+.joining .cbody>.lead,.joining .rewards{display:none}
+@media (max-width:699px){
+  .joining .chead,.joining .ccard p{display:none}
+  .joining .ccard{width:min(210px,100%)}
+  .joining .coupon{gap:12px;padding:18px 20px 20px}
+  .joining .coupon::before,.joining .coupon::after{top:66px}
+  .cbody>.lead{font-size:var(--step-body)}
+}
+@media (min-width:700px) and (min-aspect-ratio:1/1){
+  .cgrid{grid-template-columns:minmax(0,1fr) minmax(0,1.06fr);grid-template-areas:"head card" "body card";align-items:center;gap:clamp(20px,4svh,36px) clamp(40px,6vw,96px)}
+  .chead{align-self:end}
+  .cbody{align-self:start;gap:20px}
+  .ccard{justify-self:end;width:min(100%,82svh)}
+  .cgrid .big,.vgrid .big{font-size:min(var(--step-display),8.1vw,14svh)}
+}
+
+/* pago con el móvil (demo) */
+.nfc{position:fixed;inset:0;z-index:96;display:grid;place-items:center;padding:var(--m);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s .35s}
+.nfc.on{opacity:1;visibility:visible;transition:opacity .35s ease,visibility 0s}
+.nfc-box{width:min(400px,100%);display:grid;justify-items:center;gap:14px;text-align:center}
+.nfc-stage{position:relative;width:220px;height:250px;margin-bottom:8px}
+.nfc-term{position:absolute;left:50%;bottom:0;width:132px;height:152px;margin-left:-66px;border-radius:22px;background:var(--field-surface);display:grid;justify-items:center;align-content:start;gap:4px;padding-top:18px}
+.nfc-term i{position:absolute;left:50%;bottom:18px;display:grid;place-items:center;width:38px;height:38px;margin-left:-19px;border-radius:50%;background:var(--field);color:var(--field);transition:background-color .3s ease}
+.nfc-term i svg{width:20px;height:20px}
+.nfc.ok .nfc-term i{background:var(--accent)}
+.nfc-ph{position:absolute;left:50%;top:0;width:80px;height:140px;margin-left:-40px;border-radius:16px;background:var(--field-ink);padding:44px 8px 0;transform:translateY(-10px) rotate(-12deg);transition:transform .9s var(--ease-out)}
+.nfc.go .nfc-ph{transform:translateY(44px) rotate(0deg)}
+.nfc-ph img{width:100%;height:auto;border-radius:4px}
+.nfc-ring{position:absolute;left:50%;top:118px;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:3px solid var(--accent);opacity:0}
+.nfc.go .nfc-ring{animation:ring 1.2s .6s ease-out infinite}
+.nfc.go .nfc-ring.r2{animation-delay:1s}
+.nfc.ok .nfc-ring{animation:none;opacity:0}
+@keyframes ring{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.3);opacity:0}}
+.nfc h2{font:700 var(--step-head)/1 var(--font);letter-spacing:-.04em;text-transform:lowercase}
+
+/* ===== visita ===== */
+.vgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.vtext{display:contents}
+.vhead{display:grid;gap:10px}
+.vhead .lead{font-size:var(--step-body)}
+.vpics{position:relative;height:clamp(140px,25svh,230px)}
+.vpics img{position:absolute;width:auto;max-width:none;aspect-ratio:1;object-fit:cover;border-radius:50%;border:5px solid var(--bg);background:var(--surface)}
+.vp1{left:-5px;top:0;height:100%}
+.vp2{left:39%;top:16%;height:80%}
+.vp3{left:71%;top:0;height:60%}
+.vbody{display:grid;gap:14px;justify-items:start}
+.vbody>p{max-width:46ch}
+.hrs{width:100%}
+.hrs caption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.hrs th{font-weight:400;text-align:left;padding:2px 0}
+.hrs td{text-align:right;padding:2px 0}
+.hrs tr.today th,.hrs tr.today td{font-weight:700}
+.credit{font-size:var(--step-small);color:var(--muted)}
+@media (min-width:700px){
+  .vhead .lead{font-size:var(--step-lead)}
+  .hrs{max-width:520px;font-size:var(--step-lead)}
+  .vpics{height:clamp(200px,30svh,400px)}
+  .vpics img{border-width:8px}
+}
+@media (min-width:700px) and (min-aspect-ratio:1/1){
+  .vgrid{grid-template-columns:minmax(0,1fr) minmax(0,1.06fr);grid-template-areas:"head pics" "body pics";align-items:center;gap:clamp(18px,3.4svh,32px) clamp(40px,6vw,96px)}
+  .vhead{grid-area:head;align-self:end}
+  .vbody{grid-area:body;align-self:start;gap:18px}
+  .vpics{grid-area:pics;justify-self:end;width:min(100%,80svh);height:auto;aspect-ratio:1/.86}
+  .vp1{left:32%;top:2%;height:98%}
+  .vp2{left:2%;top:0;height:46%}
+  .vp3{left:10%;top:50%;height:50%}
+}
+
+/* ===== cierre: la marca, construida en grande con un plato ===== */
+.fin .in{display:grid;align-content:space-between;gap:28px;min-height:calc(100svh - var(--top) - 44px - var(--sb))}
+.mark{font:700 min(48vw,34svh)/.84 var(--font);letter-spacing:-.06em;white-space:nowrap;margin-left:-.02em;-webkit-user-select:none;user-select:none}
+.mark .o{display:inline-block;width:.6em;height:.6em;margin:0 .035em 0 .04em;vertical-align:-.04em}
+.mark .o img{width:100%;height:100%;border-radius:50%;animation:spin 50s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fgrid{display:grid;gap:14px;justify-items:start}
+.fgrid p{max-width:38ch}
+.fact{display:flex;flex-wrap:wrap;gap:10px}
+.fgrid .muted{font-size:var(--step-small)}
+.fnav{display:none}
+@media (max-width:699px){.mark{font-size:min(48vw,25svh)}}
+@media (min-width:700px) and (min-aspect-ratio:1/1){.mark{font-size:min(37vw,56svh)}.mark br{display:none}.fgrid{grid-template-columns:1fr 1fr auto;align-items:end;gap:48px}.fgrid .muted{font-size:var(--step-body)}}
+
+/* ===== hojas: reseña y menú de secciones ===== */
+.pscrim{position:fixed;inset:0;z-index:50;background:rgba(19,34,63,.52);opacity:0;visibility:hidden;transition:opacity var(--t-ui) ease,visibility 0s var(--t-ui)}
+.paneling .pscrim{opacity:1;visibility:visible;transition:opacity var(--t-ui) ease,visibility 0s}
+.sheet{position:fixed;left:50%;bottom:0;z-index:51;width:min(560px,100%);max-height:94svh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);transform:translate(-50%,102%);visibility:hidden;transition:transform .5s var(--ease-in-out),visibility 0s .5s}
+.sheet.on{transform:translate(-50%,0);visibility:visible;transition:transform .5s var(--ease-in-out),visibility 0s}
+.shd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px var(--m) 6px}
+.sbody{display:grid;gap:16px;overflow:auto;overscroll-behavior:contain;padding:8px var(--m) calc(24px + var(--sb))}
+.stars{display:flex;gap:4px;margin:0 -8px}
+.stars button{display:grid;place-items:center;width:56px;height:56px;color:var(--surface);transition:color var(--t-hover) ease,transform var(--t-press) var(--ease-out)}
+.stars button svg{width:44px;height:44px}
+.stars button.on{color:var(--ink)}
+.stars button:active{transform:scale(.9)}
+.navsheet{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;justify-content:flex-end;gap:22px;padding:var(--top) var(--m) calc(30px + var(--sb));opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s .3s}
+.navsheet.on{opacity:1;visibility:visible;transition:opacity .3s ease,visibility 0s}
+.navsheet .rb{position:absolute;right:calc(var(--m) - 4px);top:calc(env(safe-area-inset-top,0px) + 6px)}
+.navsheet nav{display:grid;justify-items:start}
+.navsheet .ix{font-size:min(17vw,13svh)}
+</style>
+<script>LOCAL.estilo()</script>
+</head>
+<body data-hdr="track">
+<header class="top" id="top">
+  <a class="wm" href="#" id="home" aria-label="Volver a la entrada"><span data-t="nombre">molta</span> <small data-t="apellido">cafè d'especialitat</small></a>
+  <nav class="tlinks" aria-label="Secciones">
+    <a href="#carta" data-go="carta">Carta</a>
+    <a href="#cupones" data-go="cupones">Tarjeta</a>
+    <a href="#visita" data-go="visita">Visita</a>
+    <a href="#resena" data-go="resena">Reseña</a>
+  </nav>
+  <div class="tact">
+    <button class="btn cartpill" id="cartPill" aria-label="Ver tu pedido"><span>Pedido</span><b id="cpN">0</b><span id="cpT"></span></button>
+    <button class="navb" id="navOpen" aria-label="Abrir el menú de secciones" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 8.5h16M4 15.5h16"/></svg></button>
+  </div>
+</header>
+
+<main>
+  <section class="track" id="track" aria-label="Entrada a molta">
+    <div class="stage" id="stage">
+      <video id="v" muted playsinline preload="auto" aria-hidden="true"></video>
+      <div class="scrim"></div>
+      <div class="scrim b" id="scrimB"></div>
+      <div class="veil"></div>
+      <div class="roller" id="roller" aria-hidden="true"><img src="assets/carta/d-flatwhite.webp" alt="" width="44" height="44"></div>
+      <nav class="index" id="index" aria-label="Qué quieres hacer" aria-hidden="true" inert>
+        <p class="lead" data-t="textos.entrada.saludo">Bon dia. ¿Qué te apetece?</p>
+        <a class="ix" href="#carta" data-go="carta"><img src="assets/carta/d-flatwhite.webp" alt="" width="88" height="88"><span class="iw"><b>carta</b><i id="ixCarta">26 cosas ricas</i></span></a>
+        <a class="ix" href="#cupones" data-go="cupones"><img src="assets/carta/d-tostadahuevo.webp" alt="" width="88" height="88"><span class="iw"><b>tarjeta</b><i data-t="textos.indice.tarjeta">al sexto, invita molta</i></span></a>
+        <a class="ix" href="#visita" data-go="visita"><img src="assets/carta/d-tortitas.webp" alt="" width="88" height="88"><span class="iw"><b>visita</b><i id="ixOpen">Carrer de Verdi, 52</i></span></a>
+        <a class="ix" href="#resena" data-go="resena"><img src="assets/carta/d-porridge.webp" alt="" width="88" height="88"><span class="iw"><b>reseña</b><i data-t="textos.indice.resena">cuéntanos qué tal</i></span></a>
+      </nav>
+    </div>
+    <div class="intro" id="intro">
+      <h1 class="disp" data-t="textos.entrada.titulo">tostado aquí, <br>sin prisa.</h1>
+      <p class="lead" data-t="textos.entrada.lead">Café de especialidad que tostamos en el local y desayunos de temporada en el Carrer de Verdi, Gràcia.</p>
+      <div class="iact"><button class="btn pri" id="skip">Ver la carta</button><span class="small">O desliza y entra andando.</span></div>
+    </div>
+    <div class="snapT"></div>
+    <div class="snap0"></div>
+  </section>
+
+  <section class="cartaemb" id="carta" aria-labelledby="caT">
+    <h2 class="vh" id="caT">La carta</h2>
+    <iframe id="cartaF" src="carta.html?embed" title="La carta de molta" allow="clipboard-write"></iframe>
+  </section>
+
+  <section class="sx field" id="cupones" aria-labelledby="cT">
+    <div class="in cgrid">
+      <div class="ctext">
+        <div class="chead"><h2 class="head big" id="cT">al sexto café,<br>invita molta.</h2></div>
+        <div class="cbody">
+          <p class="lead" id="cLead">Tu tarjeta de socio se sella sola con cada café que pides.</p>
+          <ul class="rewards" id="rewards">
+            <li data-at="3"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l5 5 9-10.5"/></svg></i><span><b>3 sellos</b>Una bola de helado de la casa</span></li>
+            <li data-at="6"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l5 5 9-10.5"/></svg></i><span><b>6 sellos</b>Tu café gratis</span></li>
+          </ul>
+          <div class="cact" id="cJoin"><button class="btn pri" id="joinOpen">Crear mi tarjeta gratis</button><span class="small muted">Sin app ni contraseña.</span></div>
+          <form class="coupon" id="jform" hidden novalidate>
+            <h3>tu tarjeta, gratis</h3>
+            <div class="perf" aria-hidden="true"></div>
+            <label class="fld"><span>Tu nombre, como saldrá en la tarjeta</span><input id="nm" type="text" autocomplete="given-name" maxlength="18"></label>
+            <label class="fld"><span>Tu WhatsApp. Si ya eres socio, basta con esto</span><input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="612 345 678"></label>
+            <label class="chk"><input type="checkbox" id="ok"><span data-t="textos.tarjeta.consentimiento">Quiero mi tarjeta y alguna novedad de molta por WhatsApp. Me doy de baja cuando quiera.</span></label>
+            <button class="btn pri wide" id="getCode" type="submit">Crear mi tarjeta</button>
+          </form>
+          <div class="mon" id="mon" hidden>
+            <div class="cact"><button class="btn pri" id="payBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8.5 7.5a6.5 6.5 0 0 1 0 9M12 5a10 10 0 0 1 0 14M5 10a2.5 2.5 0 0 1 0 4"/></svg>Pagar en barra con el móvil</button><button class="tb" id="logout">Salir</button></div>
+          </div>
+          <div class="hist" id="hist" hidden></div>
+        </div>
+      </div>
+      <div class="ccard">
+        <div class="bcw" id="mcw" data-ui>
+          <div class="bcard" id="mcard" role="button" tabindex="0" aria-label="Tu tarjeta de socio. Pulsa para darle la vuelta.">
+            <div class="bface mfront">
+              <div class="bc-glare"></div>
+              <div class="m-name" id="mName">Tu nombre</div>
+              <div class="m-num" id="mNum">Socio n.º ····</div>
+              <div class="m-left" id="mLeft">Únete y llévate el primer sello</div>
+              <div class="m-stamps" id="mStamps"></div>
+            </div>
+            <div class="bface mback">
+              <div class="bc-glare"></div>
+              <div class="m-code"><small>Enséñala en barra</small><b id="mCode">MOLTA-····</b></div>
+              <canvas class="m-qr" id="mQr" width="250" height="250" aria-label="Código QR de tu tarjeta"></canvas>
+              <div class="m-hist" id="mHist"></div>
+            </div>
+          </div>
+        </div>
+        <p class="small muted" id="mcHint">Toca la tarjeta para darle la vuelta.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sx" id="visita" aria-labelledby="vT">
+    <div class="in vgrid">
+      <div class="vtext">
+        <div class="vhead">
+          <h2 class="head big" id="vT" data-t="textos.visita.titulo">carrer de <br>verdi, 52.</h2>
+          <p class="lead" id="openLine">Gràcia, Barcelona.</p>
+        </div>
+        <div class="vbody">
+          <table class="hrs" id="hrs"><caption>Horario de la semana</caption><tbody></tbody></table>
+          <p data-t="lugar.como">Metro Fontana (L3) o Joanic (L4). Sin reserva: entra y pide en barra o desde tu mesa con el QR.</p>
+          <div class="cact"><a class="btn pri" data-href="lugar.mapa" href="https://www.google.com/maps/search/?api=1&amp;query=Carrer+de+Verdi+Barcelona" target="_blank" rel="noopener">Cómo llegar</a><a class="btn ig" href="#" target="_blank" rel="noopener" hidden>Instagram</a></div>
+        </div>
+      </div>
+      <figure class="vpics">
+        <img class="vp1" data-src="fotos.0.src" data-alt="fotos.0.alt" src="assets/local-1.jpg" alt="El interior de molta: la ventana en arco, la barra de roble y el suelo de terrazo" width="480" height="640" loading="lazy">
+        <img class="vp2" data-src="fotos.1.src" data-alt="fotos.1.alt" src="assets/local-2.jpg" alt="Un flat white y un croissant en una mesa al sol" width="480" height="640" loading="lazy">
+        <img class="vp3" data-src="fotos.2.src" data-alt="fotos.2.alt" src="assets/local-3.jpg" alt="Tostando café en el tostador del local" width="480" height="640" loading="lazy">
+      </figure>
+    </div>
+  </section>
+
+  <footer class="sx field fin" id="fin" aria-label="molta">
+    <div class="in">
+      <p class="mark" id="mark"><span class="vh" data-t="nombre">molta</span><span aria-hidden="true"><span id="mkA">m</span><span class="o"><img src="assets/carta/disc-flatwhite.webp" alt="" width="1000" height="1000" loading="lazy"></span><br><span id="mkB">lta</span></span></p>
+      <nav class="fnav" aria-label="Secciones"><a href="#carta" data-go="carta">Carta</a><a href="#cupones" data-go="cupones">Tarjeta</a><a href="#visita" data-go="visita">Visita</a><a href="#resena" data-go="resena">Reseña</a></nav>
+      <div class="fgrid">
+        <p><span data-t="textos.cierre.linea">Cafè d'especialitat. Carrer de Verdi, 52, Gràcia, Barcelona.</span> <a class="ig" id="igF" href="#" target="_blank" rel="noopener" hidden></a></p>
+        <p class="muted" id="demoP">Esta web es una demo de <a href="https://ooox.es">OOOX</a>: <span data-t="textos.cierre.demo">molta no existe: el local, las fotos, la carta, los precios y los premios son de ejemplo.</span> <span id="aMod" hidden><a href="modelos.html">Ver los cinco diseños</a>.</span></p>
+        <div class="fact"><a class="btn pri" id="aPrueba" href="prueba.html" hidden>Probar una mesa</a><button class="btn" id="toTop">Volver a la entrada</button></div>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<div class="pscrim" id="pscrim"></div>
+<section class="sheet" id="p-resena" role="dialog" aria-modal="true" aria-labelledby="rT" aria-hidden="true" inert>
+  <div class="shd"><h2 class="head" id="rT">¿qué tal<br>tu visita?</h2><button class="rb" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="sbody">
+    <p>Diez segundos. Lo leemos todo.</p>
+    <div class="stars" id="starsel" role="group" aria-label="Tu nota, de una a cinco estrellas"></div>
+    <a class="btn pri wide" id="gReview" data-href="lugar.resena" href="https://www.google.com/maps/search/?api=1&amp;query=Carrer+de+Verdi+Barcelona" target="_blank" rel="noopener">Escribir la reseña en Google</a>
+    <label class="fld"><span>¿Algo que mejorar? Esto solo lo lee el equipo.</span><textarea id="priv"></textarea></label>
+    <button class="btn wide" id="sendPriv" data-t="textos.resena.privado">Enviar solo a molta</button>
+  </div>
+</section>
+
+<div class="navsheet field" id="navsheet" role="dialog" aria-modal="true" aria-label="Secciones" aria-hidden="true" inert>
+  <button class="rb" id="navClose" aria-label="Cerrar el menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <nav aria-label="Secciones">
+    <a class="ix" href="#carta" data-go="carta"><span class="iw"><b>carta</b></span></a>
+    <a class="ix" href="#cupones" data-go="cupones"><span class="iw"><b>tarjeta</b></span></a>
+    <a class="ix" href="#visita" data-go="visita"><span class="iw"><b>visita</b></span></a>
+    <a class="ix" href="#resena" data-go="resena"><span class="iw"><b>reseña</b></span></a>
+  </nav>
+  <p id="navFacts">Carrer de Verdi, 52. Gràcia, Barcelona.</p>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="nfc field" id="nfc" role="dialog" aria-modal="true" aria-labelledby="nfcT" aria-hidden="true" inert>
+  <div class="nfc-box">
+    <div class="nfc-stage" aria-hidden="true">
+      <div class="nfc-term"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l5 5 9-10.5"/></svg></i></div>
+      <div class="nfc-ph"><img src="assets/tarjeta/front.jpg" alt="" width="1200" height="757"></div>
+      <div class="nfc-ring"></div><div class="nfc-ring r2"></div>
+    </div>
+    <h2 id="nfcT">acerca el móvil</h2>
+    <p id="nfcS">Flat white</p>
+    <button class="btn" id="nfcX">Cancelar</button>
+  </div>
+</div>
+
+<script src="js/gsap.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const HTML=document.documentElement;
+/* ===== el local: todo sale de data/negocio.js ===== */
+const N=window.NEGOCIO,TX=N.textos,eur=LOCAL.eur,HOURS=N.horario,PL=N.carta.productos,DEST=N.destacados||[PL[0].id],MO=LOCAL.modelo,CF=LOCAL.cfg;
+LOCAL.pintar();document.title=N.titulo||N.nombre;{const m=document.querySelector('meta[name="description"]');if(m&&N.descripcion)m.content=N.descripcion}
+$('#ixCarta').textContent=TX.indice.carta.replace('{n}',PL.length);
+$$('#index .ix img').forEach((im,k)=>{if(DEST[k])im.src=LOCAL.plato(DEST[k])});$('#roller img').src=LOCAL.plato(DEST[0]);$('#mark .o img').src=LOCAL.plato(DEST[0],true);
+$('#mkA').textContent=N.marca.antes;$('#mkB').textContent=N.marca.despues;
+/* el nombre grande del cierre encoge lo justo si el nombre es largo */
+function encaja(m){m.style.fontSize='';const cs=getComputedStyle(m);if(cs.getPropertyValue('--encaja').trim()!=='1')return false;let fs=parseFloat(cs.fontSize);
+ for(let k=0;k<2;k++){const r=document.createRange();r.selectNodeContents(m);const w=r.getBoundingClientRect().width;if(w>0){fs*=m.clientWidth/w;m.style.fontSize=fs.toFixed(1)+'px'}}return true}
+function fitMark(){encaja($('#vT'));const m=$('#mark');if(encaja(m))return;let fs=parseFloat(getComputedStyle(m).fontSize),n=0;
+ while(m.getBoundingClientRect().left+m.scrollWidth>innerWidth-10&&fs>28&&n++<70){fs*=.96;m.style.fontSize=fs.toFixed(1)+'px'}}
+addEventListener('load',fitMark);addEventListener('resize',fitMark);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitMark);
+$('#track').setAttribute('aria-label','Entrada a '+N.nombre);$('#cartaF').title='La carta de '+N.nombre;$('#fin').setAttribute('aria-label',N.nombre);
+$$('a.ig').forEach(a=>{if(N.instagram)a.href='https://www.instagram.com/'+N.instagram+'/';else a.hidden=true});if(N.instagram)$('#igF').textContent='@'+N.instagram;
+if(!N.demo)$('#demoP').innerHTML='Web y sistema de <a href="https://ooox.es">OOOX</a>.';else $('#aMod').hidden=!(N.diseno&&N.diseno.galeria);
+/* en las muestras con mesas, el cierre lleva a la prueba guiada del pedido en mesa */
+$('#aPrueba').hidden=!(N.demo&&N.plan&&N.plan!=='basico');
+const DAYS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+/* si el alojamiento bloquea los archivos de fuente, se cargan las mismas incrustadas */
+if(document.fonts){const ok=()=>document.fonts.check('700 16px "Pilcrow Rounded"'),alt=()=>{if(ok())return;const l=document.createElement('link');l.rel='stylesheet';l.href='css/fuentes.css';document.head.appendChild(l)};document.fonts.load('700 16px "Pilcrow Rounded"').then(alt,alt)}
+const toast=t=>{const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
+
+/* ===== abierto ahora ===== */
+function now(){const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());const g=t=>p.find(x=>x.type===t).value;return{d:{Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[g('weekday')],m:+g('hour')*60+ +g('minute')}}
+const mm=s=>{const[a,b]=s.split(':');return a*60+ +b};
+(function(){/* cada día puede tener varios tramos o ninguno (cerrado) */
+ const n=now(),hoy=HOURS[n.d]||[],ab=hoy.find(r=>n.m>=mm(r[0])&&n.m<mm(r[1])),sig=hoy.find(r=>n.m<mm(r[0]));
+ let k=1;while(k<8&&!(HOURS[(n.d+k)%7]||[]).length)k++;const nd=(n.d+k)%7,cuando=k===1?'mañana':'el '+DAYS[nd].toLowerCase(),pr=k<8?HOURS[nd][0][0]:'';
+ const st=ab?'Ahora mismo está abierto, hasta las '+ab[1]+'.':sig?'Abre hoy a las '+sig[0]+'.':pr?'Ahora está cerrado: abre '+cuando+' a las '+pr+'.':'';
+ $('#openLine').textContent=N.lugar.zona+'. '+st;
+ $('#ixOpen').textContent=ab?'abierto hasta las '+ab[1]:sig?'abre hoy a las '+sig[0]:pr?'abre '+cuando+' a las '+pr:N.lugar.calle;
+ $('#navFacts').textContent=N.lugar.calle+'. '+st;
+ /* días seguidos con el mismo horario van en una sola fila */
+ const G=[];[1,2,3,4,5,6,0].forEach(d=>{const r=HOURS[d]||[],k=r.length?r.map(x=>x.join(' a ')).join(' y '):'Cerrado',g=G[G.length-1];if(g&&g.k===k)g.d.push(d);else G.push({k,d:[d]})});
+ $('#hrs tbody').innerHTML=G.map(g=>{const t=g.d.includes(n.d),a=DAYS[g.d[0]],b=DAYS[g.d[g.d.length-1]].toLowerCase();return`<tr class="${t?'today':''}"><th scope="row">${g.d.length>1?a+' a '+b:a}${t?' (hoy)':''}</th><td>${g.k}</td></tr>`}).join('')})();
+
+/* ===== entrada: el vídeo avanza con el scroll ===== */
+const v=$('#v'),intro=$('#intro'),roller=$('#roller'),index=$('#index'),scrimB=$('#scrimB');let dur=7.9,target=0,cur=0,ready=false;
+/* horizontal en pantallas anchas, vertical en móvil */
+const wide=matchMedia('(min-aspect-ratio:1/1)');let ori='';
+function setOri(){const o=CF.ori||(wide.matches?'h':'v');if(o===ori)return;ori=o;v.poster=`assets/entrada-${o}-poster.jpg`;v.src=`assets/entrada-${o}.mp4`;v.load()}
+const VR=CF.video||[0,1],vt=()=>Math.min(1,Math.max(0,(cur-VR[0])/(VR[1]-VR[0])))*(dur-.05);
+v.addEventListener('loadedmetadata',()=>{dur=v.duration||dur;v.currentTime=vt()});
+wide.addEventListener('change',setOri);setOri();
+/* ===== modelos: cada diseño monta su portada sobre el mismo motor (css/modelo-*.css) ===== */
+const TRK=$('#track'),VARS=[TRK,$('#top')],HX={};let pAnt=-1;
+HTML.style.setProperty('--dest','url("'+new URL(LOCAL.plato(DEST[0],true),document.baseURI).href+'")');
+if(MO!==LOCAL.propio)$('#cartaF').src=LOCAL.con('carta.html?embed');
+if(MO!=='disco')(function(){const st=$('#stage'),sc=st.querySelector('.scrim');
+ const mk=(tag,cls,html)=>{const e=document.createElement(tag);e.className=cls;e.setAttribute('aria-hidden','true');if(html!=null)e.innerHTML=html;st.insertBefore(e,sc);return e};
+ const tit=LOCAL.esc(TX.entrada.titulo).replace(/\n/g,'<br>'),letras=s=>[...s].map(c=>c===' '?'<i> </i>':'<span>'+LOCAL.esc(c)+'</span>').join('');
+ const d0=PL.find(d=>d.id===DEST[0])||PL[0],listas=()=>document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve();
+ /* el titular grande de cada portada es el h1 de verdad; la frase de la entrada pasa a ser un párrafo */
+ const titular=(e,oculta)=>{e.removeAttribute('aria-hidden');const h=intro.querySelector('h1');if(h){const p=document.createElement('p');p.className=h.className;p.innerHTML=h.innerHTML;if(oculta)p.setAttribute('aria-hidden','true');h.replaceWith(p)}return e};
+ const nombre=e=>{e.setAttribute('aria-label',N.nombre);[...e.children].forEach(c=>c.setAttribute('aria-hidden','true'));return titular(e)};
+ /* fotos de sección: un fotograma del vídeo de entrada hace de foto del local (vertical en pantallas estrechas) */
+ const foto=(sec,cual,alt)=>{const fija=/^[vh]-/.test(cual),o=fija?cual[0]:'h',k=fija?cual.slice(2):cual,p=document.createElement('picture');p.className='sfoto';
+  p.innerHTML=(fija?'':'<source media="(max-width:699px),(max-aspect-ratio:1/1)" srcset="assets/entrada-v-'+k+'.jpg">')+'<img src="assets/entrada-'+o+'-'+k+'.jpg" alt="'+LOCAL.esc(alt)+'" width="'+(o==='v'?1080:1920)+'" height="'+(o==='v'?1920:1080)+'" loading="lazy" decoding="async">';
+  const s=$(sec);s.insertBefore(p,s.firstChild)},FO=CF.fotos||{};
+ if(FO.visita)foto('#visita',FO.visita,(/poster/.test(FO.visita)?'La fachada de ':'El interior de ')+N.nombre);
+ if(FO.cierre)foto('#fin',FO.cierre,'El interior de '+N.nombre);
+ if(FO.tarjeta&&N.fotos&&N.fotos[0]){const im=document.createElement('img');im.className='cfoto';im.src=N.fotos[0].src;im.alt=N.fotos[0].alt||'';im.width=480;im.height=640;im.loading='lazy';$('#cupones .cgrid').appendChild(im)}
+ /* plato: el plato de la casa, enorme; luego lo que lleva; luego el local */
+ if(MO==='plato'){
+  HX.wipe=mk('div','hx-wipe');HX.t=titular(mk('h1','hx-t',tit),true);
+  HX.cap=mk('div','hx-cap','<b>'+LOCAL.esc(d0.name)+'</b><span>'+LOCAL.esc(d0.line)+'</span>');
+  HX.obj=mk('div','hx-obj','<img src="'+LOCAL.plato(d0.id,true)+'" alt="" width="1000" height="1000">');
+  HX.ing=mk('ul','hx-ing',d0.ing.slice(0,4).map(([a,b])=>'<li><i></i><span><b>'+LOCAL.esc(b)+'</b><small>'+LOCAL.esc(a)+'</small></span></li>').join(''));
+  HX.ing.dataset.n=Math.min(4,d0.ing.length);
+  HX.paso=(p,f)=>{const a=f[0]>.985,b=f[1]<.02||f[2]>.18;if(HX.t.hidden!==a)HX.t.hidden=a;if(HX.cap.hidden!==b)HX.cap.hidden=HX.ing.hidden=b;st.classList.toggle('a3',f[2]>0)}}
+ /* rótulo: el nombre es la ventana. Se parte en dos líneas en pantallas estrechas y se atraviesa por su trazo más grueso */
+ if(MO==='rotulo'){const nm=N.nombre.trim(),sp=[...nm].map((c,i)=>c===' '?i:-1).filter(i=>i>0);let a=nm,b='';
+  if(sp.length){const mid=nm.length/2,i=sp.reduce((p,c)=>Math.abs(c-mid)<Math.abs(p-mid)?c:p);a=nm.slice(0,i);b=nm.slice(i+1)}else if(nm.length>4){const i=Math.floor(nm.length/2);a=nm.slice(0,i);b=nm.slice(i)}
+  HX.mask=mk('div','hx-mask','<h1 class="hx-big" id="hxBig"><span class="l">'+letras(a)+'</span>'+(b?(sp.length?'<i class="e"> </i>':'')+'<span class="l">'+letras(b)+'</span>':'')+'</h1>');HX.mask.removeAttribute('aria-hidden');
+  const big=nombre($('#hxBig'));
+  HX.mide=()=>{if(HX.mask.hidden)return;const W=innerWidth,H=innerHeight,dos=!!b&&(W<700||W<H*.9),mg=W<700?16:28;big.classList.toggle('dos',dos);big.style.setProperty('--z','1');big.style.fontSize='100px';
+   const r0=big.getBoundingClientRect(),fs=Math.min(100*(W-2*mg)/r0.width,100*(H*(dos?.6:.66))/r0.height);big.style.fontSize=fs.toFixed(1)+'px';
+   const r=big.getBoundingClientRect(),k=Math.min(1,560/r.width),cw=Math.ceil(r.width*k),ch=Math.ceil(r.height*k),c=document.createElement('canvas');c.width=cw;c.height=ch;
+   const x=c.getContext('2d'),cs=getComputedStyle(big);x.font=cs.fontWeight+' '+(fs*k).toFixed(2)+'px '+cs.fontFamily;x.textBaseline='alphabetic';
+   big.querySelectorAll('.l').forEach(l=>{const pr=document.createElement('i');pr.style.cssText='display:inline-block;width:0;height:0';l.appendChild(pr);const by=pr.getBoundingClientRect().bottom-r.top;l.removeChild(pr);
+    l.querySelectorAll('span').forEach(q=>{x.fillText(q.textContent,(q.getBoundingClientRect().left-r.left)*k,by*k)})});
+   /* distancia al borde del trazo, en dos pasadas; el máximo es el punto más metido en la tinta */
+   const A=x.getImageData(0,0,cw,ch).data,Dm=new Float32Array(cw*ch);let best=0,bi=0;
+   for(let i=0;i<cw*ch;i++)Dm[i]=A[i*4+3]>128?1e6:0;
+   for(let y=0;y<ch;y++)for(let u=0;u<cw;u++){const i=y*cw+u;if(!Dm[i])continue;let m=Math.min(Dm[i],u>0?Dm[i-1]+1:1);m=y>0?Math.min(m,Dm[i-cw]+1,u>0?Dm[i-cw-1]+1.414:9e9,u<cw-1?Dm[i-cw+1]+1.414:9e9):Math.min(m,1);Dm[i]=m}
+   for(let y=ch-1;y>=0;y--)for(let u=cw-1;u>=0;u--){const i=y*cw+u;if(!Dm[i])continue;let m=Math.min(Dm[i],u<cw-1?Dm[i+1]+1:1);m=y<ch-1?Math.min(m,Dm[i+cw]+1,u<cw-1?Dm[i+cw+1]+1.414:9e9,u>0?Dm[i+cw-1]+1.414:9e9):Math.min(m,1);Dm[i]=m;if(m>best){best=m;bi=i}}
+   const ox=(bi%cw)/k,oy=Math.floor(bi/cw)/k,px=r.left+ox,py=r.top+oy,far=Math.max(Math.hypot(px,py),Math.hypot(W-px,py),Math.hypot(px,H-py),Math.hypot(W-px,H-py));
+   big.style.setProperty('--zx',ox.toFixed(1)+'px');big.style.setProperty('--zy',oy.toFixed(1)+'px');HX.S=Math.max(8,far/Math.max(3,best/k)*1.15);pAnt=-1};
+  HX.paso=(p,f)=>{const fin=f[1]>.999;if(HX.mask.hidden!==fin){HX.mask.hidden=fin;if(!fin)HX.mide()}if(!fin)big.style.setProperty('--z',Math.pow(HX.S||30,f[1]).toFixed(4))};
+  addEventListener('resize',()=>HX.mide());listas().then(()=>HX.mide());addEventListener('load',()=>HX.mide());HX.mide()}
+ /* película y mitad: el nombre letra a letra, dos veces; la copia clara solo se ve sobre el vídeo */
+ if(MO==='pelicula'||MO==='mitad'){const h=letras(N.nombre);HX.n1=nombre(mk('h1','hx-name',h));HX.n2=mk('p','hx-name hx-name2',h);
+  HX.paso=(p,f)=>{const fuera=f[1]>.995;if(HX.n1.hidden!==fuera){HX.n1.hidden=HX.n2.hidden=fuera;if(!fuera)HX.mide()}};
+  /* el nombre encoge si no cabe; si el modelo lo pide (--encaja:1) se ajusta al ancho libre, con el tope que marque su scroll-margin-top */
+  HX.mide=()=>[HX.n1,HX.n2].forEach(e=>{e.style.fontSize='';const cs=getComputedStyle(e);let fs=parseFloat(cs.fontSize),n=0;
+   if(cs.getPropertyValue('--encaja').trim()==='1'){const W=e.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),tope=parseFloat(cs.scrollMarginTop)||1e4;
+    for(let k=0;k<2;k++){const r=document.createRange();r.selectNodeContents(e);const w=r.getBoundingClientRect().width;if(w>0){fs=Math.min(tope,fs*W/w);e.style.fontSize=fs.toFixed(1)+'px'}}return}
+   while(e.scrollWidth>e.clientWidth+1&&fs>40&&n++<60){fs*=.95;e.style.fontSize=fs.toFixed(1)+'px'}});
+  addEventListener('resize',()=>HX.mide());listas().then(()=>HX.mide());HX.mide()}
+ /* mitad: en pantallas anchas el vídeo vive en un marco fijo que no se mueve en toda la página */
+ if(CF.marco){const fr=document.createElement('div');fr.className='mframe';fr.id='mframe';fr.setAttribute('aria-hidden','true');document.body.appendChild(fr);VARS.push(fr);
+  const an=matchMedia('(min-width:900px) and (min-aspect-ratio:1/1)'),pon=()=>{if(an.matches){fr.appendChild(v);fr.appendChild(HX.n2)}else{st.insertBefore(v,st.firstChild);st.insertBefore(HX.n2,sc)}HX.mide()};
+  an.addEventListener('change',pon);pon()}
+})();
+/* el recorrido de la portada: --p (0 a 1) y una variable suavizada por fase (--f1, --f2…) para que el CSS mueva las piezas */
+const sm=x=>x*x*(3-2*x);
+function fases(){if(Math.abs(cur-pAnt)<.0003)return;pAnt=cur;const fs=(CF.fases||[]).map(([a,b])=>sm(Math.min(1,Math.max(0,(cur-a)/(b-a)))));
+ VARS.forEach(e=>{e.style.setProperty('--p',cur.toFixed(4));fs.forEach((x,k)=>e.style.setProperty('--f'+(k+1),x.toFixed(4)))});if(HX.paso)HX.paso(cur,fs)}
+const tmax=()=>$('#track').offsetHeight-innerHeight;
+let run=0;const setRun=()=>{run=innerWidth-(parseFloat(getComputedStyle(roller).left)||20)+16};setRun();addEventListener('resize',setRun);
+const prog=()=>Math.min(1,Math.max(0,scrollY/tmax()));
+function tick(){cur+=(target-cur)*.12;if(Math.abs(target-cur)<.001)cur=target;
+ if(v.readyState>=1&&!isNaN(v.duration)){const t=vt();if(Math.abs(v.currentTime-t)>.02)v.currentTime=t}
+ fases();
+ const o=Math.max(0,1-cur*6.2);intro.style.opacity=o;intro.style.visibility=o<.02?'hidden':'visible';scrimB.style.opacity=ready?0:Math.max(0,1-cur*4);
+ roller.style.transform=`translate3d(${(cur*run).toFixed(1)}px,0,0) rotate(${(cur*run*360/(Math.PI*44)).toFixed(1)}deg)`;
+ if(cur>.985&&!ready)arrive();requestAnimationFrame(tick)}
+let gliding=false,holdUntil=0;
+let inTrack=true;
+function onScroll(){target=prog();if(Math.abs(target-cur)>.4)cur=target;
+ const t=scrollY<tmax()-4;if(inTrack&&!t&&!gliding)holdUntil=performance.now()+1100;inTrack=t;
+ if(!gliding)HTML.classList.toggle('snap',scrollY>=tmax()-4);if(ready&&target<.9)leave();spy()}
+addEventListener('scroll',onScroll,{passive:true});
+requestAnimationFrame(tick);
+function arrive(){if(ready)return;ready=true;document.body.classList.add('ready');index.removeAttribute('aria-hidden');index.inert=false;
+ if(!RM)gsap.fromTo('#index .ix',{y:34,opacity:0},{y:0,opacity:1,stagger:.07,duration:.7,ease:'power3.out',delay:.15})}
+function leave(){ready=false;document.body.classList.remove('ready');index.setAttribute('aria-hidden','true');index.inert=true}
+
+/* ===== una sección por gesto, anclada arriba ===== */
+const SECS=['carta','cupones','visita','fin'];
+function stops(){const vh=innerHeight,max=HTML.scrollHeight-vh,S=[tmax()];
+ SECS.forEach(id=>{const e=document.getElementById(id),t=Math.round(e.getBoundingClientRect().top+scrollY);S.push(t);if(e.offsetHeight>vh+40)S.push(Math.min(max,t+e.offsetHeight-vh))});
+ S.push(max);return[...new Set(S.map(x=>Math.round(Math.min(x,max))))].sort((a,b)=>a-b)}
+let wAcc=0,wT=0,openP=null;
+const blocked=()=>!!openP;
+function page(dir){const y=scrollY,S=stops(),to=dir>0?S.find(x=>x>y+4):[...S].reverse().find(x=>x<y-4);
+ if(to==null)return false;if(dir<0&&y<=tmax()+4)return false;glide(to,.85);return true}
+function onWheelDy(dy,ev){if(scrollY<tmax()-4)return;if(scrollY<=tmax()+4&&dy<0)return;
+ if(ev)ev.preventDefault();if(gliding)return;if(performance.now()<holdUntil){wAcc=0;return}wAcc+=dy;clearTimeout(wT);wT=setTimeout(()=>wAcc=0,180);
+ if(Math.abs(wAcc)>=30){const d=Math.sign(wAcc);wAcc=0;page(d)}}
+addEventListener('wheel',e=>{if(blocked()||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;onWheelDy(e.deltaY,e)},{passive:false});
+addEventListener('message',e=>{const m=e.data||{};if(m.ooox==='wheel'&&!blocked())onWheelDy(m.dy)});
+addEventListener('keydown',e=>{if(e.key==='Escape'){closeAll();return}if(blocked()||scrollY<tmax()-4||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;const k=e.key;
+ const d=(k==='ArrowDown'||k==='PageDown')?1:(k==='ArrowUp'||k==='PageUp')?-1:0;if(!d)return;if(d<0&&scrollY<=tmax()+4)return;e.preventDefault();if(!gliding)page(d)});
+/* dedo: un deslizamiento = una sección (la página no se queda a medias) */
+let ts=null;
+addEventListener('touchstart',e=>{const t=e.touches[0];ts={x:t.clientX,y:t.clientY}},{passive:true});
+addEventListener('touchmove',e=>{if(!ts||blocked()||scrollY<tmax()-4)return;const t=e.touches[0],dx=t.clientX-ts.x,dy=t.clientY-ts.y;
+ if(Math.abs(dy)>Math.abs(dx)&&!(dy>0&&scrollY<=tmax()+4)&&e.cancelable)e.preventDefault()},{passive:false});
+addEventListener('touchend',e=>{if(!ts)return;const t=e.changedTouches[0],dx=t.clientX-ts.x,dy=t.clientY-ts.y;ts=null;
+ if(blocked()||gliding||scrollY<tmax()-4||Math.abs(dy)<40||Math.abs(dy)<Math.abs(dx)*1.2)return;if(dy>0&&scrollY<=tmax()+4)return;page(dy<0?1:-1)},{passive:true});
+addEventListener('message',e=>{const m=e.data||{};if(m.ooox==='swipe'&&!blocked()&&!gliding)page(m.dir)});
+function glide(y,d){gliding=true;HTML.classList.remove('snap');HTML.classList.add('viaje');const tw={v:scrollY};gsap.to(tw,{v:y,duration:RM?0:(d||1.1),ease:'power2.inOut',onUpdate:()=>scrollTo(0,tw.v),onComplete:()=>{gliding=false;HTML.classList.remove('viaje');onScroll()}})}
+const yOf=id=>Math.round(document.getElementById(id).getBoundingClientRect().top+scrollY);
+function goSec(id){closeAll();if(id==='resena'){openPanel('resena');return}glide(yOf(id),scrollY<tmax()-4?2:1)}
+$('#skip').onclick=()=>glide(yOf('carta'),2.4);
+$('#home').onclick=e=>{e.preventDefault();closeAll();glide(0,1.4)};
+$('#toTop').onclick=()=>glide(0,1.8);
+$$('[data-go]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();goSec(a.dataset.go)}));
+
+/* qué sección se ve y cuál queda bajo la cabecera */
+let curSec=null;const cf=$('#cartaF');
+function spy(){let on=null,hd='track';SECS.forEach(id=>{const t=document.getElementById(id).getBoundingClientRect().top;if(t<innerHeight*.45)on=id;if(t<=34)hd=id});
+ if(on!==curSec){curSec=on;if(on==='carta'&&cf.contentWindow)cf.contentWindow.postMessage({ooox:'enter'},'*');$$('.tlinks a').forEach(a=>a.classList.toggle('on',a.dataset.go===on))}
+ document.body.dataset.hdr=hd;document.body.classList.toggle('in-carta',on==='carta')}
+
+/* ===== hojas ===== */
+let lastFocus=null;
+function modal(el,on){el.inert=!on;el.setAttribute('aria-hidden',!on);el.classList.toggle('on',on);if(on){lastFocus=document.activeElement;setTimeout(()=>{const f=el.querySelector('button,a[href],input');f&&f.focus({preventScroll:true})},60)}else if(lastFocus&&lastFocus.focus){lastFocus.focus({preventScroll:true});lastFocus=null}}
+function openPanel(id){if(openP===id)return;closeAll();openP=id;if(id==='nav'){modal($('#navsheet'),true);return}document.body.classList.add('paneling');modal($('#p-'+id),true)}
+function closeAll(){if(!openP)return;const id=openP;openP=null;document.body.classList.remove('paneling');modal(id==='nav'?$('#navsheet'):$('#p-'+id),false)}
+$$('[data-close]').forEach(b=>b.onclick=closeAll);$('#pscrim').onclick=closeAll;
+$('#navOpen').onclick=()=>openPanel('nav');$('#navClose').onclick=closeAll;
+{const p=$('#p-resena');let y0=null;p.addEventListener('touchstart',e=>{y0=p.querySelector('.sbody').scrollTop>2?null:e.touches[0].clientY},{passive:true});p.addEventListener('touchend',e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>80)closeAll();y0=null},{passive:true})}
+
+/* entradas: cada sección coloca sus piezas una vez, a su manera (el disco siempre llega rodando) */
+if(!RM&&'IntersectionObserver'in window){
+ const sube=(a,b,c)=>gsap.timeline().fromTo(a,{y:40,opacity:0},{y:0,opacity:1,duration:.8,ease:'expo.out'}).fromTo(b,{y:46,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out',stagger:.08},.08).fromTo(c,{y:22,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.2);
+ const E=MO!=='disco'?{
+  cupones:{pre:['#cupones .chead','#cupones .cbody>*','#mcw','#mcHint'],run(){sube('#cupones .chead','#mcw,#mcHint','#cupones .cbody>*')}},
+  visita:{pre:['#visita .vhead','#visita .vbody>*','#visita .vpics img'],run(){sube('#visita .vhead','#visita .vpics img','#visita .vbody>*')}},
+  fin:{pre:['#fin .mark','#fin .fgrid>*','#fin .fnav a'],run(){gsap.fromTo('#fin .mark',{opacity:0},{opacity:1,duration:.9,ease:'power2.out'});sube('#fin .fnav','#fin .fnav a','#fin .fgrid>*')}}}:{
+  cupones:{pre:['#cupones .chead','#cupones .cbody>*','#mcw','#mcHint'],run(){const tl=gsap.timeline();
+   tl.fromTo('#cupones .chead',{y:44,opacity:0},{y:0,opacity:1,duration:.8,ease:'expo.out'})
+     .fromTo('#mcw',{y:70,rotation:-7,opacity:0},{y:0,rotation:0,opacity:1,duration:.9,ease:'expo.out'},.1)
+     .fromTo('#cupones .cbody>*',{y:26,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.22)
+     .fromTo('#mcHint',{opacity:0},{opacity:1,duration:.4},.7)}},
+  visita:{pre:['#visita .vhead','#visita .vbody>*','#visita .vpics img'],run(){const tl=gsap.timeline(),w=innerWidth*.6;
+   tl.fromTo('#visita .vhead',{y:44,opacity:0},{y:0,opacity:1,duration:.8,ease:'expo.out'})
+     .fromTo('#visita .vpics img',{x:w,rotation:200,opacity:0},{x:0,rotation:0,opacity:1,duration:1,ease:'expo.out',stagger:.09},.08)
+     .fromTo('#visita .vbody>*',{y:26,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.22)}},
+  fin:{pre:['#fin .mark','#fin .fgrid>*'],run(){const tl=gsap.timeline();
+   tl.fromTo('#fin .mark',{y:60,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out'})
+     .fromTo('#fin .mark .o',{x:-innerWidth*.5,rotation:-420},{x:0,rotation:0,duration:1.2,ease:'expo.out'},0)
+     .fromTo('#fin .fgrid>*',{y:24,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.08},.35)}}};
+ const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;io.unobserve(e.target);E[e.target.id].run()}),{threshold:.22});
+ Object.keys(E).forEach(id=>{const el=document.getElementById(id);if(el.getBoundingClientRect().top<innerHeight*.8)return;gsap.set(E[id].pre.join(','),{opacity:0});io.observe(el)})}
+
+/* llegar con enlace (#carta, #cupones, #visita, #resena) */
+(function(){let h=location.hash.slice(1);if(!h)return;if(h==='cafes'||h==='comidas')h='carta';history.replaceState(null,'',location.pathname);
+ if(h!=='resena'&&!document.getElementById(h)&&h!=='dentro')return;
+ v.addEventListener('loadedmetadata',()=>{v.currentTime=v.duration-.05},{once:true});scrollTo(0,tmax());target=cur=1;arrive();
+ if(h==='resena')setTimeout(()=>openPanel('resena'),500);else if(h!=='dentro')setTimeout(()=>{scrollTo(0,yOf(h));onScroll()},120)})();
+
+/* cuando la carta abre una hoja (carta entera, pedido, gracias), la cabecera se aparta */
+addEventListener('message',e=>{const m=e.data||{};if(m.ooox==='overlay')document.body.classList.toggle('carta-ov',!!m.on)});
+/* pedido: el botón de arriba refleja el carrito de la carta */
+addEventListener('message',e=>{const m=e.data||{};if(m.ooox!=='cart')return;$('#cpN').textContent=m.n;$('#cpT').textContent=m.n?m.total:'';document.body.classList.toggle('hascart',m.n>0);if(m.bump){const c=$('#cartPill');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}});
+$('#cartPill').onclick=()=>{const send=()=>cf.contentWindow&&cf.contentWindow.postMessage({ooox:'openCart'},'*');if(curSec!=='carta'){goSec('carta');setTimeout(send,1300)}else send()};
+
+/* ===== reseña ===== */
+let stars=0;const STAR='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.6l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg>';
+$('#starsel').innerHTML=[1,2,3,4,5].map(i=>`<button data-s="${i}" aria-label="${i} ${i>1?'estrellas':'estrella'}" aria-pressed="false">${STAR}</button>`).join('');
+$$('#starsel button').forEach(b=>b.onclick=()=>{stars=+b.dataset.s;$$('#starsel button').forEach(x=>{const on=+x.dataset.s<=stars;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on)})});
+$('#sendPriv').onclick=()=>{if(!$('#priv').value.trim()){toast('Escribe algo y se lo pasamos al equipo.');$('#priv').focus();return}$('#priv').value='';closeAll();toast(TX.resena.gracias)};
+
+/* ===== tarjeta 3D: inclinación, reflejo y giro ===== */
+function card3d(bw,bc,onTap){let cx=0,cy=0,tx=0,ty=0,flipT=0,flipC=0,last=0,vis=false,raf=0;
+ function tk(t){const n=performance.now();if(n-last>1600&&!RM){tx=Math.sin(t/1900)*3;ty=Math.sin(t/2600)*5}
+  cx+=(tx-cx)*.085;cy+=(ty-cy)*.085;flipC+=(flipT-flipC)*(RM?1:.075);
+  bc.style.transform=`rotateX(${cx.toFixed(2)}deg) rotateY(${(cy+flipC).toFixed(2)}deg)`;
+  bc.style.setProperty('--mx',(50+cy*3.2).toFixed(1)+'%');bc.style.setProperty('--my',(50-cx*4.5).toFixed(1)+'%');
+  raf=vis?requestAnimationFrame(tk):0}
+ new IntersectionObserver(es=>{vis=es[0].isIntersecting;if(vis&&!raf)raf=requestAnimationFrame(tk)}).observe(bw);
+ bw.addEventListener('pointermove',e=>{const r=bw.getBoundingClientRect();tx=-((e.clientY-r.top)/r.height-.5)*20;ty=((e.clientX-r.left)/r.width-.5)*28;last=performance.now()});
+ bw.addEventListener('pointerleave',()=>{last=0});
+ addEventListener('deviceorientation',e=>{if(e.beta==null||!vis)return;card3d.gyro=true;tx=Math.max(-18,Math.min(18,(e.beta-45)*.5));ty=Math.max(-24,Math.min(24,e.gamma*.7));last=performance.now()});
+ const tap=()=>{if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission&&!card3d.gyro){DeviceOrientationEvent.requestPermission().then(r=>{card3d.gyro=r==='granted'}).catch(()=>{})}onTap&&onTap()};
+ bc.addEventListener('click',tap);bc.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tap()}});
+ return{flip(x){flipT=x==null?(flipT?0:180):(x?180:0);return!!flipT},spin(){flipC=-360;flipT=0}}}
+
+/* QR de verdad: versión 1 (21×21), corrección M, modo byte, hasta 14 caracteres */
+function qr1(text){
+ const N=21,data=[...new TextEncoder().encode(text)].slice(0,14),bits=[];
+ const put=(x,n)=>{for(let i=n-1;i>=0;i--)bits.push(x>>i&1)};
+ put(4,4);put(data.length,8);data.forEach(b=>put(b,8));put(0,Math.min(4,128-bits.length));
+ while(bits.length%8)bits.push(0);
+ const cw=[];for(let i=0;i<bits.length;i+=8)cw.push(parseInt(bits.slice(i,i+8).join(''),2));
+ for(let p=0;cw.length<16;p^=1)cw.push(p?0x11:0xEC);
+ const EXP=[],LOG=[];for(let i=0,x=1;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11d}
+ const mul=(a,b)=>a&&b?EXP[(LOG[a]+LOG[b])%255]:0;
+ let gen=[1];for(let i=0;i<10;i++){const g=[...gen,0];for(let j=0;j<gen.length;j++)g[j+1]^=mul(gen[j],EXP[i]);gen=g}
+ const rem=Array(10).fill(0);cw.forEach(b=>{const f=b^rem.shift();rem.push(0);for(let j=0;j<10;j++)rem[j]^=mul(gen[j+1],f)});
+ const stream=[];[...cw,...rem].forEach(b=>{for(let i=7;i>=0;i--)stream.push(b>>i&1)});
+ const m=Array.from({length:N},()=>Array(N).fill(0)),f=Array.from({length:N},()=>Array(N).fill(false));
+ const fn=(r,c,x)=>{if(r<0||c<0||r>=N||c>=N)return;m[r][c]=x?1:0;f[r][c]=true};
+ [[0,0],[0,N-7],[N-7,0]].forEach(([r0,c0])=>{for(let y=-1;y<=7;y++)for(let x=-1;x<=7;x++){const inb=x>=0&&x<=6&&y>=0&&y<=6;fn(r0+y,c0+x,inb&&(x===0||x===6||y===0||y===6||(x>=2&&x<=4&&y>=2&&y<=4)))}});
+ for(let i=8;i<N-8;i++){fn(6,i,i%2===0);fn(i,6,i%2===0)}
+ for(let i=0;i<9;i++){if(!f[8][i])fn(8,i,0);if(!f[i][8])fn(i,8,0)}
+ for(let i=0;i<8;i++){fn(8,N-1-i,0);fn(N-1-i,8,0)}
+ fn(N-8,8,1);
+ let k=0,up=true;
+ for(let c=N-1;c>0;c-=2){if(c===6)c--;for(let i=0;i<N;i++){const r=up?N-1-i:i;for(const cc of[c,c-1])if(!f[r][cc])m[r][cc]=stream[k++]||0}up=!up}
+ const MASK=[(r,c)=>(r+c)%2===0,(r,c)=>r%2===0,(r,c)=>c%3===0,(r,c)=>(r+c)%3===0,(r,c)=>((r>>1)+Math.floor(c/3))%2===0,(r,c)=>(r*c)%2+(r*c)%3===0,(r,c)=>((r*c)%2+(r*c)%3)%2===0,(r,c)=>((r+c)%2+(r*c)%3)%2===0];
+ const build=q=>{const g=m.map(r=>r.slice());for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(!f[r][c]&&MASK[q](r,c))g[r][c]^=1;
+  let fm=q,rm=fm<<10;for(let i=14;i>=10;i--)if(rm>>i&1)rm^=0x537<<(i-10);fm=((fm<<10)|rm)^0x5412;const b=i=>fm>>i&1;
+  for(let i=0;i<=5;i++)g[i][8]=b(i);g[7][8]=b(6);g[8][8]=b(7);g[8][7]=b(8);for(let i=9;i<15;i++)g[8][14-i]=b(i);
+  for(let i=0;i<8;i++)g[8][N-1-i]=b(i);for(let i=8;i<15;i++)g[N-15+i][8]=b(i);g[N-8][8]=1;return g};
+ const pen=g=>{let p=0,dark=0;
+  for(let r=0;r<N;r++)for(let rc=0;rc<2;rc++){let run=1;for(let c=1;c<N;c++){const a=rc?g[c][r]:g[r][c],b=rc?g[c-1][r]:g[r][c-1];if(a===b){run++;if(run===5)p+=3;else if(run>5)p++}else run=1}
+   const line=(rc?g.map(x=>x[r]):g[r]).join('');for(const pat of['10111010000','00001011101']){let i=-1;while((i=line.indexOf(pat,i+1))>=0)p+=40}}
+  for(let r=0;r<N-1;r++)for(let c=0;c<N-1;c++){const x=g[r][c];if(x===g[r][c+1]&&x===g[r+1][c]&&x===g[r+1][c+1])p+=3}
+  g.forEach(r=>r.forEach(x=>dark+=x));return p+Math.floor(Math.abs(dark*20/(N*N)-10))*10};
+ let best=null,bp=1e9;for(let q=0;q<8;q++){const g=build(q),p=pen(g);if(p<bp){bp=p;best=g}}
+ return best}
+function drawQr(code){const c=$('#mQr'),x=c.getContext('2d'),g=qr1(code),N=g.length,q=2,s=c.width/(N+2*q);
+ x.fillStyle='#efe7d6';x.fillRect(0,0,c.width,c.height);x.fillStyle='#1b1410';
+ for(let r=0;r<N;r++)for(let k=0;k<N;k++)if(g[r][k])x.fillRect(Math.round((k+q)*s),Math.round((r+q)*s),Math.ceil(s),Math.ceil(s))}
+
+/* ===== socios: la tarjeta se sella con lo que te tomas ===== */
+const KEY=N.slug+'_club_v1',TJ=N.tarjeta,F=TJ.frases,MED=TJ.medio||3,PRE=String(TJ.prefijo||N.slug).toUpperCase().slice(0,9);
+const store={get(){try{return JSON.parse(localStorage.getItem(KEY))||{users:{},cur:null}}catch(e){return{users:{},cur:null}}},set(x){try{localStorage.setItem(KEY,JSON.stringify(x))}catch(e){}}};
+let user=null;
+const memberCard=card3d($('#mcw'),$('#mcard'),()=>{const b=memberCard.flip();$('#mcHint').textContent=b?'Toca otra vez para volver a la cara de delante.':'Toca la tarjeta para darle la vuelta.'});
+const SX=[10.4,26.1,42,57.9,73.6,89.8];
+const DEMO=(TJ.demo||PL.slice(0,6).map(d=>d.id)).map(id=>PL.find(d=>d.id===id)).filter(Boolean).map(d=>[d.id,d.name,d.price[0]]);
+{const li=$$('#rewards li');li[0].dataset.at=MED;li[0].querySelector('span').innerHTML='<b>'+MED+' sellos</b>'+LOCAL.esc(F.lista_medio);li[1].querySelector('span').innerHTML='<b>6 sellos</b>'+LOCAL.esc(F.lista_final)}
+const Falta=n=>falta(n).replace(/^t/,'T');
+const IGIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11.5" rx="1.5"/><path d="M12 9v11.5M3.5 13h17M12 9C10 4.6 5.8 5 6.3 7.4 6.7 9 12 9 12 9zM12 9c2-4.4 6.2-4 5.7-1.6C17.3 9 12 9 12 9z"/></svg>';
+const stampsOf=u=>u?u.uses.filter(x=>x.id).slice(-u.count):[];
+function drawStamps(){const n=user?user.count:0,ids=stampsOf(user);
+ $('#mStamps').innerHTML=SX.map((x,k)=>k>=n?'':k===5?`<div class="m-st gift" style="left:${x}%">${IGIFT}</div>`:`<div class="m-st" style="left:${x}%;background-image:url(${LOCAL.plato((ids[k]&&ids[k].id)||DEMO[0][0])})"></div>`).join('')}
+function stampAnim(){const el=$('#mStamps').lastElementChild;if(!el||RM)return;
+ const w=$('#mcw').clientWidth,dx=w*.5;gsap.fromTo(el,{x:dx,rotation:dx*360/(Math.PI*w*.108),opacity:0},{x:0,rotation:0,opacity:1,duration:1,ease:'power3.out'});
+ setTimeout(()=>{const r=document.createElement('div');r.className='m-rip';r.style.left=el.style.left;$('#mStamps').appendChild(r);
+  gsap.fromTo(r,{scale:1,opacity:.9},{scale:1.9,opacity:0,duration:.7,ease:'power2.out',onComplete:()=>r.remove()});
+  gsap.fromTo('#mcw',{y:0},{y:4,duration:.08,yoyo:true,repeat:1})},900)}
+const falta=n=>n===1?'te falta 1':'te faltan '+n;
+function render(){const u=user,c=u?u.count:0,sec=$('#cupones');document.body.classList.toggle('club-on',!!u);
+ $('#mName').textContent=u?(u.name||'Socio'):($('#nm').value.trim()||'Tu nombre');$('#mNum').textContent=u?'Socio n.º '+u.num:'Socio n.º ····';
+ $('#mLeft').textContent=!u?'Únete y llévate el primer sello':c>=6?F.final_listo:c>=MED?F.medio_ganado+' '+Falta(6-c)+' '+F.falta_final:Falta(MED-c)+' '+F.falta_medio;
+ drawStamps();$('#mCode').textContent=u?u.code:PRE+'-····';drawQr(u?u.code:PRE);
+ $('#mHist').innerHTML=u&&u.uses.length?'<b>Lo último</b>'+u.uses.slice(-3).reverse().map(x=>`<span>${x.date} ${x.item}</span>`).join(''):'<span>Aquí verás lo último que te has tomado.</span>';
+ $('#cT').innerHTML=u?'hola, '+(u.name||'socio').split(' ')[0].replace(/[<>&]/g,'')+'.':LOCAL.esc(TX.tarjeta.titulo).replace(/\n/g,' <br>');
+ $('#cLead').textContent=!u?TX.tarjeta.lead:c>=6?F.final_completo:c>=MED?`Llevas ${c} de 6 sellos. ${F.medio_tuyo} y ${falta(6-c)} ${F.falta_final_largo}.`:`Llevas ${c} de 6 sellos: ${falta(MED-c)} ${F.falta_medio_largo}.`;
+ $$('#rewards li').forEach(li=>li.classList.toggle('got',c>=+li.dataset.at));
+ $('#cJoin').hidden=!!u||sec.classList.contains('joining');$('#jform').hidden=!!u||!sec.classList.contains('joining');$('#mon').hidden=!u;
+ const h=$('#hist'),us=u?u.uses.slice(-3).reverse():[];h.hidden=!us.length;
+ h.innerHTML=us.length?'<h3>Lo último que te has tomado</h3><ul>'+us.map(x=>`<li><img src="${LOCAL.plato(x.id||DEMO[0][0])}" alt="" width="36" height="36"><span>${x.item}</span><time>${x.date}</time></li>`).join('')+'</ul>':''}
+function save(){if(!user)return;const s=store.get();s.users[user.tel]=user;s.cur=user.tel;store.set(s)}
+function useNow(item,id){if(!user)return;const d=new Date(),date=d.getDate()+'/'+(d.getMonth()+1);
+ if(user.count>=6){user.count=0;user.rewards=(user.rewards||0)+1;user.uses.push({date,item:F.canje});save();render();toast(F.canje_aviso);return}
+ user.count++;user.uses.push({date,item,id});save();memberCard.flip(false);$('#mcHint').textContent='Toca la tarjeta para darle la vuelta.';render();stampAnim();
+ toast(user.count>=6?F.aviso_final:user.count===MED?F.aviso_medio:'Sello nuevo en tu tarjeta. '+Falta(user.count<MED?MED-user.count:6-user.count)+' '+(user.count<MED?F.falta_medio_corto:F.falta_final_largo)+'.')}
+/* sincronizado: si la cuenta cambia en otra pestaña (o en el panel del local), la tarjeta se actualiza sola */
+addEventListener('storage',e=>{if(e.key!==KEY||!user)return;const u=store.get().users[user.tel];if(!u)return;const old=user.count;user=u;render();if(u.count>old)stampAnim()});
+$('#joinOpen').onclick=()=>{$('#cupones').classList.add('joining');render();setTimeout(()=>$('#nm').focus({preventScroll:true}),150)};
+$('#nm').addEventListener('input',e=>{if(!user)$('#mName').textContent=e.target.value.trim()||'Tu nombre'});
+$('#jform').addEventListener('submit',e=>{e.preventDefault();const tel=$('#tel').value.replace(/\D/g,'');if(tel.length<9){toast('Pon tu número de WhatsApp, con sus 9 cifras.');$('#tel').focus();return}
+ const s=store.get(),sec=$('#cupones');if(s.users[tel]){user=s.users[tel];sec.classList.remove('joining');save();render();memberCard.spin();toast('Hola de nuevo, '+(user.name||'socio')+'.');return}
+ if(!$('#ok').checked){toast('Marca la casilla para crear tu tarjeta.');$('#ok').focus();return}
+ const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+ user={tel,name:$('#nm').value.trim(),num:String(1000+Object.keys(s.users).length*7+Math.floor(Math.random()*7)),code:PRE+'-'+[0,1,2,3].map(()=>A[Math.floor(Math.random()*A.length)]).join(''),count:0,rewards:0,uses:[]};
+ sec.classList.remove('joining');save();render();memberCard.spin();setTimeout(()=>useNow(F.bienvenida,DEMO[0][0]),1300)});
+$('#logout').onclick=()=>{const s=store.get();s.cur=null;store.set(s);user=null;$('#nm').value='';$('#tel').value='';$('#ok').checked=false;memberCard.flip(false);render();toast('Sesión cerrada en este navegador.')};
+/* pago con el móvil en barra (demo de cómo iría con NFC) */
+let nfcT=0;
+$('#payBtn').onclick=()=>{if(!user)return;const n=$('#nfc'),free=user.count>=6,it=DEMO[user.uses.length%DEMO.length];n.className='nfc field on';n.inert=false;n.removeAttribute('aria-hidden');
+ $('#nfcT').textContent='acerca el móvil';$('#nfcS').textContent=free?F.nfc_gratis:it[1]+', '+eur(it[2])+'.';
+ requestAnimationFrame(()=>n.classList.add('go'));
+ nfcT=setTimeout(()=>{n.classList.add('ok');$('#nfcT').textContent=free?F.nfc_invita:'pago aceptado';$('#nfcS').textContent=free?'Empiezas una tarjeta nueva.':'Se sella en tu tarjeta.';
+  nfcT=setTimeout(()=>{n.className='nfc field';n.inert=true;n.setAttribute('aria-hidden','true');setTimeout(()=>useNow(it[1],it[0]),400)},1300)},2000)};
+$('#nfcX').onclick=()=>{clearTimeout(nfcT);const n=$('#nfc');n.className='nfc field';n.inert=true;n.setAttribute('aria-hidden','true')};
+/* al volver: si ya pusiste tu número en este navegador, entras directo */
+(function(){const s=store.get();if(s.cur&&s.users[s.cur]){user=s.users[s.cur];if(user.count==null)user.count=0;user.uses=user.uses||[]}render()})();
+onScroll();
+</script>
+</body>
+</html>

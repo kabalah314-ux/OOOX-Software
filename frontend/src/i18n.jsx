@@ -137,7 +137,7 @@ const dict = {
       "Hora límite": "Order by", Llegada: "Arrival", Servicio: "Service", Garantía: "Guarantee", "Tipos de clase": "Class types",
       "Primera clase": "First class", Ilimitado: "Unlimited",
       Diseños: "Designs", Packs: "Packs", "Comisión por pedido": "Commission per order", "Pedido en mesa": "Table ordering",
-      Vídeo: "Video", Llamadas: "Calls", "Sistema para cafeterías y bares · Web, pedido en mesa y llamadas": "Café & bar system · Website, table ordering, calls",
+      Vídeo: "Video", Llamadas: "Calls", "Web de cafetería · Pedido en mesa, panel y llamadas": "Café website · Table ordering, venue panel, calls", "Platos en carta": "Dishes on the menu",
       // experiments
       Plataformas: "Platforms", Avisos: "Alerts", Reventa: "Resale", Precios: "Prices", Mapas: "Maps",
       Barcelona: "Barcelona", "Datos abiertos": "Open data", Ciudad: "City", Sombras: "Shadows",
@@ -260,11 +260,11 @@ const dict = {
           route: ["Inicio", "Agenda", "Residentes", "Galería"],
           facts: [["", "Web"], ["", "2026"], ["", "React · WebGL"], ["", "Online"]],
         },
-        "ooox-local": {
-          typeEn: "Sistema para cafeterías · Web, pedido en mesa y llamadas",
-          short: "La web, la carta en la mesa y el teléfono de un café de barrio en un solo sistema, enseñado sobre Fonik, en Sant Antoni. Cinco diseños sobre el mismo motor.",
-          route: ["Web", "QR de mesa", "Barra y cocina", "Llamadas"],
-          facts: [["", "Sistema"], ["", "5 diseños"], ["", "2026"], ["", "Pedido en mesa"]],
+        molta: {
+          typeEn: "Web de cafetería · Pedido en mesa, panel y llamadas",
+          short: "Una cafetería de especialidad en Gràcia: una web en la que entras como en un vídeo, una carta con QR que manda los pedidos a barra y cocina, tarjeta de sellos y un asistente que atiende el teléfono. Cinco diseños sobre el mismo motor.",
+          route: ["Calle", "QR de mesa", "Barra y cocina", "Tarjeta"],
+          facts: [["", "Web y sistema"], ["", "5 diseños"], ["", "2026"], ["", "Pedido en mesa"]],
         },
         "la-vermuteria": {
           typeEn: "Web de bar · Carta y reservas",
@@ -435,7 +435,7 @@ const dict = {
           ],
         },
         // Webs para negocios: en castellano se usan los textos de data/mock.js (el {} evita caer en el inglés)
-        "ooox-local": {},
+        molta: {},
         "la-vermuteria": {},
         "nomada-barbers": {},
         "pell-i-pinzell": {},
@@ -544,17 +544,17 @@ dict.en.case.projects = {
     ],
   },
   // ---------------------------------------------------------- websites for neighbourhood businesses (demos)
-  "ooox-local": {
-    kicker: "Your venue's website, table menu and phone, in one system",
+  molta: {
+    kicker: "Coffee roasted in-house and slow breakfasts, in Gràcia",
     description:
-      "Demo project · A system for neighbourhood cafés and bars, shown on Fonik, a café in Sant Antoni: a video website you travel through as you scroll, a table QR menu to order from your seat, orders that reach the bar and the kitchen, a stamp card and an assistant that answers the phone.",
+      "Demo project · A website and system for a specialty café in Gràcia: you walk into the venue like in a video, order from your table with a QR code, the order reaches the bar and the kitchen, the stamp card lives on your phone and an assistant answers the phone.",
     longDescription:
-      "This is a demo project: Fonik is a café in Sant Antoni, but this website wasn't commissioned by them, and the menu, prices and rewards are examples. OOOX Local is what I bring to a bar or a café. First, a website you travel through like a video: as you scroll, the venue opens up. Then a menu with a photo of every dish that customers open by scanning the QR on their table; the order reaches the bar and the kitchen straight away. The venue runs everything from one panel: tables, sold-out items, the bill and the day's summary. There's a stamp card on the phone and, in the fullest pack, an assistant that answers the phone, takes bookings and notes down orders. The same website comes in five designs (the record, the plate, the sign, the film and the half), and each venue is set up from a sheet with its details, without coding it again.",
+      "This is a demo project: Molta doesn't exist, but everything you see works and can be tried. It's the new level of what I build for bars and cafés. The front page is a video that moves with your finger: you start on the street, facing the shopfront, and walk in to the bar. The menu shows every dish on its plate, with what's in it, how filling it is and the allergens, and customers order from the table by scanning its QR code; the order reaches the bar and the kitchen straight away. The venue runs everything from one panel: tables, sold-out items, the bill and the day's summary. The stamp card lives on the phone, with no app and no password, and in the fullest pack an assistant answers the phone, notes down orders and group bookings. The same website comes in five designs (the record, the plate, the sign, the film and the half), and each venue is set up from a sheet with its details.",
     highlights: [
-      "Five designs on the same engine: each venue picks the one that suits it",
+      "A video front page: from the street to the bar as you scroll",
       "Ordering from the table by QR, straight to the bar and the kitchen",
       "Venue panel: tables, sold-out items, the bill and the day's summary",
-      "Three packs: the website, table ordering and an assistant that takes calls",
+      "Stamp card on the phone and an assistant that takes calls",
     ],
   },
   "la-vermuteria": {

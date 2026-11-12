@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es" data-pg="sala">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sala de molta</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#22160f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2322160f'/%3E%3Ccircle cx='50' cy='50' r='24' fill='%23e08a5c'/%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/pilcrow-rounded-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/base.css">
+<script src="data/negocio.js"></script>
+<script src="js/local.js"></script>
+<style>
+/* El panel del local: lo que ven el camarero, la cocina, la barra y el dueño. Mismo sistema que la web, sobre el fondo azul. */
+html,body{min-height:100%}
+body{background:var(--field);color:var(--field-ink);font:400 var(--step-body)/1.45 var(--font);overflow-x:clip}
+.shead{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:calc(12px + env(safe-area-inset-top,0px)) var(--m) 12px;background:var(--field)}
+.wm{display:flex;align-items:baseline;gap:.45em;font:700 var(--step-lead)/1 var(--font);letter-spacing:-.05em;text-decoration:none;color:inherit}
+.wm small{font:400 var(--step-small)/1 var(--font);letter-spacing:0;color:var(--field-muted)}
+.tabs{max-width:100%;overflow-x:auto;scrollbar-width:none;background:var(--field-surface)}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{display:inline-flex;align-items:center;gap:.5em;padding:0 .95em;color:var(--field-muted)}
+.tabs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+@media (max-width:480px){.tabs button{padding:0 .68em;font-size:var(--step-small)}.shead{gap:8px}}
+.tabs b{display:grid;place-items:center;min-width:1.6em;height:1.6em;padding:0 .3em;border-radius:999px;background:var(--field-ink);color:var(--field);font:700 var(--step-small)/1 var(--font)}
+.tabs button[aria-pressed="true"] b{background:var(--accent-ink);color:var(--accent)}
+main{padding:10px var(--m) calc(40px + var(--sb))}
+.vista{display:grid;grid-template-columns:minmax(0,1fr);gap:26px}
+.vhd{display:grid;gap:8px}
+.vhd .head{font-size:min(var(--step-display),13vw)}
+.vhd p{color:var(--field-muted);max-width:44ch}
+
+/* las mesas son discos: libre, pide, abierta, cuenta */
+.mesas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,2.6vw,18px);max-width:560px}
+.md{position:relative;display:grid;place-content:center;justify-items:center;gap:2px;aspect-ratio:1;border-radius:50%;background:var(--field-surface);color:var(--field-muted);transition:background-color var(--t-hover) ease,color var(--t-hover) ease,transform var(--t-press) var(--ease-out)}
+.md:active{transform:scale(.96)}
+.md b{font:700 clamp(1.5rem,6.4vw,2.4rem)/1 var(--font);letter-spacing:-.04em}
+.md small{font:500 clamp(.72rem,2.9vw,.9rem)/1.1 var(--font)}
+.md[data-e="pide"]{background:var(--accent);color:var(--accent-ink)}
+.md[data-e="abierta"],.md[data-e="cuenta"]{background:var(--field-ink);color:var(--field)}
+.md[data-e="cuenta"]{outline:4px solid var(--accent);outline-offset:3px}
+.md i{position:absolute;right:6%;top:6%;width:22%;aspect-ratio:1;border-radius:50%;background:var(--accent)}
+.md:focus-visible,.cola button:focus-visible,.tk button:focus-visible,.pr:focus-visible,.tabs button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.salag{display:grid;gap:26px}
+@media (min-width:900px){.salag{grid-template-columns:minmax(0,520px) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:start}}
+/* lo que hay que hacer ahora */
+.cola{display:grid;gap:10px;max-width:720px}
+.co{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;align-items:start;padding:18px;background:var(--field-surface)}
+.co .nd{grid-row:span 2}
+.nd{display:grid;place-items:center;flex:none;width:52px;height:52px;border-radius:50%;background:var(--field-ink);color:var(--field);font:700 var(--step-lead)/1 var(--font);letter-spacing:-.04em}
+.co.pide .nd{background:var(--accent);color:var(--accent-ink)}
+.co h3{font:500 var(--step-lead)/1.2 var(--font)}
+.co p{color:var(--field-muted)}
+.co .acts{grid-column:2;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.co .btn{min-height:48px;background:var(--field);color:var(--field-ink)}
+.co .btn.pri{background:var(--field-ink);color:var(--field)}
+.nada{color:var(--field-muted)}
+.co .nd svg{width:22px;height:22px}
+.co.hecha{opacity:.5}
+.co small{grid-column:2;color:var(--field-muted);font-size:var(--step-small)}
+
+/* comandas de cocina y de barra */
+.tks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:12px;align-items:start}
+.tk{display:grid;gap:14px;padding:18px;background:var(--field-surface)}
+.tk[data-e="nuevo"]{background:var(--accent);color:var(--accent-ink)}
+.tk[data-e="marcha"]{background:var(--field-ink);color:var(--field)}
+.tkh{display:flex;align-items:center;gap:12px}
+.tkh .nd{background:var(--field);color:var(--field-ink)}
+.tk[data-e="listo"] .nd{background:var(--field-ink);color:var(--field)}
+.tkh div{display:grid;gap:2px}
+.tkh b{font:700 var(--step-lead)/1 var(--font);letter-spacing:-.03em;text-transform:lowercase}
+.tkh small{font:500 var(--step-small)/1.2 var(--font)}
+.tk ul{display:grid;gap:8px}
+.tk li{display:flex;align-items:center;gap:10px;font-weight:500;line-height:1.25}
+.tk li img{flex:none;width:40px;height:40px;border-radius:50%}
+.tk .btn{width:100%;background:var(--field);color:var(--field-ink)}
+.tk[data-e="listo"] .btn{background:var(--field);color:var(--field-ink)}
+@media (hover:hover){.tk .btn:hover,.co .btn:hover{background:var(--accent);color:var(--accent-ink)}.tk[data-e="nuevo"] .btn:hover{background:var(--field-ink);color:var(--field)}.md:hover{transform:scale(1.03)}}
+
+/* carta: marcar agotados */
+.psec{display:grid;gap:4px;max-width:720px}
+.psec h2{font:700 var(--step-lead)/1.1 var(--font);letter-spacing:-.03em;text-transform:lowercase;margin:14px 0 6px}
+.pr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;padding:8px 0;text-align:left;color:inherit}
+.pr img{width:48px;height:48px;border-radius:50%;transition:opacity var(--t-ui) ease}
+.pr span{font-weight:500}
+.pr em{font-style:normal;min-width:6.2em;padding:.5em 1em;border-radius:999px;background:var(--field-surface);color:var(--field-muted);font:500 var(--step-small)/1 var(--font);text-align:center}
+.pr[aria-pressed="true"] img{opacity:.3}
+.pr[aria-pressed="true"] span{color:var(--field-muted)}
+.pr[aria-pressed="true"] em{background:var(--accent);color:var(--accent-ink)}
+
+/* el día */
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:22px 28px;max-width:860px}
+.nums dt{color:var(--field-muted);font-size:var(--step-small)}
+.nums dd{font:700 var(--step-head)/1 var(--font);letter-spacing:-.04em;margin-top:4px}
+.top{display:grid;gap:8px;max-width:520px}
+.top li{display:flex;align-items:center;gap:12px}
+.top img{width:40px;height:40px;border-radius:50%}
+.top span{flex:1;font-weight:500}
+.fila{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* hoja de una mesa */
+.pscrim{position:fixed;inset:0;z-index:50;background:rgba(9,17,33,.6);opacity:0;visibility:hidden;transition:opacity var(--t-ui) ease,visibility 0s var(--t-ui)}
+.hoja{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;gap:18px;max-height:92svh;overflow:auto;margin:0 auto;width:min(560px,100%);padding:24px var(--m) calc(26px + var(--sb));background:var(--bg);color:var(--ink);transform:translateY(102%);visibility:hidden;transition:transform .5s var(--ease-in-out),visibility 0s .5s}
+.abre .pscrim{opacity:1;visibility:visible;transition:opacity var(--t-ui) ease,visibility 0s}
+.abre .hoja{transform:none;visibility:visible;transition:transform .5s var(--ease-in-out),visibility 0s}
+.hoja .hh{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hoja h2{font:700 var(--step-head)/1 var(--font);letter-spacing:-.04em;text-transform:lowercase}
+.hoja .cod{display:flex;align-items:center;gap:8px}
+.hoja .cod i{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 var(--step-body)/1 var(--font);font-style:normal}
+.hoja .sum li{display:flex;justify-content:space-between;gap:16px;padding:3px 0}
+.hoja .sum li.t{font-weight:500;font-size:var(--step-lead);padding-top:8px}
+.hoja .fila .btn{flex:1 1 auto}
+</style>
+<script>LOCAL.estilo()</script>
+</head>
+<body>
+<header class="shead">
+  <a class="wm" href="index.html"><span data-t="nombre">molta</span> <small>el local por dentro</small></a>
+  <nav class="seg tabs" id="tabs" aria-label="Pantallas del local">
+    <button data-v="sala" aria-pressed="true">Sala<b id="n-sala" hidden></b></button>
+    <button data-v="cocina" aria-pressed="false">Cocina<b id="n-cocina" hidden></b></button>
+    <button data-v="barra" aria-pressed="false">Barra<b id="n-barra" hidden></b></button>
+    <button data-v="llamadas" aria-pressed="false" id="t-llamadas">Llamadas<b id="n-llamadas" hidden></b></button>
+    <button data-v="carta" aria-pressed="false">Carta</button>
+    <button data-v="dia" aria-pressed="false">Hoy</button>
+  </nav>
+</header>
+<main id="main" aria-live="polite"></main>
+
+<div class="pscrim" id="pscrim"></div>
+<section class="hoja" id="hoja" role="dialog" aria-modal="true" aria-labelledby="hT" aria-hidden="true" inert></section>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="js/gsap.min.js"></script>
+<script src="js/sala-nucleo.js"></script>
+<script src="js/sala.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const N=window.NEGOCIO,D=N.carta.productos,eur=LOCAL.eur,esc=LOCAL.esc,RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+LOCAL.pintar();document.title='Sala de '+N.nombre;
+if(document.fonts){const ok=()=>document.fonts.check('700 16px "Pilcrow Rounded"'),alt=()=>{if(ok())return;const l=document.createElement('link');l.rel='stylesheet';l.href='css/fuentes.css';document.head.appendChild(l)};document.fonts.load('700 16px "Pilcrow Rounded"').then(alt,alt)}
+const X='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+const toast=t=>{const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
+const VISTAS=['sala','cocina','barra','llamadas','carta','dia'],NOM={cocina:'cocina',barra:'barra'};
+const ULTRA=N.plan==='ultra'||!!N.demo;$('#t-llamadas').hidden=!ULTRA;
+const TEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 3.5h3l1.5 4-2 1.5a11 11 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5z"/></svg>';
+const TIPO={info:'Solo quería información',pedido:'Pedido para recoger',encargo:'Encargo',reserva:'Reserva',recado:'Recado',proveedor:'Proveedor',queja:'Queja'};
+const hhmm=t=>{const d=new Date(t);return d.getHours()+':'+('0'+d.getMinutes()).slice(-2)};
+let vista=VISTAS.includes(location.hash.slice(1))?location.hash.slice(1):'sala',hojaMesa=0;
+const lin=l=>l.map(x=>`${x.q} × ${esc(x.n)}${x.o?', '+esc(x.o.toLowerCase()):''}`);
+const hace=t=>{const m=Math.floor((Date.now()-t)/60000);return m<1?'ahora mismo':m===1?'hace 1 min':'hace '+m+' min'};
+const vistos=new Set();let primera=true;
+
+/* ---------- qué hay pendiente ---------- */
+function cola(S){const out=[];
+ S.pedidos.forEach(p=>{if(p.e==='pendiente')out.push({k:'p'+p.id,o:0,cls:'pide',mesa:p.mesa,h:'quiere pedir',p:lin(p.l).join('<br>'),t:p.t,acts:`<button class="btn pri" data-a="aceptar" data-id="${p.id}">Aceptar</button><button class="btn" data-a="rechazar" data-id="${p.id}">No</button>`})});
+ S.avisos.forEach(a=>{if(a.ok)return;
+  if(a.tipo==='cuenta')out.push({k:'a'+a.id,o:1,cls:'pide',mesa:a.mesa,h:'pide la cuenta',p:'Son '+eur(SALA.cuenta(a.mesa).total)+'. Se cobra con el datáfono de siempre.',t:a.t,acts:`<button class="btn pri" data-a="cerrar" data-mesa="${a.mesa}">Cobrada, cerrar mesa</button><button class="btn" data-a="ver" data-mesa="${a.mesa}">Ver la cuenta</button>`});
+  else out.push({k:'a'+a.id,o:2,cls:'pide',mesa:a.mesa,h:'llama al camarero',p:'',t:a.t,acts:`<button class="btn pri" data-a="atender" data-id="${a.id}">Voy</button>`})});
+ S.pedidos.forEach(p=>{if(p.e!=='aceptado')return;Object.entries(p.tk||{}).forEach(([est,k])=>{if(k.e!=='listo')return;
+  out.push({k:'l'+p.id+est,o:3,cls:'',mesa:p.mesa,h:'listo en '+NOM[est],p:lin(p.l.filter(x=>x.est===est)).join('<br>'),t:k.t2,acts:`<button class="btn pri" data-a="servido" data-id="${p.id}" data-est="${est}">Servido</button>`})})});
+ return out.sort((a,b)=>a.o-b.o||a.t-b.t)}
+const ticketsDe=(S,est)=>{const out=[];S.pedidos.forEach(p=>{if(p.e!=='aceptado')return;const k=p.tk&&p.tk[est];if(!k||k.e==='servido')return;out.push({p,k,l:p.l.filter(x=>x.est===est)})});
+ return out.sort((a,b)=>(a.k.e==='listo')-(b.k.e==='listo')||a.k.t0-b.k.t0)};
+
+/* ---------- pantallas ---------- */
+const P={
+ sala(S){const c=cola(S),ab=Object.values(S.mesas).filter(SalaNucleo.abierta).length;
+  const h=c.length?(c.length===1?'una cosa por hacer.':c.length+' cosas por hacer.'):ab?'todo en orden.':'sala tranquila.';
+  const mesas=Array.from({length:SALA.cfg.mesas},(_,i)=>{const n=i+1,m=S.mesas[n]||{e:'libre'},cu=SalaNucleo.abierta(m)?SALA.cuenta(n):null;
+   const listo=cu&&cu.tk.some(k=>k.e==='listo'),et=m.e==='pide'?'pide':m.e==='cuenta'?'cuenta':cu?eur(cu.total):'libre';
+   return `<button class="md" data-e="${m.e||'libre'}" data-a="ver" data-mesa="${n}" aria-label="Mesa ${n}, ${et}"><b>${n}</b><small>${et}</small>${listo?'<i></i>':''}</button>`}).join('');
+  return `<div class="vhd"><h1 class="head">${h}</h1><p>${ab?ab+(ab===1?' mesa abierta':' mesas abiertas')+' de '+SALA.cfg.mesas+'.':'Cuando una mesa escanee su QR y pida, aparece aquí.'} Toca una mesa para ver su cuenta.</p></div>
+  <div class="salag"><div class="mesas">${mesas}</div>
+  <div class="cola">${c.length?c.map(x=>`<article class="co ${x.cls}" data-k="${x.k}"><span class="nd">${x.mesa}</span><h3>Mesa ${x.mesa} ${x.h}</h3>${x.p?`<p>${x.p}</p>`:'<p>'+hace(x.t)+'</p>'}<div class="acts">${x.acts}</div></article>`).join(''):'<p class="nada">Nada pendiente. Los pedidos nuevos, las cuentas y los avisos salen aquí, por orden.</p>'}</div></div>`},
+ est(S,est){const t=ticketsDe(S,est),nu=t.filter(x=>x.k.e==='nuevo').length;
+  const BT={nuevo:['marcha','Empezar'],marcha:['listo','Listo'],listo:['servido','Servido']},ET={nuevo:'nuevo',marcha:'en marcha',listo:'listo, esperando al camarero'};
+  return `<div class="vhd"><h1 class="head">${NOM[est]}${nu?', '+nu+(nu===1?' nueva':' nuevas'):''}.</h1><p>${t.length?'Toca cada comanda para avanzarla: empezar, listo, servido.':'Sin comandas. Lo que acepte el camarero sale aquí al momento.'} Si se acaba algo, márcalo en Carta.</p></div>
+  <div class="tks">${t.map(({p,k,l})=>`<article class="tk" data-e="${k.e}" data-k="t${p.id}${est}"><div class="tkh"><span class="nd">${p.mesa}</span><div><b>mesa ${p.mesa}</b><small>comanda ${k.n}, ${ET[k.e]}, ${hace(k.t0)}</small></div></div>
+   <ul>${l.map(x=>`<li><img src="${LOCAL.plato(x.p)}" alt="" width="40" height="40"><span>${x.q} × ${esc(x.n)}${x.o?', '+esc(x.o.toLowerCase()):''}</span></li>`).join('')}</ul>
+   <button class="btn" data-a="ticket" data-id="${p.id}" data-est="${est}" data-e="${BT[k.e][0]}">${BT[k.e][1]}</button></article>`).join('')}</div>`},
+ cocina(S){return P.est(S,'cocina')},barra(S){return P.est(S,'barra')},
+ llamadas(S){const L=(S.llamadas||[]).slice().reverse(),n=L.filter(c=>!c.ok).length;
+  return `<div class="vhd"><h1 class="head">${n?(n===1?'una llamada por ver.':n+' llamadas por ver.'):'teléfono al día.'}</h1><p>El asistente coge el teléfono cuando no podéis, contesta lo que sabe y deja aquí lo que hay que hacer: pedidos para recoger, encargos, recados y proveedores.</p></div>
+  <div class="cola">${L.length?L.map(c=>`<article class="co ${c.urgente||(c.tipo==='pedido'&&!c.ok)?'pide':''} ${c.ok?'hecha':''}" data-k="c${c.id}"><span class="nd">${TEL}</span><h3>${TIPO[c.tipo]||'Recado'}${c.quien?', '+esc(c.quien):''}</h3>
+   <p>${c.l?lin(c.l).join('<br>')+'<br>Total '+eur(c.total)+(c.hora?', para las '+esc(c.hora):'')+(c.texto?'<br>':''):''}${esc(c.texto)}</p><small>${hhmm(c.t)}${c.de?', '+esc(c.de):''}${c.min?', '+c.min+' min':''}${c.urgente?', urgente':''}</small>
+   <div class="acts">${c.ok?'':`<button class="btn pri" data-a="llamadaOk" data-id="${c.id}">Hecho</button>`}${c.de?`<a class="btn" href="tel:${c.de.replace(/[^0-9+]/g,'')}">Llamar</a>`:''}</div></article>`).join(''):'<p class="nada">Todavía no ha entrado ninguna llamada.</p>'}</div>
+  ${SALA.remoto?'':'<div class="fila"><button class="btn" data-a="simular">Simular tres llamadas</button></div>'}`},
+ carta(S){const secs=[...new Set(D.map(d=>d.sec))],n=S.agotados.length;
+  return `<div class="vhd"><h1 class="head">${n?(n===1?'un agotado.':n+' agotados.'):'hay de todo.'}</h1><p>Toca un plato cuando se acabe: desaparece de la carta de todos los móviles en el momento. Tócalo otra vez cuando vuelva.</p></div>
+  ${secs.map(s=>`<section class="psec"><h2>${esc(s)}</h2>${D.filter(d=>d.sec===s).map(d=>{const o=S.agotados.includes(d.id);return `<button class="pr" data-a="agotar" data-p="${d.id}" aria-pressed="${o}"><img src="${LOCAL.plato(d.id)}" alt="" width="48" height="48" loading="lazy"><span>${esc(d.name)}</span><em>${o?'agotado':'hay'}</em></button>`}).join('')}</section>`).join('')}`},
+ dia(S){const r=SALA.resumen();
+  return `<div class="vhd"><h1 class="head">hoy.</h1><p>Números para ti, sacados de los pedidos de las mesas. La caja oficial sigue siendo la de tu TPV.</p></div>
+  <dl class="nums"><div><dt>Mesas cerradas</dt><dd>${r.mesas}</dd></div><div><dt>Mesas abiertas ahora</dt><dd>${r.abiertas}</dd></div><div><dt>Pedido por las mesas</dt><dd>${eur(r.total)}</dd></div><div><dt>Cuenta media</dt><dd>${eur(r.medio)}</dd></div>${ULTRA?`<div><dt>Llamadas atendidas hoy</dt><dd>${r.llamadas}</dd></div>`:''}<div><dt>Minutos en salir, de media</dt><dd>${r.min?r.min.toFixed(1).replace('.',','):'0'}</dd></div></dl>
+  ${r.top.length?`<div class="vhd"><h2 class="head">lo más pedido.</h2></div><ol class="top">${r.top.map(x=>`<li><img src="${LOCAL.plato(x.p)}" alt="" width="40" height="40"><span>${esc(x.n)}</span><b>${x.q}</b></li>`).join('')}</ol>`:''}
+  <div class="fila">${SALA.remoto?'':'<button class="btn" data-a="reiniciar">Vaciar la demo</button>'}<a class="btn" href="${LOCAL.con('prueba.html')}">Abrir la prueba guiada</a></div>`}
+};
+
+function pinta(){const S=SALA.estado(),m=$('#main');
+ /* avisos en las pestañas */
+ const c=cola(S).length,nc=ticketsDe(S,'cocina').filter(x=>x.k.e==='nuevo').length,nb=ticketsDe(S,'barra').filter(x=>x.k.e==='nuevo').length;
+ const nl=(S.llamadas||[]).filter(x=>!x.ok).length;
+ [['sala',c],['cocina',nc],['barra',nb],['llamadas',nl]].forEach(([k,n])=>{const b=$('#n-'+k);b.hidden=!n;b.textContent=n});
+ $$('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===vista));
+ m.innerHTML=`<div class="vista">${P[vista](S)}</div>`;
+ /* lo nuevo entra rodando y suena */
+ const nuevos=$$('#main [data-k]').filter(e=>!vistos.has(e.dataset.k));let suena=false;
+ const claves=new Set();cola(S).forEach(x=>claves.add(x.k));(S.llamadas||[]).forEach(x=>{if(!x.ok)claves.add('c'+x.id)});['cocina','barra'].forEach(e=>ticketsDe(S,e).forEach(x=>claves.add('t'+x.p.id+e)));
+ claves.forEach(k=>{if(!vistos.has(k)){if(!primera&&!/^l/.test(k))suena=true;vistos.add(k)}});
+ if(!primera&&!RM&&nuevos.length)gsap.fromTo(nuevos,{x:60,opacity:0},{x:0,opacity:1,duration:.55,ease:'power3.out',stagger:.06});
+ if(!primera&&!RM)nuevos.forEach(e=>{const d=e.querySelectorAll('.nd,li img');gsap.fromTo(d,{rotation:200},{rotation:0,duration:.8,ease:'power3.out',stagger:.04})});
+ if(suena)pita();primera=false;if(hojaMesa)pintaHoja()}
+
+/* ---------- hoja de una mesa ---------- */
+function pintaHoja(){const S=SALA.estado(),n=hojaMesa,m=S.mesas[n]||{e:'libre'},ab=SalaNucleo.abierta(m),c=SALA.cuenta(n),pend=S.pedidos.filter(p=>p.mesa===n&&p.e==='pendiente');
+ const est=m.e==='pide'?'Quiere pedir: acéptalo y la mesa se abre sola.':m.e==='cuenta'?'Ha pedido la cuenta.':ab?'Abierta '+hace(m.t0)+'.':'Libre.';
+ $('#hoja').innerHTML=`<div class="hh"><h2 id="hT">mesa ${n}</h2><button class="rb" data-a="cierraHoja" aria-label="Cerrar">${X}</button></div>
+  <p>${est}</p>
+  ${ab?`<div class="cod" aria-label="Código de la mesa ${m.cod.split('').join(' ')}">${[...m.cod].map(x=>`<i>${x}</i>`).join('')}<span class="small muted">Código para sumarse a la mesa</span></div>`:''}
+  ${c.l.length?`<ul class="sum">${c.l.map(x=>`<li><span>${x.q} × ${esc(x.n)}${x.o?', '+esc(x.o.toLowerCase()):''}</span><span>${eur(x.q*x.pr)}</span></li>`).join('')}<li class="t"><span>Total</span><span>${eur(c.total)}</span></li></ul>`:ab?'<p class="muted">Todavía no han pedido nada.</p>':''}
+  <div class="fila">${pend.map(p=>`<button class="btn pri" data-a="aceptar" data-id="${p.id}">Aceptar su pedido</button>`).join('')}
+   ${ab?`<button class="btn ${m.e==='cuenta'?'pri':''}" data-a="cerrar" data-mesa="${n}">Cobrada, cerrar mesa</button>`:(pend.length?'':`<button class="btn pri" data-a="abrir" data-mesa="${n}">Abrir la mesa</button>`)}
+   <a class="btn" href="${LOCAL.con(`carta.html?mesa=${n}&sala=1`)}">Tomar nota</a></div>`}
+function abreHoja(n){hojaMesa=n;pintaHoja();const h=$('#hoja');document.body.classList.add('abre');h.inert=false;h.setAttribute('aria-hidden','false');setTimeout(()=>{const f=h.querySelector('button');f&&f.focus({preventScroll:true})},60)}
+function cierraHoja(){if(!hojaMesa)return;hojaMesa=0;const h=$('#hoja');document.body.classList.remove('abre');h.inert=true;h.setAttribute('aria-hidden','true')}
+$('#pscrim').onclick=cierraHoja;addEventListener('keydown',e=>{if(e.key==='Escape')cierraHoja()});
+
+/* ---------- acciones ---------- */
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const d=b.dataset,id=+d.id,mesa=+d.mesa;
+ ({aceptar:()=>SALA.aceptar(id).then(r=>{if(r.error==='agotado')toast('Todo lo de ese pedido se había agotado. Se ha rechazado.')}),
+   rechazar:()=>SALA.rechazar(id),atender:()=>SALA.atender(id),
+   servido:()=>SALA.ticket(id,d.est,'servido'),ticket:()=>SALA.ticket(id,d.est,d.e),
+   agotar:()=>SALA.agotar(d.p,b.getAttribute('aria-pressed')!=='true'),
+   cerrar:()=>SALA.cerrar(mesa).then(()=>{cierraHoja();toast('Mesa '+mesa+' cerrada y libre.')}),
+   abrir:()=>SALA.abrir(mesa),ver:()=>abreHoja(mesa),cierraHoja,
+   llamadaOk:()=>SALA.llamadaOk(id),
+   simular:()=>{const a=D[0],b=D.find(d=>SALA.cfg.P[d.id].est==='cocina')||D[D.length-1];SALA.llamada({que:'pedido',quien:'Marta',hora:'10:30',de:'612 345 678',min:1.4,l:[{p:a.id,q:2},{p:b.id,q:1}]})
+    .then(()=>SALA.llamada({que:'encargo',quien:'Jordi',de:'633 221 100',min:2.1,texto:'Quiere una docena de '+b.name.toLowerCase()+' para el viernes a primera hora. Pide que le confirméis si se puede y el precio.'}))
+    .then(()=>SALA.llamada({que:'proveedor',quien:'Reparto de leche',de:'934 000 111',min:.8,texto:'Esta semana pasan el jueves entre las 8 y las 9, no el miércoles.'}))},
+   reiniciar:()=>SALA.reiniciar().then(()=>{vistos.clear();toast('Demo vacía: todas las mesas libres.')})})[d.a]()});
+addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(VISTAS.includes(h)&&h!==vista){vista=h;pinta()}});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;vista=b.dataset.v;history.replaceState(null,'','#'+vista);cierraHoja();pinta();scrollTo(0,0)});
+
+/* un aviso corto cuando entra algo nuevo (el navegador solo deja sonar después del primer toque) */
+let ac=null;addEventListener('pointerdown',()=>{if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}},{once:true});
+function pita(){if(!ac)return;try{[0,.16].forEach((t,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=i?880:660;g.gain.setValueAtTime(.0001,ac.currentTime+t);g.gain.exponentialRampToValueAtTime(.18,ac.currentTime+t+.02);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+t+.22);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+t);o.stop(ac.currentTime+t+.24)})}catch(e){}}
+
+SALA.on(pinta);pinta();setInterval(()=>{if(!document.hidden&&!hojaMesa&&vista!=='carta')pinta()},20000);
+</script>
+</body>
+</html>

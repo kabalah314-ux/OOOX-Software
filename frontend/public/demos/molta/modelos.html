@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es" data-pg="modelos">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Un local, cinco webs: los modelos de diseño</title>
+<meta name="description" content="Los cinco modelos de diseño de la web del local, con el mismo motor de carta, pedido, mesas y tarjeta.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#22160f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2322160f'/%3E%3Ccircle cx='50' cy='50' r='24' fill='%23e08a5c'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/base.css">
+<script src="data/negocio.js"></script>
+<script src="js/local.js"></script>
+<style>
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:var(--top);padding:env(safe-area-inset-top,0px) var(--m) 0}
+.wm{display:flex;align-items:baseline;gap:.45em;min-height:44px;font:700 1.625rem/1 var(--font);letter-spacing:-.05em;text-decoration:none}
+.wm small{font:400 var(--step-small)/1 var(--font);letter-spacing:0}
+.top .btn{min-height:44px;padding:0 1.1em}
+main{padding:0 var(--m)}
+.cab{display:grid;gap:18px;padding:clamp(28px,7svh,84px) 0 clamp(30px,6svh,72px)}
+.cab .lead{max-width:50ch}
+.mod{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;padding:clamp(34px,7svh,84px) 0}
+.mtx{display:grid;gap:16px;align-content:start;justify-items:start}
+.mtx .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.3em}
+.aqui{display:inline-flex;align-items:center;min-height:30px;padding:0 .9em;border-radius:999px;background:var(--accent);color:var(--accent-ink);font:500 var(--step-small)/1 var(--font);letter-spacing:0;text-transform:none;white-space:nowrap}
+.mfacts{display:grid;gap:10px;max-width:46ch}
+.mfacts b{display:block;font-weight:500}
+.mfacts span{color:var(--muted)}
+.cact{display:flex;flex-wrap:wrap;gap:10px}
+.fijo{max-width:46ch}
+.fijo b{font-weight:500;color:var(--ink)}
+.mpics{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.46fr);grid-template-areas:"a m" "b m";gap:10px;align-items:center;margin:0}
+.mpics img:nth-child(1){grid-area:a}.mpics img:nth-child(2){grid-area:b}.mpics img:nth-child(3){grid-area:m}
+.mpics img{width:100%;height:auto;border-radius:10px;background:var(--surface)}
+.como{margin:clamp(30px,6svh,72px) calc(var(--m)*-1) 0;padding:clamp(40px,9svh,104px) var(--m) calc(clamp(40px,9svh,104px) + var(--sb));display:grid;gap:24px}
+.como ol{display:grid;gap:14px;max-width:60ch;counter-reset:paso}
+.como li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start;counter-increment:paso}
+.como li::before{content:counter(paso);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;line-height:1}
+.como b{font-weight:500}
+.como p{max-width:60ch}
+.como .muted{font-size:var(--step-small)}
+@media (min-width:900px){
+  .mod{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:clamp(36px,5vw,84px);align-items:center}
+  .mod:nth-of-type(even) .mpics{order:2}
+  .mod:nth-of-type(even){grid-template-columns:minmax(0,1fr) minmax(0,1.55fr)}
+}
+@media (max-width:899px){
+  .mpics{grid-template-columns:78vw 78vw 34vw;grid-template-areas:none;align-items:end;overflow-x:auto;scrollbar-width:none;margin:0 calc(var(--m)*-1);padding:0 var(--m)}
+  .mpics::-webkit-scrollbar{display:none}
+  .mpics img:nth-child(n){grid-area:auto}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="wm" href="index.html"><span data-t="nombre">molta</span> <small>cinco diseños</small></a>
+  <a class="btn" href="index.html">Volver a la web</a>
+</header>
+<main>
+  <section class="cab" aria-labelledby="t0">
+    <h1 class="disp" id="t0">un local,<br>cinco webs.</h1>
+    <p class="lead">La carta, el pedido, las mesas y la tarjeta de socio funcionan igual en las cinco. Lo que cambia es la puesta en escena: la portada, la letra, el color y cómo se pasa de un plato a otro.</p>
+  </section>
+  <div id="lista"></div>
+  <section class="como field" aria-labelledby="t9">
+    <h2 class="head" id="t9">cambiar de diseño<br>es una línea.</h2>
+    <ol>
+      <li><span>Abre <b>data/negocio.js</b>, el archivo del local.</span></li>
+      <li><span>Escribe el modelo: <b>diseno: { modelo: 'plato' }</b>. Vale disco, plato, rotulo, pelicula o mitad.</span></li>
+      <li><span>Pasa <b>actualizar.mjs</b> y sube la carpeta. La carta, los precios y los socios no se tocan.</span></li>
+    </ol>
+    <p>Para probar uno sin cambiar nada, añade <b>?modelo=plato</b> al final de la dirección.</p>
+    <p class="muted">Los cinco usan el mismo material del local: el vídeo de entrada en vertical y en horizontal, una foto de cada plato desde arriba y tres fotos del sitio.</p>
+  </section>
+</main>
+<script>
+const N=window.NEGOCIO;LOCAL.pintar();
+/* si el alojamiento bloquea los archivos de fuente, se cargan las mismas incrustadas */
+if(document.fonts){const ok=()=>document.fonts.check('700 16px "Pilcrow Rounded"'),alt=()=>{if(ok())return;const l=document.createElement('link');l.rel='stylesheet';l.href='css/fuentes.css';document.head.appendChild(l)};document.fonts.load('700 16px "Pilcrow Rounded"').then(alt,alt)}
+const INFO={
+ disco:{idea:'El plato es el único motivo: todo lo que gira, se elige o se sella es un disco. Botones redondos y los colores del propio local.',video:'Avanza con el dedo: entras andando desde la calle hasta la barra.',va:'Cafeterías de trato cercano, con una marca redonda y amable.',tipo:'Pilcrow Rounded. Los colores los pone el local.'},
+ plato:{idea:'El plato de la casa llega enorme sobre un campo de color, se abre en lo que lleva y, al meterte en él, aparece el local.',video:'Sale al final, a través del plato, y sigue hasta la barra.',va:'Sitios con un producto estrella: brunch, pastelería, café de especialidad.',tipo:'Schibsted Grotesk. Negro, blanco roto y carmesí.'},
+ rotulo:{idea:'El nombre ocupa la pantalla de lado a lado y el vídeo se ve por sus letras. Al deslizar, atraviesas una letra y quedas dentro.',video:'Está desde el primer segundo, dentro del rótulo.',va:'Nombres cortos y con fuerza. La carta se enseña en baldosas de color.',tipo:'Cabinet Grotesk. Blanco, tinta y menta.'},
+ pelicula:{idea:'El local manda: el vídeo arriba, el nombre debajo como el título de una película. La carta es una hoja de menú impresa.',video:'Ocupa la parte alta y baja como un telón hasta llenar la pantalla.',va:'Locales con un interior bonito: es el que más luce el sitio.',tipo:'Boska, redonda y cursiva. Hueso y verde oliva.'},
+ mitad:{idea:'Media pantalla no se mueve: el local se queda en un marco a la izquierda mientras lees a la derecha. Como mirar la carta sentado dentro.',video:'Vive en el marco fijo durante toda la visita.',va:'Cartas largas: se ve entera, sin abrir nada, junto al plato.',tipo:'Bodoni Moda y Jost. Naranja, tinta y blanco.'}
+};
+const e=LOCAL.esc;
+document.getElementById('lista').innerHTML=Object.keys(INFO).map(id=>{const m=LOCAL.MODELOS[id],i=INFO[id],nom=m.nombre.toLowerCase();
+ return `<article class="mod" id="m-${id}" aria-labelledby="h-${id}">
+  <figure class="mpics">
+   <img src="assets/modelos/${id}-a.jpg" alt="${e(m.nombre)}: la portada al llegar" width="1200" height="750" loading="lazy" decoding="async">
+   <img src="assets/modelos/${id}-b.jpg" alt="${e(m.nombre)}: la portada al deslizar" width="1200" height="750" loading="lazy" decoding="async">
+   <img src="assets/modelos/${id}-m.jpg" alt="${e(m.nombre)}: la carta en el móvil" width="420" height="909" loading="lazy" decoding="async">
+  </figure>
+  <div class="mtx">
+   <h2 class="head" id="h-${id}">${e(nom)}.${id===LOCAL.propio?' <span class="aqui">El que usa este local</span>':''}</h2>
+   <p class="lead">${e(i.idea)}</p>
+   <ul class="mfacts">
+    <li><b>El vídeo del local</b><span>${e(i.video)}</span></li>
+    <li><b>A quién le va</b><span>${e(i.va)}</span></li>
+    <li><b>Letra y color</b><span>${e(i.tipo)}</span></li>
+   </ul>
+   <div class="cact"><a class="btn pri" href="index.html?modelo=${id}">Abrir esta web</a><a class="btn" href="carta.html?modelo=${id}">Solo la carta</a>${N.plan&&N.plan!=='basico'?`<a class="btn" href="prueba.html?modelo=${id}">Probar una mesa</a>`:''}</div>
+   <p class="small muted fijo">Para dejarlo fijo: <b>diseno: { modelo: '${id}' }</b> en data/negocio.js.</p>
+  </div>
+ </article>`}).join('');
+</script>
+</body>
+</html>
