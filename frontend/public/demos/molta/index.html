@@ -455,11 +455,11 @@ const mm=s=>{const[a,b]=s.split(':');return a*60+ +b};
  $('#hrs tbody').innerHTML=G.map(g=>{const t=g.d.includes(n.d),a=DAYS[g.d[0]],b=DAYS[g.d[g.d.length-1]].toLowerCase();return`<tr class="${t?'today':''}"><th scope="row">${g.d.length>1?a+' a '+b:a}${t?' (hoy)':''}</th><td>${g.k}</td></tr>`}).join('')})();
 
 /* ===== entrada: el vídeo avanza con el scroll y se para donde acaba el clip (el clip se corta en el fotograma de llegada) ===== */
-const v=$('#v'),intro=$('#intro'),roller=$('#roller'),index=$('#index'),scrimB=$('#scrimB');let dur=7.9,target=0,cur=0,ready=false;
+const v=$('#v'),intro=$('#intro'),roller=$('#roller'),index=$('#index'),scrimB=$('#scrimB');let dur=7.9,target=0,cur=0,ready=false,auto=0,autoT=0,preTw=null;
 $('#hola').innerHTML=LOCAL.esc(TX.entrada.bienvenida||('bienvenido a '+N.nombre+'.')).replace(/\n/g,'<br>');
 /* horizontal en pantallas anchas, vertical en móvil */
 const wide=matchMedia('(min-aspect-ratio:1/1)');let ori='';
-function setOri(){const o=CF.ori||(wide.matches?'h':'v');if(o===ori)return;ori=o;v.poster=`assets/entrada-${o}-poster.jpg`;v.src=`assets/entrada-${o}.mp4`;v.load()}
+function setOri(){const o=CF.ori||(wide.matches?'h':'v');if(o===ori)return;if(auto||preTw)llega();ori=o;v.poster=`assets/entrada-${o}-poster.jpg`;v.src=`assets/entrada-${o}.mp4`;v.load()}
 const VR=CF.video||[0,1],vt=()=>Math.min(1,Math.max(0,(cur-VR[0])/(VR[1]-VR[0])))*(dur-.05);
 v.addEventListener('loadedmetadata',()=>{dur=v.duration||dur;v.currentTime=vt()});
 wide.addEventListener('change',setOri);setOri();
@@ -530,7 +530,11 @@ function fases(){if(Math.abs(cur-pAnt)<.0003)return;pAnt=cur;const fs=(CF.fases|
 const tmax=()=>$('#track').offsetHeight-innerHeight;
 let run=0;const setRun=()=>{run=innerWidth-(parseFloat(getComputedStyle(roller).left)||20)+16};setRun();addEventListener('resize',setRun);
 const prog=()=>Math.min(1,Math.max(0,scrollY/tmax()));
-function tick(){cur+=(target-cur)*.12;if(Math.abs(target-cur)<.001)cur=target;
+function tick(){
+ /* reproduciendo la entrada: el vídeo marca el paso y la página le sigue */
+ if(auto&&v.readyState>=2){const k=Math.min(1,v.currentTime/Math.max(.1,dur-.05)),c=VR[0]+(VR[1]-VR[0])*k;target=cur=c;scrollTo(0,c*tmax());
+  if(k>=1||v.ended)llega();else if(v.currentTime<.05&&performance.now()-autoT>3000){auto=0;v.pause();sinVideo()}}
+ cur+=(target-cur)*.12;if(Math.abs(target-cur)<.001)cur=target;
  if(v.readyState>=1&&!isNaN(v.duration)){const t=vt();if(Math.abs(v.currentTime-t)>.02)v.currentTime=t}
  fases();
  const o=Math.max(0,1-cur*6.2);intro.style.opacity=o;intro.style.visibility=o<.02?'hidden':'visible';scrimB.style.opacity=ready?0:Math.max(0,1-cur*4);
@@ -549,6 +553,19 @@ function arrive(){if(ready)return;ready=true;document.body.classList.add('ready'
   gsap.fromTo('#index .lead,#index .ix',{y:30,opacity:0},{y:0,opacity:1,stagger:.06,duration:.7,ease:'power3.out',delay:.5})}}
 function leave(){ready=false;document.body.classList.remove('ready');index.setAttribute('aria-hidden','true');index.inert=true}
 
+/* ===== la entrada se reproduce sola: un gesto hacia abajo y el vídeo te lleva de la calle a la bienvenida ===== */
+function corta(){if(preTw){preTw.kill();preTw=null}if(auto){auto=0;v.pause()}}
+function entrar(){if(gliding||auto)return;if(ready||RM){glide(tmax(),RM?0:.6);return}
+ gliding=true;HTML.classList.remove('snap');HTML.classList.add('viaje');holdUntil=0;
+ const c0=prog(),video=()=>{preTw=null;v.currentTime=vt();auto=1;autoT=performance.now();const p=v.play();if(p&&p.catch)p.catch(()=>{if(auto){auto=0;sinVideo()}})};
+ /* lo que pasa antes del vídeo (el plato y sus ingredientes) va a su ritmo; luego, el vídeo a velocidad normal */
+ if(c0<VR[0]-.002){const tw={y:scrollY};preTw=gsap.to(tw,{y:VR[0]*tmax(),duration:(VR[0]-c0)*3.4,ease:'power1.inOut',onUpdate:()=>scrollTo(0,tw.y),onComplete:video})}else video()}
+/* si el navegador no deja reproducir, el mismo recorrido moviendo la página */
+function sinVideo(){const tw={y:scrollY},k=(1-prog())/Math.max(.05,VR[1]-VR[0]);preTw=gsap.to(tw,{y:tmax(),duration:Math.max(.3,k*(dur-.05)),ease:'none',onUpdate:()=>scrollTo(0,tw.y),onComplete:llega})}
+function llega(){preTw=null;auto=0;v.pause();target=cur=1;scrollTo(0,tmax());gliding=false;HTML.classList.remove('viaje');holdUntil=performance.now()+1200;onScroll();arrive()}
+/* hacia arriba desde la bienvenida: vuelve a la calle */
+function salir(){if(gliding||auto||scrollY<4)return;glide(0,1.5)}
+
 /* ===== una sección por gesto, anclada arriba ===== */
 const SECS=['carta','cupones','visita','fin'];
 function stops(){const vh=innerHeight,max=HTML.scrollHeight-vh,S=[tmax()];
@@ -558,22 +575,34 @@ let wAcc=0,wT=0,openP=null;
 const blocked=()=>!!openP;
 function page(dir){const y=scrollY,S=stops(),to=dir>0?S.find(x=>x>y+4):[...S].reverse().find(x=>x<y-4);
  if(to==null)return false;if(dir<0&&y<=tmax()+4)return false;glide(to,.85);return true}
-function onWheelDy(dy,ev){if(scrollY<tmax()-4)return;if(scrollY<=tmax()+4&&dy<0)return;
- if(ev)ev.preventDefault();if(gliding)return;if(performance.now()<holdUntil){wAcc=0;return}wAcc+=dy;clearTimeout(wT);wT=setTimeout(()=>wAcc=0,180);
- if(Math.abs(wAcc)>=30){const d=Math.sign(wAcc);wAcc=0;page(d)}}
+/* un gesto de rueda = un paso, por fuerte que sea: mientras sigan llegando eventos del mismo gesto (sin una pausa), no cuenta otro */
+let wLock=false,wQ=0;
+function onWheelDy(dy,ev){if(ev)ev.preventDefault();
+ clearTimeout(wQ);wQ=setTimeout(()=>{wLock=false;wAcc=0},260);
+ if(wLock||gliding||auto)return;if(performance.now()<holdUntil){wAcc=0;return}
+ /* en la entrada cada gesto es el recorrido entero: abajo, a la bienvenida; arriba, a la calle. Después, una sección por gesto */
+ const entrada=scrollY<tmax()-4||(scrollY<=tmax()+4&&dy<0);wAcc+=dy;if(Math.abs(wAcc)<(entrada?12:30))return;
+ const d=Math.sign(wAcc);wAcc=0;wLock=true;if(!entrada)page(d);else if(d>0)entrar();else salir()}
 addEventListener('wheel',e=>{if(blocked()||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;onWheelDy(e.deltaY,e)},{passive:false});
 addEventListener('message',e=>{const m=e.data||{};if(m.ooox==='wheel'&&!blocked())onWheelDy(m.dy)});
-addEventListener('keydown',e=>{if(e.key==='Escape'){closeAll();return}if(blocked()||scrollY<tmax()-4||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;const k=e.key;
- const d=(k==='ArrowDown'||k==='PageDown')?1:(k==='ArrowUp'||k==='PageUp')?-1:0;if(!d)return;if(d<0&&scrollY<=tmax()+4)return;e.preventDefault();if(!gliding)page(d)});
+addEventListener('keydown',e=>{if(e.key==='Escape'){closeAll();return}const ae=document.activeElement||document.body;if(blocked()||/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;const k=e.key;
+ if(e.repeat&&/Arrow|Page| /.test(k)){e.preventDefault();return} /* dejar la tecla pulsada no salta secciones */
+ if(k===' '&&ae!==document.body&&ae!==HTML)return; /* la barra sobre un botón o un enlace lo pulsa */
+ const d=(k==='ArrowDown'||k==='PageDown'||(k===' '&&!e.shiftKey))?1:(k==='ArrowUp'||k==='PageUp'||(k===' '&&e.shiftKey))?-1:0;if(!d)return;e.preventDefault();
+ if(scrollY<tmax()-4||(d<0&&scrollY<=tmax()+4)){if(!gliding&&!auto){if(d>0)entrar();else salir()}return}
+ if(!gliding)page(d)});
 /* dedo: un deslizamiento = una sección (la página no se queda a medias) */
 let ts=null;
 addEventListener('touchstart',e=>{const t=e.touches[0];ts={x:t.clientX,y:t.clientY}},{passive:true});
-addEventListener('touchmove',e=>{if(!ts||blocked()||scrollY<tmax()-4)return;const t=e.touches[0],dx=t.clientX-ts.x,dy=t.clientY-ts.y;
- if(Math.abs(dy)>Math.abs(dx)&&!(dy>0&&scrollY<=tmax()+4)&&e.cancelable)e.preventDefault()},{passive:false});
+addEventListener('touchmove',e=>{if(!ts||blocked())return;const t=e.touches[0],dx=t.clientX-ts.x,dy=t.clientY-ts.y;
+ if(dy>0&&scrollY<=0)return; /* arriba del todo, tirar hacia abajo es cosa del navegador */
+ if(Math.abs(dy)>Math.abs(dx)&&e.cancelable)e.preventDefault()},{passive:false});
 addEventListener('touchend',e=>{if(!ts)return;const t=e.changedTouches[0],dx=t.clientX-ts.x,dy=t.clientY-ts.y;ts=null;
- if(blocked()||gliding||scrollY<tmax()-4||Math.abs(dy)<40||Math.abs(dy)<Math.abs(dx)*1.2)return;if(dy>0&&scrollY<=tmax()+4)return;page(dy<0?1:-1)},{passive:true});
+ if(blocked()||gliding||auto||Math.abs(dy)<40||Math.abs(dy)<Math.abs(dx)*1.2)return;
+ if(scrollY<tmax()-4||(dy>0&&scrollY<=tmax()+4)){if(dy<0)entrar();else salir();return}
+ page(dy<0?1:-1)},{passive:true});
 addEventListener('message',e=>{const m=e.data||{};if(m.ooox==='swipe'&&!blocked()&&!gliding)page(m.dir)});
-function glide(y,d){gliding=true;HTML.classList.remove('snap');HTML.classList.add('viaje');const tw={v:scrollY};gsap.to(tw,{v:y,duration:RM?0:(d||1.1),ease:'power2.inOut',onUpdate:()=>scrollTo(0,tw.v),onComplete:()=>{gliding=false;HTML.classList.remove('viaje');onScroll()}})}
+function glide(y,d){corta();gliding=true;HTML.classList.remove('snap');HTML.classList.add('viaje');const tw={v:scrollY};gsap.to(tw,{v:y,duration:RM?0:(d||1.1),ease:'power2.inOut',onUpdate:()=>scrollTo(0,tw.v),onComplete:()=>{gliding=false;HTML.classList.remove('viaje');onScroll()}})}
 const yOf=id=>Math.round(document.getElementById(id).getBoundingClientRect().top+scrollY);
 function goSec(id){closeAll();if(id==='resena'){openPanel('resena');return}glide(yOf(id),scrollY<tmax()-4?2:1)}
 $('#skip').onclick=()=>glide(yOf('carta'),2.4);
