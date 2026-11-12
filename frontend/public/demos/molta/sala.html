@@ -77,7 +77,7 @@ main{padding:10px var(--m) calc(40px + var(--sb))}
 .tk li img{flex:none;width:40px;height:40px;border-radius:50%}
 .tk .btn{width:100%;background:var(--field);color:var(--field-ink)}
 .tk[data-e="listo"] .btn{background:var(--field);color:var(--field-ink)}
-@media (hover:hover){.tk .btn:hover,.co .btn:hover{background:var(--accent);color:var(--accent-ink)}.tk[data-e="nuevo"] .btn:hover{background:var(--field-ink);color:var(--field)}.md:hover{transform:scale(1.03)}}
+@media (hover:hover) and (pointer:fine){.tk .btn:hover,.co .btn:hover{background:var(--accent);color:var(--accent-ink)}.tk[data-e="nuevo"] .btn:hover{background:var(--field-ink);color:var(--field)}.md:hover{transform:scale(1.03)}}
 
 /* carta: marcar agotados */
 .psec{display:grid;gap:4px;max-width:720px}
@@ -102,9 +102,9 @@ main{padding:10px var(--m) calc(40px + var(--sb))}
 
 /* hoja de una mesa */
 .pscrim{position:fixed;inset:0;z-index:50;background:rgba(9,17,33,.6);opacity:0;visibility:hidden;transition:opacity var(--t-ui) ease,visibility 0s var(--t-ui)}
-.hoja{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;gap:18px;max-height:92svh;overflow:auto;margin:0 auto;width:min(560px,100%);padding:24px var(--m) calc(26px + var(--sb));background:var(--bg);color:var(--ink);transform:translateY(102%);visibility:hidden;transition:transform .5s var(--ease-in-out),visibility 0s .5s}
+.hoja{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;gap:18px;max-height:92svh;overflow:auto;margin:0 auto;width:min(560px,100%);padding:24px var(--m) calc(26px + var(--sb));background:var(--bg);color:var(--ink);transform:translateY(102%);visibility:hidden;transition:transform .2s var(--ease-out),visibility 0s .2s}
 .abre .pscrim{opacity:1;visibility:visible;transition:opacity var(--t-ui) ease,visibility 0s}
-.abre .hoja{transform:none;visibility:visible;transition:transform .5s var(--ease-in-out),visibility 0s}
+.abre .hoja{transform:none;visibility:visible;transition:transform .3s var(--ease-drawer),visibility 0s} /* el panel se usa todo el día: la hoja va rápida */
 .hoja .hh{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .hoja h2{font:700 var(--step-head)/1 var(--font);letter-spacing:-.04em;text-transform:lowercase}
 .hoja .cod{display:flex;align-items:center;gap:8px}

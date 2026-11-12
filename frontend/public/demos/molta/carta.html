@@ -54,7 +54,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 .mx b{font-weight:500}
 .mx small{font-size:var(--step-small);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color var(--t-hover) ease}
 .mini>svg{width:20px;height:20px;flex:none}
-@media (hover:hover){.mini:hover{--ring:var(--ink);background:var(--ink);color:var(--bg)}.mini:hover .mx small{color:var(--bg)}}
+@media (hover:hover) and (pointer:fine){.mini:hover{--ring:var(--ink);background:var(--ink);color:var(--bg)}.mini:hover .mx small{color:var(--bg)}}
 
 /* ficha (pantallas anchas): descripción, ingredientes y cómo es */
 .desc{font-size:var(--step-lead);line-height:1.35;max-width:36ch}
@@ -92,8 +92,8 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 /* la carta entera: una hoja de papel que sube */
 .scrim{position:fixed;inset:0;z-index:50;background:rgba(19,34,63,.52);opacity:0;visibility:hidden;transition:opacity var(--t-ui) ease,visibility 0s var(--t-ui)}
 .sheet-open .scrim,.cart-open .scrim{opacity:1;visibility:visible;transition:opacity var(--t-ui) ease,visibility 0s}
-.sheet{position:fixed;left:50%;bottom:0;z-index:51;width:min(1120px,100%);height:min(93%,920px);display:flex;flex-direction:column;background:var(--bg);transform:translate(-50%,102%);visibility:hidden;transition:transform .5s var(--ease-in-out),visibility 0s .5s}
-.sheet-open .sheet{transform:translate(-50%,0);visibility:visible;transition:transform .5s var(--ease-in-out),visibility 0s}
+.sheet{position:fixed;left:50%;bottom:0;z-index:51;width:min(1120px,100%);height:min(93%,920px);display:flex;flex-direction:column;background:var(--bg);transform:translate(-50%,102%);visibility:hidden;transition:transform .28s var(--ease-out),visibility 0s .28s}
+.sheet-open .sheet{transform:translate(-50%,0);visibility:visible;transition:transform .45s var(--ease-drawer),visibility 0s}
 .shd{display:flex;align-items:center;justify-content:space-between;gap:16px;flex:none;padding:18px var(--m) 4px}
 .shd h2{font:700 var(--step-head)/1 var(--font);letter-spacing:-.04em;text-transform:lowercase;margin-left:-.03em}
 .stabs{display:flex;justify-content:space-between;gap:10px;flex:none;padding:4px var(--m) 8px}
@@ -130,7 +130,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 .radd svg{width:20px;height:20px}
 .radd.ok{background:var(--ink);color:var(--bg)}
 .row.on .rp{outline:4px solid var(--ink);outline-offset:3px}
-@media (hover:hover){.rmain:hover .rp{transform:rotate(40deg)}}
+@media (hover:hover) and (pointer:fine){.rmain:hover .rp{transform:rotate(40deg)}}
 .sfoot{padding:26px 0 4px;font-size:var(--step-small);color:var(--muted);max-width:60ch}
 @media (min-width:901px){
   .stabs{justify-content:flex-start;gap:34px}
@@ -141,8 +141,8 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 }
 
 /* tu pedido */
-.drawer{position:fixed;top:0;right:0;bottom:0;z-index:61;width:min(480px,100%);display:flex;flex-direction:column;background:var(--bg);transform:translateX(102%);visibility:hidden;transition:transform .5s var(--ease-in-out),visibility 0s .5s}
-.cart-open .drawer{transform:none;visibility:visible;transition:transform .5s var(--ease-in-out),visibility 0s}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:61;width:min(480px,100%);display:flex;flex-direction:column;background:var(--bg);transform:translateX(102%);visibility:hidden;transition:transform .28s var(--ease-out),visibility 0s .28s}
+.cart-open .drawer{transform:none;visibility:visible;transition:transform .45s var(--ease-drawer),visibility 0s}
 .cart-open .scrim{z-index:60}
 .items{flex:1;overflow:auto;overscroll-behavior:contain;padding:8px var(--m)}
 .it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:10px 0}
@@ -254,7 +254,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
   <div class="items" id="items"></div>
   <div class="df" id="df">
     <fieldset class="pick" id="pickF"><legend>Hora de recogida</legend><div class="chips" id="chips"></div></fieldset>
-    <label class="fld" id="nameL"><span>Nombre para el pedido</span><input id="nameIn" autocomplete="given-name" maxlength="24"></label>
+    <label class="fld" id="nameL"><span>Nombre para el pedido</span><input id="nameIn" autocomplete="given-name" maxlength="24" enterkeyhint="done"></label>
     <table class="tot">
       <tr><th scope="row">Subtotal</th><td id="sub">0,00 €</td></tr>
       <tr><th scope="row" id="ivaL">IVA incluido (10 %)</th><td id="iva">0,00 €</td></tr>
@@ -287,7 +287,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
   <h2 id="unT">mesa abierta.</h2>
   <p class="lead" id="unL"></p>
   <form id="unF" novalidate>
-    <label class="fld"><span>Código de la mesa, 4 cifras</span><input id="unC" inputmode="numeric" autocomplete="one-time-code" maxlength="4" pattern="[0-9]*"></label>
+    <label class="fld"><span>Código de la mesa, 4 cifras</span><input id="unC" inputmode="numeric" autocomplete="one-time-code" maxlength="4" pattern="[0-9]*" enterkeyhint="go"></label>
     <p class="err" id="unE" role="alert" hidden></p>
     <div class="btns"><button class="btn pri" type="submit">Entrar en la mesa</button><button class="btn" type="button" id="unV">Solo ver la carta</button></div>
   </form>
@@ -344,7 +344,7 @@ sheet.querySelectorAll('.row').forEach(r=>{rowsEl[+r.dataset.i]=r});
 let lastFocus=null;
 function modal(el,on){el.inert=!on;el.setAttribute('aria-hidden',!on);if(EMB&&parent!==window)parent.postMessage({ooox:'overlay',on:overlay()},'*');if(on){lastFocus=document.activeElement;setTimeout(()=>{const f=el.querySelector('button,a[href],input');f&&f.focus({preventScroll:true})},60)}else if(lastFocus&&lastFocus.focus){lastFocus.focus({preventScroll:true});lastFocus=null}}
 function openSheet(){if(DOCK()){veFila(cur);return}document.body.classList.add('sheet-open');modal(sheet,true);const t=sheet.querySelector(`.ssec[data-s="${D[cur].sec}"]`),g=t.closest('.sgrp'),a=g&&g.querySelector('.ssec')===t?g:t,b=$('#sBody');b.scrollTop=Math.max(0,a.offsetTop-b.offsetTop);spy();
- if(!RM)gsap.fromTo(sheet.querySelectorAll('.rp'),{rotation:-70},{rotation:0,duration:.9,ease:'power3.out',stagger:{each:.018,from:rowsEl.indexOf(rowsEl[cur])},delay:.12,overwrite:'auto'})}
+ if(!RM)gsap.fromTo(sheet.querySelectorAll('.rp'),{rotation:-40},{rotation:0,duration:.55,ease:'power3.out',stagger:{each:.01,from:rowsEl.indexOf(rowsEl[cur])},delay:.08,overwrite:'auto'})}
 function closeSheet(){if(!document.body.classList.contains('sheet-open'))return;document.body.classList.remove('sheet-open');modal(sheet,false)}
 $('#list').onclick=openSheet;$('#sClose').onclick=closeSheet;
 const parteEl=k=>sheet.querySelector(GR.length?`.sgrp[data-g="${k}"]`:`.ssec[data-s="${k}"]`);
@@ -415,27 +415,30 @@ const st={x:0,a:0};const paint=()=>{rot.style.transform=`translate3d(${st.x.toFi
 let last=performance.now();
 function loop(t){const dt=Math.min(64,t-last);last=t;if(MODO==='rodar'&&!busy&&!dragging&&!RM&&!document.hidden){st.a=(st.a+dt*.009)%360;paint()}requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
-function colour(c,dur,dir){if(RM||!dur||(MODO!=='rodar'&&!PASO.wipe)){platter.style.background=c;return}
+/* cambio en curso (CH) y fundido del color (COL): un toque nuevo los termina al instante y empieza el siguiente, así la carta nunca ignora un toque */
+let CH=null,COL=null;
+function acaba(){if(CH){const t=CH;CH=null;t.progress(1)}if(COL){const t=COL;COL=null;t.progress(1)}}
+function colour(c,dur,dir){if(COL){const t=COL;COL=null;t.progress(1)}if(RM||!dur||(MODO!=='rodar'&&!PASO.wipe)){platter.style.background=c;return}
  platter2.style.background=c;
  if(MODO!=='rodar'){/* la baldosa nueva entra tapando la anterior, desde el lado hacia el que se avanza */
-  const o={v:100},d=dir||1;gsap.to(o,{v:0,duration:dur,ease:'power3.inOut',onUpdate:()=>{const v=o.v.toFixed(2)+'%';platter2.style.clipPath=PASO.wipe==='x'?(d>0?`inset(0 0 0 ${v})`:`inset(0 ${v} 0 0)`):(d>0?`inset(${v} 0 0 0)`:`inset(0 0 ${v} 0)`)},onComplete:()=>{platter.style.background=c;platter2.style.clipPath='inset(0 0 0 100%)'}});return}
- const o={r:0};gsap.to(o,{r:geo.pd*.92,duration:dur,ease:'power2.out',onUpdate:()=>{platter2.style.clipPath=`circle(${o.r.toFixed(1)}px at ${geo.ox.toFixed(1)}px ${geo.oy.toFixed(1)}px)`},onComplete:()=>{platter.style.background=c;platter2.style.clipPath='circle(0px at 50% 50%)'}})}
+  const o={v:100},d=dir||1;COL=gsap.to(o,{v:0,duration:dur,ease:'power3.inOut',onUpdate:()=>{const v=o.v.toFixed(2)+'%';platter2.style.clipPath=PASO.wipe==='x'?(d>0?`inset(0 0 0 ${v})`:`inset(0 ${v} 0 0)`):(d>0?`inset(${v} 0 0 0)`:`inset(0 0 ${v} 0)`)},onComplete:()=>{COL=null;platter.style.background=c;platter2.style.clipPath='inset(0 0 0 100%)'}});return}
+ const o={r:0};COL=gsap.to(o,{r:geo.pd*.92,duration:dur,ease:'power2.out',onUpdate:()=>{platter2.style.clipPath=`circle(${o.r.toFixed(1)}px at ${geo.ox.toFixed(1)}px ${geo.oy.toFixed(1)}px)`},onComplete:()=>{COL=null;platter.style.background=c;platter2.style.clipPath='circle(0px at 50% 50%)'}})}
 /* ===== otros modelos: el mismo plato, otra manera de pasar al siguiente ===== */
-const PAS={cortina:{o:{scale:.8,opacity:0,rotation:-16},i:{scale:1.18,opacity:0,rotation:18},d:.8,wipe:'x'},
- fundir:{o:{scale:1.05,opacity:0,rotation:8},i:{scale:.95,opacity:0,rotation:-8},d:.9},
- subir:{o:{yPercent:-170,rotation:-30},i:{yPercent:170,rotation:30},d:.85}},PASO=PAS[CF.pasar]||{};
+const PAS={cortina:{o:{scale:.8,opacity:0,rotation:-16},i:{scale:1.18,opacity:0,rotation:18},d:.66,wipe:'x'},
+ fundir:{o:{scale:1.05,opacity:0,rotation:8},i:{scale:.95,opacity:0,rotation:-8},d:.7},
+ subir:{o:{yPercent:-170,rotation:-30},i:{yPercent:170,rotation:30},d:.68}},PASO=PAS[CF.pasar]||{};
 const conDir=(o,dir)=>{const r={};for(const k in o)r[k]=k==='opacity'||k==='scale'?o[k]:o[k]*dir;return r};
-const entraTx=()=>gsap.fromTo('.sw',{y:22,opacity:0},{y:0,opacity:1,duration:.5,ease:'power3.out',stagger:.05,overwrite:'auto'});
+const entraTx=()=>gsap.fromTo('.sw',{y:16,opacity:0},{y:0,opacity:1,duration:.42,ease:'power3.out',stagger:.04,overwrite:'auto'});
 function swap(i){const d=D[i];cur=i;pImg.src=P(i);fill(i);ROOT.style.setProperty('--pc',d.c);colour(d.c,0);st.x=0;paint();if(MODO==='arco')arcoPinta()}
 function goPasar(i,dir){busy=true;gsap.killTweensOf(st);const d=D[i],g=rot.cloneNode(true),gi=g.firstElementChild;g.removeAttribute('id');gi.removeAttribute('id');g.classList.add('ghost');pw.appendChild(g);
  cur=i;pImg.src=P(i);st.x=0;st.a=0;paint();gsap.set(pImg,conDir(PASO.i,dir));
- gsap.timeline({onComplete:()=>{g.remove();busy=false}})
-  .to(gi,{...conDir(PASO.o,dir),duration:PASO.d*.62,ease:'power2.in'},0)
-  .to('.sw',{y:-18,opacity:0,duration:.26,ease:'power2.in',stagger:.03},0)
-  .add(()=>{ROOT.style.setProperty('--pc',d.c);colour(d.c,PASO.d,dir)},.06)
-  .add(()=>fill(i),.3)
-  .to(pImg,{scale:1,opacity:1,rotation:0,yPercent:0,duration:PASO.d,ease:'power3.out'},.16)
-  .add(entraTx,.46)}
+ CH=gsap.timeline({onComplete:()=>{g.remove();busy=false;CH=null}})
+  .to(gi,{...conDir(PASO.o,dir),duration:PASO.d*.55,ease:'power2.out'},0)
+  .to('.sw',{y:-12,opacity:0,duration:.18,ease:'power2.out',stagger:.025,overwrite:'auto'},0)
+  .add(()=>{ROOT.style.setProperty('--pc',d.c);colour(d.c,PASO.d,dir)},.04)
+  .add(()=>fill(i),.2)
+  .to(pImg,{scale:1,opacity:1,rotation:0,yPercent:0,duration:PASO.d,ease:'power3.out'},.08)
+  .add(entraTx,.3)}
 /* la fila en arco (modelo plato): el actual en el centro; sus vecinos detrás, cada paso más pequeños y más oscuros */
 const ARC={el:[],t:0,sp:1,n:4,step:300,moved:false};
 function seq(k){let i=cur;const sg=Math.sign(k);for(let n=0;n<Math.abs(k);n++)i=libre(i,sg);return i}
@@ -446,27 +449,27 @@ function arcoPinta(){ARC.el.forEach(b=>{const im=b.firstChild,src=P(seq(+b.datas
 function arco(t){ARC.t=t;const W=stage.clientWidth,pl=geo.plate||200,m=W<=900,step=ARC.step=m?W/2:Math.max(pl*.62,W*.17),sc=m?.6:.7;
  ARC.el.forEach(b=>{const u=+b.dataset.k-t,a=Math.abs(u),s=Math.pow(sc,a),x=u*step*ARC.sp,y=-pl*.06*a+pl*.05*(1-Math.cos(Math.PI*u))/2;
   b.style.transform=`translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) scale(${s.toFixed(4)})`;b.style.filter=a<.02?'none':`brightness(${Math.max(.3,1-.24*a).toFixed(3)})`;b.style.zIndex=String(20-Math.round(a*2))})}
-function goArco(i,dir){busy=true;let n=0,j=cur;while(j!==i&&n<=3){j=libre(j,dir);n++}const d=D[i],fin=()=>{cur=i;pImg.src=P(i);ROOT.style.setProperty('--pc',d.c);fill(i);arcoPinta();busy=false;entraTx()};
- gsap.to('.sw',{y:-14,opacity:0,duration:.22,ease:'power2.in',stagger:.03,overwrite:'auto'});
- if(j!==i){gsap.to('#arco',{opacity:0,duration:.24,onComplete:()=>{fin();gsap.to('#arco',{opacity:1,duration:.4})}});return}
- const o={t:ARC.t};gsap.to(o,{t:n*dir,duration:.5+.14*n,ease:'power3.inOut',onUpdate:()=>arco(o.t),onComplete:fin})}
+function goArco(i,dir){busy=true;let n=0,j=cur;while(j!==i&&n<=3){j=libre(j,dir);n++}const d=D[i],fin=()=>{cur=i;pImg.src=P(i);ROOT.style.setProperty('--pc',d.c);fill(i);arcoPinta();busy=false;CH=null;entraTx()};
+ gsap.to('.sw',{y:-12,opacity:0,duration:.18,ease:'power2.out',stagger:.025,overwrite:'auto'});
+ if(j!==i){CH=gsap.timeline().to('#arco',{opacity:0,duration:.2,overwrite:'auto'}).add(fin).to('#arco',{opacity:1,duration:.3});return}
+ const o={t:ARC.t};CH=gsap.to(o,{t:n*dir,duration:.42+.12*n,ease:'power3.inOut',onUpdate:()=>arco(o.t),onComplete:fin})}
 
-function go(i,dir){if(busy||i===cur)return;dir=dir||(i>cur?1:-1);
+function go(i,dir){if(busy)acaba();if(busy||i===cur)return;dir=dir||(i>cur?1:-1);
  if(MODO!=='rodar'){if(RM)swap(i);else if(MODO==='arco')goArco(i,dir);else goPasar(i,dir);return}
  busy=true;gsap.killTweensOf(st);
  const W=stage.clientWidth,far=W/2+geo.plate/2+30,d=D[i];
  if(RM){cur=i;pImg.src=P(i);fill(i);ROOT.style.setProperty('--pc',d.c);colour(d.c,0);st.x=0;paint();busy=false;return}
- const out=-dir*far,tl=gsap.timeline({onComplete:()=>{busy=false}});
- tl.to(st,{x:out,a:st.a+(out-st.x)*K,duration:.5,ease:'power2.in',onUpdate:paint},0)
-   .to('.sw',{y:-18,opacity:0,duration:.26,ease:'power2.in',stagger:.03},0)
-   .add(()=>{cur=i;pImg.src=P(i);fill(i);ROOT.style.setProperty('--pc',d.c);colour(d.c,.85);st.x=dir*far;st.a=(st.a%360)+dir*far*K;paint()})
-   .to(st,{x:0,a:'-='+(dir*far*K),duration:.9,ease:'power3.out',onUpdate:paint})
-   .fromTo('.sw',{y:22,opacity:0},{y:0,opacity:1,duration:.5,ease:'power3.out',stagger:.05},'-=.62')}
-const nextD=()=>go(libre(cur,1),1),prevD=()=>go(libre(cur,-1),-1);
+ const out=-dir*far;CH=gsap.timeline({onComplete:()=>{busy=false;CH=null}});
+ CH.to(st,{x:out,a:st.a+(out-st.x)*K,duration:.3,ease:'power2.out',onUpdate:paint},0)
+   .to('.sw',{y:-12,opacity:0,duration:.18,ease:'power2.out',stagger:.025,overwrite:'auto'},0)
+   .add(()=>{cur=i;pImg.src=P(i);fill(i);ROOT.style.setProperty('--pc',d.c);colour(d.c,.6);st.x=dir*far;st.a=(st.a%360)+dir*far*K;paint()})
+   .to(st,{x:0,a:'-='+(dir*far*K),duration:.62,ease:'power3.out',onUpdate:paint})
+   .fromTo('.sw',{y:16,opacity:0},{y:0,opacity:1,duration:.42,ease:'power3.out',stagger:.04},'-=.5')}
+const nextD=()=>{acaba();go(libre(cur,1),1)},prevD=()=>{acaba();go(libre(cur,-1),-1)};
 $('#next').onclick=nextD;$('#prev').onclick=prevD;
 /* arrastrar en horizontal: el plato sigue al dedo rodando; si lo sueltas lejos, pasa al siguiente */
 {let dg=null;
- stage.addEventListener('pointerdown',e=>{if(busy||e.button>0||e.target.closest('button,a,input'))return;dg={id:e.pointerId,x:e.clientX,y:e.clientY,a:st.a,on:false,dx:0,v:0,t:e.timeStamp}});
+ stage.addEventListener('pointerdown',e=>{if(e.button>0||e.target.closest('button,a,input'))return;if(busy){if(MODO==='arco')return;acaba()}dg={id:e.pointerId,x:e.clientX,y:e.clientY,a:st.a,on:false,dx:0,v:0,t:e.timeStamp}});
  addEventListener('pointermove',e=>{if(!dg||e.pointerId!==dg.id)return;const dx=e.clientX-dg.x,dy=e.clientY-dg.y;
   if(!dg.on){if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy)*1.2)return;dg.on=dragging=true;gsap.killTweensOf(st);try{stage.setPointerCapture(dg.id)}catch(_){}}
   dg.v=(dx-dg.dx)/Math.max(1,e.timeStamp-dg.t);dg.t=e.timeStamp;dg.dx=dx;if(MODO==='arco'){arco(-dx/ARC.step);return}st.x=MODO==='rodar'?dx:dx*.35;st.a=dg.a+dx*K;paint()});
@@ -489,6 +492,7 @@ let wheelLock=0;addEventListener('wheel',e=>{if(overlay())return;const n=Date.no
  if(EMB){if(Math.abs(e.deltaX)<=Math.abs(e.deltaY)||Math.abs(e.deltaX)<12||n<wheelLock)return;wheelLock=n+900;e.deltaX>0?nextD():prevD();return}
  const dl=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(n<wheelLock||Math.abs(dl)<12)return;wheelLock=n+1000;dl>0?nextD():prevD()},{passive:true});
 addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeSheet();cerrarMesa();return}if(overlay()||/INPUT|TEXTAREA/.test(e.target.tagName))return;
+ if(e.repeat&&/Arrow/.test(e.key))return;
  if(e.key==='ArrowRight'||(!EMB&&e.key==='ArrowDown'))nextD();if(e.key==='ArrowLeft'||(!EMB&&e.key==='ArrowUp'))prevD()});
 
 /* ===== pedido ===== */
@@ -506,12 +510,12 @@ function renderCart(bump){const{n,s}=totals();$('#cnt').textContent=n;
  if(bump){const c=$('#cartBtn');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}}
 $('#items').addEventListener('click',e=>{if(e.target.closest('#emptyGo')){closeCart();openSheet();return}const b=e.target.closest('button[data-i]');if(!b)return;const i=b.dataset.i;cart[i]=(cart[i]||0)+ +b.dataset.d;if(cart[i]<=0)delete cart[i];renderCart()});
 $('#nameIn').addEventListener('input',()=>{$('#err').hidden=true});
-$('#addBtn').onclick=()=>{if(OUT.has(D[cur].id))return;const k=keyOf(cur),done=()=>{cart[k]=(cart[k]||0)+1;renderCart(true)};if(RM){done();return}
+$('#addBtn').onclick=()=>{if(OUT.has(D[cur].id))return;const k=keyOf(cur);cart[k]=(cart[k]||0)+1;const done=()=>renderCart(true);if(RM){done();return}
  const from=pw.getBoundingClientRect(),to=EMB?{left:innerWidth-110,top:14,width:60,height:36}:$('#cartBtn').getBoundingClientRect();
  const f=document.createElement('div');f.className='fly';f.innerHTML=`<img src="${P(cur)}" alt="">`;Object.assign(f.style,{left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px'});
  f.firstChild.style.transform=`rotate(${st.a}deg)`;document.body.appendChild(f);
  const tx=to.left+to.width/2-(from.left+from.width/2),ty=to.top+to.height/2-(from.top+from.height/2);
- gsap.timeline({onComplete:()=>{f.remove();done()}}).to(f,{x:tx*.4,y:ty*.4-from.height*.25,scale:.45,rotation:120,duration:.4,ease:'power2.out'}).to(f,{x:tx,y:ty,scale:.06,rotation:300,duration:.45,ease:'power2.in'})};
+ gsap.timeline({onComplete:()=>{f.remove();done()}}).to(f,{x:tx*.4,y:ty*.4-from.height*.25,scale:.45,rotation:120,duration:.32,ease:'power2.out'}).to(f,{x:tx,y:ty,scale:.06,rotation:300,duration:.36,ease:'power2.in'})};
 /* horas de recogida */
 function madrid(){const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());return(+p.find(x=>x.type==='hour').value)*60+(+p.find(x=>x.type==='minute').value)}
 let pick='';

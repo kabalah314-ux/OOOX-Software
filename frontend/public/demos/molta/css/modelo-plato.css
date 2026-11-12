@@ -31,7 +31,7 @@ body{letter-spacing:-.01em;line-height:1.4}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .field .seg button[aria-pressed="true"]{background:var(--field-ink);color:var(--field)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
-@media (hover:hover){
+@media (hover:hover) and (pointer:fine){
   .btn.pri:hover{background:var(--ink);color:var(--bg)}
   .field .btn.pri:hover{background:var(--field-ink);color:var(--field)}
 }
@@ -64,7 +64,7 @@ body[data-hdr="track"] .top{color:color-mix(in srgb,var(--field-ink) calc((var(-
 [data-pg="index"] .intro .disp{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 [data-pg="index"] .intro .lead{max-width:24ch;font-weight:600}
 [data-pg="index"] .intro .btn.pri{background:var(--bg);color:var(--ink)}
-@media (hover:hover){[data-pg="index"] .intro .btn.pri:hover{background:var(--ink);color:var(--bg)}}
+@media (hover:hover) and (pointer:fine){[data-pg="index"] .intro .btn.pri:hover{background:var(--ink);color:var(--bg)}}
 /* acto 2: el campo pasa a papel desde el centro del plato y sale lo que lleva */
 .hx-wipe{position:absolute;z-index:1;inset:0;background:var(--field);clip-path:circle(calc(var(--f2,0)*150vmax) at var(--bx) var(--by))}
 .hx-cap{position:absolute;z-index:2;left:var(--m);top:calc(var(--top) + 6svh);display:grid;gap:12px;color:var(--field-ink);opacity:calc(var(--f2,0)*2.2 - 1.2 - var(--f3,0)*6);transform:translate3d(0,calc((1 - var(--f2,0))*36px),0)}
@@ -89,7 +89,7 @@ body[data-hdr="track"] .top{color:color-mix(in srgb,var(--field-ink) calc((var(-
 .index .lead{font-weight:600}
 .ix i{font-weight:600;letter-spacing:-.01em}
 .ix img{display:none}
-@media (hover:hover){.ix:hover .iw,.ix:focus-visible .iw{transform:translateX(14px)}}
+@media (hover:hover) and (pointer:fine){.ix:hover .iw,.ix:focus-visible .iw{transform:translateX(14px)}}
 @media (max-width:899px),(max-aspect-ratio:1/1){
   [data-pg="index"] .stage{--k:2;--bd:78vw;--by:42svh;--ax:80vw;--ay:75svh}
   .hx-t{top:calc(var(--top) + 3svh);font-size:min(13.4vw,11svh)}
@@ -156,7 +156,7 @@ body[data-hdr="track"] .top{color:color-mix(in srgb,var(--field-ink) calc((var(-
 .vtext .cact .btn{flex:1;min-height:56px}
 .vtext .cact .btn.ig{background:var(--field-surface);color:var(--field-ink)}
 .vpics{display:none}
-@media (hover:hover){.vtext .cact .btn.ig:hover{background:var(--field-ink);color:var(--field)}.vtext .cact .btn.pri:hover{background:var(--field-ink);color:var(--field)}}
+@media (hover:hover) and (pointer:fine){.vtext .cact .btn.ig:hover{background:var(--field-ink);color:var(--field)}.vtext .cact .btn.pri:hover{background:var(--field-ink);color:var(--field)}}
 @media (max-width:699px),(max-aspect-ratio:1/1){
   [data-pg="index"] #visita{justify-content:flex-end;align-items:flex-end;padding:0 16px calc(16px + var(--sb))}
   .sfoto{inset:0 0 auto 0;height:74svh}
@@ -169,7 +169,7 @@ body[data-hdr="track"] .top{color:color-mix(in srgb,var(--field-ink) calc((var(-
 /* ===== cierre: el plato a un lado, el menú en grande al otro ===== */
 .fnav{display:grid;justify-items:start;gap:0}
 .fnav a{display:block;font:800 clamp(2.2rem,3.9vw,4.4rem)/1.12 var(--font);letter-spacing:-.05em;text-transform:lowercase;text-decoration:none;transition:transform .35s var(--ease-out),color var(--t-hover) ease}
-@media (hover:hover){.fnav:hover a{color:var(--field-muted)}.fnav a:hover{color:var(--field-ink);transform:translateX(12px)}}
+@media (hover:hover) and (pointer:fine){.fnav:hover a{color:var(--field-muted)}.fnav a:hover{color:var(--field-ink);transform:translateX(12px)}}
 [data-pg="index"] .fin{overflow:hidden}
 .mark{font:800 1.625rem/1 var(--font);letter-spacing:-.05em;margin:0}
 .mark .vh{position:static;width:auto;height:auto;overflow:visible;clip-path:none}
@@ -217,7 +217,7 @@ body[data-hdr="track"] .top{color:color-mix(in srgb,var(--field-ink) calc((var(-
 .add b{font-weight:600}
 .meters i{border-radius:50%}
 .ingt th{font-weight:600}
-@media (hover:hover){.mini:hover .mx small{color:var(--bg)}}
+@media (hover:hover) and (pointer:fine){.mini:hover .mx small{color:var(--bg)}}
 @media (min-width:901px){
   [data-pg="carta"] .stage{--name:clamp(2rem,2.8vw,2.75rem);grid-template-columns:minmax(0,1fr) minmax(0,32vw) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto;grid-template-areas:"hero hero hero" "side tx buy" "side deck buy";column-gap:clamp(20px,3vw,56px)}
   [data-pg="carta"] .hero{--kw:.345;--kh:.9}

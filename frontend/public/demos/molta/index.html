@@ -27,7 +27,7 @@ body[data-hdr="cupones"] .top,body[data-hdr="fin"] .top{background:var(--field);
 .tlinks a{position:relative;display:inline-flex;align-items:center;min-height:44px;font-weight:500;text-decoration:none}
 .tlinks a::after{content:"";position:absolute;left:0;right:0;bottom:5px;height:4px;border-radius:2px;background:currentColor;transform:scaleX(0);transform-origin:0 50%;transition:transform var(--t-ui) var(--ease-out)}
 .tlinks a.on::after{transform:scaleX(1)}
-@media (hover:hover){.tlinks a:hover::after{transform:scaleX(1)}}
+@media (hover:hover) and (pointer:fine){.tlinks a:hover::after{transform:scaleX(1)}}
 /* la marca de la sección actual es una sola raya que viaja de un enlace a otro, con la curva del cambio de sección */
 .tind{position:absolute;left:0;width:100px;background:currentColor;transform-origin:0 50%;opacity:0;pointer-events:none;transition:transform .9s cubic-bezier(.77,0,.175,1),opacity .3s ease}
 @media (prefers-reduced-motion:reduce){.tind{transition:opacity .2s ease}}
@@ -62,7 +62,7 @@ body[data-hdr="cupones"] .top,body[data-hdr="fin"] .top{background:var(--field);
 .intro .lead{max-width:31ch}
 .iact{display:flex;align-items:center;flex-wrap:wrap;gap:10px 18px}
 .intro .btn.pri{background:var(--field-ink);color:var(--field)}
-@media (hover:hover){.intro .btn.pri:hover{background:var(--accent);color:var(--accent-ink)}}
+@media (hover:hover) and (pointer:fine){.intro .btn.pri:hover{background:var(--accent);color:var(--accent-ink)}}
 @media (max-height:620px){.intro .lead{display:none}}
 .roller{position:absolute;left:var(--m);bottom:calc(22px + var(--sb));width:44px;height:44px;border-radius:50%;will-change:transform}
 .roller img{width:100%;height:100%;border-radius:50%}
@@ -80,7 +80,7 @@ body[data-hdr="cupones"] .top,body[data-hdr="fin"] .top{background:var(--field);
 .ix b{font:700 1em/1 var(--font);letter-spacing:-.05em;text-transform:lowercase;margin-left:-.04em}
 .ix i{font:400 var(--step-small)/1 var(--font);white-space:nowrap}
 .ix img{position:absolute;left:0;top:50%;width:.72em;height:.72em;margin-top:-.38em;border-radius:50%;opacity:0;visibility:hidden;transform:translateX(-1.3em) rotate(-220deg);transition:transform .5s var(--ease-out),opacity .25s ease,visibility 0s .5s}
-@media (hover:hover){
+@media (hover:hover) and (pointer:fine){
   .ix:hover .iw,.ix:focus-visible .iw{transform:translateX(.86em)}
   .ix:hover img,.ix:focus-visible img{opacity:1;visibility:visible;transform:none;transition:transform .5s var(--ease-out),opacity .25s ease,visibility 0s}
 }
@@ -134,7 +134,7 @@ body{background:transparent}            /* detrás de la pila se ve el fondo de 
 .coupon h3{font:700 var(--step-lead)/1.1 var(--font);letter-spacing:-.03em;text-transform:lowercase;height:36px;display:flex;align-items:center}
 .coupon .perf{border-top:4px dotted var(--surface);margin:0 -6px 2px}
 .coupon .btn.pri{background:var(--ink);color:var(--bg)}
-@media (hover:hover){.coupon .btn.pri:hover{background:var(--accent);color:var(--accent-ink)}}
+@media (hover:hover) and (pointer:fine){.coupon .btn.pri:hover{background:var(--accent);color:var(--accent-ink)}}
 .coupon .small{color:var(--muted)}
 /* la tarjeta: un objeto con su propio material (metal y cobre) */
 .bcw{position:relative;perspective:1100px;container-type:inline-size;touch-action:pan-y;-webkit-user-select:none;user-select:none}
@@ -244,8 +244,8 @@ body{background:transparent}            /* detrás de la pila se ve el fondo de 
 /* ===== hojas: reseña y menú de secciones ===== */
 .pscrim{position:fixed;inset:0;z-index:50;background:rgba(19,34,63,.52);opacity:0;visibility:hidden;transition:opacity var(--t-ui) ease,visibility 0s var(--t-ui)}
 .paneling .pscrim{opacity:1;visibility:visible;transition:opacity var(--t-ui) ease,visibility 0s}
-.sheet{position:fixed;left:50%;bottom:0;z-index:51;width:min(560px,100%);max-height:94svh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);transform:translate(-50%,102%);visibility:hidden;transition:transform .5s var(--ease-in-out),visibility 0s .5s}
-.sheet.on{transform:translate(-50%,0);visibility:visible;transition:transform .5s var(--ease-in-out),visibility 0s}
+.sheet{position:fixed;left:50%;bottom:0;z-index:51;width:min(560px,100%);max-height:94svh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);transform:translate(-50%,102%);visibility:hidden;transition:transform .28s var(--ease-out),visibility 0s .28s}
+.sheet.on{transform:translate(-50%,0);visibility:visible;transition:transform .45s var(--ease-drawer),visibility 0s}
 .shd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px var(--m) 6px}
 .sbody{display:grid;gap:16px;overflow:auto;overscroll-behavior:contain;padding:8px var(--m) calc(24px + var(--sb))}
 .stars{display:flex;gap:4px;margin:0 -8px}
@@ -253,8 +253,8 @@ body{background:transparent}            /* detrás de la pila se ve el fondo de 
 .stars button svg{width:44px;height:44px}
 .stars button.on{color:var(--ink)}
 .stars button:active{transform:scale(.9)}
-.navsheet{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;justify-content:flex-end;gap:22px;padding:var(--top) var(--m) calc(30px + var(--sb));opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s .3s}
-.navsheet.on{opacity:1;visibility:visible;transition:opacity .3s ease,visibility 0s}
+.navsheet{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;justify-content:flex-end;gap:22px;padding:var(--top) var(--m) calc(30px + var(--sb));opacity:0;visibility:hidden;transition:opacity var(--t-ui) ease,visibility 0s var(--t-ui)}
+.navsheet.on{opacity:1;visibility:visible;transition:opacity var(--t-ui) ease,visibility 0s}
 .navsheet .rb{position:absolute;right:calc(var(--m) - 4px);top:calc(env(safe-area-inset-top,0px) + 6px)}
 .navsheet nav{display:grid;justify-items:start}
 .navsheet .ix{font-size:min(17vw,13svh)}
@@ -322,7 +322,7 @@ body{background:transparent}            /* detrás de la pila se ve el fondo de 
             <h3>tu tarjeta, gratis</h3>
             <div class="perf" aria-hidden="true"></div>
             <label class="fld"><span>Tu nombre, como saldrá en la tarjeta</span><input id="nm" type="text" autocomplete="given-name" maxlength="18"></label>
-            <label class="fld"><span>Tu WhatsApp. Si ya eres socio, basta con esto</span><input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="612 345 678"></label>
+            <label class="fld"><span>Tu WhatsApp. Si ya eres socio, basta con esto</span><input id="tel" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="send" placeholder="612 345 678"></label>
             <label class="chk"><input type="checkbox" id="ok"><span data-t="textos.tarjeta.consentimiento">Quiero mi tarjeta y alguna novedad de molta por WhatsApp. Me doy de baja cuando quiera.</span></label>
             <button class="btn pri wide" id="getCode" type="submit">Crear mi tarjeta</button>
           </form>
@@ -576,10 +576,10 @@ function pila(){if(!PILA){PILA=[$('.stage'),...SECS.map(id=>document.getElementB
  const y=scrollY,vh=innerHeight;if(y===pY&&vh===pH)return;pY=y;pH=vh;
  for(let i=0;i<PILA.length-1;i++){const el=PILA[i],box=i?el:$('#track'),over=y+vh-(topOf(box)+box.offsetHeight),c=RM||over<1.5?0:over>vh-1.5?1:over/vh; /* margen de 1,5 px: con zoom o pantallas de 1,25x el scroll se para en medio píxel y no debe dejar una sección a medio apilar */
   if(c===el._c)continue;el._c=c;
-  if(!c){el.style.transform='';el.style.transformOrigin='';el.style.visibility='';el.classList.remove('atras');el._dim.style.opacity='0';continue}
+  if(!c){el.style.transform='';el.style.transformOrigin='';el.style.visibility=el.style.opacity='';el.classList.remove('atras');el._dim.style.opacity='0';continue}
   el.classList.add('atras');el.style.transformOrigin=`50% ${Math.round(el.offsetHeight-vh/2)}px`;
-  el.style.transform=`translate3d(0,${(over*.86).toFixed(1)}px,0) scale(${(1-.075*c).toFixed(4)})`;
-  el._dim.style.opacity=(c*.62).toFixed(3);el.style.visibility=c>=1?'hidden':''}}
+  el.style.transform=`translate3d(0,${over.toFixed(1)}px,0) scale(${(1-.075*c).toFixed(4)})`;
+  el._dim.style.opacity=(c*.62).toFixed(3);el.style.visibility=c>=1?'hidden':'';el.style.opacity=c>=1?'0':'' /* tapada del todo: también sus hijos con visibility:visible (la bienvenida), que si no asoman por el hueco de la siguiente */}}
 /* también justo después de que GSAP mueva la página, en el mismo fotograma: si no, la sección de atrás va un fotograma tarde y tiembla */
 gsap.ticker.add(pila);
 
@@ -670,25 +670,19 @@ function partir(h){if(!h)return[];if(!h.querySelector('.ln'))h.innerHTML=h.inner
 if(!RM&&'IntersectionObserver'in window){
  const L=sel=>partir($(sel));
  const lineas=(tl,sel,at)=>{LN[sel]=false;return tl.fromTo(L(sel),{yPercent:108},{yPercent:0,duration:1,ease:'expo.out',stagger:.09},at||0)};
- const sube=(h,a,b,c)=>{const tl=gsap.timeline();if(h)lineas(tl,h);if(a)tl.fromTo(a,{y:40,opacity:0},{y:0,opacity:1,duration:.8,ease:'expo.out'},.08);
-  tl.fromTo(b,{y:46,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out',stagger:.08},.1).fromTo(c,{y:22,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.22);return tl};
+ /* con la pila, la sección ya llega amueblada: el texto está quieto y solo se mueven el titular (por líneas) y la pieza principal de cada sección */
  const E=MO!=='disco'?{
-  cupones:{ln:'#cT',pre:['#cupones .cbody>*','#mcw','#mcHint'],run(){sube('#cT',null,'#mcw,#mcHint','#cupones .cbody>*')}},
-  visita:{ln:'#vT',pre:['#openLine','#visita .vbody>*','#visita .vpics img'],run(){sube('#vT','#openLine','#visita .vpics img','#visita .vbody>*')}},
-  fin:{pre:['#fin .mark','#fin .fgrid>*','#fin .fnav a'],run(){gsap.fromTo('#fin .mark',{opacity:0},{opacity:1,duration:.9,ease:'power2.out'});sube(null,'#fin .fnav','#fin .fnav a','#fin .fgrid>*')}}}:{
-  cupones:{ln:'#cT',pre:['#cupones .cbody>*','#mcw','#mcHint'],run(){const tl=gsap.timeline();
-   lineas(tl,'#cT')
+  cupones:{ln:'#cT',pre:['#mcw'],run(){lineas(gsap.timeline(),'#cT').fromTo('#mcw',{y:46,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out'},.1)}},
+  visita:{ln:'#vT',pre:['#visita .vpics img'],run(){lineas(gsap.timeline(),'#vT').fromTo('#visita .vpics img',{y:46,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out',stagger:.08},.1)}},
+  fin:{pre:['#fin .mark'],run(){gsap.fromTo('#fin .mark',{y:40,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out'})}}}:{
+  cupones:{ln:'#cT',pre:['#mcw','#mcHint'],run(){lineas(gsap.timeline(),'#cT')
      .fromTo('#mcw',{y:70,rotation:-7,opacity:0},{y:0,rotation:0,opacity:1,duration:.9,ease:'expo.out'},.1)
-     .fromTo('#cupones .cbody>*',{y:26,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.22)
      .fromTo('#mcHint',{opacity:0},{opacity:1,duration:.4},.7)}},
-  visita:{ln:'#vT',pre:['#openLine','#visita .vbody>*','#visita .vpics img'],run(){const tl=gsap.timeline(),w=innerWidth*.6;
-   lineas(tl,'#vT').fromTo('#openLine',{y:20,opacity:0},{y:0,opacity:1,duration:.7,ease:'power3.out'},.16)
-     .fromTo('#visita .vpics img',{x:w,rotation:200,opacity:0},{x:0,rotation:0,opacity:1,duration:1,ease:'expo.out',stagger:.09},.08)
-     .fromTo('#visita .vbody>*',{y:26,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07},.22)}},
-  fin:{pre:['#fin .mark','#fin .fgrid>*'],run(){const tl=gsap.timeline();
-   tl.fromTo('#fin .mark',{y:60,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out'})
-     .fromTo('#fin .mark .o',{x:-innerWidth*.5,rotation:-420},{x:0,rotation:0,duration:1.2,ease:'expo.out'},0)
-     .fromTo('#fin .fgrid>*',{y:24,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.08},.35)}}};
+  visita:{ln:'#vT',pre:['#visita .vpics img'],run(){const w=innerWidth*.6;
+   lineas(gsap.timeline(),'#vT').fromTo('#visita .vpics img',{x:w,rotation:200,opacity:0},{x:0,rotation:0,opacity:1,duration:1,ease:'expo.out',stagger:.09},.08)}},
+  fin:{pre:['#fin .mark'],run(){gsap.timeline()
+     .fromTo('#fin .mark',{y:60,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out'})
+     .fromTo('#fin .mark .o',{x:-innerWidth*.5,rotation:-420},{x:0,rotation:0,duration:1.2,ease:'expo.out'},0)}}};
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;io.unobserve(e.target);E[e.target.id].run()}),{threshold:.22});
  Object.keys(E).forEach(id=>{const el=document.getElementById(id);if(el.getBoundingClientRect().top<innerHeight*.8)return;gsap.set(E[id].pre.join(','),{opacity:0});if(E[id].ln){LN[E[id].ln]=true;gsap.set(L(E[id].ln),{yPercent:108})}io.observe(el)})}
 

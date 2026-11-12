@@ -31,7 +31,7 @@
 .field .btn.pri{background:var(--field-ink);color:#fff}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .field .seg button[aria-pressed="true"]{background:var(--field-ink);color:#fff}
-@media (hover:hover){
+@media (hover:hover) and (pointer:fine){
   .btn.pri:hover{background:var(--accent);color:var(--accent-ink)}
   .field .btn.pri:hover{background:#fff;color:var(--field-ink)}
   .field .btn:hover,.field .rb:hover{background:var(--field-ink);color:#fff}
@@ -64,10 +64,10 @@ body[data-hdr="visita"] .top{background:var(--ink);color:#fff;--tb:#fff;--tf:var
 [data-pg="index"] .intro .lead{grid-column:1;font-size:var(--step-body);max-width:44ch}
 [data-pg="index"] .intro .iact{grid-column:2;grid-row:1/3;flex-direction:column;align-items:flex-end;gap:8px}
 [data-pg="index"] .intro .btn.pri{background:var(--ink);color:#fff}
-@media (hover:hover){[data-pg="index"] .intro .btn.pri:hover{background:var(--accent);color:var(--accent-ink)}}
+@media (hover:hover) and (pointer:fine){[data-pg="index"] .intro .btn.pri:hover{background:var(--accent);color:var(--accent-ink)}}
 .ix i{font-weight:500}
 .ix img{display:none}
-@media (hover:hover){.ix:hover .iw,.ix:focus-visible .iw{transform:translateX(14px)}}
+@media (hover:hover) and (pointer:fine){.ix:hover .iw,.ix:focus-visible .iw{transform:translateX(14px)}}
 @media (max-width:699px){
   [data-pg="index"] .intro{grid-template-columns:minmax(0,1fr);gap:10px}
   [data-pg="index"] .intro .iact{grid-column:1;grid-row:auto;flex-direction:row;align-items:center;margin-top:6px}
@@ -110,7 +110,7 @@ body[data-hdr="visita"] .top{background:var(--ink);color:#fff;--tb:#fff;--tf:var
 .vpics img{position:static;width:auto;height:min(24svh,15vw);aspect-ratio:3/4;border:0;border-radius:0}
 [data-pg="index"] #visita .btn{background:#3a3a3a;color:#fff}
 [data-pg="index"] #visita .btn.pri{background:var(--accent);color:var(--accent-ink)}
-@media (hover:hover){[data-pg="index"] #visita .btn:hover{background:#fff;color:var(--ink)}}
+@media (hover:hover) and (pointer:fine){[data-pg="index"] #visita .btn:hover{background:#fff;color:var(--ink)}}
 @media (min-width:700px){.vpics img{border-width:0}}
 @media (min-width:700px) and (min-aspect-ratio:1/1){
   .vgrid{gap:18px clamp(32px,6vw,96px);align-items:start}
@@ -134,7 +134,7 @@ body[data-hdr="visita"] .top{background:var(--ink);color:#fff;--tb:#fff;--tf:var
 .fgrid .muted{color:var(--muted);font-size:var(--step-small)}
 .fnav{display:grid;justify-items:start;align-content:start;gap:2px;grid-row:1;grid-column:2}
 .fnav a{font-size:1rem;text-decoration:none;line-height:1.6}
-@media (hover:hover){.fnav a:hover{text-decoration:underline}}
+@media (hover:hover) and (pointer:fine){.fnav a:hover{text-decoration:underline}}
 .fgrid>p:first-child{grid-row:1;grid-column:1;color:var(--ink)}
 .fgrid>p:nth-child(2){grid-row:1;grid-column:3}
 .fact{grid-row:1;grid-column:4;flex-direction:column;align-items:stretch}
