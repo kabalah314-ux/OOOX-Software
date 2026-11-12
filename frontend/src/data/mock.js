@@ -113,6 +113,17 @@ export const workCards = {
     ],
   },
   // ---------------------------------------------------------- LOCAL · webs para negocios de barrio
+  "ooox-local": {
+    typeEn: "Café & bar system · Website, table ordering, calls",
+    short: "The website, the table menu and the phone of a neighbourhood café in one system, shown on Fonik in Sant Antoni. Five designs on the same engine.",
+    route: ["Website", "Table QR", "Bar & kitchen", "Calls"],
+    facts: [
+      ["Type", "System"],
+      ["Designs", "5"],
+      ["Year", "2026"],
+      ["Key feature", "Table ordering"],
+    ],
+  },
   "la-vermuteria": {
     typeEn: "Bar website · Menu & bookings",
     short: "A vermouth bar in Gràcia: menu with allergens and table QR, daily set menu, and bookings and takeaway orders that reach the bar on WhatsApp.",
@@ -392,6 +403,25 @@ export const projects = [
   },
   // ---------------------------------------------------------- LOCAL · webs para negocios de barrio (demos)
   {
+    id: "ooox-local", category: "local", title: "OOOX Local", kicker: "La web, la carta en la mesa y el teléfono de tu local, en un solo sistema", year: "2026",
+    type: "Sistema para cafeterías y bares · Web, pedido en mesa y llamadas", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("ooox-local", [["plato", "Diseño «el plato»"], ["rotulo", "Diseño «el rótulo»"], ["pelicula", "Diseño «la película»"], ["mitad", "Diseño «la mitad»"], ["carta", "Carta desde la mesa"], ["prueba", "Pedido que llega a la barra"]]),
+    url: "https://fonik.ooox.es/",
+    video: { src: asset("/videos/ooox-local.mp4"), poster: asset("/videos/ooox-local.jpg"), label: "Cinco diseños · Un mismo local" },
+    accent: "#F8CF4B", accentSoft: "#13223F",
+    demo: true,
+    description: "Proyecto demo · Un sistema para cafeterías y bares de barrio, enseñado sobre Fonik, un café de Sant Antoni: web con vídeo que se recorre al hacer scroll, carta con QR para pedir desde la mesa, pedidos que llegan a barra y cocina, tarjeta de sellos y un asistente que atiende el teléfono.",
+    longDescription: "Este es un proyecto demo: Fonik es un café de Sant Antoni, pero esta web no es un encargo suyo, y la carta, los precios y los premios son de ejemplo. OOOX Local es lo que le llevo a un bar o a una cafetería. Primero, una web que se recorre como un vídeo: al bajar, el local se abre. Después, una carta con la foto de cada plato que el cliente abre escaneando el QR de su mesa; el pedido llega al momento a la barra y a la cocina. El local lo lleva todo desde un panel: mesas, agotados, la cuenta y el resumen del día. Se suma una tarjeta de sellos en el móvil y, en el pack más completo, un asistente que contesta al teléfono, reserva y apunta encargos. La misma web tiene cinco diseños (el disco, el plato, el rótulo, la película y la mitad), y cada local se monta desde una ficha con sus datos, sin programarlo de nuevo.",
+    highlights: [
+      "Cinco diseños sobre el mismo motor: el local elige el que va con él",
+      "Pedido desde la mesa con QR, que llega al momento a barra y cocina",
+      "Panel del local: mesas, agotados, cuenta y resumen del día",
+      "Tres packs: la web, el pedido en mesa y un asistente que atiende llamadas",
+    ],
+    stack: ["HTML", "GSAP", "Cloudflare Workers", "Durable Objects"], tags: ["Hostelería", "Pedido en mesa", "Vídeo", "Llamadas"],
+    metrics: [{ label: "Diseños", value: "5" }, { label: "Packs", value: "3" }, { label: "Comisión por pedido", value: "0 %" }],
+  },
+  {
     id: "la-vermuteria", category: "local", title: "La Vermutería", kicker: "Vermut de grifo y tapas en Gràcia", year: "2026",
     type: "Web de bar · Carta y reservas", status: "Online", statusTone: "live", access: "public",
     ...demoWeb("la-vermuteria", [["carta", "Carta con alérgenos"], ["reserva", "Reserva por WhatsApp"]]),
@@ -523,7 +553,7 @@ export const projects = [
 // ------------------------------------------------------------
 export const ORDER = [
   "neuron", "elementia", "crossia", "usain-bot", "casa-aurea", "massflow", "moog-barcelona",
-  "la-vermuteria", "nomada-barbers", "pell-i-pinzell", "flors-fulles", "ramirez-24h", "estudio-lua",
+  "ooox-local", "la-vermuteria", "nomada-barbers", "pell-i-pinzell", "flors-fulles", "ramirez-24h", "estudio-lua",
   "chollector", "followthesun",
 ];
 
