@@ -22,7 +22,7 @@
 .field,[data-pg="sala"],[data-pg="prueba"]{--accent:#232323;--accent-ink:#fff}
 
 /* ===== tipo y formas ===== */
-.disp,.head,.big,.ix b,.wm,.coupon h3,.nfc h2,.shd h2,.sh2 h3,.thanks h2,[data-pg="carta"] .name{font-weight:800;letter-spacing:-.035em;text-transform:lowercase}
+.disp,.head,.big,.hola,.ix b,.wm,.coupon h3,.nfc h2,.shd h2,.sh2 h3,.thanks h2,[data-pg="carta"] .name{font-weight:800;letter-spacing:-.035em;text-transform:lowercase}
 .disp,.head,.big{line-height:.9}
 .big{font-size:var(--step-head)}
 .btn,.rb,.seg,.seg button,.chip,.toast,.fld input,.fld textarea,.mini,.rmain{border-radius:0}
@@ -163,6 +163,9 @@ body[data-hdr="visita"] .top{background:var(--ink);color:#fff;--tb:#fff;--tf:var
 .ctabs::-webkit-scrollbar{display:none}
 .ctabs button{flex:none;min-height:44px;font:500 1.0625rem/1 var(--font);color:var(--muted);white-space:nowrap;transition:color var(--t-hover) ease}
 .ctabs button[aria-current="true"]{color:var(--ink);font-weight:800}
+.ctabs [data-g]{font-weight:800}
+.ctabs .sub{margin-left:calc(clamp(16px,2.2vw,30px)*-.4)} /* las secciones van pegadas a su grupo */
+.ctabs .sub[aria-current="true"]{font-weight:700;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.32em}
 [data-pg="carta"] .tx{padding-top:0}
 [data-pg="carta"] .nameb{--nmul:1.15;height:calc(1.9*var(--name))}
 [data-pg="carta"] .name{line-height:.92}
@@ -190,6 +193,7 @@ body[data-hdr="visita"] .top{background:var(--ink);color:#fff;--tb:#fff;--tf:var
 }
 /* la carta entera: el nombre de cada parte a la izquierda, la tabla empujada a la derecha */
 .sh2 h3{font-size:clamp(2.25rem,4vw,4rem);line-height:.92}
+.sh2 h4{font-weight:800;letter-spacing:-.03em}
 .stabs button::after{height:3px;border-radius:0}
 .row.on .rp{outline-color:var(--ink)}
 .radd.ok{background:var(--accent);color:var(--accent-ink)}
@@ -197,5 +201,9 @@ body[data-hdr="visita"] .top{background:var(--ink);color:#fff;--tb:#fff;--tf:var
 @media (min-width:901px){
   .ssec{display:grid;grid-template-columns:minmax(0,.6fr) minmax(0,1fr);column-gap:clamp(32px,5vw,80px);align-items:start;padding:30px 0 14px}
   .sh2{position:sticky;top:0;display:grid;justify-content:start;gap:8px;margin:0;padding-top:4px}
+  /* grupos: el nombre del grupo cruza de lado a lado; sus secciones siguen a la izquierda */
+  .sh2.sg{position:static;display:flex;justify-content:space-between;align-items:baseline;padding:0 0 4px}
+  .sgrp .ssec{padding:20px 0 6px}
+  .sh2.sb h4{font-size:clamp(1.5rem,2.1vw,2rem);line-height:1}
   .rows{grid-template-columns:minmax(0,1fr)}
 }

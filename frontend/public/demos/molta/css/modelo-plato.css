@@ -19,7 +19,7 @@
 body{letter-spacing:-.01em;line-height:1.4}
 
 /* ===== tipo y formas, en todas las páginas ===== */
-.disp,.head,.big,.ix b,.wm,.coupon h3,.nfc h2,.shd h2,.sh2 h3,.thanks h2,[data-pg="carta"] .name{font-weight:800;letter-spacing:-.05em;text-transform:lowercase}
+.disp,.head,.big,.hola,.ix b,.wm,.coupon h3,.nfc h2,.shd h2,.sh2 h3,.thanks h2,[data-pg="carta"] .name{font-weight:800;letter-spacing:-.05em;text-transform:lowercase}
 .disp,.head,.big{line-height:.88}
 .big{font-size:var(--step-head)}
 .btn{min-height:52px;border-radius:0;font-weight:600;letter-spacing:-.01em}
@@ -237,6 +237,8 @@ body[data-hdr="track"] .top{color:color-mix(in srgb,var(--field-ink) calc((var(-
 .shd h2,.sh2 h3{letter-spacing:-.05em}
 .sh2 h3{font-size:clamp(2rem,3.4vw,3.125rem)}
 .sh2 span{font:600 var(--step-body)/1 var(--font)}
+.sh2 h4{font-weight:800;letter-spacing:-.035em}
+.sh2.sb span{font:600 var(--step-small)/1 var(--font)}
 .r1{font-weight:600}
 .stabs button{font-weight:600}
 .stabs button::after{height:3px;border-radius:0}

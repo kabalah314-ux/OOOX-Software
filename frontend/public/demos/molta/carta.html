@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>La carta de molta, cafè d'especialitat</title>
-<meta name="description" content="La carta de molta: cafés, fríos, matcha y tés, desayunos, dulce.">
+<meta name="description" content="La carta de molta: bebidas (cafés, otras) y comidas (caliente, frío).">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#f4eadc">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2322160f'/%3E%3Ccircle cx='50' cy='50' r='24' fill='%23e08a5c'/%3E%3C/svg%3E">
@@ -106,12 +106,23 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 .sh2{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:8px}
 .sh2 h3{font:700 var(--step-head)/1 var(--font);letter-spacing:-.04em;text-transform:lowercase;margin-left:-.03em}
 .sh2 span{font:500 var(--step-lead)/1 var(--font);color:var(--muted)}
+/* grupos (bebidas, comidas): el título grande es el grupo y sus secciones van debajo, más pequeñas */
+.sgrp{padding:22px 0 6px}
+.sgrp+.sgrp{padding-top:34px}
+.sgrp .ssec{padding:14px 0 2px}
+.sh2.sg{margin-bottom:0}
+.sh2 h4{font:700 var(--step-lead)/1.15 var(--font);letter-spacing:-.025em;text-transform:lowercase}
+.sh2.sb{margin-bottom:2px}
+.sh2.sb span{font:500 var(--step-body)/1 var(--font)}
+.stabs.g{justify-content:flex-start;gap:30px}
+.stabs.g button{font-size:var(--step-body)}
 .rows{display:grid;grid-template-columns:minmax(0,1fr);column-gap:clamp(40px,6vw,88px)}
 .row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 0}
 .rmain{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:14px;text-align:left;border-radius:28px}
 .rp{width:56px;height:56px;border-radius:50%;transition:transform .5s var(--ease-out)}
 .r1{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-weight:500;line-height:1.25}
-.r1 span{white-space:nowrap}
+.r1 span:first-child{min-width:0;text-wrap:pretty}
+.r1 span+span{flex:none;white-space:nowrap}
 .rt{display:block;min-width:0}
 .r2{display:flex;justify-content:space-between;gap:12px;font-size:var(--step-small);line-height:1.4;color:var(--muted);margin-top:2px}
 .r2 span+span{white-space:nowrap}
@@ -298,7 +309,12 @@ const I={l:ic('M14.5 5.5 8 12l6.5 6.5'),r:ic('M9.5 5.5 16 12l-6.5 6.5'),up:ic('M
 /* ===== el local: todo sale de data/negocio.js ===== */
 const N=window.NEGOCIO,C=N.carta,D=C.productos,MO=LOCAL.modelo,CF=LOCAL.cfg,MODO=CF.carta||'rodar';
 D.forEach(d=>{if(!d.opts&&d.price.length>1)d.opts=C.opciones||['A','B']});
-const SECS=[...new Set(D.map(d=>d.sec))],SL=C.barras||[],SHORT=C.corto||{};
+const SL=C.barras||[],SHORT=C.corto||{};
+/* partes de la carta: secciones sueltas o, si el local lo pide (carta.grupos), grupos con sus secciones (Bebidas: Cafés y Otras) */
+const GR=(()=>{const hay=[...new Set(D.map(d=>d.sec))],g=(C.grupos||[]).map(([n,ss])=>[n,(ss||[]).filter(s=>hay.includes(s))]).filter(x=>x[1].length);
+ if(!g.length)return[];const usadas=g.flatMap(x=>x[1]);hay.filter(s=>!usadas.includes(s)).forEach(s=>g.push([s,[s]]));return g})();
+const SECS=GR.length?GR.flatMap(x=>x[1]):[...new Set(D.map(d=>d.sec))],GOF={};GR.forEach(([n,ss])=>ss.forEach(s=>{GOF[s]=n}));
+const PARTES=GR.length?GR.map(x=>x[0]):SECS,solo=([n,ss])=>ss.length===1&&ss[0]===n;
 /* en la mesa: el QR de cada mesa abre carta.html?mesa=5 · con &sala=1 es el camarero tomando nota */
 const QS=new URLSearchParams(location.search),mq=parseInt(QS.get('mesa'),10)||0,MESA=mq>=1&&mq<=SALA.cfg.mesas?mq:0,STAFF=MESA>0&&QS.has('sala');
 let OUT=new Set();
@@ -317,22 +333,25 @@ $('#prev').innerHTML=I.l;$('#next').innerHTML=I.r;$('#closeCart').innerHTML=I.x;
 
 /* ===== la carta entera (hoja) ===== */
 const sheet=$('#sheet'),rowsEl=[];
+const fila=k=>{const d=D[k];return `<div class="row" data-i="${k}"><button class="rmain" data-go="${k}"><img class="rp" src="${T(k)}" alt="" width="56" height="56" loading="lazy" decoding="async"><span class="rt"><span class="r1"><span>${d.name}</span><span>${eur(d.price[0])}</span></span><span class="r2"><span>${d.line}</span>${d.price.length>1?`<span>${d.opts[1]} ${eur(d.price[1])}</span>`:''}</span>${notes(d)?`<span class="r2">${notes(d)}</span>`:''}</span></button><button class="rb radd" data-a="${k}" aria-label="Añadir ${d.name} al pedido">${I.plus}</button></div>`};
+const bloque=(sec,h)=>{const idx=D.map((x,k)=>k).filter(k=>D[k].sec===sec);
+ return `<section class="ssec${h==='h4'?' sb':''}" data-s="${sec}">${h?`<div class="sh2${h==='h4'?' sb':''}"><${h}>${sec}</${h}><span>${idx.length}</span></div>`:''}<div class="rows">${idx.map(fila).join('')}</div></section>`};
 sheet.innerHTML=`<div class="shd"><h2 id="shT">la carta</h2><button class="rb" id="sClose" aria-label="Cerrar la carta">${I.x}</button></div>
-<nav class="stabs" id="stabs" aria-label="Partes de la carta">${SECS.map(s=>`<button data-s="${s}">${s}</button>`).join('')}</nav>
-<div class="sbody" id="sBody">${SECS.map(sec=>{const idx=D.map((x,k)=>k).filter(k=>D[k].sec===sec);
- return `<section class="ssec" data-s="${sec}"><div class="sh2"><h3>${sec}</h3><span>${idx.length}</span></div><div class="rows">`+idx.map(k=>{const d=D[k];
-  return `<div class="row" data-i="${k}"><button class="rmain" data-go="${k}"><img class="rp" src="${T(k)}" alt="" width="56" height="56" loading="lazy" decoding="async"><span class="rt"><span class="r1"><span>${d.name}</span><span>${eur(d.price[0])}</span></span><span class="r2"><span>${d.line}</span>${d.price.length>1?`<span>${d.opts[1]} ${eur(d.price[1])}</span>`:''}</span>${notes(d)?`<span class="r2">${notes(d)}</span>`:''}</span></button><button class="rb radd" data-a="${k}" aria-label="Añadir ${d.name} al pedido">${I.plus}</button></div>`}).join('')+'</div></section>'}).join('')}
+<nav class="stabs${GR.length?' g':''}" id="stabs" aria-label="Partes de la carta">${PARTES.map(s=>`<button data-s="${s}">${s}</button>`).join('')}</nav>
+<div class="sbody" id="sBody">${GR.length?GR.map(G=>`<section class="sgrp" data-g="${G[0]}"><div class="sh2 sg"><h3>${G[0]}</h3><span>${D.filter(d=>GOF[d.sec]===G[0]).length}</span></div>${G[1].map(s=>bloque(s,solo(G)?'':'h4')).join('')}</section>`).join(''):SECS.map(s=>bloque(s,'h3')).join('')}
 <p class="sfoot">${LOCAL.esc(C.nota||'Si tienes alguna alergia, pregunta siempre en barra.')}</p></div>`;
 sheet.querySelectorAll('.row').forEach(r=>{rowsEl[+r.dataset.i]=r});
 let lastFocus=null;
 function modal(el,on){el.inert=!on;el.setAttribute('aria-hidden',!on);if(EMB&&parent!==window)parent.postMessage({ooox:'overlay',on:overlay()},'*');if(on){lastFocus=document.activeElement;setTimeout(()=>{const f=el.querySelector('button,a[href],input');f&&f.focus({preventScroll:true})},60)}else if(lastFocus&&lastFocus.focus){lastFocus.focus({preventScroll:true});lastFocus=null}}
-function openSheet(){if(DOCK()){veFila(cur);return}document.body.classList.add('sheet-open');modal(sheet,true);const t=sheet.querySelector(`.ssec[data-s="${D[cur].sec}"]`),b=$('#sBody');b.scrollTop=Math.max(0,t.offsetTop-b.offsetTop);spy();
+function openSheet(){if(DOCK()){veFila(cur);return}document.body.classList.add('sheet-open');modal(sheet,true);const t=sheet.querySelector(`.ssec[data-s="${D[cur].sec}"]`),g=t.closest('.sgrp'),a=g&&g.querySelector('.ssec')===t?g:t,b=$('#sBody');b.scrollTop=Math.max(0,a.offsetTop-b.offsetTop);spy();
  if(!RM)gsap.fromTo(sheet.querySelectorAll('.rp'),{rotation:-70},{rotation:0,duration:.9,ease:'power3.out',stagger:{each:.018,from:rowsEl.indexOf(rowsEl[cur])},delay:.12,overwrite:'auto'})}
 function closeSheet(){if(!document.body.classList.contains('sheet-open'))return;document.body.classList.remove('sheet-open');modal(sheet,false)}
 $('#list').onclick=openSheet;$('#sClose').onclick=closeSheet;
-$('#stabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const t=sheet.querySelector(`.ssec[data-s="${b.dataset.s}"]`),body=$('#sBody');gsap.to(body,{scrollTop:t.offsetTop-body.offsetTop,duration:RM?0:.55,ease:'power2.inOut'})});
-function spy(){const body=$('#sBody'),y=body.scrollTop+60;let on=SECS[0];sheet.querySelectorAll('.ssec').forEach(x=>{if(x.offsetTop-body.offsetTop<=y)on=x.dataset.s});
- if(body.scrollTop+body.clientHeight>=body.scrollHeight-4)on=SECS[SECS.length-1];
+const parteEl=k=>sheet.querySelector(GR.length?`.sgrp[data-g="${k}"]`:`.ssec[data-s="${k}"]`);
+$('#stabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const t=parteEl(b.dataset.s),body=$('#sBody');gsap.to(body,{scrollTop:t.offsetTop-body.offsetTop,duration:RM?0:.55,ease:'power2.inOut'})});
+function spy(){const body=$('#sBody'),y=body.scrollTop+60,P=[...sheet.querySelectorAll(GR.length?'.sgrp':'.ssec')].filter(x=>!x.hidden),k=x=>x.dataset.g||x.dataset.s;if(!P.length)return;
+ let on=k(P[0]);P.forEach(x=>{if(x.offsetTop-body.offsetTop<=y)on=k(x)});
+ if(body.scrollTop+body.clientHeight>=body.scrollHeight-4)on=k(P[P.length-1]);
  $$('#stabs button').forEach(b=>b.classList.toggle('on',b.dataset.s===on))}
 $('#sBody').addEventListener('scroll',spy,{passive:true});
 sheet.addEventListener('click',e=>{const a=e.target.closest('.radd');if(a){const k=+a.dataset.a,key=keyOf(k,0);cart[key]=(cart[key]||0)+1;renderCart(true);a.classList.add('ok');a.innerHTML=I.ok;setTimeout(()=>{a.classList.remove('ok');a.innerHTML=I.plus},900);return}
@@ -349,9 +368,15 @@ function acopla(){const on=DOCK();ROOT.classList.toggle('lista-fija',on);if(on)d
 function veFila(i){const r=rowsEl[i],b=$('#sBody');if(!r||r.hidden)return;const t=r.offsetTop-b.offsetTop,h=b.clientHeight;
  if(t<b.scrollTop+30||t+r.offsetHeight>b.scrollTop+h-30)gsap.to(b,{scrollTop:Math.max(0,t-h*.32),duration:RM?0:.5,ease:'power2.out'})}
 /* las partes de la carta como pestañas de texto en el escenario (modelos que las piden) */
-if(CF.pestanas){const t=document.createElement('nav');t.className='ctabs';t.id='ctabs';t.setAttribute('aria-label','Partes de la carta');
- t.innerHTML=SECS.map(x=>`<button data-s="${x}">${SHORT[x]||x}</button>`).join('');stage.insertBefore(t,$('#tx'));
- t.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=D.findIndex(d=>d.sec===b.dataset.s&&!OUT.has(d.id));if(k>=0&&D[cur].sec!==b.dataset.s)go(k,k>cur?1:-1)})}
+let CT=null;
+if(CF.pestanas){CT=document.createElement('nav');CT.className='ctabs';CT.id='ctabs';CT.setAttribute('aria-label','Partes de la carta');stage.insertBefore(CT,$('#tx'));
+ CT.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const s=b.dataset.s,g=b.dataset.g,es=d=>s?d.sec===s:GOF[d.sec]===g;
+  const k=D.findIndex(d=>es(d)&&!OUT.has(d.id));if(k>=0&&!es(D[cur]))go(k,k>cur?1:-1)})}
+function pintaTabs(){if(!CT)return;const d=D[cur],g=GOF[d.sec]||'',hay=f=>D.some(x=>f(x)&&!OUT.has(x.id));
+ if(CT.dataset.k!==g||!CT.childElementCount){const f=CT.contains(document.activeElement)?document.activeElement:null,fk=f&&(f.dataset.s||f.dataset.g);CT.dataset.k=g;
+  CT.innerHTML=GR.length?GR.map(G=>`<button data-g="${G[0]}">${G[0]}</button>`+(G[0]===g&&!solo(G)?G[1].map(s=>`<button class="sub" data-s="${s}">${SHORT[s]||s}</button>`).join(''):'')).join(''):SECS.map(s=>`<button data-s="${s}">${SHORT[s]||s}</button>`).join('');
+  if(fk){const b=[...CT.children].find(x=>(x.dataset.s||x.dataset.g)===fk);if(b)b.focus({preventScroll:true})}}
+ CT.querySelectorAll('button').forEach(b=>{const s=b.dataset.s;b.setAttribute('aria-current',s?s===d.sec:b.dataset.g===g);b.hidden=!hay(s?x=>x.sec===s:x=>GOF[x.sec]===b.dataset.g)})}
 
 /* ===== tamaños: el plato siempre entero; el disco de color, enorme y cortado por la pantalla ===== */
 let geo={ox:0,oy:0,pd:0};
@@ -378,9 +403,9 @@ function fill(i){const d=D[i];
  const bl=$('#blend');bl.hidden=!d.opts;bl.innerHTML=d.opts?d.opts.map((o,k)=>`<button data-b="${k}" aria-pressed="${k===blend}">${o}</button>`).join(''):'';
  const out=OUT.has(d.id);$('#addBtn').disabled=out;$('#addT').textContent=out?'Agotado por hoy':d.opts&&innerWidth<=900?'Añadir':'Añadir al pedido';$('#dPrice').textContent=out?'':eur(priceOf(i));
  const idx=D.map((x,k)=>k).filter(k=>D[k].sec===d.sec),nx=[];{let k=i;for(let n=0;n<(innerWidth>480?3:2);n++){k=libre(k,1);nx.push(k)}}
- $('#list').innerHTML=`<span class="mt">${nx.map(k=>`<img src="${T(k)}" alt="" width="36" height="36">`).join('')}</span><span class="mx"><b>La carta</b><small>${SHORT[d.sec]||d.sec}, ${idx.indexOf(i)+1} de ${idx.length}</small></span>${I.up}`;
+ $('#list').innerHTML=`<span class="mt">${nx.map(k=>`<img src="${T(k)}" alt="" width="36" height="36">`).join('')}</span><span class="mx"><b>${GR.length?GOF[d.sec]:'La carta'}</b><small>${SHORT[d.sec]||d.sec}, ${idx.indexOf(i)+1} de ${idx.length}</small></span>${I.up}`;
  rowsEl.forEach((r,k)=>r&&r.classList.toggle('on',k===i));
- $$('#ctabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.s===d.sec));if(DOCK())veFila(i);
+ pintaTabs();if(DOCK())veFila(i);
  $('#live').textContent=d.name+', '+eur(priceOf(i))+'. '+d.line;
  fitName();pre(i+1);pre(i-1);pre(i+2)}
 $('#blend').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;blend=+b.dataset.b;[...$('#blend').children].forEach(x=>x.setAttribute('aria-pressed',x===b));$('#dPrice').textContent=eur(priceOf(cur));if(!RM)gsap.fromTo('#dPrice',{y:-8,opacity:0},{y:0,opacity:1,duration:.3,ease:'power2.out'})});
@@ -514,12 +539,12 @@ const VK='ooox_visto_'+N.slug+'_'+MESA,visto=(()=>{try{return JSON.parse(session
 /* lo agotado desaparece de la carta y del pedido en el momento */
 function setOut(a){const nu=new Set(a);if(nu.size===OUT.size&&[...nu].every(x=>OUT.has(x)))return;OUT=nu;
  rowsEl.forEach((r,k)=>{if(r)r.hidden=OUT.has(D[k].id)});
- sheet.querySelectorAll('.ssec').forEach(sec=>{const n=[...sec.querySelectorAll('.row')].filter(r=>!r.hidden).length;sec.hidden=!n;sec.querySelector('.sh2 span').textContent=n;
-  const tab=sheet.querySelector(`#stabs button[data-s="${sec.dataset.s}"]`);if(tab)tab.hidden=!n});
+ sheet.querySelectorAll('.ssec,.sgrp').forEach(sec=>{const n=[...sec.querySelectorAll('.row')].filter(r=>!r.hidden).length,sp=sec.querySelector(':scope>.sh2 span');sec.hidden=!n;if(sp)sp.textContent=n});
+ $$('#stabs button').forEach(b=>{const t=parteEl(b.dataset.s);b.hidden=!t||t.hidden});
  const fuera=[];Object.keys(cart).forEach(k=>{if(OUT.has(D[kIdx(k)].id)){fuera.push(D[kIdx(k)].name);delete cart[k]}});
  if(fuera.length){renderCart();aviso('Se acaba de agotar: '+join(fuera)+'. Lo hemos quitado de tu pedido.')}
  if(OUT.has(D[cur].id)&&!busy&&OUT.size<D.length)nextD();else fill(cur);
- if(MODO==='arco'&&!busy)arcoPinta();$$('#ctabs button').forEach(b=>{b.hidden=!D.some(d=>d.sec===b.dataset.s&&!OUT.has(d.id))})}
+ if(MODO==='arco'&&!busy)arcoPinta();pintaTabs()}
 function abrirMesa(){if(mvOpen)return;mvOpen=true;closeCart();closeSheet();mv.classList.add('on');modal(mv,true);pintaMesa()}
 function cerrarMesa(){if(!mvOpen)return;mvOpen=false;mv.classList.remove('on');modal(mv,false)}
 function abrirUnir(){if(unOpen)return;unOpen=true;$('#unL').textContent=`La mesa ${MESA} ya tiene una cuenta en marcha. Pide el código a alguien de tu mesa y pedís a la misma cuenta.`;$('#unE').hidden=true;$('#unC').value='';un.classList.add('on');modal(un,true)}

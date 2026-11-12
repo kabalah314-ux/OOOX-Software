@@ -46,7 +46,9 @@ body[data-hdr="cupones"] .top,body[data-hdr="fin"] .top{background:var(--field);
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(10,12,16,.5),rgba(10,12,16,0) 20%)} /* taste-skill-ignore: velo neutro bajo la cabecera */
 .scrim.b{background:linear-gradient(rgba(10,12,16,0) 30%,rgba(10,12,16,.56) 58%,rgba(10,12,16,.84))} /* taste-skill-ignore: velo neutro para leer el título sobre el vídeo */
-.veil{position:absolute;inset:0;pointer-events:none;background:rgba(10,12,16,.56);opacity:0;transition:opacity .5s ease}
+/* al llegar, el vídeo se queda quieto en su último fotograma: el velo oscurece solo donde va el texto */
+.veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(10,12,16,.84) 4%,rgba(10,12,16,.52) 44%,rgba(10,12,16,.14) 84%);opacity:0;transition:opacity .6s ease} /* taste-skill-ignore: velo neutro para leer la bienvenida sin tapar el local */
+@media (min-width:700px){.veil{background:linear-gradient(90deg,rgba(10,12,16,.76) 4%,rgba(10,12,16,.44) 44%,rgba(10,12,16,.08) 84%)}} /* taste-skill-ignore: el mismo velo, de lado en pantallas anchas */
 .ready .veil{opacity:1}
 .intro{position:absolute;left:var(--m);right:var(--m);top:0;z-index:2;height:100svh;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:18px;padding-bottom:calc(84px + var(--sb));color:var(--field-ink);pointer-events:none}
 .intro>*{pointer-events:auto}
@@ -60,11 +62,13 @@ body[data-hdr="cupones"] .top,body[data-hdr="fin"] .top{background:var(--field);
 .ready .roller{visibility:hidden}
 @media (prefers-reduced-motion:reduce){.roller{display:none}}
 
-/* al llegar: el índice de la casa, en grande */
+/* al llegar: la bienvenida en grande y, debajo, el índice de la casa */
 .index{position:absolute;left:var(--m);right:var(--m);bottom:calc(34px + var(--sb));display:grid;justify-items:start;opacity:0;visibility:hidden;transition:opacity .4s ease,visibility 0s .4s}
 .ready .index{opacity:1;visibility:visible;transition:opacity .5s ease .1s,visibility 0s}
-.index .lead{margin-bottom:12px}
-.ix{position:relative;display:block;color:inherit;text-decoration:none;font-size:min(var(--step-display),13svh);line-height:1}
+.hola{font:700 min(var(--step-display),12.5svh)/.9 var(--font);letter-spacing:-.05em;text-transform:lowercase;text-wrap:balance;max-width:6.4em;margin:0 0 .32em -.04em}
+.index .lead{margin-bottom:10px}
+.ix{position:relative;display:block;color:inherit;text-decoration:none;font-size:min(var(--step-head),8.4svh);line-height:1.04}
+@media (max-height:560px){.index .lead{display:none}}
 .iw{display:flex;align-items:baseline;gap:.3em;transition:transform .45s var(--ease-out)}
 .ix b{font:700 1em/1 var(--font);letter-spacing:-.05em;text-transform:lowercase;margin-left:-.04em}
 .ix i{font:400 var(--step-small)/1 var(--font);white-space:nowrap}
@@ -121,23 +125,24 @@ html.snap{scroll-snap-type:y mandatory}
 /* la tarjeta: un objeto con su propio material (metal y cobre) */
 .bcw{position:relative;perspective:1100px;container-type:inline-size;touch-action:pan-y;-webkit-user-select:none;user-select:none}
 .bcard{position:relative;width:100%;aspect-ratio:1.586;transform-style:preserve-3d;will-change:transform;cursor:pointer;--mx:50%;--my:50%}
-.bface{position:absolute;inset:0;border-radius:4.2cqw;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background-size:100% 100%;background-repeat:no-repeat;color:#e8b48f}
+/* los colores de lo que se escribe encima salen de la propia tarjeta (tarjeta.colores en negocio.js) */
+.bface{position:absolute;inset:0;border-radius:4.2cqw;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background-size:100% 100%;background-repeat:no-repeat;color:var(--card-ink,#e8b48f)}
 .mfront{background-image:url(assets/tarjeta/front.jpg)}
 .mback{background-image:url(assets/tarjeta/back.jpg);transform:rotateY(180deg)}
 .bc-glare{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;background:radial-gradient(circle at var(--mx) var(--my),rgba(255,255,255,.34) 0%,rgba(255,255,255,.07) 30%,rgba(255,255,255,0) 56%)} /* taste-skill-ignore: reflejo del metal al inclinar la tarjeta */
 .m-name{position:absolute;left:6%;top:53.6%;font:700 5.2cqw/1 var(--font);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
 .m-num{position:absolute;left:6%;top:62.8%;font:500 2.9cqw/1 var(--font);letter-spacing:.05em}
-.m-left{position:absolute;left:6%;top:69.2%;font:400 2.6cqw/1 var(--font);color:#f1c9a8}
+.m-left{position:absolute;left:6%;top:69.2%;font:400 2.6cqw/1 var(--font);color:var(--card-soft,#f1c9a8)}
 .m-stamps{position:absolute;inset:0;pointer-events:none}
 .m-st{position:absolute;top:86%;width:10.8%;aspect-ratio:1;margin:-5.4% 0 0 -5.4%;border-radius:50%;background-size:cover}
-.m-st.gift{display:grid;place-items:center;background:var(--accent);color:var(--accent-ink)}
+.m-st.gift{display:grid;place-items:center;background:var(--card-gift,var(--accent));color:var(--card-gift-ink,var(--accent-ink))}
 .m-st.gift svg{width:54%;height:54%}
-.m-rip{position:absolute;top:86%;width:12.4%;aspect-ratio:1;margin:-6.2% 0 0 -6.2%;border-radius:50%;border:.6cqw solid #f1c9a8}
-.m-code{position:absolute;left:6%;top:36%;width:61%;height:15%;display:flex;flex-direction:column;justify-content:center;gap:.7cqw;padding-left:3.5cqw;color:#2b1a0f}
+.m-rip{position:absolute;top:86%;width:12.4%;aspect-ratio:1;margin:-6.2% 0 0 -6.2%;border-radius:50%;border:.6cqw solid var(--card-soft,#f1c9a8)}
+.m-code{position:absolute;left:6%;top:36%;width:61%;height:15%;display:flex;flex-direction:column;justify-content:center;gap:.7cqw;padding-left:3.5cqw;color:var(--card-code,#2b1a0f)}
 .m-code small{font:400 2.4cqw/1 var(--font)}
 .m-code b{font:700 5cqw/1 var(--font);letter-spacing:.06em}
 .m-qr{position:absolute;left:73.6%;top:37.5%;width:19%;height:auto;aspect-ratio:1}
-.m-hist{position:absolute;left:6%;top:69%;width:60%;display:flex;flex-direction:column;gap:.5cqw;font:400 2.5cqw/1.35 var(--font);color:#e2b590}
+.m-hist{position:absolute;left:6%;top:69%;width:60%;display:flex;flex-direction:column;gap:.5cqw;font:400 2.5cqw/1.35 var(--font);color:var(--card-hist,#e2b590)}
 .m-hist b{font-weight:500}
 .joining .cbody>.lead,.joining .rewards{display:none}
 @media (max-width:699px){
@@ -266,6 +271,7 @@ html.snap{scroll-snap-type:y mandatory}
       <div class="veil"></div>
       <div class="roller" id="roller" aria-hidden="true"><img src="assets/carta/d-flatwhite.webp" alt="" width="44" height="44"></div>
       <nav class="index" id="index" aria-label="Qué quieres hacer" aria-hidden="true" inert>
+        <p class="hola" id="hola">bienvenido a molta.</p>
         <p class="lead" data-t="textos.entrada.saludo">Bon dia. ¿Qué te apetece?</p>
         <a class="ix" href="#carta" data-go="carta"><img src="assets/carta/d-flatwhite.webp" alt="" width="88" height="88"><span class="iw"><b>carta</b><i id="ixCarta">26 cosas ricas</i></span></a>
         <a class="ix" href="#cupones" data-go="cupones"><img src="assets/carta/d-tostadahuevo.webp" alt="" width="88" height="88"><span class="iw"><b>tarjeta</b><i data-t="textos.indice.tarjeta">al sexto, invita molta</i></span></a>
@@ -448,8 +454,9 @@ const mm=s=>{const[a,b]=s.split(':');return a*60+ +b};
  const G=[];[1,2,3,4,5,6,0].forEach(d=>{const r=HOURS[d]||[],k=r.length?r.map(x=>x.join(' a ')).join(' y '):'Cerrado',g=G[G.length-1];if(g&&g.k===k)g.d.push(d);else G.push({k,d:[d]})});
  $('#hrs tbody').innerHTML=G.map(g=>{const t=g.d.includes(n.d),a=DAYS[g.d[0]],b=DAYS[g.d[g.d.length-1]].toLowerCase();return`<tr class="${t?'today':''}"><th scope="row">${g.d.length>1?a+' a '+b:a}${t?' (hoy)':''}</th><td>${g.k}</td></tr>`}).join('')})();
 
-/* ===== entrada: el vídeo avanza con el scroll ===== */
+/* ===== entrada: el vídeo avanza con el scroll y se para donde acaba el clip (el clip se corta en el fotograma de llegada) ===== */
 const v=$('#v'),intro=$('#intro'),roller=$('#roller'),index=$('#index'),scrimB=$('#scrimB');let dur=7.9,target=0,cur=0,ready=false;
+$('#hola').innerHTML=LOCAL.esc(TX.entrada.bienvenida||('bienvenido a '+N.nombre+'.')).replace(/\n/g,'<br>');
 /* horizontal en pantallas anchas, vertical en móvil */
 const wide=matchMedia('(min-aspect-ratio:1/1)');let ori='';
 function setOri(){const o=CF.ori||(wide.matches?'h':'v');if(o===ori)return;ori=o;v.poster=`assets/entrada-${o}-poster.jpg`;v.src=`assets/entrada-${o}.mp4`;v.load()}
@@ -537,7 +544,9 @@ function onScroll(){target=prog();if(Math.abs(target-cur)>.4)cur=target;
 addEventListener('scroll',onScroll,{passive:true});
 requestAnimationFrame(tick);
 function arrive(){if(ready)return;ready=true;document.body.classList.add('ready');index.removeAttribute('aria-hidden');index.inert=false;
- if(!RM)gsap.fromTo('#index .ix',{y:34,opacity:0},{y:0,opacity:1,stagger:.07,duration:.7,ease:'power3.out',delay:.15})}
+ /* primero la bienvenida; después la pregunta y el índice */
+ if(!RM){gsap.fromTo('#hola',{y:46,opacity:0},{y:0,opacity:1,duration:1,ease:'expo.out',delay:.12});
+  gsap.fromTo('#index .lead,#index .ix',{y:30,opacity:0},{y:0,opacity:1,stagger:.06,duration:.7,ease:'power3.out',delay:.5})}}
 function leave(){ready=false;document.body.classList.remove('ready');index.setAttribute('aria-hidden','true');index.inert=true}
 
 /* ===== una sección por gesto, anclada arriba ===== */
@@ -683,6 +692,7 @@ function drawQr(code){const c=$('#mQr'),x=c.getContext('2d'),g=qr1(code),N=g.len
 
 /* ===== socios: la tarjeta se sella con lo que te tomas ===== */
 const KEY=N.slug+'_club_v1',TJ=N.tarjeta,F=TJ.frases,MED=TJ.medio||3,PRE=String(TJ.prefijo||N.slug).toUpperCase().slice(0,9);
+{const V={tinta:'--card-ink',suave:'--card-soft',codigo:'--card-code',historial:'--card-hist',regalo:'--card-gift',regalo_tinta:'--card-gift-ink'},c=TJ.colores||{};for(const k in V)if(c[k])$('#mcw').style.setProperty(V[k],c[k])}
 const store={get(){try{return JSON.parse(localStorage.getItem(KEY))||{users:{},cur:null}}catch(e){return{users:{},cur:null}}},set(x){try{localStorage.setItem(KEY,JSON.stringify(x))}catch(e){}}};
 let user=null;
 const memberCard=card3d($('#mcw'),$('#mcard'),()=>{const b=memberCard.flip();$('#mcHint').textContent=b?'Toca otra vez para volver a la cara de delante.':'Toca la tarjeta para darle la vuelta.'});

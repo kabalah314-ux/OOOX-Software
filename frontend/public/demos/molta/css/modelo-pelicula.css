@@ -23,7 +23,7 @@ body{letter-spacing:.005em;line-height:1.5}
 .field,[data-pg="sala"],[data-pg="prueba"]{--accent:#ecebe7;--accent-ink:#38450f}
 
 /* ===== tipo y formas ===== */
-.disp,.head,.big,.ix b,.wm,.coupon h3,.nfc h2,.shd h2,.sh2 h3,.thanks h2,[data-pg="carta"] .name{font-weight:400;letter-spacing:-.02em;text-transform:uppercase}
+.disp,.head,.big,.hola,.ix b,.wm,.coupon h3,.nfc h2,.shd h2,.sh2 h3,.thanks h2,[data-pg="carta"] .name{font-weight:400;letter-spacing:-.02em;text-transform:uppercase}
 .disp,.head,.big{line-height:.95}
 .big{font-size:var(--step-head)}
 .lead{font-style:italic}
@@ -198,6 +198,13 @@ body[data-hdr="track"]:not(.ready) .wm{display:none}
 .sh2{justify-content:center;margin-bottom:14px}
 .sh2 h3{font-size:1.375rem;letter-spacing:.14em}
 .sh2 span{display:none}
+/* grupos: el grupo en versalitas grandes; sus secciones, en cursiva */
+.sgrp{padding-top:30px}
+.sh2.sg{margin-bottom:2px}
+.sh2.sg h3{font-size:clamp(1.75rem,1.4rem + 1vw,2.25rem);letter-spacing:.1em}
+.sgrp .ssec{padding:18px 0 4px}
+.sh2.sb{margin-bottom:8px}
+.sh2 h4{font:italic 400 1.25rem/1.2 var(--font);letter-spacing:.01em;text-transform:none;color:var(--field-muted)}
 [data-pg="carta"] .rows{grid-template-columns:minmax(0,1fr);max-width:440px;margin:0 auto}
 [data-pg="carta"] .row{padding:8px 0}
 [data-pg="carta"] .rmain{grid-template-columns:minmax(0,1fr)}
