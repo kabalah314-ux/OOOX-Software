@@ -491,8 +491,8 @@ export const projects = [
   {
     id: "followthesun", category: "experiments", title: "I Follow the Sun", kicker: "Dónde da el sol en Barcelona, ahora", year: "2026",
     type: "Web app · Mapa de sol y sombra", status: "Beta", statusTone: "build", access: "public",
-    url: "https://followthesun-three.vercel.app/",
-    socials: { web: "https://followthesun-three.vercel.app/" },
+    url: "https://followthesun.pages.dev/",
+    socials: { web: "https://followthesun.pages.dev/" },
     ...shots("followthesun"),
     previews: [
       { src: img("/projects/followthesun.jpg"), y: 0, label: "Mapa de sol" },
