@@ -30,6 +30,7 @@ body[data-hdr="cupones"] .top,body[data-hdr="fin"] .top{background:var(--field);
 @media (hover:hover){.tlinks a:hover::after{transform:scaleX(1)}}
 /* la marca de la sección actual es una sola raya que viaja de un enlace a otro, con la curva del cambio de sección */
 .tind{position:absolute;left:0;width:100px;background:currentColor;transform-origin:0 50%;opacity:0;pointer-events:none;transition:transform .9s cubic-bezier(.77,0,.175,1),opacity .3s ease}
+@media (prefers-reduced-motion:reduce){.tind{transition:opacity .2s ease}}
 .tlinks.viaja a.on::after{transform:scaleX(0)}
 /* titulares de sección: cada línea sube desde detrás de su máscara */
 .ln{display:block;overflow:clip;padding-bottom:.12em;margin-bottom:-.12em}
