@@ -219,7 +219,7 @@ const shot = (url, w = 1440, h = 900) => `https://image.thum.io/get/width/${w}/c
 const fullShot = (url) => `https://image.thum.io/get/width/1440/fullpage/noanimate/${url}`;
 const mobileShot = (url) => `https://image.thum.io/get/viewportWidth/390/width/390/crop/844/noanimate/${url}`;
 
-const AUREA = "https://casa-aurea-lake.vercel.app/";
+const AUREA = "https://casa-aurea.pages.dev/";
 const AUREA_FULL = fullShot(AUREA);
 
 // Webs para negocios: cada demo vive en /demos/<slug>/ (webs-negocios/demos) y sus capturas en
@@ -263,7 +263,7 @@ export const projects = [
   },
   {
     id: "moog-barcelona", category: "business", title: "MOOG Barcelona", kicker: "30 aniversario · techno desde 1996", year: "2026",
-    type: "Web de club · Rediseño", status: "Online", statusTone: "live", access: "public", url: "https://moog-barcelona.vercel.app",
+    type: "Web de club · Rediseño", status: "Online", statusTone: "live", access: "public", url: "https://moog-barcelona.pages.dev",
     socials: { x: "https://x.com/softwareOOOX" },
     ...shots("moog"), accent: "#5EEAD4", accentSoft: "#0B1416",
     demo: true,
