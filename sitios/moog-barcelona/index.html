@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>MOOG Barcelona — 30 aniversario · techno desde 1996</title>
+<style>
+  /* ============================================================================
+     MOOG Barcelona — réplica MEJORADA de moogbarcelona.com (misma estructura 1:1).
+     Estructura suya: nav → hero → agenda → merch → noticias → DJs → galería →
+     moog your body → partners(MAS i MAS) → newsletter → footer. + El Club, Sónar, FAQs.
+     Orbes (orbes.js) repartidos: hero=cristal-liquido · agenda=estallido-ondas ·
+     galería=estela-ruta · club=cursor-viscoso · "moog your body"=gema-reflejo.
+     Movimiento: revelado-scroll · texto-scramble · indicador-progreso · marquee.
+     Mundo estudio-negro + inmersivo-premium · negro casi puro + acento eléctrico.
+     ============================================================================ */
+  :root{
+    --bg:#060608; --ink:#EAF2FF; --acc:#3DE1FF;
+    --line:rgba(180,200,230,.14); --mut:rgba(206,216,236,.52); --dim:rgba(206,216,236,.32);
+    --edge:clamp(16px,4vw,52px);
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Cascadia Mono",monospace;
+    --disp:"Arial Narrow","Helvetica Neue",Helvetica,system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg); color:var(--ink); font-family:var(--mono); -webkit-font-smoothing:antialiased; overflow-x:hidden;}
+  a{color:inherit;}
+  #prog{position:fixed; inset:0 0 auto 0; height:2px; background:var(--acc); z-index:60; transform:scaleX(0); transform-origin:0 50%; will-change:transform;}
+
+  /* nav */
+  nav{position:fixed; inset:2px 0 auto 0; z-index:40; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px var(--edge); mix-blend-mode:difference;}
+  nav .brand{font-family:var(--disp); font-weight:800; letter-spacing:.02em; font-size:20px; color:#fff; white-space:nowrap;}
+  nav .brand small{font-family:var(--mono); font-weight:400; font-size:9px; letter-spacing:.24em; display:block; margin-top:-2px;}
+  nav .links{font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:#fff; display:none; gap:18px;}
+  nav .links a{text-decoration:none; opacity:.85;} nav .links a:hover{opacity:1;}
+  nav .right{display:flex; align-items:center; gap:14px; color:#fff; font-size:11px; letter-spacing:.14em; text-transform:uppercase;}
+  nav .right .tk{border:1px solid #fff; border-radius:999px; padding:8px 14px;}
+  nav .lang b{color:var(--acc);}
+  @media(min-width:960px){ nav .links{display:flex;} }
+
+  /* ORBE GLOBAL: un solo orbe fijo detrás de TODO el contenido (viaja entre secciones) */
+  #orbGlobal{position:fixed; inset:0; width:100%; height:100%; display:block; z-index:-2; pointer-events:none;}
+  #orbTrail{position:fixed; inset:0; width:100%; height:100%; display:block; z-index:-1; pointer-events:none;}
+  #orbFallback{position:fixed; inset:0; z-index:-2; display:none; filter:blur(2px);
+    background:radial-gradient(closest-side circle at 50% 50%, #dff4ff 0%, transparent 60%),radial-gradient(closest-side circle at 50% 50%, var(--acc) 0%, transparent 46%),radial-gradient(closest-side circle at 50% 50%, #7A3DFF 0%, transparent 30%);}
+  /* hero (transparente: el orbe global se ve detrás) */
+  .hero{position:relative; height:100dvh; min-height:520px; overflow:hidden;}
+  .hero__mark{position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+  .hero__mark h1{font-family:var(--disp); font-weight:800; color:#fff; font-size:clamp(88px,26vw,360px); line-height:.82; letter-spacing:-.02em; text-shadow:0 2px 60px rgba(0,0,0,.35);}
+  .hero__tag{margin-top:14px; font-size:clamp(11px,1.4vw,13px); letter-spacing:.34em; text-transform:uppercase; color:var(--mut);}
+  .hero__tag b{color:var(--acc); font-weight:600;}
+  .hero__cta{margin-top:26px; pointer-events:auto; border:1px solid var(--acc); color:var(--acc); background:transparent; border-radius:999px; padding:14px 24px; font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase; cursor:pointer; transition:background .3s,color .3s;}
+  .hero__cta:hover{background:var(--acc); color:#04121a;}
+  .mk{position:absolute; width:22px; height:22px; border:1px solid var(--acc); opacity:.55; z-index:3;}
+  .mk.tl{top:74px; left:var(--edge); border-right:0; border-bottom:0;} .mk.tr{top:74px; right:var(--edge); border-left:0; border-bottom:0;}
+  .mk.bl{bottom:26px; left:var(--edge); border-right:0; border-top:0;} .mk.br{bottom:26px; right:var(--edge); border-left:0; border-top:0;}
+  .scrollcue{position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:3; font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--mut); display:flex; flex-direction:column; align-items:center; gap:8px;}
+  .scrollcue::after{content:""; width:1px; height:34px; background:linear-gradient(var(--acc),transparent); animation:cue 1.8s ease-in-out infinite;}
+  @keyframes cue{0%,100%{opacity:.3; transform:scaleY(.7)} 50%{opacity:1; transform:scaleY(1)}}
+
+  /* marquee */
+  .cinta{border-block:1px solid var(--line); overflow:hidden; background:#08080b;}
+  [data-marquee]{ font-family:var(--disp); font-weight:800; font-size:clamp(34px,6.4vw,78px); line-height:1.3; white-space:nowrap; overflow:hidden; text-transform:uppercase; letter-spacing:-.01em; padding:.14em 0;}
+  .mq-track{display:inline-flex; width:max-content; will-change:transform;}
+  .mq-grupo{display:inline-flex; align-items:center; gap:.5em; padding-inline-end:.5em;}
+  .mq-star{display:inline-block; color:var(--acc); font-size:.5em; align-self:center;}
+  @media(prefers-reduced-motion:no-preference){ .mq-on .mq-track{animation:mq 26s linear infinite;} .mq-on .mq-star{animation:mqspin 12s linear infinite;} [data-marquee]:hover .mq-track{animation-play-state:paused;} @keyframes mq{from{transform:translateX(0)} to{transform:translateX(-50%)}} @keyframes mqspin{to{transform:rotate(1turn)}} }
+
+  /* revelado-scroll */
+  [data-reveal] > *{opacity:0; transform:translateY(30px); transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);}
+  [data-reveal].in > *{opacity:1; transform:none;}
+  [data-reveal].in > *:nth-child(2){transition-delay:.08s} [data-reveal].in > *:nth-child(3){transition-delay:.16s} [data-reveal].in > *:nth-child(4){transition-delay:.24s} [data-reveal].in > *:nth-child(5){transition-delay:.32s}
+  @media(prefers-reduced-motion:reduce){ [data-reveal] > *{opacity:1!important; transform:none!important; transition:none} }
+
+  section{position:relative;}
+  .sec{border-top:1px solid var(--line); padding:clamp(44px,7vw,104px) var(--edge);}
+  .orbsec{overflow:hidden; min-height:94vh; display:flex; flex-direction:column; justify-content:center;}
+  .orbsec .inner{position:relative; z-index:2; width:100%;}
+  .head{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:12px;}
+  .kicker{font-size:12px; color:var(--acc); letter-spacing:.2em;}
+  .h2{font-family:var(--disp); font-weight:800; font-size:clamp(34px,7vw,84px); letter-spacing:-.015em; line-height:.98;}
+  .sub{font-size:12px; color:var(--mut); letter-spacing:.14em; text-transform:uppercase; margin-bottom:30px;}
+  .skillnote{width:100%; font-size:10.5px; letter-spacing:.1em; color:var(--dim); text-transform:uppercase; margin-top:4px;} .skillnote b{color:var(--acc);}
+
+  /* agenda (tabla-links-flecha + estallido) */
+  .ev{position:relative; overflow:hidden; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 18px; min-height:76px; border-bottom:1px solid var(--line); cursor:pointer; transition:color .25s, border-color .25s;}
+  .ev::before{content:""; position:absolute; inset:0; background:var(--acc); opacity:0; transform:translateX(-101%); transition:transform .4s cubic-bezier(.2,.8,.2,1), opacity .3s; z-index:0;}
+  .ev > *{position:relative; z-index:1;}
+  .ev:hover{color:#fff; border-color:var(--acc);} .ev:hover::before{opacity:.08; transform:translateX(0);}
+  .ev .day{font-family:var(--disp); font-weight:800; font-size:clamp(20px,3vw,30px); min-width:84px;}
+  .ev .event-thumb{width:72px; height:48px; flex:none; object-fit:cover; border:1px solid var(--line); border-radius:2px; filter:saturate(.82) contrast(1.05); transition:transform .35s, border-color .25s, filter .35s;}
+  .ev:hover .event-thumb{transform:scale(1.06); border-color:var(--acc); filter:saturate(1.1) contrast(1.08);}
+  .ev .who{flex:1; min-width:0; font-size:13px; letter-spacing:.04em;}
+  .ev .meta{font-size:11px; letter-spacing:.1em; color:var(--mut); white-space:nowrap;}
+  .ev .arrow{color:var(--acc); transition:transform .3s;} .ev:hover .arrow{transform:translateX(6px);}
+  .beat-ring{position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border:1px solid var(--acc); border-radius:50%; pointer-events:none; z-index:2; transform:scale(0); opacity:.9; animation:beat .8s ease-out forwards;}
+  @keyframes beat{to{transform:scale(30); opacity:0;}}
+  .agenda-foot{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-top:26px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mut);}
+  .subs{display:flex; gap:8px; flex-wrap:wrap;}
+  .subs a{border:1px solid var(--line); border-radius:4px; padding:8px 12px; text-decoration:none; transition:border-color .25s,color .25s;}
+  .subs a:hover{border-color:var(--acc); color:#fff;}
+  .linkarrow{color:var(--acc); text-decoration:none; border-bottom:1px solid transparent;} .linkarrow:hover{border-color:var(--acc);}
+
+  /* cards-producto-buy (merch) */
+  .grid{display:grid; gap:16px;}
+  .g4{grid-template-columns:repeat(2,1fr);} @media(min-width:760px){ .g4{grid-template-columns:repeat(4,1fr);} }
+  .g3{grid-template-columns:1fr;} @media(min-width:720px){ .g3{grid-template-columns:repeat(3,1fr);} }
+  .prod{cursor:pointer;} .prod .im{position:relative; aspect-ratio:4/5; background:rgba(180,200,230,.05); border:1px solid var(--line); border-radius:3px; overflow:hidden; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:11px; letter-spacing:.2em; transition:border-color .3s;}
+  .prod .im img, .dj img, .vid img{width:100%; height:100%; display:block; object-fit:cover; transition:transform .55s cubic-bezier(.2,.8,.2,1), filter .35s;}
+  .prod .im::after, .dj::after, .vid::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 38%, rgba(3,5,10,.82)); pointer-events:none;}
+  .prod:hover .im{border-color:var(--acc);} .prod:hover .im img, .dj:hover img, .vid:hover img{transform:scale(1.06); filter:saturate(1.12) contrast(1.04);}
+  .prod .row2{display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12px;}
+  .prod .buy{color:var(--acc);} .prod .buy .a{transition:transform .3s; display:inline-block;} .prod:hover .buy .a{transform:translateX(5px);}
+  .note{font-size:11px; color:var(--mut); letter-spacing:.08em; margin-bottom:22px;}
+  .ticket-grid{display:grid; grid-template-columns:1fr; gap:12px; margin:24px 0 28px;} @media(min-width:720px){ .ticket-grid{grid-template-columns:repeat(3,1fr);} }
+  .ticket-card{border:1px solid var(--line); padding:16px; background:rgba(6,6,10,.4);}
+  .ticket-card b{display:block; color:var(--acc); font-size:11px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:8px;}
+  .ticket-card span{font-size:12px; line-height:1.6; color:var(--mut);}
+
+  /* noticias */
+  .news{display:flex; flex-direction:column;}
+  .art{display:flex; gap:18px; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--line); transition:color .25s;}
+  .art .thumb{width:104px; height:64px; flex:none; object-fit:cover; border:1px solid var(--line); border-radius:2px; filter:saturate(.75); transition:filter .3s, transform .3s, border-color .3s;}
+  .art:hover .thumb{filter:saturate(1.12); transform:scale(1.04); border-color:var(--acc);}
+  .art-copy{display:flex; flex-direction:column; gap:6px; flex:1; min-width:0;}
+  .art .excerpt{font-size:11px; line-height:1.5; color:var(--mut); letter-spacing:.03em;}
+  .art:hover{color:#fff;} .art .t{font-family:var(--disp); font-weight:800; font-size:clamp(19px,2.6vw,28px); flex:1;}
+  .art .cat{font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--acc); white-space:nowrap;}
+  .art .date{font-size:11px; color:var(--mut); white-space:nowrap;}
+  .loadmore{margin-top:24px; border:1px solid var(--line); color:var(--mut); background:transparent; border-radius:999px; padding:12px 22px; font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; cursor:pointer;}
+  .loadmore:hover{border-color:var(--acc); color:#fff;}
+
+  /* residentes / logo-wall */
+  .djs{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;} @media(min-width:640px){ .djs{grid-template-columns:repeat(3,1fr);} } @media(min-width:960px){ .djs{grid-template-columns:repeat(5,1fr);} }
+  .dj{position:relative; overflow:hidden; aspect-ratio:3/4; background:rgba(180,200,230,.05); border:1px solid var(--line); border-radius:3px; display:flex; align-items:flex-end; padding:12px; font-size:12px; letter-spacing:.04em; color:#fff; transition:color .3s,border-color .3s;}
+  .dj span, .vid span{position:relative; z-index:1; text-shadow:0 1px 16px rgba(0,0,0,.9);}
+  .dj span{display:flex; flex-direction:column; gap:4px;}
+  .dj span small{font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--acc);}
+  .dj:hover{color:#fff; border-color:var(--acc);}
+  .wall{display:grid; grid-template-columns:repeat(2,1fr); border:1px solid var(--line);} @media(min-width:720px){ .wall{grid-template-columns:repeat(3,1fr);} }
+  .wall .lg{aspect-ratio:16/7; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); color:var(--dim); font-size:12px; letter-spacing:.14em; text-transform:uppercase; opacity:.55; transition:opacity .3s,color .3s;}
+  .wall .lg strong{font-family:var(--disp); font-size:clamp(16px,2vw,24px); letter-spacing:.02em; color:inherit;}
+  .wall .lg small{font-size:9px; letter-spacing:.16em; color:var(--acc);}
+  .wall .lg:hover{opacity:1; color:#fff;}
+
+  /* videos */
+  .vids{grid-template-columns:1fr;} @media(min-width:720px){ .vids{grid-template-columns:repeat(2,1fr);} }
+  .vid{position:relative; overflow:hidden; aspect-ratio:16/9; background:rgba(6,6,10,.5); border:1px solid var(--line); border-radius:3px; display:flex; align-items:flex-end; padding:14px; color:#fff; font-size:11px; letter-spacing:.2em; text-decoration:none; transition:border-color .3s;}
+  .vid:hover{border-color:var(--acc);}
+  .vid:hover{border-color:var(--acc);}
+
+  /* club */
+  .club-cols{display:grid; grid-template-columns:1fr; gap:24px;} @media(min-width:820px){ .club-cols{grid-template-columns:repeat(2,1fr);} }
+  .card{background:rgba(6,6,10,.4); border:1px solid var(--line); border-radius:3px; padding:26px;}
+  .card h3{font-family:var(--disp); font-weight:800; font-size:22px; margin-bottom:10px;}
+  .card p{font-size:13px; line-height:1.7; color:var(--mut);}
+  .card .club-shot{height:180px; margin:-26px -26px 22px; overflow:hidden; border-bottom:1px solid var(--line);}
+  .card .club-shot img{width:100%; height:100%; display:block; object-fit:cover; filter:saturate(.78) contrast(1.08); transition:transform .5s, filter .4s;}
+  .card:hover .club-shot img{transform:scale(1.05); filter:saturate(1.1) contrast(1.08);}
+  .pillars{display:grid; grid-template-columns:1fr; gap:14px; margin-top:16px;} @media(min-width:720px){ .pillars{grid-template-columns:repeat(3,1fr);} }
+  .pillar{border-left:1px solid var(--acc); padding:4px 0 4px 14px; font-size:12px; line-height:1.6; color:var(--mut);}
+  .info dl{display:grid; grid-template-columns:auto 1fr; gap:6px 18px; font-size:12.5px; line-height:1.6;}
+  .info dt{color:var(--acc); letter-spacing:.08em; text-transform:uppercase; font-size:11px;}
+
+  /* body statement (gema) */
+  .body-stmt{overflow:hidden; min-height:96vh; display:flex; align-items:center; justify-content:center; text-align:center; position:relative; background:linear-gradient(180deg,rgba(6,6,8,.25),rgba(6,6,8,.82)),url("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1800&q=85") center/cover;}
+  .body-stmt h2{font-family:var(--disp); font-weight:800; font-size:clamp(56px,15vw,220px); line-height:.86; letter-spacing:-.02em; color:#fff; text-shadow:0 2px 50px rgba(0,0,0,.4); position:relative; z-index:2;}
+  .body-stmt p{position:relative; z-index:2; margin-top:16px; font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:var(--mut);}
+
+  /* sónar */
+  .sonar{display:grid; grid-template-columns:1fr; gap:24px; align-items:center;}
+  @media(min-width:820px){ .sonar{grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);} }
+  .sonar-copy{display:flex; flex-direction:column; gap:16px;}
+  .sonar-visual{position:relative; min-height:250px; overflow:hidden; border:1px solid var(--line); border-radius:3px;}
+  .sonar-visual img{width:100%; height:100%; min-height:250px; display:block; object-fit:cover; filter:saturate(.8) contrast(1.08);}
+  .sonar-visual span{position:absolute; left:14px; bottom:14px; color:#fff; font-size:10px; letter-spacing:.18em; text-transform:uppercase; text-shadow:0 1px 18px #000;}
+  .sonar .big{font-family:var(--disp); font-weight:800; font-size:clamp(40px,9vw,120px); line-height:.9; letter-spacing:-.01em;}
+  .sonar .big em{color:var(--acc); font-style:normal;}
+
+  /* newsletter */
+  .nl-layout{display:grid; grid-template-columns:1fr; gap:24px; align-items:center;} @media(min-width:820px){ .nl-layout{grid-template-columns:minmax(220px,.8fr) minmax(0,1.2fr);} }
+  .nl-visual{min-height:230px; overflow:hidden; border:1px solid var(--line); border-radius:3px;}
+  .nl-visual img{width:100%; height:100%; min-height:230px; display:block; object-fit:cover; filter:saturate(.7) contrast(1.1);}
+  .nl{max-width:560px;} .nl form{display:flex; flex-direction:column; gap:14px; margin-top:20px;}
+  .nl input[type=email]{background:transparent; border:1px solid var(--line); border-radius:4px; padding:16px 16px; color:var(--ink); font-family:var(--mono); font-size:14px;}
+  .nl input[type=email]:focus{outline:none; border-color:var(--acc);}
+  .nl label{display:flex; gap:10px; align-items:flex-start; font-size:11px; color:var(--mut); line-height:1.5;}
+  .nl button{align-self:flex-start; border:1px solid var(--acc); background:var(--acc); color:#04121a; border-radius:999px; padding:14px 26px; font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase; cursor:pointer;}
+
+  /* faqs */
+  details{border-bottom:1px solid var(--line); padding:16px 0;}
+  details summary{cursor:pointer; list-style:none; display:flex; justify-content:space-between; gap:16px; font-family:var(--disp); font-weight:800; font-size:clamp(18px,2.6vw,26px);}
+  details summary::-webkit-details-marker{display:none;} details summary::after{content:"+"; color:var(--acc);} details[open] summary::after{content:"–";}
+  details p{margin-top:12px; font-size:13px; color:var(--mut); line-height:1.7; max-width:70ch;}
+
+  /* footer */
+  .foot{border-top:1px solid var(--line); padding:clamp(40px,6vw,80px) var(--edge) 46px;}
+  .foot-top{display:flex; flex-wrap:wrap; gap:16px 40px; font-size:11.5px; letter-spacing:.06em; color:var(--mut); padding-bottom:34px; border-bottom:1px solid var(--line);}
+  .foot-top b{color:var(--acc); letter-spacing:.16em; text-transform:uppercase; font-size:10px; display:block; margin-bottom:4px;}
+  .foot-cols{display:grid; grid-template-columns:1fr; gap:32px; padding:38px 0;} @media(min-width:760px){ .foot-cols{grid-template-columns:repeat(3,1fr);} }
+  .foot-cols h4{font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--acc); margin-bottom:14px;}
+  .foot-cols a, .foot-cols p{display:block; font-size:12.5px; color:var(--mut); text-decoration:none; line-height:2;}
+  .foot-cols a:hover{color:#fff;}
+  .foot-addr{font-family:var(--disp); font-weight:800; font-size:clamp(34px,8vw,104px); line-height:.9; letter-spacing:-.01em; color:var(--ink); margin:26px 0;}
+  .foot-bottom{display:flex; flex-wrap:wrap; justify-content:space-between; gap:14px; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); padding-top:24px; border-top:1px solid var(--line);}
+  .foot-bottom .soc a{margin-left:14px; text-decoration:none;} .foot-bottom .soc a:hover{color:var(--acc);}
+  .badge{display:inline-block; margin:0 var(--edge) 40px; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--mut); border:1px dashed var(--line); padding:8px 12px; border-radius:2px;} .badge b{color:var(--acc);}
+  @media(max-width:640px){ .ev{flex-wrap:wrap; gap:10px 12px;} .ev .event-thumb{width:58px; height:42px;} .ev .who{order:4; flex-basis:100%;} .ev .meta{margin-left:auto;} .art{flex-wrap:wrap;} .art .thumb{width:86px; height:54px;} .art-copy{min-width:calc(100% - 110px);} }
+</style>
+</head>
+<body>
+  <div id="prog"></div>
+  <!-- ORBE GLOBAL: uno solo, consistente, viaja por toda la web -->
+  <canvas id="orbGlobal"></canvas>
+  <canvas id="orbTrail"></canvas>
+  <div id="orbFallback" aria-hidden="true"></div>
+
+  <nav>
+    <span class="brand">MOOG<small>30 ANIVERSARIO</small></span>
+    <span class="links">
+      <a href="#agenda">Agenda</a><a href="#club">Club</a><a href="#sonar">MOOG×Sónar</a><a href="#faqs">FAQs</a><a href="#footer">Contacto</a>
+    </span>
+    <span class="right"><span class="lang"><b>ES</b> · CA · EN</span><a href="#" style="text-decoration:none">Mi cuenta</a><a class="tk" href="#agenda" style="text-decoration:none">Tickets</a></span>
+  </nav>
+
+  <!-- 1 · HERO -->
+  <header class="hero">
+    <span class="mk tl"></span><span class="mk tr"></span><span class="mk bl"></span><span class="mk br"></span>
+    <div class="hero__mark">
+      <h1>MOOG</h1>
+      <p class="hero__tag">Primera discoteca techno de Barcelona · <b>Raval · desde 1996</b></p>
+      <a class="hero__cta" href="#agenda">Ver agenda ↓</a>
+    </div>
+    <div class="scrollcue">scroll</div>
+  </header>
+
+  <div class="cinta"><div data-marquee aria-label="moog your body"><div class="mq-track"><div class="mq-grupo">
+    <span>Moog your body</span><span class="mq-star">✳</span><span>Techno</span><span class="mq-star">✳</span>
+    <span>EBM</span><span class="mq-star">✳</span><span>Electro</span><span class="mq-star">✳</span>
+    <span>Industrial</span><span class="mq-star">✳</span><span>23:59h</span><span class="mq-star">✳</span>
+  </div></div></div></div>
+
+  <!-- 2 · AGENDA -->
+  <section class="sec" id="agenda" data-reveal>
+    <div class="head"><span class="kicker">[ 02 ]</span><span class="h2" data-scramble>Agenda</span></div>
+    <p class="sub">Próximos eventos · 46 encontrados
+      <span class="skillnote">▸ orbe: <b>orbe-estallido-ondas</b> (pulsa una fila = beat) · skills: <b>indice-editorial-etiquetas</b> · <b>tabla-links-flecha</b></span></p>
+    <div class="ev"><span class="day">VIE 04</span><img class="event-thumb" src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&amp;fit=crop&amp;w=300&amp;q=80" alt="Público en una noche de techno" loading="lazy"><span class="who">Cravo + Ksenia Kamikaza</span><span class="meta">23:59h · Main · 10€</span><span class="arrow">Tickets →</span></div>
+    <div class="ev"><span class="day">SÁB 05</span><img class="event-thumb" src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&amp;fit=crop&amp;w=300&amp;q=80" alt="Festival nocturno con luces y público" loading="lazy"><span class="who">Bas Mooy · Uroz · Carol Nyx</span><span class="meta">23:59h · Main · 10€</span><span class="arrow">Tickets →</span></div>
+    <div class="ev"><span class="day">JUE 10</span><img class="event-thumb" src="https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&amp;fit=crop&amp;w=300&amp;q=80" alt="Luces magenta de una sesión electrónica" loading="lazy"><span class="who">MOOG × Sónar — Javi Gon b2b Men</span><span class="meta">23:59h · Main · 8€</span><span class="arrow">Tickets →</span></div>
+    <div class="ev"><span class="day">VIE 11</span><img class="event-thumb" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&amp;fit=crop&amp;w=300&amp;q=80" alt="Pista de baile con iluminación roja" loading="lazy"><span class="who">Valav · Alexey Dunchyk</span><span class="meta">23:59h · Villarosa · 8€</span><span class="arrow">Tickets →</span></div>
+    <div class="ev"><span class="day">SÁB 12</span><img class="event-thumb" src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&amp;fit=crop&amp;w=300&amp;q=80" alt="Público bailando en el club" loading="lazy"><span class="who">Carlota · Bambi · Juan B</span><span class="meta">23:59h · Main · 10€</span><span class="arrow">Tickets →</span></div>
+    <div class="ev"><span class="day">DOM 13</span><img class="event-thumb" src="https://images.unsplash.com/photo-1571266028243-d220c52d9a62?auto=format&amp;fit=crop&amp;w=300&amp;q=80" alt="Cabina de DJ iluminada en azul" loading="lazy"><span class="who">Sunday Service · Frazi.er</span><span class="meta">23:59h · Main · 8€</span><span class="arrow">Tickets →</span></div>
+    <div class="ev"><span class="day">SÁB 19</span><img class="event-thumb" src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&amp;fit=crop&amp;w=300&amp;q=80" alt="Noche de club con público" loading="lazy"><span class="who">Villarosa Selectors · Ana RS</span><span class="meta">23:59h · Villarosa · 8€</span><span class="arrow">Tickets →</span></div>
+    <div class="agenda-foot">
+      <span class="subs">Suscríbete: <a href="#">Google</a><a href="#">iCal</a><a href="#">Outlook</a><a href="#">.ics</a></span>
+      <a class="linkarrow" href="#">Ver agenda completa →</a>
+    </div>
+  </section>
+
+  <!-- 3 · MERCHANDISING (cards-producto-buy) -->
+  <section class="sec" id="merch" data-reveal>
+    <div class="head"><span class="kicker">[ 03 ]</span><span class="h2" data-scramble>Merch oficial</span></div>
+    <p class="note">Estamos trabajando en la tienda online — de momento lo encuentras en el club.
+      <span class="skillnote">▸ skills: <b>cards-producto-buy</b> (zoom sutil + nombre—precio—buy)</span></p>
+    <div class="grid g4">
+      <div class="prod"><div class="im"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&amp;fit=crop&amp;w=900&amp;q=85" alt="Camiseta negra de merchandising" loading="lazy"></div><div class="row2"><span>Cordón · 6€</span><span class="buy">Buy <span class="a">→</span></span></div></div>
+      <div class="prod"><div class="im"><img src="https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&amp;fit=crop&amp;w=900&amp;q=85" alt="Camiseta de club en tonos oscuros" loading="lazy"></div><div class="row2"><span>Tee · 22€</span><span class="buy">Buy <span class="a">→</span></span></div></div>
+      <div class="prod"><div class="im"><img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&amp;fit=crop&amp;w=900&amp;q=85" alt="Camiseta urbana de edición especial" loading="lazy"></div><div class="row2"><span>Tee · 22€</span><span class="buy">Buy <span class="a">→</span></span></div></div>
+      <div class="prod"><div class="im"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&amp;fit=crop&amp;w=900&amp;q=85" alt="Accesorio de noche para el club" loading="lazy"></div><div class="row2"><span>Abanico · 8€</span><span class="buy">Buy <span class="a">→</span></span></div></div>
+    </div>
+  </section>
+
+  <!-- 4 · NOTICIAS -->
+  <section class="sec" id="news" data-reveal>
+    <div class="head"><span class="kicker">[ 04 ]</span><span class="h2" data-scramble>Mantente informado</span></div>
+    <p class="sub">Últimas noticias</p>
+    <div class="news">
+      <a class="art" href="#"><img class="thumb" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&amp;fit=crop&amp;w=420&amp;q=80" alt="Pista de baile con luces de colores" loading="lazy"><span class="art-copy"><span class="t">30 aniversario: la temporada especial</span><span class="excerpt">Treinta noches, dos salas y una programación que recorre la historia del club.</span></span><span class="cat">Club</span><span class="date">jul 2026</span></a>
+      <a class="art" href="#"><img class="thumb" src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&amp;fit=crop&amp;w=420&amp;q=80" alt="Escenario de un festival electrónico" loading="lazy"><span class="art-copy"><span class="t">MOOG × Sónar 2026 — line-up completo</span><span class="excerpt">El after oficial suma nombres internacionales y un amanecer especial en el Raval.</span></span><span class="cat">Eventos</span><span class="date">jun 2026</span></a>
+      <a class="art" href="#"><img class="thumb" src="https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&amp;fit=crop&amp;w=420&amp;q=80" alt="Público bajo iluminación magenta" loading="lazy"><span class="art-copy"><span class="t">Nuevo ciclo de residentes en Villarosa</span><span class="excerpt">Cada viernes, una lectura más pop y eléctrica de la noche barcelonesa.</span></span><span class="cat">Residentes</span><span class="date">may 2026</span></a>
+      <a class="art" href="#"><img class="thumb" src="https://images.unsplash.com/photo-1485872299829-c673f5194813?auto=format&amp;fit=crop&amp;w=420&amp;q=80" alt="Luces violetas de una sala de club" loading="lazy"><span class="art-copy"><span class="t">Moog Radio: sesiones desde el subsuelo</span><span class="excerpt">Nuevos mixes mensuales grabados entre el Main y la cabina de Villarosa.</span></span><span class="cat">Radio</span><span class="date">abr 2026</span></a>
+    </div>
+    <button class="loadmore">Cargar más</button>
+  </section>
+
+  <!-- 5 · DJs MOOG (residentes) -->
+  <section class="sec" id="residentes" data-reveal>
+    <div class="head"><span class="kicker">[ 05 ]</span><span class="h2" data-scramble>DJs Moog</span></div>
+    <p class="sub">Conoce a nuestros residentes y guests
+      <span class="skillnote">▸ skills: <b>indice-titulos-imagen-hover</b> (nombre → foto al hover) · <b>logo-wall</b></span></p>
+    <div class="djs">
+      <div class="dj"><img src="https://images.unsplash.com/photo-1571266028243-d220c52d9a62?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="DJ en directo con luces azules" loading="lazy"><span><b>FRAZI.ER</b><small>TECHNO · RESIDENTE</small></span></div><div class="dj"><img src="https://images.unsplash.com/photo-1571266028243-d220c52d9a62?auto=format&amp;fit=crop&amp;w=700&amp;q=85&amp;crop=faces" alt="DJ en cabina durante una sesión" loading="lazy"><span><b>BLAST SHADOW</b><small>EBM · RESIDENTE</small></span></div><div class="dj"><img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Público bailando en un club" loading="lazy"><span><b>ROCKSTACULAR</b><small>ELECTRO · GUEST</small></span></div><div class="dj"><img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Escenario de música electrónica" loading="lazy"><span><b>ANDY MARTIN</b><small>INDUSTRIAL · RESIDENTE</small></span></div><div class="dj"><img src="https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Bailarines bajo iluminación magenta" loading="lazy"><span><b>OWEY</b><small>ACID · RESIDENTE</small></span></div>
+      <div class="dj"><img src="https://images.unsplash.com/photo-1571266028243-d220c52d9a62?auto=format&amp;fit=crop&amp;w=700&amp;q=85&amp;sat=-20" alt="DJ con iluminación violeta" loading="lazy"><span><b>JAVI GON</b><small>TECHNO · B2B</small></span></div><div class="dj"><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Festival nocturno con público" loading="lazy"><span><b>RABENT</b><small>RAW · RESIDENTE</small></span></div><div class="dj"><img src="https://images.unsplash.com/photo-1485872299829-c673f5194813?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Luces de club en la noche" loading="lazy"><span><b>LAKEJ</b><small>BREAKS · GUEST</small></span></div><div class="dj"><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Fiesta de club con luces rojas" loading="lazy"><span><b>ANA RS</b><small>POP ELECTRÓNICO</small></span></div><div class="dj"><img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Público en una noche de música" loading="lazy"><span><b>+ GUESTS</b><small>LINE-UP ROTATIVO</small></span></div>
+    </div>
+  </section>
+
+  <!-- 6 · GALERÍA (orbe-estela-ruta) -->
+  <section class="sec orbsec" id="galeria">
+    <div class="inner" data-reveal>
+      <div class="head"><span class="kicker">[ 06 ]</span><span class="h2" data-scramble>Galería</span></div>
+      <p class="sub">Últimos eventos · arrastra y deja tu rastro ✳
+        <span class="skillnote">▸ orbe: <b>orbe-estela-ruta</b> · skills: <b>media-labels-satelite</b> · <b>hero-video-titulo-esquina</b></span></p>
+      <div class="grid vids"><a class="vid" href="#residentes" aria-label="Abrir sesión de la sala Main"><img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&amp;fit=crop&amp;w=1400&amp;q=85" alt="Sesión nocturna en la sala Main" loading="lazy"><span>▶ SESIÓN · MAIN</span></a><a class="vid" href="#club" aria-label="Abrir sesión de Villarosa"><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&amp;fit=crop&amp;w=1400&amp;q=85" alt="Sesión nocturna en Villarosa" loading="lazy"><span>▶ SESIÓN · VILLAROSA</span></a><a class="vid" href="#sonar" aria-label="Abrir after oficial de Moog"><img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&amp;fit=crop&amp;w=1400&amp;q=85" alt="Festival nocturno de música electrónica" loading="lazy"><span>▶ AFTER · SÓNAR</span></a><a class="vid" href="#club" aria-label="Abrir backstage del club"><img src="https://images.unsplash.com/photo-1521337581100-8ca9a73a5f79?auto=format&amp;fit=crop&amp;w=1400&amp;q=85" alt="Backstage y luces del club" loading="lazy"><span>▶ BACKSTAGE · 02:47H</span></a></div>
+    </div>
+  </section>
+
+  <!-- 7 · EL CLUB (orbe-cursor-viscoso) -->
+  <section class="sec orbsec" id="club">
+    <div class="inner" data-reveal>
+      <div class="head"><span class="kicker">[ 07 ]</span><span class="h2" data-scramble>El Club</span></div>
+      <p class="sub">Antigua Villa Rosa · Raval · desde el 21 jun 1996
+        <span class="skillnote">▸ orbe: <b>orbe-cursor-viscoso</b> (te sigue) · skills: <b>revelado-scroll</b> · <b>firma-tipografica-mixta</b></span></p>
+      <div class="club-cols">
+        <div class="card"><div class="club-shot"><img src="https://images.unsplash.com/photo-1571266028243-d220c52d9a62?auto=format&amp;fit=crop&amp;w=1000&amp;q=85" alt="Cabina y luces azules del Main floor" loading="lazy"></div><h3>Main floor</h3><p>Techno, Detroit, EBM, industrial y electro. Techos bajos, subwoofers y una cabina de madrugada para perder la noción del tiempo.</p><p><strong>Sonido:</strong> 4 puntos de grave · <strong>aforo:</strong> 350 personas.</p></div>
+<div class="card"><div class="club-shot"><img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&amp;fit=crop&amp;w=1000&amp;q=85" alt="Sala Villarosa con iluminación cálida" loading="lazy"></div><h3>Villarosa</h3><p>La planta de arriba: pop, electropop, rock de los 70-90 y dance. Un refugio íntimo para cantar cuando el Main pide más presión.</p><p><strong>Ambiente:</strong> selectores residentes · <strong>aforo:</strong> 120 personas.</p></div>
+      </div>
+      <div class="pillars">
+        <div class="pillar">Música electrónica como lenguaje universal.</div>
+        <div class="pillar">Cultura de club auténtica — abiertos 365 días al año.</div>
+        <div class="pillar">Espacio seguro e inclusivo (Friendly Space).</div>
+      </div>
+      <div class="card info" style="margin-top:16px">
+        <dl>
+          <dt>Dirección</dt><dd>Carrer de l'Arc del Teatre 3, El Raval, 08002 Barcelona</dd>
+          <dt>Horario</dt><dd>Dom–Jue 23:59–05:00 · Vie–Sáb 23:59–06:00</dd>
+          <dt>Contacto</dt><dd>+34 933 191 789 · moog.info@masimas.com</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · MOOG YOUR BODY (orbe-gema-reflejo) -->
+  <section class="body-stmt" id="body">
+    <div style="position:relative;z-index:2">
+      <h2 data-scramble>MOOG YOUR BODY</h2>
+      <p>▸ orbe: orbe-gema-reflejo · mueve el ratón</p>
+    </div>
+  </section>
+
+  <!-- 9 · MOOG × SÓNAR -->
+  <section class="sec" id="sonar" data-reveal>
+    <div class="head"><span class="kicker">[ 09 ]</span><span class="h2" data-scramble>MOOG × Sónar</span></div>
+    <div class="sonar">
+       <div class="sonar-copy"><p class="big">Del primer <em>Sónar</em> del 94 a hoy — <em>30 años</em> de after oficial.</p><p class="sub" style="margin:0">Jueves · 23:59h · Main floor · cierre especial al amanecer</p><a class="linkarrow" href="#">Programa MOOG × Sónar 2026 →</a></div>
+       <div class="sonar-visual"><img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&amp;fit=crop&amp;w=1200&amp;q=85" alt="Público en un festival nocturno" loading="lazy"><span>AFTER OFICIAL · RAVAL</span></div>
+     </div>
+   </section>
+
+  <!-- 10 · PARTNERS / GRUPO MAS I MAS (logo-wall) -->
+  <section class="sec" id="partners" data-reveal>
+    <div class="head"><span class="kicker">[ 10 ]</span><span class="h2" data-scramble>Grupo Mas i Mas</span></div>
+    <p class="sub">Familia de salas <span class="skillnote">▸ skills: <b>logo-wall</b></span></p>
+    <div class="wall">
+         <div class="lg"><strong>MOOG</strong><small>TECHNO · RAVAL</small></div><div class="lg"><strong>JAMBOREE JAZZ</strong><small>JAZZ · DIRECTO</small></div><div class="lg"><strong>TARANTOS</strong><small>FLAMENCO · PLAÇA REIAL</small></div>
+         <div class="lg"><strong>JAMBOREE DANCE</strong><small>CLUB · BARCELONA</small></div><div class="lg"><strong>MAS I MAS FESTIVAL</strong><small>VERANO · CIUDAD</small></div><div class="lg"><strong>MAS I MAS</strong><small>FAMILIA DE SALAS</small></div>
+       </div>
+   </section>
+
+  <!-- 11 · NEWSLETTER -->
+  <section class="sec" id="newsletter" data-reveal>
+    <div class="head"><span class="kicker">[ 11 ]</span><span class="h2" data-scramble>Newsletter</span></div>
+    <div class="nl-layout">
+       <div class="nl-visual"><img src="https://images.unsplash.com/photo-1485872299829-c673f5194813?auto=format&amp;fit=crop&amp;w=900&amp;q=85" alt="Luces violetas del club" loading="lazy"></div>
+       <div class="nl">
+         <p class="sub" style="margin-bottom:0">¡Suscríbete y recibe noticias, sesiones y descuentos exclusivos de Moog!</p>
+         <p class="note">Una carta al mes. Sin spam, solo fechas, invitados y alguna sorpresa de madrugada.</p>
+         <form onsubmit="return false">
+           <input type="email" placeholder="tu@email.com" aria-label="Email" />
+           <label><input type="checkbox" /> Acepto la Política de Privacidad</label>
+           <button type="submit">Suscribirme</button>
+         </form>
+       </div>
+     </div>
+   </section>
+
+  <!-- 12 · FAQs -->
+  <section class="sec" id="faqs" data-reveal>
+    <div class="head"><span class="kicker">[ 12 ]</span><span class="h2" data-scramble>FAQs</span></div>
+    <div style="margin-top:10px">
+      <details><summary>¿Cuál es el horario?</summary><p>Dom–Jue de 23:59 a 05:00 · Vie–Sáb de 23:59 a 06:00. Abiertos 365 días al año.</p></details>
+      <details><summary>¿Cómo llego?</summary><p>Carrer de l'Arc del Teatre 3, El Raval — a dos pasos de Las Ramblas y Plaça Reial.</p></details>
+      <details><summary>¿Política de acceso y espacio seguro?</summary><p>Moog es un espacio seguro e inclusivo (Friendly Space). Reservado el derecho de admisión.</p></details>
+      <details><summary>¿Dónde compro entradas?</summary><p>En la Agenda de cada evento o en taquilla. Precios entre 8€ y 10€ según la noche.</p></details>
+       <details><summary>¿Hay guardarropa?</summary><p>Sí, encontrarás guardarropa dentro del club durante toda la noche. El servicio se recoge hasta 15 minutos antes del cierre.</p></details>
+       <details><summary>¿Puedo salir y volver a entrar?</summary><p>La reentrada depende del evento y del aforo. Consulta al equipo de puerta antes de salir.</p></details>
+    </div>
+  </section>
+
+  <!-- 13 · TICKETS CTA -->
+  <section class="sec" id="tickets" data-reveal>
+    <div class="head"><span class="kicker">[ 13 ]</span><span class="h2" data-scramble>Entradas</span></div>
+    <p class="sub">Nos vemos a las 23:59h <span class="skillnote">▸ acceso desde 18 años · aforo limitado · pago con tarjeta</span></p>
+     <div class="ticket-grid"><div class="ticket-card"><b>Anticipada</b><span>Desde 8€ · acceso prioritario hasta la 01:30h.</span></div><div class="ticket-card"><b>Taquilla</b><span>10€ · disponible mientras quede aforo en la puerta.</span></div><div class="ticket-card"><b>Dress code</b><span>Ven como eres · espacio seguro · respeto por la pista.</span></div></div>
+     <a class="hero__cta" href="#agenda" style="position:relative">Comprar entradas ↗</a>
+  </section>
+
+  <!-- 14 · FOOTER -->
+  <footer class="foot" id="footer">
+    <div class="foot-top">
+      <span><b>Atención al cliente</b> +34 933 191 789</span>
+      <span><b>Email</b> moog.info@masimas.com</span>
+      <span><b>Horario oficina</b> L–J 9–17h · V 9–14h</span>
+    </div>
+    <div class="foot-cols">
+      <div>
+        <h4>Moog Club</h4>
+        <p>Moog Disco Barcelona<br>Carrer de l'Arc del Teatre 3<br>El Raval · 08002 Barcelona</p>
+        <p style="margin-top:10px">Dom–Jue 23:59–05:00<br>Vie–Sáb 23:59–06:00</p>
+        <a href="#footer">Contacto</a><a href="#faqs">FAQs</a>
+      </div>
+      <div>
+        <h4>Grupo Mas i Mas</h4>
+        <a href="#">Moog Barcelona</a><a href="#">Jamboree Jazz Club</a><a href="#">Tarantos Flamenco</a>
+        <a href="#">Jamboree Dance Club</a><a href="#">Mas i Mas Festival</a><a href="#">Mas i Mas</a>
+      </div>
+      <div>
+        <h4>Legal</h4>
+        <a href="#">Aviso legal</a><a href="#">Política de privacidad</a><a href="#">Política de redes</a>
+        <a href="#">Política de cookies</a><a href="#">Espacio seguro</a><a href="#">Canal ético</a>
+      </div>
+    </div>
+    <div class="foot-addr">Arc del Teatre, 3<br>· Raval ·</div>
+    <div class="foot-bottom">
+      <span>© MOOG 1996–2026 · Mas i Mas</span>
+      <span class="soc"><a href="#">IG</a><a href="#">FB</a><a href="#">SoundCloud</a><a href="#">Spotify</a><a href="#">YouTube</a></span>
+    </div>
+  </footer>
+
+  <span class="badge">réplica MEJORADA de moogbarcelona.com · misma estructura + 5 orbes + movimiento · <b>blockout, corrige y a piel</b></span>
+
+<script src="orbe-global.js"></script>
+<script src="orbe-sonido.js"></script>
+<script>
+
+(function(){
+  "use strict";
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const bar = document.getElementById("prog");
+  const onScroll = () => { const h=document.documentElement; const p=(h.scrollTop||document.body.scrollTop)/((h.scrollHeight-h.clientHeight)||1); bar.style.transform="scaleX("+Math.min(Math.max(p,0),1)+")"; };
+  addEventListener("scroll", onScroll, { passive:true }); onScroll();
+  document.querySelectorAll("[data-marquee]").forEach(m=>{ const g=m.querySelector(".mq-grupo"); const c=g.cloneNode(true); c.setAttribute("aria-hidden","true"); g.after(c); m.classList.add("mq-on"); });
+  const CH="ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/*<>";
+  function scramble(el){ const text=el._raw||(el._raw=el.textContent); if(reduce){ el.textContent=text; return; }
+    const speed=0.03, dur=0.55, steps=dur/speed; let step=0; if(el._iv) clearInterval(el._iv);
+    el._iv=setInterval(()=>{ let out="", prog=step/steps; for(let i=0;i<text.length;i++){ const ch=text[i]; if(ch===" "){ out+=" "; continue; } out += (prog*text.length>i) ? ch : CH[Math.floor(Math.random()*CH.length)]; } el.textContent=out; if(step++>steps){ clearInterval(el._iv); el.textContent=text; } }, speed*1000); }
+  const io=new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); e.target.querySelectorAll("[data-scramble]").forEach(scramble); } else { e.target.classList.remove("in"); } }); }, { threshold:.2 });
+  document.querySelectorAll("[data-reveal],.body-stmt").forEach(el=>io.observe(el));
+  if(!reduce){ document.querySelectorAll("#agenda .ev").forEach(row=>{ row.addEventListener("pointerdown", e=>{ const r=row.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top; for(let k=0;k<3;k++){ const ring=document.createElement("span"); ring.className="beat-ring"; ring.style.left=x+"px"; ring.style.top=y+"px"; ring.style.animationDelay=(k*90)+"ms"; row.appendChild(ring); setTimeout(()=>ring.remove(), 820+k*90); } }); }); }
+})();
+</script>
+</body>
+</html>
