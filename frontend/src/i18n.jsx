@@ -136,6 +136,8 @@ const dict = {
       "Meses de cuota": "Instalment months", "Primera visita": "First visit", Ramos: "Bouquets", "Zonas de entrega": "Delivery areas",
       "Hora límite": "Order by", Llegada: "Arrival", Servicio: "Service", Garantía: "Guarantee", "Tipos de clase": "Class types",
       "Primera clase": "First class", Ilimitado: "Unlimited",
+      Diseños: "Designs", Packs: "Packs", "Comisión por pedido": "Commission per order", "Pedido en mesa": "Table ordering",
+      Vídeo: "Video", Llamadas: "Calls", "Web de cafetería · Pedido en mesa, panel y llamadas": "Café website · Table ordering, venue panel, calls", "Platos en carta": "Dishes on the menu",
       // experiments
       Plataformas: "Platforms", Avisos: "Alerts", Reventa: "Resale", Precios: "Prices", Mapas: "Maps",
       Barcelona: "Barcelona", "Datos abiertos": "Open data", Ciudad: "City", Sombras: "Shadows",
@@ -257,6 +259,12 @@ const dict = {
           short: "Un rediseño demo de la web de un club techno mítico, hecho solo para ooox para enseñar un tipo de las webs que hago: agenda, residentes, galería y un orbe 3D líquido que reacciona al cursor.",
           route: ["Inicio", "Agenda", "Residentes", "Galería"],
           facts: [["", "Web"], ["", "2026"], ["", "React · WebGL"], ["", "Online"]],
+        },
+        molta: {
+          typeEn: "Web de cafetería · Pedido en mesa, panel y llamadas",
+          short: "Una cafetería de especialidad en Gràcia: una web en la que entras como en un vídeo, una carta con QR que manda los pedidos a barra y cocina, tarjeta de sellos y un asistente que atiende el teléfono. Cinco diseños sobre el mismo motor.",
+          route: ["Calle", "QR de mesa", "Barra y cocina", "Tarjeta"],
+          facts: [["", "Web y sistema"], ["", "5 diseños"], ["", "2026"], ["", "Pedido en mesa"]],
         },
         "la-vermuteria": {
           typeEn: "Web de bar · Carta y reservas",
@@ -427,6 +435,7 @@ const dict = {
           ],
         },
         // Webs para negocios: en castellano se usan los textos de data/mock.js (el {} evita caer en el inglés)
+        molta: {},
         "la-vermuteria": {},
         "nomada-barbers": {},
         "pell-i-pinzell": {},
@@ -535,6 +544,19 @@ dict.en.case.projects = {
     ],
   },
   // ---------------------------------------------------------- websites for neighbourhood businesses (demos)
+  molta: {
+    kicker: "Coffee roasted in-house and slow breakfasts, in Gràcia",
+    description:
+      "Demo project · A website and system for a specialty café in Gràcia: you walk into the venue like in a video, order from your table with a QR code, the order reaches the bar and the kitchen, the stamp card lives on your phone and an assistant answers the phone.",
+    longDescription:
+      "This is a demo project: Molta doesn't exist, but everything you see works and can be tried. It's the new level of what I build for bars and cafés. The front page is a video that moves with your finger: you start on the street, facing the shopfront, walk in, and the video stops inside by the bar with the house's welcome. The menu is split into drinks and food and shows every dish on its plate, with what's in it, how filling it is and the allergens, and customers order from the table by scanning its QR code; the order reaches the bar and the kitchen straight away. The venue runs everything from one panel: tables, sold-out items, the bill and the day's summary. The stamp card lives on the phone, with no app and no password, and in the fullest pack an assistant answers the phone, notes down orders and group bookings. The same website comes in five designs (the record, the plate, the sign, the film and the half), and each venue is set up from a sheet with its details.",
+    highlights: [
+      "A video front page: from the street to the bar as you scroll",
+      "Ordering from the table by QR, straight to the bar and the kitchen",
+      "Venue panel: tables, sold-out items, the bill and the day's summary",
+      "Stamp card on the phone and an assistant that takes calls",
+    ],
+  },
   "la-vermuteria": {
     kicker: "Tap vermouth and tapas in Gràcia",
     description:

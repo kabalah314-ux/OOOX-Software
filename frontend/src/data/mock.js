@@ -113,6 +113,17 @@ export const workCards = {
     ],
   },
   // ---------------------------------------------------------- LOCAL · webs para negocios de barrio
+  molta: {
+    typeEn: "Café website · Table ordering, venue panel, calls",
+    short: "A specialty café in Gràcia: a website you walk into like a video, a table QR menu that sends orders to the bar and kitchen, a stamp card and an assistant that answers the phone. Five designs on the same engine.",
+    route: ["Street", "Table QR", "Bar & kitchen", "Stamp card"],
+    facts: [
+      ["Type", "Website + system"],
+      ["Designs", "5"],
+      ["Year", "2026"],
+      ["Key feature", "Table ordering"],
+    ],
+  },
   "la-vermuteria": {
     typeEn: "Bar website · Menu & bookings",
     short: "A vermouth bar in Gràcia: menu with allergens and table QR, daily set menu, and bookings and takeaway orders that reach the bar on WhatsApp.",
@@ -392,16 +403,22 @@ export const projects = [
   },
   // ---------------------------------------------------------- LOCAL · webs para negocios de barrio (demos)
   {
-    id: "la-vermuteria", category: "local", title: "La Vermutería", kicker: "Vermut de grifo y tapas en Gràcia", year: "2026",
-    type: "Web de bar · Carta y reservas", status: "Online", statusTone: "live", access: "public",
-    ...demoWeb("la-vermuteria", [["carta", "Carta con alérgenos"], ["reserva", "Reserva por WhatsApp"]]),
-    accent: "#E0A526", accentSoft: "#0E2A1E",
+    id: "molta", category: "local", title: "Molta", kicker: "Café tostado aquí y desayunos sin prisa, en Gràcia", year: "2026",
+    type: "Web de cafetería · Pedido en mesa, panel y llamadas", status: "Online", statusTone: "live", access: "public",
+    ...demoWeb("molta", [["plato", "Diseño «el plato»"], ["rotulo", "Diseño «el rótulo»"], ["pelicula", "Diseño «la película»"], ["mitad", "Diseño «la mitad»"], ["carta", "Pedir desde la mesa"], ["prueba", "El pedido llega a la barra"]]),
+    video: { src: asset("/videos/molta.mp4"), poster: asset("/videos/molta.jpg"), label: "Cinco diseños · Un mismo local" },
+    accent: "#E08A5C", accentSoft: "#22160F",
     demo: true,
-    description: "Proyecto demo · Web para un bar de vermut de Gràcia: carta con alérgenos y QR para las mesas, menú del día, reservas y pedidos para llevar que llegan al bar por WhatsApp.",
-    longDescription: "Este es un proyecto demo: el bar no existe, pero todo lo que ves funciona y se puede probar. La Vermutería del Carrer tiene identidad propia —el panot de flor de Barcelona, la carta de papel y la pizarra del menú— y resuelve lo que más preguntan los clientes: si está abierto ahora, qué hay en la carta (con los 14 alérgenos), cuál es el menú de hoy y cómo reservar. Las reservas y los pedidos para llevar llegan al móvil del bar como un WhatsApp ya escrito, sin apps ni comisiones. Está en castellano, catalán e inglés, y unas notas amarillas explican al dueño para qué sirve cada parte.",
-    highlights: ["Carta con filtros, los 14 alérgenos y QR para las mesas", "Reserva en 20 segundos: personas, día, turno, hora y zona", "Pedidos para llevar sin comisiones de plataformas", "Abierto ahora, horario y menú del día que cambia solo"],
-    stack: ["HTML", "CSS", "JavaScript"], tags: ["Hostelería", "Reservas", "WhatsApp"],
-    metrics: [{ label: "Idiomas", value: "3" }, { label: "Alérgenos", value: "14" }, { label: "Comisiones", value: "0 %" }],
+    description: "Proyecto demo · Web y sistema para una cafetería de especialidad de Gràcia: entras al local como en un vídeo, pides desde la mesa con un QR, el pedido llega a barra y cocina, la tarjeta de sellos va en el móvil y un asistente atiende el teléfono.",
+    longDescription: "Este es un proyecto demo: Molta no existe, pero todo lo que ves funciona y se puede probar. Es el nivel nuevo de lo que hago para bares y cafeterías. La portada es un vídeo que avanza con el dedo: empiezas en la calle, frente a la fachada, entras andando y el vídeo se para dentro, junto a la barra, con la bienvenida de la casa. La carta va por bebidas y comidas, enseña cada plato en su plato, con lo que lleva, cuánto llena y los alérgenos, y se pide desde la mesa escaneando su QR; el pedido llega al momento a la barra y a la cocina. El local lo lleva todo desde un panel: mesas, agotados, la cuenta y el resumen del día. La tarjeta de sellos va en el móvil, sin app ni contraseña, y en el pack más completo un asistente contesta al teléfono, apunta encargos y reservas de grupo. La misma web tiene cinco diseños (el disco, el plato, el rótulo, la película y la mitad) y cada local se monta desde una ficha con sus datos.",
+    highlights: [
+      "Portada en vídeo: de la calle a la barra al deslizar",
+      "Pedido desde la mesa con QR, que llega a barra y cocina",
+      "Panel del local: mesas, agotados, cuenta y resumen del día",
+      "Tarjeta de sellos en el móvil y asistente que atiende llamadas",
+    ],
+    stack: ["HTML", "GSAP", "Cloudflare Workers", "Durable Objects"], tags: ["Hostelería", "Pedido en mesa", "Vídeo", "Llamadas"],
+    metrics: [{ label: "Diseños", value: "5" }, { label: "Platos en carta", value: "26" }, { label: "Comisión por pedido", value: "0 %" }],
   },
   {
     id: "nomada-barbers", category: "local", title: "Nómada Barbers", kicker: "Corte, barba y cita en 20 segundos", year: "2026",
@@ -523,7 +540,7 @@ export const projects = [
 // ------------------------------------------------------------
 export const ORDER = [
   "neuron", "elementia", "crossia", "usain-bot", "casa-aurea", "massflow", "moog-barcelona",
-  "la-vermuteria", "nomada-barbers", "pell-i-pinzell", "flors-fulles", "ramirez-24h", "estudio-lua",
+  "molta", "nomada-barbers", "pell-i-pinzell", "flors-fulles", "ramirez-24h", "estudio-lua",
   "chollector", "followthesun",
 ];
 

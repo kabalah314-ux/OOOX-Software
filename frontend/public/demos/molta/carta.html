@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es" data-pg="carta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>La carta de molta, cafè d'especialitat</title>
+<meta name="description" content="La carta de molta: bebidas (cafés, otras) y comidas (caliente, frío).">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f4eadc">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2322160f'/%3E%3Ccircle cx='50' cy='50' r='24' fill='%23e08a5c'/%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/pilcrow-rounded-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/base.css">
+<script src="data/negocio.js"></script>
+<script src="js/local.js"></script>
+<style>
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+.app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+
+/* cabecera propia: solo cuando la carta se abre fuera de la web */
+.chead{position:absolute;left:0;right:0;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;height:var(--top);padding:env(safe-area-inset-top,0px) var(--m) 0}
+.emb .chead{display:none}
+.wm{display:flex;align-items:baseline;gap:.45em;font:700 var(--step-lead)/1 var(--font);letter-spacing:-.05em;text-decoration:none}
+.wm small{font:400 var(--step-small)/1 var(--font);letter-spacing:0}
+.cartbtn{min-height:44px;padding:0 1.1em}
+.cartbtn b{font-weight:500}
+.cartbtn.bump{animation:bump .45s var(--ease-out)}
+@keyframes bump{40%{transform:scale(1.08)}}
+
+/* escenario: el disco de color, el plato y la ficha */
+.stage{--name:var(--step-display);position:relative;flex:1;min-height:0;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto auto;grid-template-areas:"hero" "tx" "buy" "deck";padding:0 var(--m) calc(14px + var(--sb));touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.platter,.platter2{position:absolute;left:var(--px,50%);top:var(--py,-20vw);width:var(--pd,170vw);height:var(--pd,170vw);margin:calc(var(--pd,170vw)/-2) 0 0 calc(var(--pd,170vw)/-2);border-radius:50%;pointer-events:none}
+.platter{background:var(--pc)}
+.platter2{clip-path:circle(0px at 50% 50%)}
+.hero{grid-area:hero;position:relative;display:grid;place-items:center;min-height:0;padding-top:calc(var(--top) - 20px)}
+.pw{position:relative;width:var(--plate,min(78vw,38vh));height:var(--plate,min(78vw,38vh));cursor:grab}
+.pw:active{cursor:grabbing}
+.rot{position:absolute;inset:0;border-radius:50%;will-change:transform}
+.rot img{width:100%;height:100%;border-radius:50%}
+
+.tx{grid-area:tx;position:relative;padding-top:12px}
+.nameb{display:flex;align-items:flex-end;height:calc(1.84*var(--name))}
+.name{width:100%;font:700 var(--name)/.92 var(--font);letter-spacing:-.05em;text-transform:lowercase;text-wrap:balance;margin-left:-.04em}
+.line{margin-top:8px;line-height:1.4;min-height:2.8em;max-width:38ch}
+.side{grid-area:side;display:none}
+.buy{grid-area:buy;display:flex;align-items:center;gap:10px;margin-top:14px}
+.add{flex:1;min-width:0;justify-content:space-between;padding:0 1.3em}
+.add b{font-weight:500}
+.deck{grid-area:deck;display:flex;gap:10px;margin-top:12px}
+.mini{--ring:var(--surface);flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:52px;padding:0 16px 0 8px;border-radius:999px;background:var(--surface);text-align:left;transition:background-color var(--t-hover) ease,color var(--t-hover) ease,transform var(--t-press) var(--ease-out)}
+.mini:active{transform:scale(.98)}
+.mt{display:flex;flex:none;padding-left:10px}
+.mt img{width:36px;height:36px;border-radius:50%;margin-left:-10px;border:2px solid var(--ring);background:var(--ring);transition:border-color var(--t-hover) ease}
+.mx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;line-height:1.1}
+.mx b{font-weight:500}
+.mx small{font-size:var(--step-small);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color var(--t-hover) ease}
+.mini>svg{width:20px;height:20px;flex:none}
+@media (hover:hover){.mini:hover{--ring:var(--ink);background:var(--ink);color:var(--bg)}.mini:hover .mx small{color:var(--bg)}}
+
+/* ficha (pantallas anchas): descripción, ingredientes y cómo es */
+.desc{font-size:var(--step-lead);line-height:1.35;max-width:36ch}
+.ficha{display:flex;gap:clamp(24px,3vw,48px);margin-top:18px;font-size:var(--step-small);line-height:1.4}
+.ingt th{font-weight:500;text-align:left;padding:3px 18px 3px 0;white-space:nowrap}
+.ingt td{color:var(--muted);padding:3px 0}
+.meters div{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:3px 0}
+.meters dd{display:flex;gap:4px}
+.meters i{width:10px;height:10px;border-radius:50%;background:var(--surface)}
+.meters i.on{background:var(--ink)}
+.alg{margin-top:12px;font-size:var(--step-small);color:var(--muted)}
+
+@media (min-width:901px){
+  .stage{--name:min(var(--step-display),15vh);grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto;grid-template-areas:"hero hero" "tx side" "deck buy";column-gap:clamp(32px,6vw,96px);padding-bottom:clamp(20px,3.6vh,36px)}
+  .tx{align-self:end}
+  .line{display:none}
+  .side{display:block;align-self:end;padding-top:30px}
+  .buy{align-self:end;margin-top:22px}
+  .add{flex:1;min-width:190px;max-width:340px}
+  .deck{align-self:end;margin-top:22px;max-width:440px}
+}
+@media (min-width:901px) and (max-height:820px){.ficha{display:none}}
+@media (min-width:901px) and (max-height:620px){.desc{font-size:var(--step-body)}}
+@media (max-width:900px) and (max-height:600px){
+  .stage{--name:2.25rem}
+  .tx{padding-top:8px}
+  .line{min-height:1.4em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:6px}
+  .buy{margin-top:10px}.deck{margin-top:8px}
+}
+
+/* lo que vuela al pedido */
+.fly{position:fixed;z-index:90;border-radius:50%;pointer-events:none}
+.fly img{width:100%;height:100%;border-radius:50%}
+
+/* la carta entera: una hoja de papel que sube */
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(19,34,63,.52);opacity:0;visibility:hidden;transition:opacity var(--t-ui) ease,visibility 0s var(--t-ui)}
+.sheet-open .scrim,.cart-open .scrim{opacity:1;visibility:visible;transition:opacity var(--t-ui) ease,visibility 0s}
+.sheet{position:fixed;left:50%;bottom:0;z-index:51;width:min(1120px,100%);height:min(93%,920px);display:flex;flex-direction:column;background:var(--bg);transform:translate(-50%,102%);visibility:hidden;transition:transform .5s var(--ease-in-out),visibility 0s .5s}
+.sheet-open .sheet{transform:translate(-50%,0);visibility:visible;transition:transform .5s var(--ease-in-out),visibility 0s}
+.shd{display:flex;align-items:center;justify-content:space-between;gap:16px;flex:none;padding:18px var(--m) 4px}
+.shd h2{font:700 var(--step-head)/1 var(--font);letter-spacing:-.04em;text-transform:lowercase;margin-left:-.03em}
+.stabs{display:flex;justify-content:space-between;gap:10px;flex:none;padding:4px var(--m) 8px}
+.stabs button{position:relative;min-height:44px;font:500 var(--step-small)/1 var(--font);color:var(--muted);white-space:nowrap;transition:color var(--t-hover) ease}
+.stabs button::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:4px;border-radius:2px;background:var(--ink);transform:scaleX(0);transform-origin:0 50%;transition:transform var(--t-ui) var(--ease-out)}
+.stabs button.on{color:var(--ink)}
+.stabs button.on::after{transform:scaleX(1)}
+.sbody{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 var(--m) calc(28px + var(--sb))}
+.ssec{padding:22px 0 8px}
+.sh2{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:8px}
+.sh2 h3{font:700 var(--step-head)/1 var(--font);letter-spacing:-.04em;text-transform:lowercase;margin-left:-.03em}
+.sh2 span{font:500 var(--step-lead)/1 var(--font);color:var(--muted)}
+/* grupos (bebidas, comidas): el título grande es el grupo y sus secciones van debajo, más pequeñas */
+.sgrp{padding:22px 0 6px}
+.sgrp+.sgrp{padding-top:34px}
+.sgrp .ssec{padding:14px 0 2px}
+.sh2.sg{margin-bottom:0}
+.sh2 h4{font:700 var(--step-lead)/1.15 var(--font);letter-spacing:-.025em;text-transform:lowercase}
+.sh2.sb{margin-bottom:2px}
+.sh2.sb span{font:500 var(--step-body)/1 var(--font)}
+.stabs.g{justify-content:flex-start;gap:30px}
+.stabs.g button{font-size:var(--step-body)}
+.rows{display:grid;grid-template-columns:minmax(0,1fr);column-gap:clamp(40px,6vw,88px)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 0}
+.rmain{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:14px;text-align:left;border-radius:28px}
+.rp{width:56px;height:56px;border-radius:50%;transition:transform .5s var(--ease-out)}
+.r1{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-weight:500;line-height:1.25}
+.r1 span:first-child{min-width:0;text-wrap:pretty}
+.r1 span+span{flex:none;white-space:nowrap}
+.rt{display:block;min-width:0}
+.r2{display:flex;justify-content:space-between;gap:12px;font-size:var(--step-small);line-height:1.4;color:var(--muted);margin-top:2px}
+.r2 span+span{white-space:nowrap}
+.radd{width:44px;height:44px}
+.radd svg{width:20px;height:20px}
+.radd.ok{background:var(--ink);color:var(--bg)}
+.row.on .rp{outline:4px solid var(--ink);outline-offset:3px}
+@media (hover:hover){.rmain:hover .rp{transform:rotate(40deg)}}
+.sfoot{padding:26px 0 4px;font-size:var(--step-small);color:var(--muted);max-width:60ch}
+@media (min-width:901px){
+  .stabs{justify-content:flex-start;gap:34px}
+  .stabs button{font-size:var(--step-body)}
+  .rows{grid-template-columns:1fr 1fr}
+  .rp{width:64px;height:64px}
+  .ficha{font-size:var(--step-body)}
+}
+
+/* tu pedido */
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:61;width:min(480px,100%);display:flex;flex-direction:column;background:var(--bg);transform:translateX(102%);visibility:hidden;transition:transform .5s var(--ease-in-out),visibility 0s .5s}
+.cart-open .drawer{transform:none;visibility:visible;transition:transform .5s var(--ease-in-out),visibility 0s}
+.cart-open .scrim{z-index:60}
+.items{flex:1;overflow:auto;overscroll-behavior:contain;padding:8px var(--m)}
+.it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:10px 0}
+.it img{width:52px;height:52px;border-radius:50%}
+.it b{display:block;font-weight:500;line-height:1.25}
+.it small{font-size:var(--step-small);color:var(--muted)}
+.qty{display:flex;align-items:center;gap:4px;font-weight:500}
+.qty .rb{width:40px;height:40px}
+.qty .rb svg{width:18px;height:18px}
+.qty span{min-width:1.6em;text-align:center}
+.empty{padding:28px 0}
+.empty p{margin-bottom:18px;max-width:28ch}
+.df{flex:none;display:grid;gap:16px;padding:20px var(--m) calc(20px + var(--sb));background:var(--surface)}
+.df .fld input{background:var(--bg)}
+.pick legend{font:500 var(--step-small)/1.3 var(--font);margin-bottom:8px}
+.pick{border:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 1.05em;border-radius:999px;background:var(--bg);font-weight:500;transition:background-color var(--t-hover) ease,color var(--t-hover) ease}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.tot{width:100%}
+.tot th{font-weight:400;text-align:left;padding:2px 0}
+.tot td{text-align:right;padding:2px 0}
+.tot .t th,.tot .t td{font-weight:500;font-size:var(--step-lead);padding-top:6px}
+.err{font-size:var(--step-small);font-weight:500}
+.note{font-size:var(--step-small);color:var(--muted)}
+
+/* pedido enviado */
+.thanks{position:fixed;inset:0;z-index:70;display:grid;align-content:center;justify-items:start;gap:22px;padding:var(--top) var(--m) calc(28px + var(--sb));overflow:auto;opacity:0;visibility:hidden;transition:opacity .4s ease,visibility 0s .4s}
+.thanks.on{opacity:1;visibility:visible;transition:opacity .4s ease,visibility 0s}
+.thanks h2{font:700 var(--step-display)/.92 var(--font);letter-spacing:-.05em;text-transform:lowercase;margin-left:-.04em}
+.steps{display:flex;gap:clamp(18px,4vw,44px)}
+.steps li{display:flex;align-items:center;gap:10px;font-weight:500;color:var(--field-muted);transition:color .4s ease}
+.steps i{width:22px;height:22px;border-radius:50%;background:var(--field-surface);transition:background-color .4s ease,transform .5s var(--ease-out)}
+.steps li.on{color:var(--field-ink)}
+.steps li.on i{background:var(--accent);transform:scale(1.15)}
+.sum{width:min(440px,100%)}
+.sum li{display:flex;justify-content:space-between;gap:16px;padding:3px 0}
+.thanks .btns{display:flex;flex-wrap:wrap;gap:10px}
+
+/* ===== en la mesa (carta.html?mesa=5) ===== */
+.hact{display:flex;align-items:center;gap:8px}
+.cuentab{min-height:44px;padding:0 1.1em}
+.cuentab b{font-weight:500}
+.enmesa .wm small{font-weight:700;color:var(--ink)}
+@media (max-width:520px){.enmesa .wm span{display:none}.enmesa .wm small{font:700 var(--step-lead)/1 var(--font);letter-spacing:-.05em}.cuentab span{display:none}}
+.add[disabled]{background:var(--surface);color:var(--muted)}
+.cod{display:grid;gap:10px}
+.cod>span{font:500 var(--step-small)/1.3 var(--font);color:var(--field-muted)}
+.cod b{display:flex;gap:10px}
+.cod i{display:grid;place-items:center;width:clamp(50px,13vw,68px);aspect-ratio:1;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 var(--step-lead)/1 var(--font);font-style:normal}
+.mesav .sum li.t{font-weight:500;font-size:var(--step-lead);padding-top:8px}
+.mesav .sum li span:first-child{min-width:0}
+.unir form{display:grid;gap:18px;justify-items:start}
+.unir .fld input{width:9.5em;font:700 var(--step-lead)/1 var(--font);letter-spacing:.32em;text-align:center}
+.unir .fld input:focus-visible{outline-color:var(--accent)}
+.unir .err{color:var(--accent)}
+</style>
+<script>LOCAL.estilo()</script>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="chead">
+    <a class="wm" href="index.html#carta"><span data-t="nombre">molta</span> <small data-t="apellido" id="wmS">cafè d'especialitat</small></a>
+    <div class="hact"><a class="btn cuentab" id="aSala" href="sala.html" hidden>Sala</a><button class="btn cuentab" id="cuentaBtn" aria-haspopup="dialog" hidden><span>Cuenta</span> <b id="cuentaT"></b></button><button class="btn pri cartbtn" id="cartBtn" aria-haspopup="dialog">Pedido <b id="cnt">0</b></button></div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="platter" id="platter"></div>
+    <div class="platter2" id="platter2"></div>
+
+    <div class="hero" id="hero">
+      <div class="pw" id="pw"><div class="rot" id="rot"><img id="pImg" alt="" width="1000" height="1000" decoding="async"></div></div>
+    </div>
+
+    <div class="tx sw" id="tx">
+      <div class="nameb" id="nameb"><h1 class="name" id="dName"></h1></div>
+      <p class="line" id="dLine"></p>
+    </div>
+
+    <div class="side sw" id="side">
+      <p class="desc" id="dDesc"></p>
+      <div class="ficha">
+        <table class="ingt" id="dIng"></table>
+        <dl class="meters" id="stats"></dl>
+      </div>
+      <p class="alg" id="dAlg"></p>
+    </div>
+
+    <div class="buy sw" id="buy">
+      <div class="seg" id="blend" role="group" aria-label="Opciones"></div>
+      <button class="btn pri add" id="addBtn"><span id="addT">Añadir al pedido</span><b id="dPrice"></b></button>
+    </div>
+
+    <div class="deck" id="deck">
+      <button class="rb" id="prev" aria-label="Plato anterior"></button>
+      <button class="mini" id="list" aria-haspopup="dialog" aria-label="Abrir la carta completa"></button>
+      <button class="rb" id="next" aria-label="Plato siguiente"></button>
+    </div>
+    <p class="vh" id="live" aria-live="polite"></p>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="shT" aria-hidden="true" inert></section>
+
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dT" aria-hidden="true" inert>
+  <div class="shd"><h2 id="dT">tu pedido</h2><button class="rb" id="closeCart" aria-label="Cerrar el pedido"></button></div>
+  <div class="items" id="items"></div>
+  <div class="df" id="df">
+    <fieldset class="pick" id="pickF"><legend>Hora de recogida</legend><div class="chips" id="chips"></div></fieldset>
+    <label class="fld" id="nameL"><span>Nombre para el pedido</span><input id="nameIn" autocomplete="given-name" maxlength="24"></label>
+    <table class="tot">
+      <tr><th scope="row">Subtotal</th><td id="sub">0,00 €</td></tr>
+      <tr><th scope="row" id="ivaL">IVA incluido (10 %)</th><td id="iva">0,00 €</td></tr>
+      <tr class="t"><th scope="row">Total</th><td id="total">0,00 €</td></tr>
+    </table>
+    <p class="err" id="err" role="alert" hidden>Escribe tu nombre para que te llamemos en barra.</p>
+    <button class="btn pri wide" id="send">Enviar pedido</button>
+    <p class="note" id="noteP">Pagas en barra al recogerlo.</p>
+  </div>
+</aside>
+
+<section class="thanks field" id="thanks" role="dialog" aria-modal="true" aria-labelledby="thx" aria-hidden="true" inert>
+  <h2 id="thx">gracias.</h2>
+  <p class="lead" id="tline"></p>
+  <ol class="steps" aria-label="Estado del pedido"><li id="s1"><i></i>Recibido</li><li id="s2"><i></i>Preparando</li><li id="s3"><i></i>Listo</li></ol>
+  <ul class="sum" id="sumList"></ul>
+  <div class="btns"><button class="btn pri" id="back">Volver a la carta</button><a class="btn" id="waLink" href="#" target="_blank" rel="noopener">Enviar por WhatsApp</a></div>
+</section>
+
+<section class="thanks field mesav" id="mesaV" role="dialog" aria-modal="true" aria-labelledby="mvT" aria-hidden="true" inert>
+  <h2 id="mvT">pedido enviado.</h2>
+  <p class="lead" id="mvL"></p>
+  <div class="cod" id="mvCod" hidden><span>Código de la mesa, para quien llegue después</span><b id="mvCodN"></b></div>
+  <ol class="steps" id="mvSteps" aria-label="Estado del pedido"><li><i></i>Recibido</li><li><i></i>Preparando</li><li><i></i>Listo</li></ol>
+  <ul class="sum" id="mvSum"></ul>
+  <div class="btns"><button class="btn pri" id="mvMas">Pedir algo más</button><button class="btn" id="mvCam">Llamar al camarero</button><button class="btn" id="mvCue">Pedir la cuenta</button><a class="btn pri" id="mvRes" href="index.html#resena" hidden>Dejar una reseña</a><a class="btn" id="mvTar" href="index.html#cupones" hidden>Mi tarjeta de socio</a><button class="btn" id="mvVol" hidden>Volver a la carta</button></div>
+</section>
+
+<section class="thanks field unir" id="unir" role="dialog" aria-modal="true" aria-labelledby="unT" aria-hidden="true" inert>
+  <h2 id="unT">mesa abierta.</h2>
+  <p class="lead" id="unL"></p>
+  <form id="unF" novalidate>
+    <label class="fld"><span>Código de la mesa, 4 cifras</span><input id="unC" inputmode="numeric" autocomplete="one-time-code" maxlength="4" pattern="[0-9]*"></label>
+    <p class="err" id="unE" role="alert" hidden></p>
+    <div class="btns"><button class="btn pri" type="submit">Entrar en la mesa</button><button class="btn" type="button" id="unV">Solo ver la carta</button></div>
+  </form>
+</section>
+
+<div class="toast" id="ctoast" role="status" aria-live="polite"></div>
+
+<script src="js/gsap.min.js"></script>
+<script src="js/sala-nucleo.js"></script>
+<script src="js/sala.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const EMB=new URLSearchParams(location.search).has('embed');if(EMB)document.documentElement.classList.add('emb');
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const WA=(window.NEGOCIO.whatsapp||'');
+const ic=d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+const I={l:ic('M14.5 5.5 8 12l6.5 6.5'),r:ic('M9.5 5.5 16 12l-6.5 6.5'),up:ic('M5.5 14.5 12 8l6.5 6.5'),x:ic('M6 6l12 12M18 6 6 18'),plus:ic('M12 5v14M5 12h14'),minus:ic('M5 12h14'),ok:ic('M5 12.5l5 5 9-10.5')};
+
+/* ===== el local: todo sale de data/negocio.js ===== */
+const N=window.NEGOCIO,C=N.carta,D=C.productos,MO=LOCAL.modelo,CF=LOCAL.cfg,MODO=CF.carta||'rodar';
+D.forEach(d=>{if(!d.opts&&d.price.length>1)d.opts=C.opciones||['A','B']});
+const SL=C.barras||[],SHORT=C.corto||{};
+/* partes de la carta: secciones sueltas o, si el local lo pide (carta.grupos), grupos con sus secciones (Bebidas: Cafés y Otras) */
+const GR=(()=>{const hay=[...new Set(D.map(d=>d.sec))],g=(C.grupos||[]).map(([n,ss])=>[n,(ss||[]).filter(s=>hay.includes(s))]).filter(x=>x[1].length);
+ if(!g.length)return[];const usadas=g.flatMap(x=>x[1]);hay.filter(s=>!usadas.includes(s)).forEach(s=>g.push([s,[s]]));return g})();
+const SECS=GR.length?GR.flatMap(x=>x[1]):[...new Set(D.map(d=>d.sec))],GOF={};GR.forEach(([n,ss])=>ss.forEach(s=>{GOF[s]=n}));
+const PARTES=GR.length?GR.map(x=>x[0]):SECS,solo=([n,ss])=>ss.length===1&&ss[0]===n;
+/* en la mesa: el QR de cada mesa abre carta.html?mesa=5 · con &sala=1 es el camarero tomando nota */
+const QS=new URLSearchParams(location.search),mq=parseInt(QS.get('mesa'),10)||0,MESA=mq>=1&&mq<=SALA.cfg.mesas?mq:0,STAFF=MESA>0&&QS.has('sala');
+let OUT=new Set();
+LOCAL.pintar();document.title='La carta de '+N.nombre+(N.apellido?', '+N.apellido:'');
+const eur=LOCAL.eur,P=i=>LOCAL.plato(D[i].id,true),T=i=>LOCAL.plato(D[i].id);
+const join=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+(/^(i|hi(?!e))/i.test(a[a.length-1])?' e ':' y ')+a[a.length-1];
+const notes=d=>{const o=[];if(d.tag)o.push(d.tag+'.');if(d.al.length)o.push('Contiene '+join(d.al)+'.');return o.join(' ')};
+const pre=i=>{const im=new Image();im.src=P((i+D.length)%D.length)};
+
+let cur=0,blend=0,busy=false,dragging=false,K=1;
+/* el siguiente plato que no esté agotado */
+const libre=(i,dir)=>{let k=i,n=0;do{k=(k+dir+D.length)%D.length}while(OUT.has(D[k].id)&&++n<D.length);return k};
+const priceOf=i=>{const p=D[i].price;return p[Math.min(blend,p.length-1)]};
+const stage=$('#stage'),hero=$('#hero'),pw=$('#pw'),rot=$('#rot'),pImg=$('#pImg'),platter=$('#platter'),platter2=$('#platter2'),ROOT=document.documentElement;
+$('#prev').innerHTML=I.l;$('#next').innerHTML=I.r;$('#closeCart').innerHTML=I.x;
+
+/* ===== la carta entera (hoja) ===== */
+const sheet=$('#sheet'),rowsEl=[];
+const fila=k=>{const d=D[k];return `<div class="row" data-i="${k}"><button class="rmain" data-go="${k}"><img class="rp" src="${T(k)}" alt="" width="56" height="56" loading="lazy" decoding="async"><span class="rt"><span class="r1"><span>${d.name}</span><span>${eur(d.price[0])}</span></span><span class="r2"><span>${d.line}</span>${d.price.length>1?`<span>${d.opts[1]} ${eur(d.price[1])}</span>`:''}</span>${notes(d)?`<span class="r2">${notes(d)}</span>`:''}</span></button><button class="rb radd" data-a="${k}" aria-label="Añadir ${d.name} al pedido">${I.plus}</button></div>`};
+const bloque=(sec,h)=>{const idx=D.map((x,k)=>k).filter(k=>D[k].sec===sec);
+ return `<section class="ssec${h==='h4'?' sb':''}" data-s="${sec}">${h?`<div class="sh2${h==='h4'?' sb':''}"><${h}>${sec}</${h}><span>${idx.length}</span></div>`:''}<div class="rows">${idx.map(fila).join('')}</div></section>`};
+sheet.innerHTML=`<div class="shd"><h2 id="shT">la carta</h2><button class="rb" id="sClose" aria-label="Cerrar la carta">${I.x}</button></div>
+<nav class="stabs${GR.length?' g':''}" id="stabs" aria-label="Partes de la carta">${PARTES.map(s=>`<button data-s="${s}">${s}</button>`).join('')}</nav>
+<div class="sbody" id="sBody">${GR.length?GR.map(G=>`<section class="sgrp" data-g="${G[0]}"><div class="sh2 sg"><h3>${G[0]}</h3><span>${D.filter(d=>GOF[d.sec]===G[0]).length}</span></div>${G[1].map(s=>bloque(s,solo(G)?'':'h4')).join('')}</section>`).join(''):SECS.map(s=>bloque(s,'h3')).join('')}
+<p class="sfoot">${LOCAL.esc(C.nota||'Si tienes alguna alergia, pregunta siempre en barra.')}</p></div>`;
+sheet.querySelectorAll('.row').forEach(r=>{rowsEl[+r.dataset.i]=r});
+let lastFocus=null;
+function modal(el,on){el.inert=!on;el.setAttribute('aria-hidden',!on);if(EMB&&parent!==window)parent.postMessage({ooox:'overlay',on:overlay()},'*');if(on){lastFocus=document.activeElement;setTimeout(()=>{const f=el.querySelector('button,a[href],input');f&&f.focus({preventScroll:true})},60)}else if(lastFocus&&lastFocus.focus){lastFocus.focus({preventScroll:true});lastFocus=null}}
+function openSheet(){if(DOCK()){veFila(cur);return}document.body.classList.add('sheet-open');modal(sheet,true);const t=sheet.querySelector(`.ssec[data-s="${D[cur].sec}"]`),g=t.closest('.sgrp'),a=g&&g.querySelector('.ssec')===t?g:t,b=$('#sBody');b.scrollTop=Math.max(0,a.offsetTop-b.offsetTop);spy();
+ if(!RM)gsap.fromTo(sheet.querySelectorAll('.rp'),{rotation:-70},{rotation:0,duration:.9,ease:'power3.out',stagger:{each:.018,from:rowsEl.indexOf(rowsEl[cur])},delay:.12,overwrite:'auto'})}
+function closeSheet(){if(!document.body.classList.contains('sheet-open'))return;document.body.classList.remove('sheet-open');modal(sheet,false)}
+$('#list').onclick=openSheet;$('#sClose').onclick=closeSheet;
+const parteEl=k=>sheet.querySelector(GR.length?`.sgrp[data-g="${k}"]`:`.ssec[data-s="${k}"]`);
+$('#stabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const t=parteEl(b.dataset.s),body=$('#sBody');gsap.to(body,{scrollTop:t.offsetTop-body.offsetTop,duration:RM?0:.55,ease:'power2.inOut'})});
+function spy(){const body=$('#sBody'),y=body.scrollTop+60,P=[...sheet.querySelectorAll(GR.length?'.sgrp':'.ssec')].filter(x=>!x.hidden),k=x=>x.dataset.g||x.dataset.s;if(!P.length)return;
+ let on=k(P[0]);P.forEach(x=>{if(x.offsetTop-body.offsetTop<=y)on=k(x)});
+ if(body.scrollTop+body.clientHeight>=body.scrollHeight-4)on=k(P[P.length-1]);
+ $$('#stabs button').forEach(b=>b.classList.toggle('on',b.dataset.s===on))}
+$('#sBody').addEventListener('scroll',spy,{passive:true});
+sheet.addEventListener('click',e=>{const a=e.target.closest('.radd');if(a){const k=+a.dataset.a,key=keyOf(k,0);cart[key]=(cart[key]||0)+1;renderCart(true);a.classList.add('ok');a.innerHTML=I.ok;setTimeout(()=>{a.classList.remove('ok');a.innerHTML=I.plus},900);return}
+ const m=e.target.closest('.rmain');if(!m)return;const k=+m.dataset.go;if(DOCK()){if(k!==cur)go(k,k>cur?1:-1);return}closeSheet();setTimeout(()=>{if(k!==cur)go(k,k>cur?1:-1)},RM?0:280)});
+/* deslizar la hoja hacia abajo la cierra */
+{let y0=null;sheet.addEventListener('touchstart',e=>{const b=$('#sBody');y0=(e.target.closest('.sbody')&&b.scrollTop>2)?null:e.touches[0].clientY},{passive:true});
+ sheet.addEventListener('touchend',e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>80)closeSheet();y0=null},{passive:true})}
+
+/* ===== la carta entera acoplada (modelos de lista): en pantallas anchas no es una hoja que sube, ocupa su mitad ===== */
+const DOCK=()=>CF.lista==='fija'&&innerWidth>900;
+function acopla(){const on=DOCK();ROOT.classList.toggle('lista-fija',on);if(on)document.body.classList.remove('sheet-open');
+ if(on||!document.body.classList.contains('sheet-open')){sheet.inert=!on;sheet.setAttribute('aria-hidden',!on)}
+ sheet.setAttribute('role',on?'region':'dialog');if(on)sheet.removeAttribute('aria-modal');else sheet.setAttribute('aria-modal','true')}
+function veFila(i){const r=rowsEl[i],b=$('#sBody');if(!r||r.hidden)return;const t=r.offsetTop-b.offsetTop,h=b.clientHeight;
+ if(t<b.scrollTop+30||t+r.offsetHeight>b.scrollTop+h-30)gsap.to(b,{scrollTop:Math.max(0,t-h*.32),duration:RM?0:.5,ease:'power2.out'})}
+/* las partes de la carta como pestañas de texto en el escenario (modelos que las piden) */
+let CT=null;
+if(CF.pestanas){CT=document.createElement('nav');CT.className='ctabs';CT.id='ctabs';CT.setAttribute('aria-label','Partes de la carta');stage.insertBefore(CT,$('#tx'));
+ CT.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const s=b.dataset.s,g=b.dataset.g,es=d=>s?d.sec===s:GOF[d.sec]===g;
+  const k=D.findIndex(d=>es(d)&&!OUT.has(d.id));if(k>=0&&!es(D[cur]))go(k,k>cur?1:-1)})}
+function pintaTabs(){if(!CT)return;const d=D[cur],g=GOF[d.sec]||'',hay=f=>D.some(x=>f(x)&&!OUT.has(x.id));
+ if(CT.dataset.k!==g||!CT.childElementCount){const f=CT.contains(document.activeElement)?document.activeElement:null,fk=f&&(f.dataset.s||f.dataset.g);CT.dataset.k=g;
+  CT.innerHTML=GR.length?GR.map(G=>`<button data-g="${G[0]}">${G[0]}</button>`+(G[0]===g&&!solo(G)?G[1].map(s=>`<button class="sub" data-s="${s}">${SHORT[s]||s}</button>`).join(''):'')).join(''):SECS.map(s=>`<button data-s="${s}">${SHORT[s]||s}</button>`).join('');
+  if(fk){const b=[...CT.children].find(x=>(x.dataset.s||x.dataset.g)===fk);if(b)b.focus({preventScroll:true})}}
+ CT.querySelectorAll('button').forEach(b=>{const s=b.dataset.s;b.setAttribute('aria-current',s?s===d.sec:b.dataset.g===g);b.hidden=!hay(s?x=>x.sec===s:x=>GOF[x.sec]===b.dataset.g)})}
+
+/* ===== tamaños: el plato siempre entero; el disco de color, enorme y cortado por la pantalla ===== */
+let geo={ox:0,oy:0,pd:0};
+function fit(){const S=stage.getBoundingClientRect(),H=hero.getBoundingClientRect(),top=parseFloat(getComputedStyle(hero).paddingTop)||0;
+ const hc=getComputedStyle(hero),kw=parseFloat(hc.getPropertyValue('--kw'))||.92,kh=parseFloat(hc.getPropertyValue('--kh'))||1;
+ const plate=Math.max(120,Math.floor(MODO==='rodar'?Math.min(H.width*.92,S.width*.5+140,H.height-top-16):Math.min(H.width*kw,(H.height-top-16)*kh)));
+ const pd=Math.max(S.width*(S.width>900?1.3:1.7),plate*2.2),cx=S.width/2,cy=(H.bottom-S.top)-4-pd/2;
+ ROOT.style.setProperty('--plate',plate+'px');stage.style.setProperty('--pd',pd+'px');stage.style.setProperty('--px',cx+'px');stage.style.setProperty('--py',cy+'px');
+ stage.style.setProperty('--hl',(H.left-S.left).toFixed(1)+'px');stage.style.setProperty('--ht',(H.top-S.top+top).toFixed(1)+'px');stage.style.setProperty('--hw',H.width.toFixed(1)+'px');stage.style.setProperty('--hh',(H.height-top).toFixed(1)+'px');
+ K=MODO==='rodar'?360/(Math.PI*plate):0;
+ geo={pd,ox:(H.left+H.width/2-S.left)-(cx-pd/2),oy:(H.top-S.top+top+(H.height-top)/2)-(cy-pd/2),plate};if(MODO==='arco')arco(ARC.t)}
+/* el nombre llena su hueco: una línea bien grande si cabe, dos si no */
+function fitName(){const el=$('#dName'),box=$('#nameb');el.style.fontSize='';const base=parseFloat(getComputedStyle(el).fontSize),maxH=box.clientHeight,W=box.clientWidth;
+ const nm=parseFloat(getComputedStyle(box).getPropertyValue('--nmul'))||(innerWidth>900?1.4:2);let fs=Math.floor(Math.min(base*nm,maxH/.92)),n=0;el.style.fontSize=fs+'px';
+ while((el.scrollWidth>W+1||el.offsetHeight>maxH+2)&&fs>20&&n++<140){fs-=2;el.style.fontSize=fs+'px'}}
+
+/* ===== ficha del plato ===== */
+function fill(i){const d=D[i];
+ $('#dName').textContent=d.name;$('#dLine').textContent=d.line;$('#dDesc').textContent=d.desc;
+ $('#dIng').innerHTML='<caption class="vh">Ingredientes</caption>'+d.ing.map(([a,b])=>`<tr><th scope="row">${b}</th><td>${a}</td></tr>`).join('');
+ $('#stats').innerHTML=SL.map((l,k)=>`<div><dt>${l}</dt><dd aria-label="${d.st[k]} de 5">${[1,2,3,4,5].map(j=>`<i class="${j<=d.st[k]?'on':''}"></i>`).join('')}</dd></div>`).join('');
+ $('#dAlg').textContent=notes(d)||'Sin alérgenos declarados.';
+ if(i!==fill.last)blend=0;fill.last=i;
+ const bl=$('#blend');bl.hidden=!d.opts;bl.innerHTML=d.opts?d.opts.map((o,k)=>`<button data-b="${k}" aria-pressed="${k===blend}">${o}</button>`).join(''):'';
+ const out=OUT.has(d.id);$('#addBtn').disabled=out;$('#addT').textContent=out?'Agotado por hoy':d.opts&&innerWidth<=900?'Añadir':'Añadir al pedido';$('#dPrice').textContent=out?'':eur(priceOf(i));
+ const idx=D.map((x,k)=>k).filter(k=>D[k].sec===d.sec),nx=[];{let k=i;for(let n=0;n<(innerWidth>480?3:2);n++){k=libre(k,1);nx.push(k)}}
+ $('#list').innerHTML=`<span class="mt">${nx.map(k=>`<img src="${T(k)}" alt="" width="36" height="36">`).join('')}</span><span class="mx"><b>${GR.length?GOF[d.sec]:'La carta'}</b><small>${SHORT[d.sec]||d.sec}, ${idx.indexOf(i)+1} de ${idx.length}</small></span>${I.up}`;
+ rowsEl.forEach((r,k)=>r&&r.classList.toggle('on',k===i));
+ pintaTabs();if(DOCK())veFila(i);
+ $('#live').textContent=d.name+', '+eur(priceOf(i))+'. '+d.line;
+ fitName();pre(i+1);pre(i-1);pre(i+2)}
+$('#blend').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;blend=+b.dataset.b;[...$('#blend').children].forEach(x=>x.setAttribute('aria-pressed',x===b));$('#dPrice').textContent=eur(priceOf(cur));if(!RM)gsap.fromTo('#dPrice',{y:-8,opacity:0},{y:0,opacity:1,duration:.3,ease:'power2.out'})});
+
+/* ===== el plato: gira despacio, rueda con el dedo y sale rodando ===== */
+const st={x:0,a:0};const paint=()=>{rot.style.transform=`translate3d(${st.x.toFixed(1)}px,0,0) rotate(${st.a.toFixed(2)}deg)`};
+let last=performance.now();
+function loop(t){const dt=Math.min(64,t-last);last=t;if(MODO==='rodar'&&!busy&&!dragging&&!RM&&!document.hidden){st.a=(st.a+dt*.009)%360;paint()}requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+function colour(c,dur,dir){if(RM||!dur||(MODO!=='rodar'&&!PASO.wipe)){platter.style.background=c;return}
+ platter2.style.background=c;
+ if(MODO!=='rodar'){/* la baldosa nueva entra tapando la anterior, desde el lado hacia el que se avanza */
+  const o={v:100},d=dir||1;gsap.to(o,{v:0,duration:dur,ease:'power3.inOut',onUpdate:()=>{const v=o.v.toFixed(2)+'%';platter2.style.clipPath=PASO.wipe==='x'?(d>0?`inset(0 0 0 ${v})`:`inset(0 ${v} 0 0)`):(d>0?`inset(${v} 0 0 0)`:`inset(0 0 ${v} 0)`)},onComplete:()=>{platter.style.background=c;platter2.style.clipPath='inset(0 0 0 100%)'}});return}
+ const o={r:0};gsap.to(o,{r:geo.pd*.92,duration:dur,ease:'power2.out',onUpdate:()=>{platter2.style.clipPath=`circle(${o.r.toFixed(1)}px at ${geo.ox.toFixed(1)}px ${geo.oy.toFixed(1)}px)`},onComplete:()=>{platter.style.background=c;platter2.style.clipPath='circle(0px at 50% 50%)'}})}
+/* ===== otros modelos: el mismo plato, otra manera de pasar al siguiente ===== */
+const PAS={cortina:{o:{scale:.8,opacity:0,rotation:-16},i:{scale:1.18,opacity:0,rotation:18},d:.8,wipe:'x'},
+ fundir:{o:{scale:1.05,opacity:0,rotation:8},i:{scale:.95,opacity:0,rotation:-8},d:.9},
+ subir:{o:{yPercent:-170,rotation:-30},i:{yPercent:170,rotation:30},d:.85}},PASO=PAS[CF.pasar]||{};
+const conDir=(o,dir)=>{const r={};for(const k in o)r[k]=k==='opacity'||k==='scale'?o[k]:o[k]*dir;return r};
+const entraTx=()=>gsap.fromTo('.sw',{y:22,opacity:0},{y:0,opacity:1,duration:.5,ease:'power3.out',stagger:.05,overwrite:'auto'});
+function swap(i){const d=D[i];cur=i;pImg.src=P(i);fill(i);ROOT.style.setProperty('--pc',d.c);colour(d.c,0);st.x=0;paint();if(MODO==='arco')arcoPinta()}
+function goPasar(i,dir){busy=true;gsap.killTweensOf(st);const d=D[i],g=rot.cloneNode(true),gi=g.firstElementChild;g.removeAttribute('id');gi.removeAttribute('id');g.classList.add('ghost');pw.appendChild(g);
+ cur=i;pImg.src=P(i);st.x=0;st.a=0;paint();gsap.set(pImg,conDir(PASO.i,dir));
+ gsap.timeline({onComplete:()=>{g.remove();busy=false}})
+  .to(gi,{...conDir(PASO.o,dir),duration:PASO.d*.62,ease:'power2.in'},0)
+  .to('.sw',{y:-18,opacity:0,duration:.26,ease:'power2.in',stagger:.03},0)
+  .add(()=>{ROOT.style.setProperty('--pc',d.c);colour(d.c,PASO.d,dir)},.06)
+  .add(()=>fill(i),.3)
+  .to(pImg,{scale:1,opacity:1,rotation:0,yPercent:0,duration:PASO.d,ease:'power3.out'},.16)
+  .add(entraTx,.46)}
+/* la fila en arco (modelo plato): el actual en el centro; sus vecinos detrás, cada paso más pequeños y más oscuros */
+const ARC={el:[],t:0,sp:1,n:4,step:300,moved:false};
+function seq(k){let i=cur;const sg=Math.sign(k);for(let n=0;n<Math.abs(k);n++)i=libre(i,sg);return i}
+function arcoMonta(){const h=document.createElement('div');h.className='arco';h.id='arco';h.setAttribute('aria-hidden','true');
+ for(let k=-ARC.n;k<=ARC.n;k++){const b=document.createElement('div');b.className='sl';b.dataset.k=k;b.innerHTML='<img alt="" width="1000" height="1000" decoding="async" draggable="false">';h.appendChild(b);ARC.el.push(b)}
+ hero.appendChild(h);h.addEventListener('click',e=>{const b=e.target.closest('.sl');if(!b||ARC.moved||busy)return;const k=+b.dataset.k;if(k)go(seq(k),Math.sign(k))})}
+function arcoPinta(){ARC.el.forEach(b=>{const im=b.firstChild,src=P(seq(+b.dataset.k));if(im.getAttribute('src')!==src)im.src=src});arco(0)}
+function arco(t){ARC.t=t;const W=stage.clientWidth,pl=geo.plate||200,m=W<=900,step=ARC.step=m?W/2:Math.max(pl*.62,W*.17),sc=m?.6:.7;
+ ARC.el.forEach(b=>{const u=+b.dataset.k-t,a=Math.abs(u),s=Math.pow(sc,a),x=u*step*ARC.sp,y=-pl*.06*a+pl*.05*(1-Math.cos(Math.PI*u))/2;
+  b.style.transform=`translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) scale(${s.toFixed(4)})`;b.style.filter=a<.02?'none':`brightness(${Math.max(.3,1-.24*a).toFixed(3)})`;b.style.zIndex=String(20-Math.round(a*2))})}
+function goArco(i,dir){busy=true;let n=0,j=cur;while(j!==i&&n<=3){j=libre(j,dir);n++}const d=D[i],fin=()=>{cur=i;pImg.src=P(i);ROOT.style.setProperty('--pc',d.c);fill(i);arcoPinta();busy=false;entraTx()};
+ gsap.to('.sw',{y:-14,opacity:0,duration:.22,ease:'power2.in',stagger:.03,overwrite:'auto'});
+ if(j!==i){gsap.to('#arco',{opacity:0,duration:.24,onComplete:()=>{fin();gsap.to('#arco',{opacity:1,duration:.4})}});return}
+ const o={t:ARC.t};gsap.to(o,{t:n*dir,duration:.5+.14*n,ease:'power3.inOut',onUpdate:()=>arco(o.t),onComplete:fin})}
+
+function go(i,dir){if(busy||i===cur)return;dir=dir||(i>cur?1:-1);
+ if(MODO!=='rodar'){if(RM)swap(i);else if(MODO==='arco')goArco(i,dir);else goPasar(i,dir);return}
+ busy=true;gsap.killTweensOf(st);
+ const W=stage.clientWidth,far=W/2+geo.plate/2+30,d=D[i];
+ if(RM){cur=i;pImg.src=P(i);fill(i);ROOT.style.setProperty('--pc',d.c);colour(d.c,0);st.x=0;paint();busy=false;return}
+ const out=-dir*far,tl=gsap.timeline({onComplete:()=>{busy=false}});
+ tl.to(st,{x:out,a:st.a+(out-st.x)*K,duration:.5,ease:'power2.in',onUpdate:paint},0)
+   .to('.sw',{y:-18,opacity:0,duration:.26,ease:'power2.in',stagger:.03},0)
+   .add(()=>{cur=i;pImg.src=P(i);fill(i);ROOT.style.setProperty('--pc',d.c);colour(d.c,.85);st.x=dir*far;st.a=(st.a%360)+dir*far*K;paint()})
+   .to(st,{x:0,a:'-='+(dir*far*K),duration:.9,ease:'power3.out',onUpdate:paint})
+   .fromTo('.sw',{y:22,opacity:0},{y:0,opacity:1,duration:.5,ease:'power3.out',stagger:.05},'-=.62')}
+const nextD=()=>go(libre(cur,1),1),prevD=()=>go(libre(cur,-1),-1);
+$('#next').onclick=nextD;$('#prev').onclick=prevD;
+/* arrastrar en horizontal: el plato sigue al dedo rodando; si lo sueltas lejos, pasa al siguiente */
+{let dg=null;
+ stage.addEventListener('pointerdown',e=>{if(busy||e.button>0||e.target.closest('button,a,input'))return;dg={id:e.pointerId,x:e.clientX,y:e.clientY,a:st.a,on:false,dx:0,v:0,t:e.timeStamp}});
+ addEventListener('pointermove',e=>{if(!dg||e.pointerId!==dg.id)return;const dx=e.clientX-dg.x,dy=e.clientY-dg.y;
+  if(!dg.on){if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy)*1.2)return;dg.on=dragging=true;gsap.killTweensOf(st);try{stage.setPointerCapture(dg.id)}catch(_){}}
+  dg.v=(dx-dg.dx)/Math.max(1,e.timeStamp-dg.t);dg.t=e.timeStamp;dg.dx=dx;if(MODO==='arco'){arco(-dx/ARC.step);return}st.x=MODO==='rodar'?dx:dx*.35;st.a=dg.a+dx*K;paint()});
+ const end=e=>{if(!dg||e.pointerId!==dg.id)return;const d=dg;dg=null;if(!d.on)return;dragging=false;
+  if(MODO==='arco'){ARC.moved=true;setTimeout(()=>{ARC.moved=false},80);const n=Math.max(-3,Math.min(3,Math.round(ARC.t-d.v*220/ARC.step)));if(n)go(seq(n),Math.sign(n));else{const o={t:ARC.t};gsap.to(o,{t:0,duration:.45,ease:'power3.out',onUpdate:()=>arco(o.t)})}return}
+  if(Math.abs(d.dx)>Math.min(130,innerWidth*.24)||Math.abs(d.v)>.55){d.dx<0?nextD():prevD()}
+  else gsap.to(st,{x:0,a:d.a,duration:.5,ease:'power3.out',onUpdate:paint})};
+ addEventListener('pointerup',end);addEventListener('pointercancel',end)}
+
+/* embebida: lo vertical que la carta no usa pasa a la página, que salta de sección */
+const canScroll=(t,d)=>{for(let el=t;el&&el!==document.documentElement;el=el.parentElement){const cs=getComputedStyle(el);if(/(auto|scroll)/.test(cs.overflowY)&&el.scrollHeight>el.clientHeight+2){if(d>0?el.scrollTop+el.clientHeight<el.scrollHeight-2:el.scrollTop>2)return true}}return false};
+const overlay=()=>document.body.classList.contains('cart-open')||document.body.classList.contains('sheet-open')||!!document.querySelector('.thanks.on');
+if(EMB){
+ addEventListener('wheel',e=>{if(Math.abs(e.deltaY)<=Math.abs(e.deltaX)||overlay())return;if(canScroll(e.target,e.deltaY))return;e.preventDefault();parent.postMessage({ooox:'wheel',dy:e.deltaY},'*')},{passive:false});
+ let t0=null;
+ addEventListener('touchstart',e=>{const t=e.touches[0];t0={x:t.clientX,y:t.clientY,el:e.target}},{passive:true});
+ addEventListener('touchend',e=>{if(!t0||overlay()){t0=null;return}const t=e.changedTouches[0],dx=t.clientX-t0.x,dy=t.clientY-t0.y;
+  if(Math.abs(dy)>45&&Math.abs(dy)>Math.abs(dx)*1.3&&!canScroll(t0.el,-dy))parent.postMessage({ooox:'swipe',dir:dy<0?1:-1},'*');t0=null},{passive:true})}
+let wheelLock=0;addEventListener('wheel',e=>{if(overlay())return;const n=Date.now();
+ if(EMB){if(Math.abs(e.deltaX)<=Math.abs(e.deltaY)||Math.abs(e.deltaX)<12||n<wheelLock)return;wheelLock=n+900;e.deltaX>0?nextD():prevD();return}
+ const dl=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(n<wheelLock||Math.abs(dl)<12)return;wheelLock=n+1000;dl>0?nextD():prevD()},{passive:true});
+addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeSheet();cerrarMesa();return}if(overlay()||/INPUT|TEXTAREA/.test(e.target.tagName))return;
+ if(e.key==='ArrowRight'||(!EMB&&e.key==='ArrowDown'))nextD();if(e.key==='ArrowLeft'||(!EMB&&e.key==='ArrowUp'))prevD()});
+
+/* ===== pedido ===== */
+const cart={};/* clave: índice|opción */
+const keyOf=(i,b)=>i+'|'+(D[i].price.length>1?(b==null?blend:b):'-'),kIdx=k=>+k.split('|')[0];
+const kPrice=k=>{const[i,b]=k.split('|');const p=D[i].price;return b==='-'?p[0]:p[+b]};
+const kName=k=>{const[i,b]=k.split('|');return D[i].name+(b==='-'?'':', '+D[i].opts[+b].toLowerCase())};
+function totals(){let n=0,s=0;Object.entries(cart).forEach(([k,q])=>{n+=q;s+=q*kPrice(k)});return{n,s}}
+function postCart(bump){if(!EMB||parent===window)return;const{n,s}=totals();parent.postMessage({ooox:'cart',n,total:eur(s),bump:!!bump},'*')}
+function renderCart(bump){const{n,s}=totals();$('#cnt').textContent=n;
+ $('#items').innerHTML=n?Object.entries(cart).map(([k,q])=>`<div class="it"><img src="${T(kIdx(k))}" alt="" width="52" height="52"><div><b>${kName(k)}</b><small>${eur(kPrice(k))}</small></div><div class="qty"><button class="rb" data-i="${k}" data-d="-1" aria-label="Quitar uno">${I.minus}</button><span>${q}</span><button class="rb" data-i="${k}" data-d="1" aria-label="Añadir uno">${I.plus}</button></div></div>`).join('')
+  :'<div class="empty"><p class="lead">'+(MESA?'Tu pedido está vacío. Elige algo de la carta y te lo llevamos a la mesa.':'Tu pedido está vacío. Elige algo de la carta y lo tendrás listo en barra.')+'</p><button class="btn pri" id="emptyGo">Ver la carta</button></div>';
+ $('#df').hidden=!n;$('#sub').textContent=eur(s);$('#iva').textContent=eur(s-s/(1+(C.iva||10)/100));$('#total').textContent=eur(s);
+ $('#send').textContent=MESA?(STAFF?'Anotar en la mesa '+MESA:'Pedir a la mesa '+MESA):n?'Enviar pedido de '+eur(s):'Enviar pedido';postCart(bump);
+ if(bump){const c=$('#cartBtn');c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}}
+$('#items').addEventListener('click',e=>{if(e.target.closest('#emptyGo')){closeCart();openSheet();return}const b=e.target.closest('button[data-i]');if(!b)return;const i=b.dataset.i;cart[i]=(cart[i]||0)+ +b.dataset.d;if(cart[i]<=0)delete cart[i];renderCart()});
+$('#nameIn').addEventListener('input',()=>{$('#err').hidden=true});
+$('#addBtn').onclick=()=>{if(OUT.has(D[cur].id))return;const k=keyOf(cur),done=()=>{cart[k]=(cart[k]||0)+1;renderCart(true)};if(RM){done();return}
+ const from=pw.getBoundingClientRect(),to=EMB?{left:innerWidth-110,top:14,width:60,height:36}:$('#cartBtn').getBoundingClientRect();
+ const f=document.createElement('div');f.className='fly';f.innerHTML=`<img src="${P(cur)}" alt="">`;Object.assign(f.style,{left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px'});
+ f.firstChild.style.transform=`rotate(${st.a}deg)`;document.body.appendChild(f);
+ const tx=to.left+to.width/2-(from.left+from.width/2),ty=to.top+to.height/2-(from.top+from.height/2);
+ gsap.timeline({onComplete:()=>{f.remove();done()}}).to(f,{x:tx*.4,y:ty*.4-from.height*.25,scale:.45,rotation:120,duration:.4,ease:'power2.out'}).to(f,{x:tx,y:ty,scale:.06,rotation:300,duration:.45,ease:'power2.in'})};
+/* horas de recogida */
+function madrid(){const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());return(+p.find(x=>x.type==='hour').value)*60+(+p.find(x=>x.type==='minute').value)}
+let pick='';
+function chips(){const now=madrid();const ab=(C.abre||'9:00').split(':');let base=Math.max(now+25,ab[0]*60+ +ab[1]);base=Math.ceil(base/15)*15;const out=['En 10 minutos'];for(let k=0;k<3;k++){const m=base+k*15;out.push(Math.floor(m/60)%24+':'+('0'+m%60).slice(-2))}
+ $('#chips').innerHTML=out.map((t,k)=>`<button type="button" class="chip" data-t="${t}" aria-pressed="${!k}">${t}</button>`).join('');pick=out[0]}
+$('#chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;$$('.chip').forEach(c=>c.setAttribute('aria-pressed',c===b));pick=b.dataset.t});
+function openCart(){closeSheet();chips();renderCart();document.body.classList.add('cart-open');modal($('#drawer'),true)}
+function closeCart(){if(!document.body.classList.contains('cart-open'))return;document.body.classList.remove('cart-open');modal($('#drawer'),false)}
+$('#cartBtn').onclick=openCart;$('#closeCart').onclick=closeCart;$('#scrim').onclick=()=>{closeCart();closeSheet()};
+/* enviar */
+$('#send').onclick=()=>{if(MESA){pedirMesa();return}const{n,s}=totals(),name=$('#nameIn').value.trim();if(!n)return;if(!name){$('#err').hidden=false;$('#nameIn').focus();return}
+ const id=N.tarjeta.prefijo+'-'+(2300+Math.floor(Math.random()*700)),when=pick.startsWith('En')?'en 10 minutos':'a las '+pick;
+ $('#thx').textContent='gracias, '+name.split(' ')[0]+'.';$('#tline').textContent=`Tu pedido ${id} estará ${when}. Pagas ${eur(s)} en barra al recogerlo.`;
+ $('#sumList').innerHTML=Object.entries(cart).map(([k,q])=>`<li><span>${q} × ${kName(k)}</span><span>${eur(q*kPrice(k))}</span></li>`).join('');
+ const msg=`Hola ${N.nombre}, pedido ${id} para recoger ${when}:\n`+Object.entries(cart).map(([k,q])=>`· ${q} × ${kName(k)}`).join('\n')+`\nTotal: ${eur(s)}\nA nombre de: ${name}`;
+ $('#waLink').href='https://wa.me/'+(WA||'')+'?text='+encodeURIComponent(msg);
+ closeCart();const th=$('#thanks');th.classList.add('on');modal(th,true);['#s1','#s2','#s3'].forEach(x=>$(x).classList.remove('on'));
+ setTimeout(()=>$('#s1').classList.add('on'),500);setTimeout(()=>$('#s2').classList.add('on'),2400)};
+$('#back').onclick=()=>{const th=$('#thanks');th.classList.remove('on');modal(th,false);Object.keys(cart).forEach(k=>delete cart[k]);$('#nameIn').value='';renderCart()};
+
+/* ===== en la mesa: pedir, sumarse con el código, llamar al camarero y pedir la cuenta ===== */
+const aviso=t=>{const e=$('#ctoast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3600)};
+const mv=$('#mesaV'),un=$('#unir');let mvOpen=false,unOpen=false,soloVer=false;
+const VK='ooox_visto_'+N.slug+'_'+MESA,visto=(()=>{try{return JSON.parse(sessionStorage.getItem(VK))||{}}catch(e){return{}}})(),guardaVisto=()=>{try{sessionStorage.setItem(VK,JSON.stringify(visto))}catch(e){}};
+/* lo agotado desaparece de la carta y del pedido en el momento */
+function setOut(a){const nu=new Set(a);if(nu.size===OUT.size&&[...nu].every(x=>OUT.has(x)))return;OUT=nu;
+ rowsEl.forEach((r,k)=>{if(r)r.hidden=OUT.has(D[k].id)});
+ sheet.querySelectorAll('.ssec,.sgrp').forEach(sec=>{const n=[...sec.querySelectorAll('.row')].filter(r=>!r.hidden).length,sp=sec.querySelector(':scope>.sh2 span');sec.hidden=!n;if(sp)sp.textContent=n});
+ $$('#stabs button').forEach(b=>{const t=parteEl(b.dataset.s);b.hidden=!t||t.hidden});
+ const fuera=[];Object.keys(cart).forEach(k=>{if(OUT.has(D[kIdx(k)].id)){fuera.push(D[kIdx(k)].name);delete cart[k]}});
+ if(fuera.length){renderCart();aviso('Se acaba de agotar: '+join(fuera)+'. Lo hemos quitado de tu pedido.')}
+ if(OUT.has(D[cur].id)&&!busy&&OUT.size<D.length)nextD();else fill(cur);
+ if(MODO==='arco'&&!busy)arcoPinta();pintaTabs()}
+function abrirMesa(){if(mvOpen)return;mvOpen=true;closeCart();closeSheet();mv.classList.add('on');modal(mv,true);pintaMesa()}
+function cerrarMesa(){if(!mvOpen)return;mvOpen=false;mv.classList.remove('on');modal(mv,false)}
+function abrirUnir(){if(unOpen)return;unOpen=true;$('#unL').textContent=`La mesa ${MESA} ya tiene una cuenta en marcha. Pide el código a alguien de tu mesa y pedís a la misma cuenta.`;$('#unE').hidden=true;$('#unC').value='';un.classList.add('on');modal(un,true)}
+function cerrarUnir(){if(!unOpen)return;unOpen=false;un.classList.remove('on');modal(un,false)}
+function pintaMesa(){const v=SALA.mesa(MESA);setOut(v.agotados);if(!MESA)return;
+ $('#cuentaBtn').hidden=STAFF||!(v.miembro||v.e==='pide');$('#cuentaT').textContent=v.e==='pide'?'en espera':eur(v.total||0);if(STAFF)return;
+ if(v.e==='ocupada'&&!soloVer)abrirUnir();if(v.e!=='ocupada')cerrarUnir();
+ const rech=v.rechazado&&v.rechazado!==visto.rech,cerr=v.cerrada&&v.cerrada!==visto.cerr;
+ if((rech||cerr)&&!mvOpen){abrirMesa();return}if(!mvOpen)return;
+ const pend=v.tk.filter(k=>k.e!=='servido'),listo=pend.length&&pend.every(k=>k.e==='listo');
+ let h,l,pasos=0,cod=false,b=[];
+ if(cerr){h='gracias.';l='Mesa cerrada. Si te ha gustado, cuéntalo: nos ayuda mucho.';b=['mvRes','mvTar','mvVol']}
+ else if(rech){h='no ha podido ser.';l='El camarero no ha aceptado el pedido. Acércate a la barra o prueba otra vez.';b=['mvVol']}
+ else if(v.e==='pide'){h='pedido enviado.';l=`Mesa ${MESA}. En cuanto el camarero lo confirme, sale a cocina y a barra.`;pasos=1;b=['mvCam']}
+ else if(v.e==='cuenta'){h='cuenta pedida.';l=`Son ${eur(v.total)}. El camarero viene a cobrar con el datáfono.`;pasos=3;b=['mvMas']}
+ else if(v.miembro){cod=true;b=['mvMas','mvCam','mvCue'];l=`Mesa ${MESA} abierta. Todo lo que pidáis va a la misma cuenta y se paga al final.`;
+  if(!v.tk.length){h='estás en la mesa '+MESA+'.';b=['mvMas','mvCam']}else if(!pend.length){h='que aproveche.';pasos=3}else if(listo){h='ya sale.';pasos=3}else{h='en marcha.';pasos=pend.some(k=>k.e!=='nuevo')||v.tk.length>pend.length?2:1}}
+ else{cerrarMesa();return}
+ $('#mvT').textContent=h;$('#mvL').textContent=l;
+ $('#mvCod').hidden=!cod;if(cod)$('#mvCodN').innerHTML=[...v.cod].map(c=>`<i>${c}</i>`).join('');
+ $('#mvSteps').hidden=!pasos;$$('#mvSteps li').forEach((li,k)=>li.classList.toggle('on',k<pasos));
+ const ls=v.miembro?v.l:(v.pend[0]?v.pend.flatMap(p=>p.l):[]);
+ $('#mvSum').innerHTML=ls.map(x=>`<li><span>${x.q} × ${LOCAL.esc(x.n)}${x.o?', '+LOCAL.esc(x.o.toLowerCase()):''}</span><span>${eur(x.q*x.pr)}</span></li>`).join('')+(ls.length?`<li class="t"><span>Total</span><span>${eur(ls.reduce((s,x)=>s+x.q*x.pr,0))}</span></li>`:'');
+ ['mvMas','mvCam','mvCue','mvRes','mvTar','mvVol'].forEach(id=>{$('#'+id).hidden=!b.includes(id)});
+ const cam=$('#mvCam');cam.disabled=!!v.avisos.camarero;cam.textContent=v.avisos.camarero?'Camarero avisado':'Llamar al camarero'}
+function pedirMesa(){const l=Object.entries(cart).map(([k,q])=>{const[i,b]=k.split('|');return{p:D[i].id,o:b==='-'?0:+b,q}});if(!l.length)return;
+ (STAFF?SALA.nota(MESA,l):SALA.pedir(MESA,l)).then(r=>{if(r.error){if(r.error==='codigo'){closeCart();soloVer=false;abrirUnir();return}aviso(r.error==='vacio'?'Eso se acaba de agotar. Elige otra cosa.':'No se ha podido enviar. Prueba otra vez.');return}
+  Object.keys(cart).forEach(k=>delete cart[k]);renderCart();closeCart();if(STAFF)aviso('Anotado en la mesa '+MESA+'. Sale a cocina y a barra.');else{visto.rech=SALA.mesa(MESA).rechazado||visto.rech;abrirMesa()}})}
+$('#mvMas').onclick=cerrarMesa;
+$('#mvVol').onclick=()=>{const v=SALA.mesa(MESA);if(v.rechazado)visto.rech=v.rechazado;if(v.cerrada)visto.cerr=v.cerrada;guardaVisto();cerrarMesa()};
+$('#mvRes').onclick=$('#mvTar').onclick=()=>{const v=SALA.mesa(MESA);if(v.cerrada)visto.cerr=v.cerrada;guardaVisto()};
+$('#mvCam').onclick=()=>SALA.avisar(MESA,'camarero').then(r=>{if(!r.error)aviso('Avisado. Ahora va alguien a tu mesa.')});
+$('#mvCue').onclick=()=>SALA.avisar(MESA,'cuenta');
+$('#cuentaBtn').onclick=abrirMesa;
+$('#unV').onclick=()=>{soloVer=true;cerrarUnir()};
+$('#unC').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'');$('#unE').hidden=true});
+$('#unF').addEventListener('submit',e=>{e.preventDefault();const c=$('#unC').value;if(c.length<4){$('#unE').textContent='Son 4 cifras.';$('#unE').hidden=false;return}
+ SALA.unirse(MESA,c).then(r=>{if(!r.error){cerrarUnir();aviso('Estás en la mesa '+MESA+'. Lo que pidas va a la misma cuenta.');return}
+  $('#unE').textContent=r.error==='bloqueado'?'Demasiados intentos. Espera unos minutos o avisa al camarero.':r.error==='cerrada'?'Esa mesa ya no está abierta.':'Ese no es el código de esta mesa.';$('#unE').hidden=false;$('#unC').select()})});
+$('#ivaL').textContent='IVA incluido ('+(C.iva||10)+' %)';
+if(MESA){document.documentElement.classList.add('enmesa');$('#wmS').textContent=STAFF?'nota, mesa '+MESA:'mesa '+MESA;$('#dT').textContent=STAFF?'nota, mesa '+MESA:'pedido, mesa '+MESA;
+ $('#pickF').hidden=$('#nameL').hidden=true;$('#noteP').textContent=STAFF?'Sale directo a cocina y a barra, a la cuenta de la mesa.':'El camarero lo confirma y sale a cocina y a barra. Se paga al final, en la mesa.';$('#aSala').hidden=!STAFF}
+SALA.on(pintaMesa);
+
+/* ===== arranque ===== */
+{const q=new URLSearchParams(location.search).get('p'),k=D.findIndex(d=>d.id===q);if(k>0)cur=k}
+if(MODO!=='rodar')platter2.style.clipPath='inset(0 0 0 100%)';if(MODO==='arco')arcoMonta();acopla();
+pImg.src=P(cur);ROOT.style.setProperty('--pc',D[cur].c);platter.style.background=D[cur].c;fit();fill(cur);if(MODO==='arco')arcoPinta();renderCart();pintaMesa();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{fit();fitName()});
+/* si el alojamiento bloquea los archivos de fuente, se cargan las mismas incrustadas y se vuelve a medir */
+if(document.fonts){const ok=()=>document.fonts.check('700 16px "Pilcrow Rounded"'),alt=()=>{if(ok())return;const l=document.createElement('link');l.rel='stylesheet';l.href='css/fuentes.css';l.onload=()=>document.fonts.load('700 16px "Pilcrow Rounded"').then(()=>{fit();fitName()},()=>{});document.head.appendChild(l)};document.fonts.load('700 16px "Pilcrow Rounded"').then(alt,alt)}
+
+/* entrada: el plato llega rodando (al cargar y cada vez que vuelves a la carta) */
+function intro(){if(RM||busy||dragging)return;
+ if(MODO!=='rodar'){if(MODO==='arco')gsap.fromTo(ARC,{sp:.1},{sp:1,duration:1.25,ease:'power3.out',onUpdate:()=>arco(ARC.t)});else gsap.fromTo(pImg,{scale:.84,opacity:0,rotation:-24},{scale:1,opacity:1,rotation:0,duration:1.1,ease:'power3.out'});
+  gsap.fromTo('.sw',{y:22,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07,delay:.25,overwrite:'auto'});return}
+ const far=stage.clientWidth/2+geo.plate/2+30;gsap.killTweensOf(st);st.x=far;st.a=(st.a%360)+far*K;paint();
+ gsap.to(st,{x:0,a:'-='+(far*K),duration:1.1,ease:'power3.out',onUpdate:paint});
+ gsap.fromTo('.sw',{y:22,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out',stagger:.07,delay:.25,overwrite:'auto'})}
+if(!EMB)intro();
+addEventListener('message',e=>{const m=e.data||{};if(m.ooox==='enter')intro();if(m.ooox==='openCart')openCart()});
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{acopla();fit();fill(cur)},80)});
+</script>
+</body>
+</html>

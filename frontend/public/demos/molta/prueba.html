@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es" data-pg="prueba">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Prueba una mesa de molta</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#22160f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2322160f'/%3E%3Ccircle cx='50' cy='50' r='24' fill='%23e08a5c'/%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/pilcrow-rounded-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/base.css">
+<script src="data/negocio.js"></script>
+<script src="js/local.js"></script>
+<style>
+/* Prueba guiada: el móvil del cliente y el local, en una sola pantalla, para enseñar el sistema entero. */
+html,body{height:100%}
+body{display:grid;grid-template-rows:auto auto minmax(0,1fr);background:var(--field);color:var(--field-ink);font:400 var(--step-body)/1.45 var(--font);overflow:hidden}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(12px + env(safe-area-inset-top,0px)) var(--m) 6px}
+.wm{display:flex;align-items:baseline;gap:.45em;font:700 var(--step-lead)/1 var(--font);letter-spacing:-.05em;text-decoration:none;color:inherit}
+.wm small{font:400 var(--step-small)/1 var(--font);letter-spacing:0;color:var(--field-muted)}
+.phead .btn{min-height:44px;padding:0 1.1em}
+.guia{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 18px;align-items:center;padding:6px var(--m) 14px}
+.pasos{display:flex;gap:6px;grid-row:span 2}
+.pasos i{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--field-surface);color:var(--field-muted);font:700 var(--step-small)/1 var(--font);font-style:normal;transition:background-color .4s ease,color .4s ease,transform .5s var(--ease-out)}
+.pasos i.hecho{background:var(--field-ink);color:var(--field)}
+.pasos i.on{background:var(--accent);color:var(--accent-ink);transform:scale(1.14)}
+.guia h1{font:700 var(--step-lead)/1.12 var(--font);letter-spacing:-.03em;text-transform:lowercase}
+.guia p{grid-column:2;color:var(--field-muted);font-size:var(--step-small);line-height:1.4;max-width:70ch}
+.marcos{display:grid;grid-template-columns:minmax(0,390px) minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:clamp(14px,2.4vw,32px);min-height:0;padding:0 var(--m) calc(16px + var(--sb))}
+.mf{display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;min-height:0;min-width:0}
+.mf figcaption{display:flex;align-items:center;justify-content:space-between;gap:10px;font:500 var(--step-small)/1.2 var(--font);color:var(--field-muted);min-height:44px}
+.mf .seg{background:var(--field-surface)}
+.mf .seg button{min-height:36px;padding:0 .9em;font-size:var(--step-small);color:var(--field-muted)}
+.mf .seg button[aria-pressed="true"],.cambio button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.caja{position:relative;min-height:0;border-radius:26px;overflow:hidden;background:var(--bg);outline:6px solid var(--field-surface);outline-offset:-1px}
+.loc .caja{border-radius:0;background:var(--field)}
+.caja iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.caja iframe[hidden]{display:none}
+.cambio{display:none}
+@media (max-width:860px){
+ .guia{grid-template-columns:minmax(0,1fr);padding-bottom:10px}
+ .pasos{grid-row:auto}.pasos i{width:26px;height:26px}
+ .guia p{grid-column:1}
+ .marcos{grid-template-columns:minmax(0,1fr);padding:0 0 calc(62px + var(--sb))}
+ .mf{display:none}.mf.ver{display:grid;grid-template-rows:minmax(0,1fr)}
+ .mf figcaption{display:none}
+ .caja,.loc .caja{border-radius:0;outline:0}
+ .cambio{position:fixed;left:50%;bottom:calc(10px + var(--sb));z-index:30;display:inline-flex;transform:translateX(-50%);background:var(--field-surface)}
+ .cambio button{display:inline-flex;align-items:center;gap:.5em;min-height:44px;padding:0 1.1em;color:var(--field-muted)}
+ .cambio i{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+ .cambio button[aria-pressed="true"] i{background:var(--accent-ink)}
+}
+</style>
+<script>LOCAL.estilo()</script>
+</head>
+<body>
+<header class="phead">
+  <a class="wm" href="index.html"><span data-t="nombre">molta</span> <small>prueba una mesa</small></a>
+  <button class="btn" id="vaciar">Empezar de cero</button>
+</header>
+<div class="guia" aria-live="polite">
+  <div class="pasos" id="pasos" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></div>
+  <h1 id="gT">pide algo desde la mesa.</h1>
+  <p id="gL"></p>
+</div>
+<main class="marcos">
+  <figure class="mf cli ver" id="f-cli">
+    <figcaption><span id="capC">El móvil del cliente</span>
+      <span class="seg" id="quien" role="group" aria-label="Qué móvil se ve"><button data-q="cliente" aria-pressed="true">Cliente</button><button data-q="amigo" aria-pressed="false">Amigo que llega tarde</button></span></figcaption>
+    <div class="caja"><iframe id="ifC" title="La carta en el móvil del cliente"></iframe><iframe id="ifA" title="La carta en el móvil del amigo" hidden></iframe></div>
+  </figure>
+  <figure class="mf loc" id="f-loc">
+    <figcaption><span>El local: sala, cocina, barra y carta</span></figcaption>
+    <div class="caja"><iframe id="ifL" title="El panel del local"></iframe></div>
+  </figure>
+</main>
+<nav class="seg cambio" id="cambio" aria-label="Qué pantalla se ve">
+  <button data-f="cliente" aria-pressed="true">Cliente<i hidden></i></button>
+  <button data-f="amigo" aria-pressed="false">Amigo</button>
+  <button data-f="local" aria-pressed="false">Local<i hidden></i></button>
+</nav>
+
+<script src="js/sala-nucleo.js"></script>
+<script src="js/sala.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const N=window.NEGOCIO,M=Math.min(5,SALA.cfg.mesas);
+LOCAL.pintar();document.title='Prueba una mesa de '+N.nombre;
+if(document.fonts){const ok=()=>document.fonts.check('700 16px "Pilcrow Rounded"'),alt=()=>{if(ok())return;const l=document.createElement('link');l.rel='stylesheet';l.href='css/fuentes.css';document.head.appendChild(l)};document.fonts.load('700 16px "Pilcrow Rounded"').then(alt,alt)}
+$('#capC').textContent='El móvil del cliente, mesa '+M;
+$('#ifC').src=LOCAL.con('carta.html?mesa='+M+'&disp=cliente');$('#ifL').src=LOCAL.con('sala.html');
+let cargadoA=false,ver='cliente';
+function mira(f){ver=f;const amigo=f==='amigo';if(amigo&&!cargadoA){cargadoA=true;$('#ifA').src=LOCAL.con('carta.html?mesa='+M+'&disp=amigo')}
+ if(f!=='local'){$('#ifA').hidden=!amigo;$('#ifC').hidden=amigo;$$('#quien button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.q===f))}
+ $('#f-cli').classList.toggle('ver',f!=='local');$('#f-loc').classList.toggle('ver',f==='local');
+ $$('#cambio button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===f));guia()}
+$('#quien').addEventListener('click',e=>{const b=e.target.closest('button');if(b)mira(b.dataset.q)});
+$('#cambio').addEventListener('click',e=>{const b=e.target.closest('button');if(b)mira(b.dataset.f)});
+$('#vaciar').onclick=()=>SALA.reiniciar().then(()=>{hecho=false;mira('cliente')});
+
+/* la guía mira el estado de la mesa y dice el paso siguiente */
+let hecho=false;
+function guia(){const S=SALA.estado(),m=S.mesas[M]||{e:'libre'},ab=SalaNucleo.abierta(m),c=SALA.cuenta(M),pend=S.pedidos.some(p=>p.mesa===M&&p.e==='pendiente');
+ const falta=c.tk.some(k=>k.e==='nuevo'||k.e==='marcha');if(S.cerradas.some(x=>x.mesa===M)&&!ab&&!pend)hecho=true;if(ab||pend)hecho=false;
+ let n,t,l,donde;
+ if(hecho){n=6;t='hecho: así trabaja una mesa.';l='Prueba también a marcar un plato como agotado en Local, Carta, y mira cómo desaparece del móvil. En el local de verdad, cada pantalla va en su móvil o su tablet y se ponen al día solas.';donde=''}
+ else if(pend&&!ab){n=2;t='ahora eres el camarero: acéptalo.';l='En Local, pestaña Sala, pulsa Aceptar. La mesa se abre con su código y la comanda sale a cocina y a barra.';donde='local'}
+ else if(!ab){n=1;t='pide algo desde la mesa '+M+'.';l='En el móvil del cliente: añade un plato, abre Pedido y pulsa «Pedir a la mesa '+M+'». Sin app y sin registrarse.';donde='cliente'}
+ else if(m.e==='cuenta'){n=5;t='cobra y cierra la mesa.';l='En Local, Sala: «Cobrada, cerrar mesa». Se cobra con el datáfono de siempre y la mesa queda libre.';donde='local'}
+ else if(falta){n=3;t='prepáralo en cocina y en barra.';l='En Local, pestañas Cocina y Barra: Empezar y después Listo. El cliente lo ve cambiar en su móvil.';donde='local'}
+ else{n=4;t='pide la cuenta desde el móvil.';l='En el móvil del cliente: Cuenta y «Pedir la cuenta». Antes puedes probar el segundo móvil, Amigo: entra con el código de la mesa y pide a la misma cuenta.';donde='cliente'}
+ $('#gT').textContent=t;$('#gL').textContent=l;
+ $$('#pasos i').forEach((e,k)=>{e.classList.toggle('on',k+1===n);e.classList.toggle('hecho',k+1<n)});
+ const en=ver==='local'?'local':'cliente';
+ $$('#cambio button').forEach(b=>{const i=b.querySelector('i');if(i)i.hidden=!(donde&&b.dataset.f===donde&&donde!==en)})}
+SALA.on(guia);guia();
+</script>
+</body>
+</html>
