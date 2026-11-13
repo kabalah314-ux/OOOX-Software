@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Pide cita · Ramírez 24 h</title>
-<meta name="description" content="Pide cita con Ramírez 24 h sin llamar: eliges la avería, el día y la franja. Con cita, tarifa normal. Web de muestra.">
+<title>Pide cita sin llamar</title>
+<meta name="description" content="Pide cita sin llamar: eliges la avería, el día y la franja. Con cita, tarifa normal.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#14171a">
 <link rel="preload" href="assets/fuentes/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
@@ -67,8 +67,8 @@ form>.btn{margin-top:16px}
 <body>
 <a class="vh" href="#v">Saltar al contenido</a>
 <header class="top">
- <a class="wm" href="./" aria-label="Ramírez 24 h: volver a la web">Ramírez<span>24 h</span></a>
- <button class="btn peq" id="llama" aria-label="¿Urgente? Llama al 930 00 00 00"><span class="ll-u">¿Urgente? </span>930 00 00 00</button>
+ <a class="wm" href="./" id="marca"></a>
+ <button class="btn peq" id="llama"><span class="ll-u">¿Urgente? </span><span id="llamaTel"></span></button>
 </header>
 <main id="v" tabindex="-1"></main>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -80,14 +80,18 @@ form>.btn{margin-top:16px}
 'use strict';
 const {K,N,cfg}=Oficio,$=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* el rótulo y el teléfono salen del archivo de datos del negocio */
+const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
+{const m=$('#marca'),b=$('#llama');m.innerHTML=MARCA;m.setAttribute('aria-label',N.nombre+': volver a la web');$('#llamaTel').textContent=N.tel;b.setAttribute('aria-label','¿Urgente? Llama al '+N.tel);
+ if(!Oficio.DEMO){document.documentElement.removeAttribute('data-demo');b.addEventListener('click',e=>{e.stopImmediatePropagation();location.href='tel:+34'+K.tel9(N.tel)},true)}}
 const mem={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let S=Oficio.estado();
 const P=new URLSearchParams(location.search),av0=P.get('av')||mem.get('ramirez:av');
 const B={av:cfg.av[av0]?av0:'',nota:'',foto:'',dia:'',fr:'',nombre:'',tel:'',dir:'',cp:'',err:''};
-const ERR={av:'Elige qué te pasa.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nombre:'Escribe tu nombre.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en Barcelona ciudad.'};
+const ERR={av:'Elige qué te pasa.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nombre:'Escribe tu nombre.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en '+N.ciudad+'.'};
 const D3=['dom','lun','mar','mié','jue','vie','sáb'];
 const diaCorto=f=>{const h=K.madrid().date;return f===h?'hoy':f===K.masDias(h,1)?'mañana':D3[new Date(f+'T12:00:00Z').getUTCDay()]+' '+(+f.slice(8))};
-const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?'de '+f.de/60+' a '+f.a/60:''};
+const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?K.franjaTxt(f):''};
 const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
 const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cfg.zonas.dis[d][0]:''};
 
@@ -98,10 +102,10 @@ function vPedir(){const dias=K.diasDe(S,cfg,Date.now(),5);if(!dias.find(x=>x.dia
  return'<h1>Pide cita sin prisa.</h1><p class="lead">Con cita, la tarifa es siempre la normal. ¿No puede esperar? <a href="./">Llama o manda una foto</a>: llegamos en 25–40 min.</p>'+
   (U&&U.e!=='cancelado'?'<p class="ult">Ya tienes un aviso: '+U.id+', '+esc(cfg.av[U.av].n.toLowerCase())+'. <a href="#/aviso/'+U.id+'">Ver cómo va</a></p>':'')+
   '<form id="f" novalidate>'+
-  '<fieldset><legend><b>1</b>¿Qué pasa?</legend><div class="avs">'+N.averias.map(a=>'<label class="avc"><img src="assets/img/av-'+a.id+'-s.webp" alt="" width="52" height="52" loading="lazy"><span>'+esc(a.n)+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>'+
+  '<fieldset><legend><b>1</b>¿Qué pasa?</legend><div class="avs">'+N.averias.map(a=>'<label class="avc"><img src="assets/img/av-'+a.id+'-s.webp" alt="" width="52" height="52" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>'+esc(a.n)+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>'+
    (B.err==='av'?'<p class="fallo">'+ERR.av+'</p>':'')+
    (R?'<p class="rango"><b class="num">'+(R.b?'De '+K.eur(R.a).replace(',00','')+' a '+K.eur(R.b).replace(',00',''):'Desde '+K.eur(R.a).replace(',00',''))+'</b><small>IVA incluido, en una vivienda. El precio exacto te lo cerramos antes de empezar y lo firmas.</small></p>':'')+
-   '<div class="campo"><label for="c_nota">Cuéntanos algo más</label><textarea id="c_nota" data-b="nota" placeholder="Opcional. Por ejemplo: gotea debajo del fregadero.">'+esc(B.nota)+'</textarea></div>'+
+   '<div class="campo"><label for="c_nota">Cuéntanos algo más</label><textarea id="c_nota" data-b="nota" placeholder="Opcional. Qué ves y desde cuándo pasa.">'+esc(B.nota)+'</textarea></div>'+
    '<div class="fotoz">'+(B.foto?'<img src="'+B.foto+'" alt="La foto que has añadido">':'')+'<label class="btn peq">'+(B.foto?'Cambiar la foto':'Añadir una foto')+'<input class="vh" type="file" accept="image/*" id="c_foto"></label></div></fieldset>'+
   '<fieldset><legend><b>2</b>¿Cuándo te va bien?</legend><div class="ops" role="group" aria-label="Día">'+dias.map(x=>'<button type="button" class="op" data-dia="'+x.dia+'" aria-pressed="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div>'+
    '<div class="ops" role="group" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-fr="'+f.id+'" aria-pressed="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'>'+f.txt+'<small>'+(f.ok?(f.libres===1?'queda 1':'quedan '+f.libres):f.libres?'ya no da tiempo':'completa')+'</small></button>').join('')+'</div>'+
@@ -113,7 +117,7 @@ function vPedir(){const dias=K.diasDe(S,cfg,Date.now(),5);if(!dias.find(x=>x.dia
   '<button class="btn pri ancho" type="submit">Pedir la cita</button></form>'}
 
 function vAviso(id){const v=K.vistaCliente(S,cfg,id);
- if(!v)return'<h1>No encuentro ese aviso.</h1><p class="lead">Puede que la demo se haya reiniciado. <a href="#/">Pedir una cita</a></p>';
+ if(!v)return'<h1>No encuentro ese aviso.</h1><p class="lead">'+(Oficio.DEMO?'Puede que la demo se haya reiniciado. ':'')+'<a href="#/">Pedir una cita</a></p>';
  const av=cfg.av[v.av],cu=v.cita?K.fechaLarga(v.cita.dia)+', '+frTxt(v.cita.fr):'',T=v.tec||'El técnico';
  const orden={nuevo:0,ausente:0,cancelado:0,asignado:1,camino:2,curso:3,hecho:4}[v.e];
  const tit={nuevo:v.cita?'Cita pedida':'Aviso recibido',asignado:v.cita?'Cita confirmada':'Ya tiene técnico',camino:'Va de camino',curso:'Está en tu casa',hecho:v.sinTrabajo?'Aviso cerrado':'Trabajo terminado',ausente:'No había nadie',cancelado:'Cita cancelada'}[v.e];
@@ -123,13 +127,13 @@ function vAviso(id){const v=K.vistaCliente(S,cfg,id);
   hecho:v.total?(v.sinTrabajo?'Solo se ha cobrado el desplazamiento: '+K.eur(v.total)+'.':'Total: '+K.eur(v.total)+', IVA incluido. '+(v.pago&&v.pago.cobrado?'Pagado.':'Pendiente de pago.')+(v.gar?' Garantía hasta el '+K.fechaCorta(v.gar)+'.':'')):'Gracias por confiar en '+N.nombre+'.'+(v.gar?' Garantía hasta el '+K.fechaCorta(v.gar)+'.':''),
   ausente:'Hemos ido y no hemos encontrado a nadie. Escríbenos y volvemos cuando te vaya bien.',cancelado:'Si quieres, pide otra cuando te vaya bien.'}[v.e];
  const p=[['Recibido',v.t],['Asignado',0],['De camino',v.sal],['En casa',v.ini],['Hecho',v.fin]];
- return'<article class="papel doc"><div class="dh"><span class="wm">Ramírez<span>24 h</span></span><p>Aviso '+v.id+'<br>'+esc(av.n)+'</p></div><h1 tabindex="-1" id="tit">'+tit+'</h1><p class="frase">'+frase+'</p>'+
+ return'<article class="papel doc"><div class="dh"><span class="wm">'+MARCA+'</span><p>Aviso '+v.id+'<br>'+esc(av.n)+'</p></div><h1 tabindex="-1" id="tit">'+tit+'</h1><p class="frase">'+frase+'</p>'+
   (v.e==='cancelado'?'':'<ol class="pista" aria-label="Cómo va tu aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>')+
   '<p class="pie">'+(v.e==='hecho'?'El parte y la garantía te llegan por WhatsApp.':'Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga.')+' ¿Algo no cuadra? Llama al '+N.tel+'.</p></article>'+
-  '<div class="tras"><a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">Ver cómo le llega a Ramírez</a><a class="txt" href="#/">Pedir otra cita</a></div>'}
+  '<div class="tras">'+(Oficio.DEMO?'<a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">Ver cómo le llega a '+esc(N.marca[0])+'</a>':'')+'<a class="txt" href="#/">Pedir otra cita</a></div>'}
 
 function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeURIComponent);return{v:h[0]||'',a:h[1]||''}}
-function pinta(){S=Oficio.estado();const r=ruta();$('#v').innerHTML=r.v==='aviso'?vAviso(r.a):vPedir();document.title=(r.v==='aviso'?'Tu aviso '+r.a:'Pide cita')+' · Ramírez 24 h'}
+function pinta(){S=Oficio.estado();const r=ruta();$('#v').innerHTML=r.v==='aviso'?vAviso(r.a):vPedir();document.title=(r.v==='aviso'?'Tu aviso '+r.a:'Pide cita')+' · '+N.nombre}
 addEventListener('hashchange',()=>{pinta();scrollTo(0,0);const t=$('#tit')||$('#v');t.focus({preventScroll:true})});
 Oficio.suscribir(()=>{const a=document.activeElement;if(ruta().v!=='aviso'&&a&&a.closest&&a.closest('#f'))return;pinta()});
 setInterval(()=>{if(ruta().v==='aviso')pinta()},60000);

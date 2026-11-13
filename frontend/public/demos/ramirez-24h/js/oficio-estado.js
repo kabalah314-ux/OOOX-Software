@@ -19,14 +19,17 @@ function avisa(){subs.forEach(f=>{try{f(S)}catch(e){console.error(e)}})}
 /* La muestra se rehace sola si tiene más de 8 horas: si no, quien abre la demo al día siguiente
    ve «urgente sin asignar, hace 20 h», que da mala imagen del negocio. Lo que se haya probado se pierde. */
 const VIEJA=8*3600*1000;
-function muestra(pack){const x=g.OFICIO_MUESTRA(K,cfg,Date.now());x.t0=Date.now();x.pack=pack||'';return x}
+/* Solo la demo lleva avisos de muestra. La copia de un negocio de verdad no trae OFICIO_MUESTRA:
+   arranca vacía y sus datos no se rehacen nunca. */
+const DEMO=typeof g.OFICIO_MUESTRA==='function';
+function muestra(){const x=DEMO?g.OFICIO_MUESTRA(K,cfg,Date.now()):K.nuevo();x.t0=Date.now();return x}
 function estado(){const x=lee();
- if(x&&!(Date.now()-(x.t0||0)>VIEJA))S=x;
- else if(x){S=muestra(x.pack);S.v=Math.max(Date.now(),(x.v||0)+1);guarda()}
- else if(!S){S=muestra('');guarda()}
+ if(x&&!(DEMO&&Date.now()-(x.t0||0)>VIEJA))S=x;
+ else if(x){S=muestra();S.v=Math.max(Date.now(),(x.v||0)+1);guarda()}
+ else if(!S){S=muestra();guarda()}
  return S}
 function hacer(a,quien){estado();const r=K.aplicar(S,cfg,a,quien,Date.now());if(r.ok){guarda();avisa()}return r}
-function reiniciar(){S=muestra(S&&S.pack);S.v=Date.now();guarda();avisa()}
+function reiniciar(){S=muestra();S.v=Date.now();guarda();avisa()}
 if(canal)canal.onmessage=e=>{const d=e.data||{};if(d.S&&(!S||d.S.v>=S.v))S=d.S;avisa()};
 g.addEventListener&&g.addEventListener('storage',e=>{if(e.key===CLAVE)avisa()});
 
@@ -53,5 +56,5 @@ function firma(lienzo,alCambiar){const cx=lienzo.getContext('2d');let trazos=[],
    return trazos.map(t=>t.filter((p,i)=>i%2===0||i===t.length-1).map((p,i)=>(i?'L':'M')+Math.round(p[0]*kx)+' '+Math.round(p[1]*ky)).join('')).join('')}}}
 const firmaSvg=d=>'<svg viewBox="0 0 300 110" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Firma"><path d="'+String(d).replace(/[^MLC0-9 .-]/g,'')+'"/></svg>';
 
-g.Oficio={K,N,cfg,estado,hacer,reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg};
+g.Oficio={K,N,cfg,DEMO,estado,hacer,reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg};
 })(window);

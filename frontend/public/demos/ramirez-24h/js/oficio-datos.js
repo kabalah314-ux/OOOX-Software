@@ -8,7 +8,7 @@
 (function(g){
 'use strict';
 g.OFICIO_NEGOCIO={
- id:'ramirez',serie:'R',nombre:'Ramírez 24 h',razon:'Ramírez Fontaneros, S. L.',nif:'B00000000',dir:'Taller en Sants, Barcelona',tel:'930 00 00 00',
+ id:'ramirez',serie:'R',nombre:'Ramírez 24 h',marca:['Ramírez','24 h'],razon:'Ramírez Fontaneros, S. L.',nif:'B00000000',dir:'Taller en Sants, Barcelona',ciudad:'Barcelona',tel:'930 00 00 00',
  resenas:'g.page/r/ramirez24h-demo/review',
  pack:'pro',garantiaMeses:12,sinTrabajo:'desp',
  /* tarifa normal de 8 a 20 h en días laborables; el resto, urgencia */

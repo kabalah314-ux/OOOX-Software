@@ -1,5 +1,7 @@
 # Batería completa de la app de oficios (cliente, centralita y técnico) en Chromium.
 # Uso: python3 t8.py [puerto]   (por defecto 8765, el servidor sin rangos)
+import os
+NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, sys, io, json, re
 from playwright.async_api import async_playwright
 from PIL import Image
@@ -39,8 +41,8 @@ async def toast(pg):
 
 async def main():
     async with async_playwright() as p:
-        br = await p.chromium.launch()
-        ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True, locale='es-ES', timezone_id='Europe/Madrid')
+        br = await getattr(p, NAV).launch()
+        ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=(NAV != 'firefox'), has_touch=True, locale='es-ES', timezone_id='Europe/Madrid')
         # ---------- 1. el cliente pide cita ----------
         k = await oye(await ctx.new_page(), 'cliente')
         await k.goto(B + 'cita.html'); await k.wait_for_selector('#f')
@@ -94,7 +96,8 @@ async def main():
         await c.set_viewport_size({'width': 1280, 'height': 860})
         await c.goto(B + 'app.html'); await c.wait_for_selector('.fila')
         es(await c.locator(f'a.fila[href="#/aviso/{idc}"]').count() == 1, 'centralita: la cita con foto está en la bandeja')
-        await c.click(f'a.fila[href="#/aviso/{idc}"]'); await c.wait_for_selector('.tec')
+        # en pantalla ancha la bandeja ya enseña un aviso abierto: hay que esperar a que el abierto sea ESTE
+        await c.click(f'a.fila[href="#/aviso/{idc}"]'); await c.wait_for_function("id=>location.hash.endsWith(id)&&document.querySelector('main').innerText.includes(id+' ·')", arg=idc)
         txt = await c.locator('main').inner_text()
         es('<img src=x' in txt and '<b>hola</b>' in txt, 'centralita: lo raro que escribe el cliente se ve como texto')
         es(await c.evaluate('window.__x') is None, 'centralita: y no se ejecuta')
@@ -246,13 +249,11 @@ async def main():
         es(all(v == 'none' for v in vis) and await to.locator('.doc').is_visible(), f'imprimir: solo sale el papel ({vis})')
         await to.emulate_media(media='screen')
 
-        # ---------- 4. el pack Básico ----------
+        # ---------- 4. un solo plan: ya no hay interruptor de pack ----------
         await c.goto(B + 'app.html'); await c.wait_for_selector('.fila')
-        await c.evaluate("Oficio.hacer({tipo:'pack',pack:'basico'},{rol:'centralita'})"); await c.wait_for_timeout(300)
-        es(await c.locator('#nav a[href="#/cobros"]').count() == 0, 'Básico: la centralita no tiene Cobros')
+        es(await c.locator('#nav a[href="#/cobros"]').count() == 1, 'la centralita tiene Cobros siempre')
+        es((await c.evaluate("Oficio.hacer({tipo:'pack',pack:'basico'},{rol:'centralita'}).err")) in ('aviso', 'accion'), 'cambiar de pack ya no es una acción')
         await c.goto(B + 'app.html#/aviso/R-0142'); await c.wait_for_selector('.tec[data-tec=jordi]')
-        await c.evaluate("Oficio.hacer({tipo:'pack',pack:'pro'},{rol:'centralita'})"); await c.wait_for_timeout(200)
-        es(await c.locator('#nav a[href="#/cobros"]').count() == 1, 'Pro: vuelve Cobros')
 
         # ---------- 5. dos pestañas a la vez ----------
         c2 = await oye(await ctx.new_page(), 'centralita 2')
@@ -327,5 +328,6 @@ async def main():
         await br.close()
     print(f'\n{"BIEN" if not fallos else "MAL"}: {ok} comprobaciones pasan' + (f', {len(fallos)} fallan.' if fallos else '.'))
     print('Errores de consola:', errores[:10] if errores else 'ninguno')
+    sys.exit(1 if fallos or errores else 0)
 
 asyncio.run(main())

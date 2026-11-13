@@ -1,5 +1,7 @@
 # La web de Ramírez y la página de los tres móviles: archivos, idiomas, hora de Barcelona, desglose,
 # barrio, menú, enlaces, metadatos, anchos y la página de prueba. Uso: python3 t9.py [puerto]
+import os
+NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, sys, re, json, urllib.request
 from datetime import datetime, timezone
 from playwright.async_api import async_playwright
@@ -24,7 +26,7 @@ def ms(iso):  # la hora con su desfase de Madrid (UTC+1 en invierno, UTC+2 en ve
 
 async def main():
     async with async_playwright() as p:
-        br = await p.chromium.launch()
+        br = await getattr(p, NAV).launch()
         # ---------- 1. archivos: todo lo que se pide existe ----------
         textos = {}
         for f in ('index.html', 'cita.html', 'app.html', 'prueba.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-datos.js', 'js/oficio-estado.js'):
@@ -173,9 +175,7 @@ async def main():
         es('Prueba Tres' in await cen.locator('main').inner_text(), f'prueba: lo que pide el cliente ({idp}) aparece en la centralita sin recargar')
         await cen.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{idp}',tec:'omar'}},{{rol:'centralita'}})"); await pg.wait_for_timeout(500)
         es(await tec.locator('[data-a=voy]').count() >= 1, 'prueba: y al asignarlo le sale a Omar con su «Voy»')
-        await pg.click('[data-pack=basico]'); await pg.wait_for_timeout(500)
-        es(await cen.locator('#nav a[href="#/cobros"]').count() == 0, 'prueba: el interruptor pasa los tres móviles al pack Básico')
-        await pg.click('[data-pack=pro]'); await pg.wait_for_timeout(300)
+        es(await pg.locator('[data-pack]').count() == 0 and await cen.locator('#nav a[href="#/cobros"]').count() == 1, 'prueba: ya no hay interruptor de pack; los cobros están siempre')
         await pg.click('#re'); await pg.wait_for_timeout(1300)
         es('Prueba Tres' not in await cen.locator('main').inner_text(), 'prueba: «Reiniciar» vuelve a la muestra')
         await pg.set_viewport_size({'width': 390, 'height': 844}); await pg.wait_for_timeout(400)
@@ -186,5 +186,6 @@ async def main():
     print(f'\n{"BIEN" if not fallos else "MAL"}: {ok} comprobaciones pasan' + (f', {len(fallos)} fallan.' if fallos else '.'))
     print('Errores de consola:', errores[:8] if errores else 'ninguno')
     print('Peticiones rotas:', sorted(set(rotos))[:8] if rotos else 'ninguna')
+    sys.exit(1 if fallos or errores or rotos else 0)
 
 asyncio.run(main())

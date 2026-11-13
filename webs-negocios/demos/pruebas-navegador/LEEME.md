@@ -27,3 +27,11 @@ o más nuevo (de marzo de 2022) por `dialog`, `BroadcastChannel` y `Array.at`.
 Límite conocido de la demo: si dos pestañas actúan **en el mismo milisegundo**, una de las dos acciones
 se puede perder, porque el estado se guarda en el navegador. Con 5 ms de diferencia ya no pasa (probado 15
 veces a 5, 20, 50 y 150 ms). En la fase 2 el orden lo pone el servidor.
+
+## Añadido el 13-11-2026
+
+- **`negocio.py <datos.js>`**: la misma app con los datos de otro negocio, de principio a fin (cliente, oficina y técnico), leyendo todo del archivo. Comprueba además que en ninguna pantalla queda rastro del negocio de muestra. Vale para cualquier copia.
+- **Motor del navegador**: todas las baterías aceptan `NAVEGADOR=chromium|firefox|webkit`. En el contenedor de trabajo solo está Chromium; los tres motores corren en GitHub con cada cambio (`.github/workflows/pruebas-oficios.yml`).
+- **`../pruebas.sh`**: lo pasa todo, arranca los dos servidores y sale con error si algún bloque falla. Las baterías ya devuelven error al fallar (antes solo lo escribían).
+- Ya no existe el pack Básico: se han quitado sus comprobaciones.
+

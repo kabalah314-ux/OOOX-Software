@@ -94,9 +94,7 @@ h1{font:800 clamp(3rem,13.4vw,8rem)/.88 var(--fd)}
   <li><span>En <b>Técnico</b>, los tres toques: Voy, Empezar y Terminado.</span></li>
  </ol>
  <div class="ctl">
-  <div class="seg" role="group" aria-label="Pack"><button data-pack="basico" aria-pressed="false">Pack Básico</button><button data-pack="pro" aria-pressed="true">Pack Pro</button></div>
   <button class="btn peq" id="re">Reiniciar la demo</button>
-  <p id="pk"></p>
  </div>
 </header>
 <div class="tabs" role="tablist" aria-label="Qué móvil ver">
@@ -113,7 +111,7 @@ h1{font:800 clamp(3rem,13.4vw,8rem)/.88 var(--fd)}
  <section class="pap" aria-labelledby="papT">
   <div>
    <h2 id="papT">Al terminar, los papeles salen solos.</h2>
-   <p>Presupuesto firmado con el dedo, parte de trabajo y garantía, con los datos que ya estaban escritos. El IVA del 10 o del 21 % lo calcula la app. Es lo que añade el pack Pro.</p>
+   <p>Presupuesto firmado con el dedo, parte de trabajo y garantía, con los datos que ya estaban escritos. El IVA del 10 o del 21 % lo calcula la app.</p>
    <figure class="jor"><img src="assets/img/jordi.webp" alt="Jordi Ramírez, el fundador, en la puerta de un portal" width="640" height="857" loading="lazy"><figcaption>Jordi Ramírez firma un año de garantía en cada trabajo.</figcaption></figure>
   </div>
   <div class="hojap" data-ui><iframe src="app.html?fijo&amp;solo#/papel/R-0139/parte" title="Un parte de trabajo de ejemplo" loading="lazy"></iframe></div>
@@ -130,12 +128,9 @@ const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).queryS
 document.documentElement.classList.add('js');
 if('IntersectionObserver'in window){const io=new IntersectionObserver(E=>E.forEach(x=>{if(x.isIntersecting){x.target.classList.add('ve');io.disconnect()}}),{threshold:.12});io.observe($('.pap'))}else $('.pap').classList.add('ve');
 let v=Oficio.estado().v;
-function pinta(){const S=Oficio.estado(),pro=(S.pack||Oficio.cfg.pack)!=='basico';
- $$('[data-pack]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.pack==='pro')===pro)));
- $('#pk').textContent=pro?'Pro: además de los tres toques, el cliente firma el precio en el móvil y salen el parte, la garantía y los cobros.':'Básico: los avisos llegan, se reparten y el técnico los cierra con tres toques. Sin papeles.'}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-pack],#re,[data-t]');if(!b)return;
- if(b.dataset.pack)Oficio.hacer({tipo:'pack',pack:b.dataset.pack},C);
- else if(b.id==='re'){Oficio.reiniciar();$$('iframe').forEach(f=>{f.src=f.getAttribute('src')})}
+function pinta(){Oficio.estado()}
+document.addEventListener('click',e=>{const b=e.target.closest('#re,[data-t]');if(!b)return;
+ if(b.id==='re'){Oficio.reiniciar();$$('iframe').forEach(f=>{f.src=f.getAttribute('src')})}
  else{$$('[data-t]').forEach(x=>{x.setAttribute('aria-selected',String(x===b));if(x===b)x.classList.remove('cambio')});$$('.mv').forEach(m=>m.classList.toggle('on',m.id===b.dataset.t))}
  pinta()});
 Oficio.suscribir(S=>{pinta();if(S.v!==v){v=S.v;$$('[data-t][aria-selected=false]').forEach(x=>x.classList.add('cambio'))}});

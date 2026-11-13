@@ -1,3 +1,5 @@
+import os
+NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, sys
 from playwright.async_api import async_playwright
 EST="(()=>{const v=document.querySelector('#v'),s=v.seekable;return{src:v.currentSrc.startsWith('blob:')?'blob':v.currentSrc.split('/').pop(),seek:s.length?+s.end(s.length-1).toFixed(2):0,d:+(v.duration||0).toFixed(2),t:+v.currentTime.toFixed(2),paused:v.paused,rs:v.readyState,y:Math.round(scrollY),ready:document.body.classList.contains('ready')}})()"
@@ -7,7 +9,7 @@ def ok(c,txt):
     print(('  bien  ' if c else '  MAL   ')+txt); 
     if not c: fallos.append(txt)
 async def caso(p,port,w,h,mobile,nombre,espera_blob):
-    b=await p.chromium.launch(); ctx=await b.new_context(viewport={'width':w,'height':h},is_mobile=mobile,has_touch=mobile); pg=await ctx.new_page(); errs=[]
+    b=await getattr(p, NAV).launch(); ctx=await b.new_context(viewport={'width':w,'height':h},is_mobile=mobile,has_touch=mobile); pg=await ctx.new_page(); errs=[]
     pg.on('pageerror',lambda e: errs.append(str(e))); pg.on('console',lambda m: errs.append(m.text) if m.type=='error' else None)
     await pg.goto(f'http://127.0.0.1:{port}/index.html'); await pg.wait_for_timeout(1800)
     e=await pg.evaluate(EST); print(nombre,'al cargar',e)
@@ -26,7 +28,7 @@ async def caso(p,port,w,h,mobile,nombre,espera_blob):
     ok(not errs, f'{nombre}: sin errores de consola {errs[:3]}')
     await b.close()
 async def lento(p,port,nombre,modo):
-    b=await p.chromium.launch(); ctx=await b.new_context(viewport={'width':1280,'height':800}); pg=await ctx.new_page()
+    b=await getattr(p, NAV).launch(); ctx=await b.new_context(viewport={'width':1280,'height':800}); pg=await ctx.new_page()
     async def r(route):
         if modo=='corta': await route.abort()
         else:
@@ -49,4 +51,5 @@ async def main():
         await lento(p,8766,'vídeo lento, con rangos','lento')
         await lento(p,8765,'vídeo que no llega','corta')
     print('FALLOS:',len(fallos)); [print(' -',f) for f in fallos]
+    sys.exit(1 if fallos else 0)
 asyncio.run(main())

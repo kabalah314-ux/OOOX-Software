@@ -199,14 +199,15 @@ es(ap({ tipo: 'completar', id: r.id, cli: { nombre: 'Montse Vila', tel: '6000001
 es(ap({ tipo: 'completar', id: r.id, cli: montse }, C).ok && ap({ tipo: 'asignar', id: r.id, tec: 'omar' }, C).ok, 'con los datos, ya se reparte');
 es(K.resumen(S, cfg, t).marcha === 1, 'y cuenta como aviso en marcha');
 
-// 17. el pack Básico: los tres toques, sin papeles
-empieza('basico');
+// 17. todos los negocios llevan papeles: desde el 13-11-2026 no hay modo «sin presupuesto»
+empieza();
 r = ap({ tipo: 'pedir', av: 'atasco', cli: montse }, CLI);
-ap({ tipo: 'asignar', id: r.id, tec: 'omar' }, C);
-es(ap({ tipo: 'voy', id: r.id }, T('omar')).ok && ap({ tipo: 'empezar', id: r.id }, T('omar')).ok && ap({ tipo: 'terminar', id: r.id }, T('omar')).ok, 'Voy, Empezar y Terminado, sin nada más');
-es(A(r.id).e === 'hecho' && !A(r.id).tot && !A(r.id).pago && A(r.id).gar && !A(r.id).msgs.some(m => m.k === 'resena'), 'sin presupuesto, sin cobro y sin reseña automática');
-es(ap({ tipo: 'noacepta', id: r.id, modo: 'efectivo' }, T('omar')).err === 'pack', 'lo de los papeles pide el pack Pro');
-es(ap({ tipo: 'pack', pack: 'pro' }, T('omar')).err === 'permiso' && ap({ tipo: 'pack', pack: 'pro' }, C).ok && S.pack === 'pro', 'el pack lo cambia la centralita');
+ap({ tipo: 'asignar', id: r.id, tec: 'omar' }, C); ap({ tipo: 'voy', id: r.id }, T('omar'));
+es(ap({ tipo: 'empezar', id: r.id }, T('omar')).err === 'firma' && A(r.id).e === 'camino', 'no se empieza sin el precio firmado');
+es(ap({ tipo: 'empezar', id: r.id, pres: { lineas: [{ k: 'desatasco' }], firma: F } }, T('omar')).ok && ap({ tipo: 'terminar', id: r.id }, T('omar')).err === 'modo', 'ni se termina sin decir cómo paga');
+es(ap({ tipo: 'pack', id: r.id, pack: 'basico' }, C).err === 'accion' && S.pack === 'pro', 'el cambio de pack ya no existe');
+{ const viejo = A(r.id); delete viejo.tot;           // un trabajo a medias guardado por una versión antigua, sin precio
+  es(ap({ tipo: 'terminar', id: r.id, modo: 'efectivo' }, T('omar')).err === 'estado' && ap({ tipo: 'ampliar', id: r.id, lineas: [{ k: 'sifon' }], firma: F }, T('omar')).err === 'estado', 'un trabajo antiguo sin precio se rechaza sin romper nada') }
 es(ap({ tipo: 'cosa-rara', id: r.id }, C).err === 'accion', 'una acción que no existe se rechaza');
 
 // 18. la muestra de la demo sale bien a cualquier hora de cualquier día
@@ -279,7 +280,9 @@ es(ap({ tipo: 'anotar', id: c2, obs: '  Falta la llave de paso del baño.  ' }, 
 es(ap({ tipo: 'anotar', id: c2, obs: 'x'.repeat(900) }, T('omar')).ok && A(c2).obs.length === 400, 'la nota se corta a 400 letras');
 for (let i = 0; i < 4; i++) ap({ tipo: 'anotar', id: c2, foto: 'data:image/jpeg;base64,AAAA' + i }, T('omar'));
 es(A(c2).fotos.length === 4 && ap({ tipo: 'anotar', id: c2, foto: 'data:image/jpeg;base64,BBBB' }, T('omar')).err === 'fotos', 'cuatro fotos como mucho');
-es(ap({ tipo: 'anotar', id: c2, foto: 'x'.repeat(150000) }, T('omar')).ok && A(c2).fotos.length === 4, 'una foto demasiado grande no se guarda');
+es(ap({ tipo: 'anotar', id: c2, foto: 'x'.repeat(150000) }, T('omar')).err === 'foto' && A(c2).fotos.length === 4, 'una foto demasiado grande se rechaza y lo dice');
+{ const antes = JSON.stringify(A(c2)); es(ap({ tipo: 'anotar', id: c2, obs: 'Otra nota', foto: 'f5' }, T('omar')).err === 'fotos' && JSON.stringify(A(c2)) === antes, 'con cuatro fotos, una quinta se rechaza sin cambiar la nota (antes la cambiaba)');
+  es(ap({ tipo: 'anotar', id: c2 }, T('omar')).err === 'vacio' && ap({ tipo: 'anotar', id: c2, obs: { a: 1 } }, T('omar')).err === 'obs', 'anotar nada, o algo que no es texto, se rechaza') }
 t = i2 + 40 * M; r = ap({ tipo: 'terminar', id: c2, modo: 'tarjeta' }, T('omar'));
 const trab = Math.round((A(c2).pausas[0][0] - i2) / M);
 es(r.ok && !K.enPausa(A(c2)) && A(c2).min === trab && trab < 15, 'terminar en pausa cierra la pausa: solo cuentan los ' + trab + ' minutos de antes de parar');
@@ -310,6 +313,93 @@ es(!dv.some(d => d.dia === '2026-11-13'), 'un viernes a las 17:30 ya no se ofrec
 es(dv[0].dia === '2026-11-16' && dv[0].franjas.every(f => f.ok), 'el primer día que se ofrece es el lunes, con las cuatro franjas');
 const dd = K.diasDe(S, cfg, Date.parse('2026-12-07T10:00:00Z'), 3).map(d => d.dia);
 es(!dd.includes('2026-12-08') && dd.includes('2026-12-09'), 'el día de la Inmaculada se salta');
+
+// 26. claves que no existen (casos que sacaron los recorridos al azar el 13-11-2026)
+empieza();
+r = ap({ tipo: 'pedir', av: 'grifo', cli: montse }, CLI);
+for (const raro of ['toString', '__proto__', 'constructor', 'valueOf']) {
+  es(ap({ tipo: 'asignar', id: r.id, tec: raro }, C).err === 'tec', 'asignar a «' + raro + '» se rechaza (antes salía «Asignado a undefined»)');
+  es(ap({ tipo: 'pedir', av: raro, cli: montse }, CLI).err === 'av', 'una avería llamada «' + raro + '» se rechaza');
+  es(K.precio(cfg, [{ k: raro }], {}).total === 0 && K.rango(cfg, raro, false) === null, 'un concepto llamado «' + raro + '» no tiene precio');
+  es(Number.isInteger(K.etaMin(cfg, raro)) && K.etaMin(cfg, raro) > 0, 'una zona llamada «' + raro + '» da un tiempo de llegada normal');
+  es(['cp', 'zona'].includes(ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, montse, { cp: 'xx', dis: raro }) }, CLI).err), 'y no vale como zona del cliente');
+}
+ap({ tipo: 'asignar', id: r.id, tec: 'omar' }, C); ap({ tipo: 'voy', id: r.id }, T('omar'));
+es(ap({ tipo: 'empezar', id: r.id, pres: { lineas: 'valueOf', firma: F } }, T('omar')).err === 'lineas' && ap({ tipo: 'empezar', id: r.id, pres: 'hola' }, T('omar')).err === 'firma', 'un presupuesto que no es una lista se rechaza sin romper nada');
+ap({ tipo: 'empezar', id: r.id, pres: { lineas: [{ k: 'grifo' }], firma: F } }, T('omar'));
+es(ap({ tipo: 'ampliar', id: r.id, lineas: [{ k: 'latig' }, { k: 'constructor' }, null, 7, { k: 'llave', q: -3 }], firma: F }, T('omar')).ok && A(r.id).lin.map(l => l.k).join() === 'grifo,latig' && A(r.id).lin.every(l => Number.isFinite(l.q)), 'en una ampliación, las líneas imposibles se ignoran y las buenas entran');
+es(ap(null, null).err === 'aviso' && ap(7, 'hola').err === 'aviso' && ap({ tipo: 'pedir', av: 'grifo', cli: 'hola' }, CLI).err === 'nombre', 'una acción vacía o sin sentido se rechaza');
+
+// 27. franjas que no empiezan en punto
+es(K.franjaTxt({ de: 510, a: 660 }) === 'de 8:30 a 11' && K.franjaTxt({ de: 480, a: 660 }) === 'de 8 a 11' && K.franjaTxt({ de: 930, a: 1085 }) === 'de 15:30 a 18:05', 'una franja a y media se lee «de 8:30 a 11» (antes, «de 8.5 a 11»)');
+
+// 28. por dónde entra cada aviso queda apuntado
+empieza();
+const porCanal = o => A(ap({ tipo: 'pedir', av: 'grifo', cli: montse, origen: o }, C).id).origen;
+es(porCanal('whatsapp') === 'whatsapp' && porCanal('llamada') === 'llamada' && porCanal('persona') === 'persona' && porCanal(undefined) === 'cita', 'WhatsApp, llamada, en persona y web quedan apuntados');
+es(porCanal('paloma mensajera') === 'otro' && porCanal({ a: 1 }) === 'otro', 'un canal desconocido se apunta como «otro»');
+ap({ tipo: 'cancelar', id: S.avisos[0].id }, C);
+{ const c = K.resumen(S, cfg, t).canal; es(c.whatsapp === 0 && c.llamada === 1 && c.persona === 1 && c.cita === 1 && c.otro === 2 && c.web === 0, 'las cifras del mes dicen cuántos entraron por cada canal, sin contar los cancelados') }
+
+// 29. horarios: el cliente solo ve huecos reales y la oficina solo asigna a quien puede (13-11-2026)
+{ const NH = JSON.parse(JSON.stringify(N)); delete NH.cupo; NH.citas = { porFranja: 1, reserva: 1 };
+  const LV = tr => ({ 1: tr, 2: tr, 3: tr, 4: tr, 5: tr });
+  NH.tecnicos[0].horario = LV([[480, 840], [900, 1200]]);                      // Omar: de lunes a viernes, mañana y tarde
+  NH.tecnicos[1].horario = { 1: [[480, 840]], 2: [[480, 840]], 3: [[480, 840]], 4: [[480, 840]] };   // Laia: de lunes a jueves, solo mañanas
+  NH.tecnicos[2].horario = LV([[480, 1200]]); NH.tecnicos[2].guardia = 1;      // Jordi: jornada entera y guardias
+  const ch = K.cfgDe(NH); let SH = K.nuevo(), th = Date.parse('2026-11-10T09:00:00Z');   // martes 10-11-2026, 10:00
+  const h = (a, q) => K.aplicar(SH, ch, a, q, th += M), AH = id => SH.avisos.find(a => a.id === id);
+  const LUN = '2026-11-16', VIE = '2026-11-20', MAR2 = '2026-11-17', MIE = '2026-11-18';
+  const libres = (dia, fr) => K.franjasDe(SH, ch, dia, th).find(f => f.id === fr).libres;
+  es(libres(LUN, 'f1') === 2 && libres(LUN, 'f3') === 1 && libres(VIE, 'f1') === 1 && libres(VIE, 'f4') === 1, 'los huecos salen de los horarios: 3 técnicos menos 1 de reserva por la mañana, 2 menos 1 por la tarde y el viernes');
+  const pide = (dia, fr, mas) => h(Object.assign({ tipo: 'pedir', av: 'grifo', cli: montse, cita: { dia, fr } }, mas), CLI);
+  const v1 = pide(VIE, 'f1').id;
+  es(v1 && pide(VIE, 'f1').err === 'franja', 'el viernes a primera hora cabe una cita; la segunda ya no');
+  es(h({ tipo: 'asignar', id: v1, tec: 'laia' }, C).err === 'horario' && AH(v1).e === 'nuevo', 'no se puede asignar a Laia: los viernes no trabaja');
+  es(h({ tipo: 'asignar', id: v1, tec: 'omar' }, C).ok, 'a Omar sí');
+  const l1 = pide(LUN, 'f1').id, l2 = pide(LUN, 'f1', { alt: [{ dia: MAR2, fr: 'f2' }, { dia: 'ayer', fr: 'f1' }, { dia: LUN, fr: 'f1' }] }).id;
+  es(h({ tipo: 'asignar', id: l1, tec: 'omar' }, C).ok && h({ tipo: 'asignar', id: l2, tec: 'omar' }, C).err === 'lleno', 'un técnico no lleva dos citas en la misma franja');
+  es(h({ tipo: 'asignar', id: l2, tec: 'laia' }, C).ok, 'la segunda va a Laia, que esa mañana trabaja');
+  es(AH(l2).vale.length === 2 && AH(l2).cita.ok === true, 'el cliente dio otra franja que también le va bien; las que no existen se descartan');
+  // Omar se pone enfermo el lunes
+  es(h({ tipo: 'ausencia', tec: 'omar', de: LUN, a: LUN }, T('jordi')).err === 'permiso' && h({ tipo: 'ausencia', tec: 'omar', de: LUN, a: '2026-11-15' }, C).err === 'fechas' && h({ tipo: 'ausencia', tec: 'nadie', de: LUN, a: LUN }, C).err === 'tec', 'una ausencia la apunta la oficina, con fechas con sentido y para alguien del equipo');
+  let r9 = h({ tipo: 'ausencia', tec: 'omar', de: LUN, a: LUN, motivo: 'Baja' }, C);
+  es(r9.ok && r9.sueltos.join() === l1 && AH(l1).e === 'nuevo' && AH(l1).tec === '' && AH(l1).reasignar === true && AH(v1).tec === 'omar', 'al apuntar la baja, su cita del lunes vuelve sola a «sin asignar»; la del viernes no se toca');
+  es(JSON.stringify(K.sobran(SH, ch, th)) === JSON.stringify([{ dia: LUN, fr: 'f1', sobran: 1 }]) && K.resumen(SH, ch, th).reasignar === 1, 'y la app avisa de que el lunes a primera hora sobra una cita');
+  es(h({ tipo: 'asignar', id: l1, tec: 'omar' }, C).err === 'ausente_tec' && libres(LUN, 'f1') === 0, 'ese día no se le puede asignar nada, y el cliente ya no ve hueco');
+  es(h({ tipo: 'mover', id: l2, cita: { dia: MAR2, fr: 'f2' } }, C).ok && AH(l2).cita.ok === true && AH(l2).tec === 'laia' && K.sobran(SH, ch, th).length === 0, 'se pasa la de Laia a la otra franja que dio el cliente: sigue siendo buena para él y ya no sobra ninguna');
+  es(h({ tipo: 'mover', id: l2, cita: { dia: MIE, fr: 'f3' } }, C).ok && AH(l2).cita.ok === false && AH(l2).tec === '' && AH(l2).e === 'nuevo', 'pasarla a una tarde que el cliente no dio la deja pendiente de confirmar, y sin Laia, que por las tardes no trabaja');
+  es(h({ tipo: 'mover', id: l2, cita: { dia: MIE, fr: 'f3' }, confirmado: true }, C).ok && AH(l2).cita.ok === true, 'si la oficina lo ha hablado con el cliente, queda como buena');
+  es(h({ tipo: 'quitarAusencia', aus: 'U9' }, C).err === 'ausencia' && h({ tipo: 'quitarAusencia', aus: r9.id }, C).ok && h({ tipo: 'asignar', id: l1, tec: 'omar' }, C).ok, 'quitada la baja, Omar vuelve a poder');
+  // urgencias: en horario, cualquiera que trabaje; fuera de horario, quien hace guardias
+  th = Date.parse('2026-11-15T10:00:00Z');                                       // domingo
+  const u1 = h({ tipo: 'pedir', av: 'fuga', cli: montse, origen: 'llamada' }, C).id;
+  es(h({ tipo: 'asignar', id: u1, tec: 'omar' }, C).err === 'horario' && h({ tipo: 'asignar', id: u1, tec: 'jordi' }, C).ok, 'una urgencia en domingo va a quien hace guardias');
+  th = Date.parse('2026-11-17T09:00:00Z');                                       // martes a las 10
+  const u2 = h({ tipo: 'pedir', av: 'fuga', cli: montse, origen: 'llamada' }, C).id;
+  es(h({ tipo: 'asignar', id: u2, tec: 'laia' }, C).ok, 'una urgencia en horario va a cualquiera que esté trabajando');
+  es(K.franjasDe(S = K.nuevo(), cfg, LUN, MAR).every(f => f.cap === N.cupo), 'un negocio sin horarios sigue con su número fijo por franja') }
+
+// 30. lo que faltaba por probar, según la prueba de «reglas estropeadas adrede» (13-11-2026)
+p = K.precio(cfg, [{ k: 'mo', q: 99 }, { k: 'juntas', q: 99 }], {});
+es(p.lineas[0].q === 12 && p.lineas[1].q === 20, 'hay tope: 12 horas de mano de obra y 20 unidades de un material');
+es(K.tel9('123456789') === '' && K.tel9('512345678') === '' && K.tel9('612345678') === '612345678' && K.tel9('930000000') === '930000000', 'un teléfono tiene que empezar por 6, 7, 8 o 9');
+empieza();
+r = ap({ tipo: 'pedir', av: 'grifo', cli: montse }, CLI);
+ap({ tipo: 'asignar', id: r.id, tec: 'omar' }, C); ap({ tipo: 'voy', id: r.id }, T('omar'));
+es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'con el técnico de camino ya no se cancela');
+ap({ tipo: 'empezar', id: r.id, pres: { lineas: [{ k: 'mo', q: 12 }, { k: 'juntas', q: 20 }], firma: F } }, T('omar'));
+es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni con el trabajo empezado');
+{ const antes = A(r.id).tot.total;
+  es(ap({ tipo: 'ampliar', id: r.id, lineas: [{ k: 'mo', q: 1 }, { k: 'juntas', q: 5 }], firma: F }, T('omar')).err === 'lineas' && A(r.id).tot.total === antes && !A(r.id).amp, 'una ampliación que no sube el total (ya estaba en el tope) se rechaza') }
+ap({ tipo: 'terminar', id: r.id, modo: 'efectivo' }, T('omar'));
+es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado');
+{ const hasta = A(r.id).gar.hasta, ultimo = Date.parse(hasta + 'T10:00:00Z'), despues = Date.parse(K.masDias(hasta, 1) + 'T10:00:00Z');
+  es(K.garantiaDe(S, cfg, montse, ultimo).length === 1 && K.garantiaDe(S, cfg, montse, despues).length === 0, 'la garantía vale hasta su último día, incluido; al día siguiente, ya no') }
+{ const NP = JSON.parse(JSON.stringify(N)); delete NP.cupo; NP.tecnicos = NP.tecnicos.slice(0, 2);
+  NP.tecnicos[0].horario = { 1: [[480, 1200]] }; NP.tecnicos[1].horario = { 1: [[480, 600]] };      // la segunda se va a las 10: no cubre la franja de 8 a 11
+  const cp2 = K.cfgDe(NP), S2 = K.nuevo();
+  es(K.trabaja(cp2, NP.tecnicos[0].id, '2026-11-16', 480, 660) && !K.trabaja(cp2, NP.tecnicos[1].id, '2026-11-16', 480, 660) && K.capacidad(S2, cp2, '2026-11-16', { de: 480, a: 660 }) === 1, 'quien solo trabaja un trozo de la franja no cuenta para esa franja') }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

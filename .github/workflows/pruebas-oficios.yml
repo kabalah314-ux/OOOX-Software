@@ -1,0 +1,55 @@
+# Pruebas de la app de oficios (OOOX Oficios). Corren solas:
+#  - en cada cambio que toque la demo o sus pruebas, en cualquier rama;
+#  - cada noche (solo desde la rama principal, que es como funciona GitHub), con más recorridos al azar,
+#    una semilla nueva cada día y la prueba de reglas estropeadas adrede.
+# El repositorio es público: las máquinas estándar de GitHub no cuestan nada. No usar máquinas «grandes».
+name: Pruebas de la app de oficios
+on:
+  push:
+    paths:
+      - 'frontend/public/demos/ramirez-24h/**'
+      - 'webs-negocios/demos/**'
+      - '.github/workflows/pruebas-oficios.yml'
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pruebas-oficios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  reglas:
+    name: Reglas y datos
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Reglas, datos, recorridos al azar y restos
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then export SEMILLA=$(date -u +%Y%m%d) TANDAS=300 MUTANTES=1; fi
+          bash webs-negocios/demos/pruebas.sh reglas
+  pantallas:
+    name: Pantallas en ${{ matrix.motor }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        motor: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar Playwright y el navegador
+        run: |
+          pip install playwright pillow
+          python -m playwright install --with-deps ${{ matrix.motor }}
+      - name: Pantallas en ${{ matrix.motor }}
+        env:
+          NAVEGADOR: ${{ matrix.motor }}
+        run: bash webs-negocios/demos/pruebas.sh navegador
