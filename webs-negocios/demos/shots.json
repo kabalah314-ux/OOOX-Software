@@ -66,20 +66,22 @@
   },
   "ramirez-24h": {
     "sections": [
-      "presupuesto",
-      "tarifas"
+      "averias",
+      "cuesta",
+      "barrio",
+      "garantia"
     ],
     "qa": [
       {
-        "name": "calculo",
-        "wait": 2200,
-        "js": "document.querySelector('.tile[data-p=\"atasco\"]').click(); document.querySelector('[data-when=\"today\"]').click(); document.querySelector('#presupuesto').scrollIntoView({ block: 'start', behavior: 'instant' });"
+        "name": "desglose",
+        "wait": 1600,
+        "js": "document.querySelector('#averias').scrollIntoView({ block: 'start', behavior: 'instant' }); document.querySelector('#chips button[data-av=\"atasco\"]').click(); setTimeout(function () { document.querySelector('#esEsto').click(); }, 700);"
       },
       {
-        "name": "presupuesto-wa",
+        "name": "barrio-wa",
         "mobile": true,
-        "wait": 2600,
-        "js": "document.querySelector('.tile[data-p=\"fuga\"]').click(); setTimeout(function () { document.querySelector('#tk-wa').click(); }, 1200);"
+        "wait": 900,
+        "js": "document.querySelector('#mapa .d[data-id=\"cor\"]').dispatchEvent(new MouseEvent('click', { bubbles: true })); document.querySelector('.bar .wa').click();"
       },
       {
         "name": "en",

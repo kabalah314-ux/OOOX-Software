@@ -170,13 +170,13 @@ export const workCards = {
   },
   "ramirez-24h": {
     typeEn: "Plumber website · Emergencies & quotes",
-    short: "A 24-hour emergency plumber in Barcelona: call button always at hand, clear rates, arrival times by area and a 1-minute guide quote sent by WhatsApp with a photo.",
-    route: ["Problem", "Urgency", "Price", "Call"],
+    short: "A 24-hour emergency plumber in Barcelona: the van pulls up at your door and tells you when it would arrive if you called now. One problem at a time with its price, the job sheet, your area in minutes and the call button always at hand.",
+    route: ["Van", "Problem", "Price", "Call"],
     facts: [
       ["Type", "Website"],
       ["Languages", "ES · CA · EN"],
       ["Year", "2026"],
-      ["Key feature", "1-minute quote"],
+      ["Key feature", "Live arrival time"],
     ],
   },
   "estudio-lua": {
@@ -459,13 +459,13 @@ export const projects = [
   {
     id: "ramirez-24h", category: "local", title: "Ramírez Fontaneros", kicker: "Urgencias de fontanería en Barcelona, las 24 horas", year: "2026",
     type: "Web de fontanería · Urgencias y presupuestos", status: "Online", statusTone: "live", access: "public",
-    ...demoWeb("ramirez-24h", [["presupuesto", "Presupuesto en 1 minuto"], ["tarifas", "Tarifas claras"]]),
+    ...demoWeb("ramirez-24h", [["averias", "Una avería cada vez"], ["cuesta", "El parte de trabajo"], ["barrio", "Tu barrio, en minutos"], ["garantia", "La garantía, firmada"]]),
     accent: "#FFC400", accentSoft: "#101010",
     demo: true,
-    description: "Proyecto demo · Web para un fontanero de urgencias en Barcelona: llamar siempre a mano, tarifas claras, tiempos de llegada por barrio y un presupuesto orientativo en 1 minuto que se manda por WhatsApp con foto.",
-    longDescription: "Este es un proyecto demo: la empresa no existe, pero el presupuestador funciona. La web de Ramírez Fontaneros está hecha como su furgoneta: amarillo de seguridad, negro y rayas de aviso, con una tipografía condensada que se lee de un vistazo en el móvil. Primero lo urgente: el botón de llamar siempre visible, lo que tardan en llegar a cada barrio y lo que da confianza antes de llamar (empresa autorizada, precio cerrado, garantía por escrito). Para lo que no corre prisa, el cliente elige qué le pasa y para cuándo, ve un precio orientativo con su desglose y lo manda por WhatsApp con una foto. Incluye un antes y después de un trabajo.",
-    highlights: ["Presupuesto orientativo en 1 minuto, con desglose y recargo de urgencia", "Botón de llamar siempre visible en el móvil", "Tarifas transparentes y tiempos de llegada por barrio", "Antes y después con deslizador"],
-    stack: ["HTML", "CSS", "JavaScript"], tags: ["Oficios", "Urgencias", "Presupuestos"],
+    description: "Proyecto demo · Web para un fontanero de urgencias en Barcelona: la furgoneta llega a tu portal y te dice a qué hora llegaría si llamas ahora. Una avería cada vez con su precio, el parte de trabajo, tu barrio en minutos y llamar siempre a mano.",
+    longDescription: "Este es un proyecto demo: la empresa no existe, pero todo funciona. Está hecha con el mismo motor que Molta y pensada para quien tiene agua en el suelo y el móvil en la mano: un gesto pasa una pantalla y llamar está siempre donde llega el pulgar. Con el primer gesto, la furgoneta amarilla cruza la calle y frena en tu portal; al pararse aparece, enorme y en vivo, la hora a la que llegaríamos si llamas ahora. Después, ocho pantallas de una idea cada una: qué te pasa (una avería cada vez, con su precio y el recargo de noche ya calculado), el parte de trabajo con las tres cifras, el mapa de distritos con los minutos hasta tu casa, un antes y después, la tarjeta de garantía firmada por Jordi Ramírez y qué hacer mientras llegamos. Todo se calcula solo con la hora de Barcelona y está en castellano, catalán e inglés."
+    highlights: ["La hora de llegada en vivo, con la hora de Barcelona", "Una avería cada vez, con su precio y el recargo de noche ya calculado", "Mapa de distritos y código postal: minutos hasta tu casa", "Aviso por WhatsApp ya escrito: «Fuga en Les Corts, ahora»"],
+    stack: ["HTML", "CSS", "JavaScript", "GSAP"], tags: ["Oficios", "Urgencias", "Vídeo"],
     metrics: [{ label: "Llegada", value: "< 45′" }, { label: "Servicio", value: "24 h" }, { label: "Garantía", value: "1 año" }],
   },
   {
