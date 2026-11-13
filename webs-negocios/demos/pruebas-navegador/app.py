@@ -27,6 +27,26 @@ async def oye(pg, nombre):
     pg.on('pageerror', lambda e: errores.append(f'{nombre}! {e}'))
     return pg
 
+pedidas = {}
+def vigila(pg):
+    # apunta lo que la página pide y aún no ha llegado, para saber qué se queda colgado si una pantalla no carga
+    pg.on('request', lambda r: pedidas.__setitem__(r.url, 'sin llegar'))
+    pg.on('requestfinished', lambda r: pedidas.pop(r.url, None))
+    pg.on('requestfailed', lambda r: pedidas.__setitem__(r.url, f'falló: {r.failure}'))
+    return pg
+
+async def ir(pg, url, nombre):
+    # va a una pantalla. Si no termina de cargar, no rompe la batería: lo cuenta como fallo y dice en qué estado se ha quedado
+    try:
+        await pg.goto(B + url); return True
+    except Exception as x:
+        try: estado_pg = await asyncio.wait_for(pg.evaluate("({listo:document.readyState,donde:location.href,texto:(document.body?document.body.innerText:'').slice(0,100)})"), 4)
+        except Exception as y: estado_pg = f'la página no contesta ({type(y).__name__})'
+        es(False, f'{nombre}: la pantalla {url} no termina de cargar · {str(x).splitlines()[0][:70]} · estado {estado_pg} · sin llegar {dict(list(pedidas.items())[:4])} · consola {errores[-3:]}')
+        try: await pg.goto(B + url, wait_until='commit', timeout=4000)
+        except Exception: pass
+        return False
+
 async def firma(pg, sel):
     await pg.locator(sel).scroll_into_view_if_needed()
     bb = await pg.locator(sel).bounding_box(); x, y, w, h = bb['x'], bb['y'], bb['width'], bb['height']
@@ -308,16 +328,18 @@ async def main():
                  ('app.html?papel=tecnico&tec=jordi', 'técnico hoy'), ('app.html?papel=tecnico&tec=jordi#/aviso/R-0142', 'técnico aviso'), ('app.html?papel=tecnico&tec=jordi#/hechos', 'técnico hechos'),
                  ('app.html?papel=tecnico&tec=omar#/papel/R-0140/presupuesto', 'presupuesto'), ('app.html?papel=tecnico&tec=omar#/papel/R-0140/parte', 'parte'),
                  ('cita.html', 'cita'), (f'cita.html#/aviso/{idc}', 'ficha del cliente'), ('prueba.html', 'tres móviles')]
-        m = await oye(await ctx.new_page(), 'anchos')
+        m = vigila(await oye(await ctx.new_page(), 'anchos'))
         for w in (320, 375, 390, 430, 768, 1024, 1440):
             await m.set_viewport_size({'width': w, 'height': 900})
             for url, nombre in rutas:
-                await m.goto(B + url); await m.wait_for_timeout(250)
+                if not await ir(m, url, f'{nombre} a {w} px'): continue
+                await m.wait_for_timeout(250)
                 r = await m.evaluate("""(()=>{const W=innerWidth,de=document.documentElement;const fuera=[...document.querySelectorAll('body *')].filter(e=>{const s=getComputedStyle(e);if(s.position==='fixed'||s.display==='none'||s.visibility==='hidden')return false;const q=e.getBoundingClientRect();if(!q.width||!q.height)return false;let p=e.parentElement;while(p&&p!==document.body){const ps=getComputedStyle(p);if(/auto|scroll|hidden|clip/.test(ps.overflowX))return false;p=p.parentElement}return q.right>W+1||q.left<-1}).slice(0,3).map(e=>(e.className||e.tagName)+'');return{sw:de.scrollWidth,fuera}})()""")
                 es(r['sw'] <= w + 1 and not r['fuera'], f'{nombre} a {w} px: nada se sale ({r})')
         await m.set_viewport_size({'width': 390, 'height': 844})
         for url, nombre in rutas:
-            await m.goto(B + url); await m.wait_for_timeout(250)
+            if not await ir(m, url, nombre): continue
+            await m.wait_for_timeout(250)
             r = await m.evaluate("""(()=>{const vis=e=>{const s=getComputedStyle(e);return s.display!=='none'&&s.visibility!=='hidden'&&e.getClientRects().length};
              const sinNombre=[...document.querySelectorAll('button,a[href],[role=button]')].filter(vis).filter(b=>!(b.getAttribute('aria-label')||b.innerText.trim()||b.title||b.querySelector('img[alt]:not([alt=""])'))).map(b=>b.outerHTML.slice(0,80));
              const sinEtiqueta=[...document.querySelectorAll('input:not([type=hidden]),textarea,select')].filter(i=>!(i.labels&&i.labels.length)&&!i.getAttribute('aria-label')&&!i.getAttribute('aria-labelledby')&&!(i.type==='radio'||i.type==='checkbox')&&!i.closest('label')).filter(i=>i.type!=='file'||vis(i)).map(i=>i.id||i.name||i.type);
