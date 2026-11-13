@@ -219,31 +219,7 @@ html.snap{scroll-snap-type:y mandatory}
 @media (max-width:899px){.bag{grid-template-areas:"h" "m" "o";gap:10px}.bat{display:contents}.bat .h2{grid-area:h}.mapa-w{grid-area:m;width:min(86vw,40svh)}.bat-o{grid-area:o;display:grid;gap:10px}.leyenda{display:none}}
 @media (min-width:900px){.bag{grid-template-columns:minmax(0,.85fr) minmax(0,1fr);gap:5vw}.bat-o{display:grid;gap:14px}}
 
-/* ===== 4 · así lo dejamos: antes y después ===== */
-.trg{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:center}
-.trt{display:grid;gap:14px;justify-items:start}
-.tabs{display:flex;gap:6px;flex-wrap:wrap}
-.tabs button{min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--asfalto-3);font-weight:600;transition:border-color var(--t-ui) var(--ease-out),background-color var(--t-ui) var(--ease-out),color var(--t-ui) var(--ease-out)}
-.tabs button[aria-pressed="true"]{background:var(--senal);border-color:var(--senal);color:var(--negro)}
-.trfacts{display:flex;gap:28px;align-items:flex-end}
-.trfacts div{display:grid;gap:4px}
-.trfacts .fig{font-size:var(--s-h2)}
-.trfacts span{font-size:var(--s-body);color:#c9ced3}
-.trfacts div:last-child .fig{color:var(--senal)}
-.cmp{--pos:50%;position:relative;width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none;cursor:ew-resize;background:var(--asfalto-2)}
-.cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none}
-.cmp .ca{position:absolute;inset:0;clip-path:inset(0 0 0 var(--pos))}
-.cmp .cl{position:absolute;top:0;bottom:0;left:var(--pos);width:4px;margin-left:-2px;background:var(--senal);pointer-events:none}
-.cmp .cl i{position:absolute;top:50%;left:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:var(--senal);display:grid;place-items:center;border:3px solid var(--negro)}
-.cmp .cl svg{width:24px;height:24px;color:var(--negro)}
-.cmp .tag{position:absolute;top:12px;padding:5px 9px;border-radius:6px;background:rgba(20,23,26,.82);font-size:var(--s-small);font-weight:600;pointer-events:none}
-.cmp .tag.a{left:12px}.cmp .tag.b{right:12px}
-.cmp input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;pointer-events:none}
-.cmp:has(input:focus-visible){outline:3px solid var(--senal);outline-offset:3px}
-@media (min-width:900px){.trg{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:5vw}}
-@media (max-width:899px){.cmp{max-height:36svh;aspect-ratio:auto;height:min(75vw,36svh)}}
-
-/* ===== 5 · de fiar: la tarjeta de garantía ===== */
+/* ===== 4 · de fiar: la tarjeta de garantía ===== */
 .gag{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:center}
 .gat{display:grid;gap:16px;justify-items:start}
 .gcard{position:relative;justify-self:center;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;width:100%;max-width:560px;padding:26px 20px 20px;border-radius:14px;background:var(--papel);color:var(--tinta);overflow:hidden;box-shadow:0 34px 60px -26px rgba(0,0,0,.8);transform:rotate(1.4deg)} /* taste-skill-ignore: sombra de una tarjeta sobre el asfalto */
@@ -268,7 +244,7 @@ html.snap{scroll-snap-type:y mandatory}
 @media (max-width:899px){.gag{grid-template-areas:"h" "c" "p" "s" "b";gap:14px}.gat{display:contents}.gat .h2{grid-area:h}.gcard{grid-area:c}.prueba{grid-area:p}.pasos{grid-area:s}#verRes{grid-area:b;justify-self:start}}
 @media (max-height:700px) and (max-width:899px){.prueba li:nth-child(2){display:none}.gat .h2{font-size:2.4rem}}
 
-/* ===== 6 · mientras llegamos: tres dibujos ===== */
+/* ===== 5 · mientras llegamos: tres dibujos ===== */
 .mig{display:grid;gap:22px}
 .mis{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .mis li{display:grid;grid-template-columns:112px minmax(0,1fr);align-items:center;gap:16px;padding:12px;border-radius:16px;background:var(--asfalto-2)}
@@ -459,25 +435,6 @@ html.snap{scroll-snap-type:y mandatory}
     </div>
   </section>
 
-  <section class="sx" id="trabajos" aria-labelledby="trT">
-    <div class="in trg">
-      <div class="trt">
-        <h2 class="h2" id="trT" data-t="tr.t">Así lo dejamos.</h2>
-        <div class="tabs" id="tabs" role="group" aria-label="Trabajos" data-ta="aria-label:a.trabajos">
-          <button data-tr="grifo" aria-pressed="true" data-t="tr.grifo">Grifo</button><button data-tr="atasco" aria-pressed="false" data-t="tr.atasco">Atasco</button><button data-tr="termo" aria-pressed="false" data-t="tr.termo">Termo</button>
-        </div>
-        <div class="trfacts"><div><span class="fig" id="trH">1 h</span><span data-t="tr.trabajo">de trabajo</span></div><div><span class="fig" id="trP">50 €</span><span id="trPs">+ el grifo</span></div></div>
-      </div>
-      <div class="cmp" id="cmp">
-        <img id="trA" src="assets/img/tr-grifo-antes.webp" srcset="assets/img/tr-grifo-antes-s.webp 720w,assets/img/tr-grifo-antes.webp 1200w" sizes="(min-width:900px) 52vw,92vw" alt="Antes: un grifo viejo y oxidado" width="1200" height="896">
-        <div class="ca"><img id="trD" src="assets/img/tr-grifo-despues.webp" srcset="assets/img/tr-grifo-despues-s.webp 720w,assets/img/tr-grifo-despues.webp 1200w" sizes="(min-width:900px) 52vw,92vw" alt="Después: el grifo nuevo, monomando" width="1200" height="896"></div>
-        <span class="tag a" data-t="tr.antes">Antes</span><span class="tag b" data-t="tr.despues">Después</span>
-        <div class="cl"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></i></div>
-        <input type="range" id="cmpR" min="0" max="100" value="50" aria-label="Arrastra para comparar antes y después" data-ta="aria-label:a.cmp">
-      </div>
-    </div>
-  </section>
-
   <section class="sx" id="garantia" aria-labelledby="gaT">
     <div class="in gag">
       <div class="gat">
@@ -615,7 +572,7 @@ html.snap{scroll-snap-type:y mandatory}
 <script type="application/json" id="i18n">
 {
  "ca":{
-  "a.home":"Ramírez 24 h: tornar a l’entrada","a.nav":"Seccions","a.lang":"Idioma","a.menu":"Obrir el menú","a.menuT":"Menú","a.track":"Entrada: la furgoneta arriba al teu portal","a.averias":"Avaries","a.prev":"Avaria anterior","a.next":"Avaria següent","a.trabajos":"Feines","a.cmp":"Arrossega per comparar abans i després","a.bar":"Trucar o escriure","a.cerrar":"Tancar","a.s5":"5 de 5","a.s4":"4 de 5","a.mapa":"Mapa dels districtes de Barcelona",
+  "a.home":"Ramírez 24 h: tornar a l’entrada","a.nav":"Seccions","a.lang":"Idioma","a.menu":"Obrir el menú","a.menuT":"Menú","a.track":"Entrada: la furgoneta arriba al teu portal","a.averias":"Avaries","a.prev":"Avaria anterior","a.next":"Avaria següent","a.bar":"Trucar o escriure","a.cerrar":"Tancar","a.s5":"5 de 5","a.s4":"4 de 5","a.mapa":"Mapa dels districtes de Barcelona",
   "nav.precio":"Preu","nav.barrio":"Barri","nav.garantia":"Garantia","nav.averias":"Avaries",
   "b.llamar":"Trucar","b.foto":"Enviar foto","bar.llamar":"Trucar ara","bar.foto":"Foto",
   "in.t":"Lampistes 24 hores.","in.l":"Fuites, embussos i avaries a Barcelona. Arribem en 25–40 minuts.","in.h":"Llisca i mira a quina hora arribem.",
@@ -627,9 +584,6 @@ html.snap{scroll-snap-type:y mandatory}
   "p.t":"Part de treball","p.r1":"Desplaçament a Barcelona","p.r2":"Mà d’obra","p.r3":"De 20 a 8 h, caps de setmana i festius","p.sello":"Preu tancat",
   "ej.t":"Una fuita d’1 h 30 min, un dimarts","ej.r1":"Desplaçament","ej.r2":"Mà d’obra, 1 h 30 min","ej.tot":"Total","ej.dom":"La mateixa feina un diumenge: {p}.",
   "ba.t":"A quin barri ets?","ba.toca":"Toca el teu barri.","ba.toca2":"I et diem a quina hora arribem.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si truques ara, arribem abans de les {t}.","ba.cp":"O escriu el teu codi postal","ba.no":"Aquest codi no és de Barcelona. Truca’ns: també anem a L’Hospitalet, Esplugues i Sant Adrià.","ba.ley":"Minuts per arribar des del taller de Sants, amb trànsit normal.","ba.taller":"Taller","ba.mar":"MAR",
-  "tr.t":"Així ho deixem.","tr.grifo":"Aixeta","tr.atasco":"Embús","tr.termo":"Termo","tr.trabajo":"de feina","tr.antes":"Abans","tr.despues":"Després",
-  "tr.grifo.p":"+ l’aixeta","tr.atasco.p":"preu tancat","tr.termo.p":"amb termo nou de 80 l",
-  "tr.grifo.a":"Abans: una aixeta vella i rovellada","tr.grifo.d":"Després: l’aixeta nova, monocomandament","tr.atasco.a":"Abans: un lavabo embussat, ple d’aigua","tr.atasco.d":"Després: el lavabo net i desembussat","tr.termo.a":"Abans: un termo vell i rovellat","tr.termo.d":"Després: un termo nou amb la instal·lació nova",
   "ga.t":"Ho signem.","ga.d1":"Empresa instal·ladora autoritzada","ga.d2":"Factura amb IVA","ga.d3":"en 540 ressenyes","ga.p1":"Truques","ga.p2":"Arribem","ga.p3":"Preu tancat","ga.p4":"Garantia","ga.res":"Llegir ressenyes",
   "ga.k":"Garantia de Ramírez 24 h","ga.big":"1 any","ga.s":"A cada feina, per escrit i a la teva factura.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, el fundador, a la porta d’un portal",
   "mi.t":"Mentre arribem.","mi.1":"Tanca la clau de pas.","mi.1s":"Gira la roda cap a la dreta, fins al final.","mi.2":"Aigua a prop d’un endoll?","mi.2s":"Abaixa el diferencial del quadre de la llum.","mi.3":"Fes una foto i envia-la’ns.","mi.3s":"Així venim amb la peça que toca.","mi.btn":"Enviar la foto",
@@ -642,7 +596,7 @@ html.snap{scroll-snap-type:y mandatory}
   "min":"min"
  },
  "en":{
-  "a.home":"Ramírez 24 h: back to the start","a.nav":"Sections","a.lang":"Language","a.menu":"Open the menu","a.menuT":"Menu","a.track":"Intro: the van pulls up at your door","a.averias":"Problems","a.prev":"Previous problem","a.next":"Next problem","a.trabajos":"Jobs","a.cmp":"Drag to compare before and after","a.bar":"Call or message","a.cerrar":"Close","a.s5":"5 out of 5","a.s4":"4 out of 5","a.mapa":"Map of Barcelona’s districts",
+  "a.home":"Ramírez 24 h: back to the start","a.nav":"Sections","a.lang":"Language","a.menu":"Open the menu","a.menuT":"Menu","a.track":"Intro: the van pulls up at your door","a.averias":"Problems","a.prev":"Previous problem","a.next":"Next problem","a.bar":"Call or message","a.cerrar":"Close","a.s5":"5 out of 5","a.s4":"4 out of 5","a.mapa":"Map of Barcelona’s districts",
   "nav.precio":"Prices","nav.barrio":"Area","nav.garantia":"Guarantee","nav.averias":"Problems",
   "b.llamar":"Call","b.foto":"Send a photo","bar.llamar":"Call now","bar.foto":"Photo",
   "in.t":"24-hour plumbers.","in.l":"Leaks, blockages and breakdowns in Barcelona. We get there in 25–40 minutes.","in.h":"Swipe and see when we’ll arrive.",
@@ -654,9 +608,6 @@ html.snap{scroll-snap-type:y mandatory}
   "p.t":"Job sheet","p.r1":"Call-out within Barcelona","p.r2":"Labour","p.r3":"8 pm to 8 am, weekends and public holidays","p.sello":"Fixed price",
   "ej.t":"A 1 h 30 min leak, on a Tuesday","ej.r1":"Call-out","ej.r2":"Labour, 1 h 30 min","ej.tot":"Total","ej.dom":"The same job on a Sunday: {p}.",
   "ba.t":"Which area are you in?","ba.toca":"Tap your area.","ba.toca2":"We’ll tell you when we’ll arrive.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Call now and we’ll be there by {t}.","ba.cp":"Or type your postcode","ba.no":"That postcode isn’t in Barcelona. Call us: we also cover L’Hospitalet, Esplugues and Sant Adrià.","ba.ley":"Minutes to reach you from our Sants workshop, in normal traffic.","ba.taller":"Workshop","ba.mar":"SEA",
-  "tr.t":"How we leave it.","tr.grifo":"Tap","tr.atasco":"Blockage","tr.termo":"Water heater","tr.trabajo":"of work","tr.antes":"Before","tr.despues":"After",
-  "tr.grifo.p":"+ the tap","tr.atasco.p":"fixed price","tr.termo.p":"with a new 80 l heater",
-  "tr.grifo.a":"Before: an old, rusty tap","tr.grifo.d":"After: the new mixer tap","tr.atasco.a":"Before: a blocked basin full of water","tr.atasco.d":"After: the basin clean and draining","tr.termo.a":"Before: an old, rusty water heater","tr.termo.d":"After: a new water heater with new pipework",
   "ga.t":"We put it in writing.","ga.d1":"Licensed plumbing company","ga.d2":"VAT invoice","ga.d3":"from 540 reviews","ga.p1":"You call","ga.p2":"We arrive","ga.p3":"Fixed price","ga.p4":"Guarantee","ga.res":"Read reviews",
   "ga.k":"Ramírez 24 h guarantee","ga.big":"1 year","ga.s":"On every job, in writing, on your invoice.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, the founder, at the door of an apartment building",
   "mi.t":"Until we get there.","mi.1":"Turn off the stopcock.","mi.1s":"Turn the wheel clockwise, all the way.","mi.2":"Water near a socket?","mi.2s":"Switch off the main breaker in the fuse box.","mi.3":"Take a photo and send it.","mi.3s":"So we bring the right part.","mi.btn":"Send the photo",
@@ -674,8 +625,6 @@ html.snap{scroll-snap-type:y mandatory}
   "av.fuga.l":"Tubería, llave de paso o latiguillo.","av.atasco.l":"Fregadero, váter, ducha o bajante.","av.termo.l":"Termo eléctrico o calentador.","av.cisterna.l":"No para de correr el agua o no carga.","av.grifo.l":"Gotea, pierde o hay que cambiarlo.","av.otra.l":"Cuéntanoslo y te damos el precio al momento.",
   "cu.n":"Ahora, tarifa normal.","cu.u":"Ahora, tarifa de urgencia: +40 %.","cu.ej2":"Ocultar el ejemplo","ej.dom":"El mismo trabajo un domingo: {p}.",
   "ba.toca":"Toca tu barrio.","ba.toca2":"Y te decimos a qué hora llegamos.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si llamas ahora, llegamos antes de las {t}.","ba.no":"Ese código no es de Barcelona. Llámanos: también vamos a L’Hospitalet, Esplugues y Sant Adrià.","ba.taller":"Taller","ba.mar":"MAR","a.mapa":"Mapa de los distritos de Barcelona",
-  "tr.grifo.p":"+ el grifo","tr.atasco.p":"precio cerrado","tr.termo.p":"con termo nuevo de 80 l",
-  "tr.grifo.a":"Antes: un grifo viejo y oxidado","tr.grifo.d":"Después: el grifo nuevo, monomando","tr.atasco.a":"Antes: un lavabo atascado, lleno de agua","tr.atasco.d":"Después: el lavabo limpio y desatascado","tr.termo.a":"Antes: un termo viejo y oxidado","tr.termo.d":"Después: un termo nuevo con la instalación nueva",
   "mi.1":"Cierra la llave de paso.","mi.1s":"Gira la rueda a la derecha, hasta el final.","mi.2":"¿Agua cerca de un enchufe?","mi.2s":"Baja el diferencial del cuadro de la luz.","mi.3":"Haz una foto y mándanosla.","mi.3s":"Así venimos con la pieza que toca.",
   "d.alt.n":"De noche, en fin de semana o festivo: {p}.","d.alt.u":"En horario normal, de lunes a viernes de 8 a 20 h: {p}.","d.t":"{a}, ahora.","d.n":"Tarifa normal.","d.u":"Tarifa de urgencia: +40 % en desplazamiento y mano de obra.",
   "wa.full":"{a} en {b}, ahora. Os mando foto.","wa.av":"{a}, ahora. Os mando foto.","wa.b":"Avería en {b}, ahora. Os mando foto.","wa.none":"Tengo una avería, ahora. Os mando foto.",
@@ -756,7 +705,7 @@ const CP={'08001':'cve','08002':'cve','08003':'cve','08039':'cve','08007':'eix',
 const minTxt=b=>b==='b'?'30–35 min':BANDA[b]+' min';
 
 /* ===== estado: la avería y el barrio que has tocado ===== */
-const S={av:AV.some(a=>a.id===store.get('av'))?store.get('av'):'fuga',d:DIS[store.get('d')]?store.get('d'):null,tr:'grifo',av0:!!store.get('av')};
+const S={av:AV.some(a=>a.id===store.get('av'))?store.get('av'):'fuga',d:DIS[store.get('d')]?store.get('d'):null,av0:!!store.get('av')};
 const etaMin=()=>S.d?BANDA[DIS[S.d][1]]:40;
 
 /* ===== WhatsApp y llamada: en la demo, una vista previa en vez de un número inventado ===== */
@@ -826,22 +775,6 @@ $('#mapaW').addEventListener('click',e=>{const g=e.target.closest('.d');if(g)eli
 $('#mapaW').addEventListener('keydown',e=>{const g=e.target.closest('.d');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();elige(g.dataset.id)}});
 $('#cp').addEventListener('input',()=>{const i=$('#cp'),v=i.value.replace(/\D/g,'').slice(0,5);if(i.value!==v)i.value=v;
  if(v.length<5){$('#cpMsg').textContent='';return}const id=CP[v];if(id){elige(id,'cp');$('#cpMsg').textContent='';i.blur()}else $('#cpMsg').textContent=t('ba.no')});
-/* --- así lo dejamos --- */
-const TR={grifo:{h:'1 h',p:50},atasco:{h:'40 min',p:65},termo:{h:'2 h',p:390}};
-function pintaTr(){const k=S.tr,d=TR[k];$$('#tabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tr===k)));
- $('#trH').textContent=d.h;$('#trP').textContent=eur(d.p);$('#trPs').textContent=t('tr.'+k+'.p');
- const a=$('#trA'),b=$('#trD');if(a.dataset.k!==k){a.dataset.k=k;a.src=`assets/img/tr-${k}-antes.webp`;a.srcset=`assets/img/tr-${k}-antes-s.webp 720w,assets/img/tr-${k}-antes.webp 1200w`;b.src=`assets/img/tr-${k}-despues.webp`;b.srcset=`assets/img/tr-${k}-despues-s.webp 720w,assets/img/tr-${k}-despues.webp 1200w`}
- a.alt=t('tr.'+k+'.a');b.alt=t('tr.'+k+'.d')}
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.dataset.tr===S.tr)return;S.tr=b.dataset.tr;pintaTr();setPos(50,true)});
-const cmp=$('#cmp'),cmpR=$('#cmpR');let pos=50;
-function setPos(v,anim){pos=Math.max(0,Math.min(100,v));cmpR.value=Math.round(pos);if(anim&&!RM)gsap.to(cmp,{'--pos':pos+'%',duration:.5,ease:'expo.out'});else cmp.style.setProperty('--pos',pos+'%')}
-cmpR.addEventListener('input',()=>setPos(+cmpR.value));
-{let drag=null;cmp.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,on:e.pointerType==='mouse'};if(drag.on){cmp.setPointerCapture(e.pointerId);mueve(e)}});
- cmp.addEventListener('pointermove',e=>{if(!drag)return;if(!drag.on){const dx=Math.abs(e.clientX-drag.x),dy=Math.abs(e.clientY-drag.y);if(dx>8&&dx>dy){drag.on=true;cmp.setPointerCapture(e.pointerId)}else if(dy>8){drag=null;return}}if(drag.on)mueve(e)});
- const fin=()=>{drag=null};cmp.addEventListener('pointerup',fin);cmp.addEventListener('pointercancel',fin);
- function mueve(e){const r=cmp.getBoundingClientRect();setPos((e.clientX-r.left)/r.width*100)}}
-/* a la primera visita, la línea enseña que se mueve */
-let cmpHint=false;
 
 /* ===== entrada: el vídeo avanza con un gesto y se para en el portal ===== */
 const v=$('#v'),intro=$('#intro'),index=$('#index'),scrimB=$('#scrimB');let dur=5,target=0,cur=0,ready=false,auto=0,autoT=0,preTw=null;
@@ -877,7 +810,7 @@ function llega(){preTw=null;auto=0;v.pause();target=cur=1;scrollTo(0,tmax());gli
 function salir(){if(gliding||auto||scrollY<4)return;glide(0,1.5)}
 
 /* ===== pila: la pantalla que llega pasa por encima; la de atrás casi no se mueve, encoge y se oscurece ===== */
-const SECS=['averias','cuesta','barrio','trabajos','garantia','mientras','fin'];
+const SECS=['averias','cuesta','barrio','garantia','mientras','fin'];
 const topOf=el=>{let y=0;for(let e=el;e;e=e.offsetParent)y+=e.offsetTop;return y};
 let PILA=null,pY=-1,pH=0;
 function pila(){if(SHOT)return;if(!PILA){PILA=[$('.stage'),...SECS.map(id=>document.getElementById(id))];
@@ -934,7 +867,7 @@ function raya(){const a=curSec&&TL.querySelector(`a[data-go="${curSec}"]`);if(!a
  TIND.style.transform=`translateX(${a.offsetLeft}px) scaleX(${(a.offsetWidth/100).toFixed(3)})`;TIND.style.opacity='1'}
 addEventListener('resize',raya);langFns.push(raya);
 function spy(){let on=null,hd='track';SECS.forEach(id=>{const y=document.getElementById(id).getBoundingClientRect().top;if(y<innerHeight*.45)on=id;if(y<=34)hd=id});
- if(on!==curSec){curSec=on;$$('.tlinks a').forEach(a=>a.classList.toggle('on',a.dataset.go===on));raya();if(on==='trabajos'&&!cmpHint&&!RM){cmpHint=true;setTimeout(()=>{gsap.timeline().to(cmp,{'--pos':'34%',duration:.6,ease:'power3.inOut'}).to(cmp,{'--pos':'50%',duration:.7,ease:'expo.out'})},900)}}
+ if(on!==curSec){curSec=on;$$('.tlinks a').forEach(a=>a.classList.toggle('on',a.dataset.go===on));raya()}
  document.body.dataset.hdr=hd}
 
 /* ===== hojas ===== */
@@ -956,7 +889,7 @@ $$('.sheet').forEach(sh=>{let y0=null,dy=0;const sb=sh.querySelector('.sbody');
 /* ===== titulares por líneas y una entrada por pantalla ===== */
 const LN={};
 function partir(h){if(!h)return[];if(!h.querySelector('.ln'))h.innerHTML=h.innerHTML.split(/<br\s*\/?>/i).map(p=>`<span class="ln"><span>${p.trim()}</span></span>`).join('');return[...h.querySelectorAll('.ln>span')]}
-const HEADS=['#avT','#cuT','#baT','#trT','#gaT','#miT','#fiT'];
+const HEADS=['#avT','#cuT','#baT','#gaT','#miT','#fiT'];
 langFns.push(()=>HEADS.forEach(s=>{const ls=partir($(s));if(LN[s])gsap.set(ls,{yPercent:108})}));
 if(!RM&&'IntersectionObserver'in window){
  const lineas=(tl,sel,at)=>{LN[sel]=false;return tl.fromTo(partir($(sel)),{yPercent:108},{yPercent:0,duration:1,ease:'expo.out',stagger:.09},at||0)};
@@ -964,7 +897,6 @@ if(!RM&&'IntersectionObserver'in window){
   averias:{ln:'#avT',pre:['#avObj','#chips button'],run(){lineas(gsap.timeline(),'#avT').fromTo('#avObj',{x:80,opacity:0},{x:0,opacity:1,duration:.9,ease:'expo.out'},.1).fromTo('#chips button',{opacity:0,y:10},{opacity:1,y:0,duration:.4,ease:'power3.out',stagger:.04},.15)}},
   cuesta:{ln:'#cuT',pre:['#parte'],run(){lineas(gsap.timeline(),'#cuT').fromTo('#parte',{y:70,rotation:-5,opacity:0},{y:0,rotation:-1.2,opacity:1,duration:1,ease:'expo.out'},.1)}},
   barrio:{ln:'#baT',pre:['#mapa .d'],run(){lineas(gsap.timeline(),'#baT').fromTo('#mapa .d',{opacity:0},{opacity:1,duration:.5,ease:'power2.out',stagger:.05},.1)}},
-  trabajos:{ln:'#trT',pre:['#cmp'],run(){lineas(gsap.timeline(),'#trT').fromTo('#cmp',{y:50,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out'},.1)}},
   garantia:{ln:'#gaT',pre:['#gcard'],run(){lineas(gsap.timeline(),'#gaT').fromTo('#gcard',{y:70,rotation:6,opacity:0},{y:0,rotation:1.4,opacity:1,duration:1,ease:'expo.out'},.1)}},
   mientras:{ln:'#miT',pre:['#mis li'],run(){lineas(gsap.timeline(),'#miT').fromTo('#mis li',{y:30,opacity:0},{y:0,opacity:1,duration:.7,ease:'expo.out',stagger:.09},.1)
    .fromTo('#mis .volante',{rotation:-270,transformOrigin:'50% 50%'},{rotation:0,transformOrigin:'50% 50%',duration:1.4,ease:'power3.inOut'},.35).fromTo('#mis .gotas',{opacity:1},{opacity:0,duration:.3},1.2)
@@ -979,7 +911,7 @@ else HEADS.forEach(s=>partir($(s)));
  v.addEventListener('loadedmetadata',()=>{v.currentTime=v.duration-.05},{once:true});scrollTo(0,tmax());target=cur=1;arrive();
  if(h!=='dentro')setTimeout(()=>{scrollTo(0,yOf(h));onScroll()},120)})();
 
-applyLang();langFns.push(pintaVivo,pintaTr);pintaVivo();pintaTr();
+applyLang();langFns.push(pintaVivo);pintaVivo();
 setInterval(pintaVivo,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pintaVivo()});
 if(SHOT){document.body.classList.add('ready');index.removeAttribute('aria-hidden');index.inert=false;document.body.dataset.hdr=SHOT_AT||'track';
  if(SHOT_AT&&SECS.includes(SHOT_AT)){$('#track').style.display='none';for(const id of SECS){if(id===SHOT_AT)break;document.getElementById(id).style.display='none'}}scrollTo(0,0)}
