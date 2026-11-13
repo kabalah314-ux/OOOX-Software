@@ -10,6 +10,7 @@ from playwright.async_api import async_playwright
 
 DATOS = open(sys.argv[1], encoding='utf-8').read()
 PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 8765
+def ms(iso): return datetime.fromisoformat(iso)   # la hora, con su desfase de Madrid, igual en cualquier máquina
 B = f'http://127.0.0.1:{PORT}/'
 ok = 0; fallos = []; errores = []; textos = []; sinfoto = set()
 def es(c, txt):
@@ -45,7 +46,7 @@ async def main():
         # el negocio de muestra, tal cual lo sirve el sitio: de aquí salen las palabras que NO pueden aparecer en la copia
         c0 = await br.new_context(); p0 = await c0.new_page(); await p0.goto(B + 'cita.html'); M = await p0.evaluate('OFICIO_NEGOCIO'); await c0.close()
         ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=(NAV != 'firefox'), has_touch=True, locale='es-ES', timezone_id='Europe/Madrid')
-        await ctx.clock.install(time=datetime(2026, 11, 17, 10, 30))      # un martes a media mañana: tarifa normal en cualquier horario razonable
+        await ctx.clock.install(time=ms('2026-11-17T10:30:00+01:00'))      # un martes a media mañana: tarifa normal en cualquier horario razonable
         k = await pagina(ctx, 'cliente', False)
         await k.goto(B + 'cita.html'); await k.wait_for_selector('#f')
         N = await k.evaluate('OFICIO_NEGOCIO'); mismo = N['id'] == M['id']; demo = await k.evaluate('Oficio.DEMO')
@@ -127,7 +128,7 @@ async def main():
             if doc != 'garantia': es(N['ciudad'] in t and 'Clara Prueba' in t, f'{doc}: el cliente, con la ciudad del negocio')
 
         # ---------- 4. una urgencia: el recargo que se lee es el del negocio ----------
-        await tl.clock.set_fixed_time(datetime(2026, 11, 15, 11, 0))      # domingo
+        await tl.clock.set_fixed_time(ms('2026-11-15T11:00:00+01:00'))      # domingo
         u = await tl.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'{N['averias'][0]['id']}',origen:'llamada',cli:{{nombre:'Urge Domingo',tel:'633445566',dir:'C/ de la Prisa 1',cp:'{cp}'}}}},{{rol:'centralita'}}).id")
         tu = await tl.evaluate(f"(()=>{{const S=Oficio.estado(),A=S.avisos.find(a=>a.id==='{u}');return Object.keys(Oficio.cfg.tec).find(x=>!OficioNucleo.puedeIr(S,Oficio.cfg,A,x,Date.now()))}})()")
         es(bool(tu), 'urgencia en domingo: hay alguien a quien se le puede asignar')

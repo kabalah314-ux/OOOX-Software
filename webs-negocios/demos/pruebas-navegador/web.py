@@ -21,6 +21,9 @@ def oye(pg, nombre):
     pg.on('requestfailed', lambda r: rotos.append(f'falla {r.url} {r.failure}') if r.url.startswith(B) else None)
     return pg
 
+# La hora de las pruebas es fija: un martes laborable a media mañana, hora de Madrid. Así el resultado no depende de cuándo se lancen
+# (de noche, en fin de semana o en festivo la tarifa es otra). Para probar a otra hora: AHORA=2026-11-14T23:30:00+01:00
+AHORA = os.environ.get('AHORA', '2026-11-17T10:30:00+01:00')
 def ms(iso):  # la hora con su desfase de Madrid (UTC+1 en invierno, UTC+2 en verano)
     return datetime.fromisoformat(iso)
 
@@ -74,7 +77,8 @@ async def main():
         sin = sorted(k for k in (dt | ft) if k not in I['ca'] and not k.endswith('.'))
         es(not sin, f'idiomas: cada texto que se traduce tiene su traducción {sin[:8]}')
         for l in ('ca', 'en'):
-            pg = oye(await (await br.new_context(viewport={'width': 1280, 'height': 860})).new_page(), 'web ' + l)
+            cl = await br.new_context(viewport={'width': 1280, 'height': 860}, timezone_id='Europe/Madrid'); await cl.clock.install(time=ms(AHORA))
+            pg = oye(await cl.new_page(), 'web ' + l)
             await pg.goto(B + f'index.html?lang={l}'); await pg.wait_for_timeout(700)
             r = await pg.evaluate("({lang:document.documentElement.lang,h:document.querySelector('h1').innerText,vacios:[...document.querySelectorAll('[data-t]')].filter(e=>!e.textContent.trim()).map(e=>e.dataset.t).slice(0,5)})")
             es(r['lang'] == l and not r['vacios'], f'idiomas: en {l} la página cambia el idioma y no deja textos vacíos ({r})')
@@ -151,6 +155,7 @@ async def main():
         # ---------- 7. la web en todos los anchos: nada se sale en ninguna sección ----------
         for w, h in ((320, 640), (375, 812), (390, 844), (430, 932), (768, 1024), (1024, 768), (1280, 800), (1440, 900), (1920, 1080)):
             ctx = await br.new_context(viewport={'width': w, 'height': h}, is_mobile=w < 800, has_touch=w < 800)
+            await ctx.clock.install(time=ms(AHORA))
             pg = oye(await ctx.new_page(), f'web {w}')
             await pg.goto(B + 'index.html#averias'); await pg.wait_for_timeout(900)
             peor = []
@@ -164,6 +169,7 @@ async def main():
 
         # ---------- 8. la página de los tres móviles ----------
         ctx = await br.new_context(viewport={'width': 1440, 'height': 900})
+        await ctx.clock.install(time=ms(AHORA))
         pg = oye(await ctx.new_page(), 'prueba')
         await pg.goto(B + 'prueba.html'); await pg.wait_for_timeout(1500)
         fr = [f for f in pg.frames if f != pg.main_frame]

@@ -56,4 +56,8 @@ jobs:
       - name: Pantallas en ${{ matrix.motor }}
         env:
           NAVEGADOR: ${{ matrix.motor }}
-        run: bash webs-negocios/demos/pruebas.sh navegador
+        # Las pantallas se prueban con la hora fija (un martes a media mañana) y la app se repite a otras horas.
+        # De noche se repite a siete: viernes y sábado de noche, festivo, fin de año, cambio de hora y los dos bordes de la tarifa.
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then export HORAS="2026-11-13T20:10:00+01:00 2026-11-14T23:30:00+01:00 2026-12-08T11:00:00+01:00 2026-12-31T23:58:30+01:00 2027-03-28T01:58:30+01:00 2026-11-17T07:59:00+01:00 2026-11-20T19:58:30+01:00"; fi
+          bash webs-negocios/demos/pruebas.sh navegador

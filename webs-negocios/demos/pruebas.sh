@@ -5,6 +5,8 @@
 #   NAVEGADOR=chromium|firefox|webkit   motor para las pruebas de pantallas (por defecto, chromium)
 #   TANDAS=100  SEMILLA=20261113   tamaño y semilla de los recorridos al azar
 #   MUTANTES=1  añade la prueba de «reglas estropeadas adrede» (tarda un minuto; en GitHub corre siempre)
+#   AHORA=2026-11-17T10:30:00+01:00   la hora fija de las pruebas de pantallas (por defecto, un martes laborable a media mañana)
+#   HORAS="..."  otras horas a las que se repite la batería de la app (por defecto, un sábado de noche y el cruce de fin de año)
 set -u
 AQUI="$(cd "$(dirname "$0")" && pwd)"
 # la carpeta del sitio: la del repositorio o, en la copia del PC, la que está al lado (../site)
@@ -27,6 +29,9 @@ if [ "$QUE" != reglas ]; then
   sleep 1.5; cd "$AQUI/pruebas-navegador"
   echo "Motor: ${NAVEGADOR:-chromium}"
   paso "App: cliente, oficina y técnico" python3 app.py
+  # la misma batería a otras horas: lo que funciona un martes por la mañana tiene que funcionar de noche, en fin de semana,
+  # al cambiar de año y al cambiar la hora. Sin esto, un fallo así solo sale cuando alguien lanza las pruebas a esa hora.
+  for h in ${HORAS:-2026-11-14T23:30:00+01:00 2026-12-31T23:58:30+01:00}; do paso "App a otra hora ($h)" env AHORA="$h" python3 app.py; done
   paso "Web y página de los tres móviles" python3 web.py
   paso "Muestra de la demo" python3 muestra.py
   paso "Vídeo de entrada" python3 entrada.py

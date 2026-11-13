@@ -40,12 +40,22 @@ En el contenedor de trabajo solo hay Chromium. Firefox y WebKit corren en GitHub
   motores pasan y dejarlo.
 - **Sin esperas fijas.** Cada paso espera a que la página llegue a su estado, con un tope. Una prueba que falla a
   ratos se arregla o se quita el mismo día: no se deja «a ver si mañana pasa».
+- **La hora es fija.** Todas las baterías de pantallas (menos la del vídeo, que no depende de la hora) corren con el
+  reloj puesto en un martes laborable a las 10:30, hora de Madrid (`AHORA=2026-11-17T10:30:00+01:00`). Antes usaban la
+  hora real, y el 13-11-2026 a las 20:10 falló en los tres motores una comprobación que daba por hecho la tarifa de día.
+  Para que eso no se esconda, la batería de la app se repite a otras horas (`HORAS` en `pruebas.sh`): con cada cambio,
+  un sábado de noche y el cruce de fin de año; cada noche, a siete (viernes y sábado de noche, festivo, fin de año,
+  cambio de hora y los dos bordes de la tarifa). El 13-11-2026 pasan las 220 en las ocho.
+  Ojo con Playwright en Python: un número en `clock.install(time=…)` son **segundos**, no milisegundos. Se le pasa una fecha.
 
 La demo pide iOS 15.4 o más nuevo (de marzo de 2022) por `dialog`, `BroadcastChannel` y `Array.at`.
 
-Límite conocido de la demo: si dos pestañas actúan **en el mismo milisegundo**, una de las dos acciones
-se puede perder, porque el estado se guarda en el navegador. Con 5 ms de diferencia ya no pasa (probado 15
-veces a 5, 20, 50 y 150 ms). En la fase 2 el orden lo pone el servidor.
+Límite conocido de la demo: si dos pestañas actúan **casi a la vez**, una de las dos acciones se puede perder,
+porque el estado se guarda en el navegador y una pestaña tarda unos milisegundos en ver lo que ha escrito la otra.
+Con la máquina tranquila no pasa con 20 ms de diferencia. Con la máquina cargada (ocho navegadores a la vez), sí:
+de 1 a 3 veces de cada 5. Por eso `app.py` comprueba lo que sí tiene que cumplirse siempre (una pestaña asigna, la
+otra lo ve sola y entonces asigna ella: no se pierde nada) y mide aparte la carrera de 20 ms, que solo avisa.
+En la fase 2 el orden lo pone el servidor.
 
 ## Añadido el 13-11-2026
 
