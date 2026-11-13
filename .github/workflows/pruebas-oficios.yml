@@ -11,6 +11,7 @@ on:
       - 'frontend/public/demos/ramirez-24h/**'
       - 'frontend/public/oficios/**'
       - 'webs-negocios/demos/**'
+      - 'webs-negocios/oficios-servidor/**'
       - '.github/workflows/pruebas-oficios.yml'
   schedule:
     - cron: '23 3 * * *'

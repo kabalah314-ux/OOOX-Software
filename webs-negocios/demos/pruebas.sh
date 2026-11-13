@@ -30,7 +30,14 @@ if [ "$QUE" != navegador ]; then
     paso "Copias: todas al día y con datos que valen" node "$AQUI/copias.mjs" comprueba --plantilla "$SITIO" --destino "$COPIAS"
     for d in "$COPIAS"/*/js/oficio-datos.js; do [ -f "$d" ] && paso "Copia $(basename "$(dirname "$(dirname "$d")")"): recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$d" --tandas "${TANDAS_COPIA:-20}" --semilla "${SEMILLA:-20261113}"; done
   fi
+  # el servidor de la fase 2 (el «juez»): está en el repositorio, en webs-negocios/oficios-servidor; en la copia del PC, al lado (../servidor)
+  JUEZ=""; for d in "$AQUI/../oficios-servidor" "$AQUI/../servidor"; do [ -f "$d/juez.mjs" ] && { JUEZ="$(cd "$d" && pwd)"; break; }; done
+  if [ -n "$JUEZ" ]; then
+    paso "El juez (servidor), con ejemplos" env OFICIOS_SERVIDOR="$JUEZ" node "$R/prueba-juez.mjs" "$SITIO"
+    paso "El juez, con varios aparatos a la vez y al azar" env OFICIOS_SERVIDOR="$JUEZ" node "$R/azar-juez.mjs" "$SITIO" --tandas "${TANDAS_JUEZ:-60}" --semilla "${SEMILLA:-20261114}"
+  fi
   [ "${MUTANTES:-0}" = 1 ] && paso "Reglas estropeadas adrede" node "$R/mutantes.mjs" "$SITIO"
+  [ "${MUTANTES:-0}" = 1 ] && [ -n "$JUEZ" ] && paso "Protecciones del juez quitadas adrede" env OFICIOS_SERVIDOR_ORIGEN="$JUEZ" node "$R/mutantes-juez.mjs" "$SITIO"
 fi
 if [ "$QUE" != reglas ]; then
   ( cd "$SITIO" && exec python3 -m http.server 8765 >/dev/null 2>&1 ) & S1=$!
