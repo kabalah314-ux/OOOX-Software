@@ -1,11 +1,7 @@
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, json
-from datetime import datetime
-# La hora de las pruebas es fija: un martes laborable a media mañana, hora de Madrid. Así el resultado no depende de cuándo se lancen
-# (de noche, en fin de semana o en festivo la tarifa es otra). Para probar a otra hora: AHORA=2026-11-14T23:30:00+01:00
-AHORA = os.environ.get('AHORA', '2026-11-17T10:30:00+01:00')
-def ms(iso): return datetime.fromisoformat(iso)   # la hora, con su desfase de Madrid
+from reloj import pon_hora   # la hora de las pruebas es fija: ver reloj.py
 from playwright.async_api import async_playwright
 B='http://127.0.0.1:8765/'
 async def main():
@@ -15,7 +11,7 @@ async def main():
         if c: ok+=1
         else: mal.append(t); print('  MAL',t)
     async with async_playwright() as p:
-        b=await getattr(p, NAV).launch(); ctx=await b.new_context(viewport={'width':390,'height':844},timezone_id='Europe/Madrid'); await ctx.clock.install(time=ms(AHORA))
+        b=await getattr(p, NAV).launch(); ctx=await b.new_context(viewport={'width':390,'height':844},timezone_id='Europe/Madrid'); await pon_hora(ctx)
         pg=await ctx.new_page(); errs=[]; pg.on('pageerror',lambda e: errs.append(str(e)))
         await pg.goto(B+'app.html'); await pg.wait_for_selector('.fila')
         s=await pg.evaluate("JSON.parse(localStorage.getItem('oficio:ramirez'))")

@@ -3,15 +3,11 @@
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, sys, io, json, re
-from datetime import datetime
 from playwright.async_api import async_playwright
 from PIL import Image
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
-# La hora de las pruebas es fija: un martes laborable a media mañana, hora de Madrid. Así el resultado no depende de cuándo se lancen
-# (de noche, en fin de semana o en festivo la tarifa es otra). Para probar a otra hora: AHORA=2026-11-14T23:30:00+01:00
-AHORA = os.environ.get('AHORA', '2026-11-17T10:30:00+01:00')
-def ms(iso): return datetime.fromisoformat(iso)   # la hora, con su desfase de Madrid
+from reloj import pon_hora, AHORA   # la hora de las pruebas es fija: ver reloj.py
 B = f'http://127.0.0.1:{PORT}/'
 ok = 0; fallos = []; errores = []
 def es(c, txt):
@@ -68,7 +64,7 @@ async def main():
     async with async_playwright() as p:
         br = await getattr(p, NAV).launch()
         ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=(NAV != 'firefox'), has_touch=True, locale='es-ES', timezone_id='Europe/Madrid')
-        await ctx.clock.install(time=ms(AHORA))
+        await pon_hora(ctx)
         # ---------- 1. el cliente pide cita ----------
         k = await oye(await ctx.new_page(), 'cliente')
         await k.goto(B + 'cita.html'); await k.wait_for_selector('#f')
@@ -352,13 +348,13 @@ async def main():
             es(r['h1'] >= 1, f'{nombre}: tiene título principal ({r["h1"]})')
 
         # ---------- 8. almacenamiento roto o sin almacenamiento ----------
-        x = await br.new_context(viewport={'width': 390, 'height': 844}); await x.clock.install(time=ms(AHORA))
+        x = await br.new_context(viewport={'width': 390, 'height': 844}); await pon_hora(x)
         await x.add_init_script("localStorage.setItem('oficio:ramirez','{esto no es json')")
         pr = await oye(await x.new_page(), 'json roto')
         await pr.goto(B + 'app.html'); await pr.wait_for_selector('.fila')
         es(await pr.locator('.fila').count() >= 3, 'datos estropeados: la app arranca con la muestra')
         await x.close()
-        y = await br.new_context(viewport={'width': 390, 'height': 844}); await y.clock.install(time=ms(AHORA))
+        y = await br.new_context(viewport={'width': 390, 'height': 844}); await pon_hora(y)
         await y.add_init_script("Storage.prototype.setItem=function(){throw new DOMException('lleno','QuotaExceededError')};Storage.prototype.getItem=function(){return null}")
         y1 = await oye(await y.new_page(), 'sin guardar 1'); y2 = await oye(await y.new_page(), 'sin guardar 2')
         await y1.goto(B + 'app.html'); await y1.wait_for_selector('.fila'); await y2.goto(B + 'app.html'); await y2.wait_for_selector('.fila')

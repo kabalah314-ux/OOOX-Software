@@ -24,6 +24,7 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 | `web.py` | La web: archivos, idiomas, la hora de Barcelona en 12 momentos (web y app dicen lo mismo), desglose de cada avería, barrio, menú, metadatos, 9 tamaños de pantalla, y la página de los tres móviles | 60 bien |
 | `entrada.py` | El vídeo de entrada con y sin trozos, en ordenador y en móvil (con el dedo y con la rueda), lento y sin vídeo. Sin esperas fijas | 42 bien |
 | `muestra.py` | La muestra se rehace sola a las 8 horas, y «Reiniciar» | 7 bien |
+| `reloj.py` | No es una batería: pone la hora fija que ven las demás | — |
 | `negocio.py <datos.js>` | La app entera con los datos de otro negocio, de la cita al cobro, y que no quede rastro del negocio de muestra en 15 pantallas. Mira también que el botón de cada técnico diga lo mismo que la regla: quién puede ir y, si no, por qué | Voltio 34 bien · Ramírez 31 bien |
 
 ## Motores
@@ -40,13 +41,17 @@ En el contenedor de trabajo solo hay Chromium. Firefox y WebKit corren en GitHub
   motores pasan y dejarlo.
 - **Sin esperas fijas.** Cada paso espera a que la página llegue a su estado, con un tope. Una prueba que falla a
   ratos se arregla o se quita el mismo día: no se deja «a ver si mañana pasa».
-- **La hora es fija.** Todas las baterías de pantallas (menos la del vídeo, que no depende de la hora) corren con el
-  reloj puesto en un martes laborable a las 10:30, hora de Madrid (`AHORA=2026-11-17T10:30:00+01:00`). Antes usaban la
-  hora real, y el 13-11-2026 a las 20:10 falló en los tres motores una comprobación que daba por hecho la tarifa de día.
-  Para que eso no se esconda, la batería de la app se repite a otras horas (`HORAS` en `pruebas.sh`): con cada cambio,
+- **La hora es fija.** Todas las baterías de pantallas (menos la del vídeo, que no depende de la hora) ven siempre
+  un martes laborable a las 10:30, hora de Madrid (`AHORA=2026-11-17T10:30:00+01:00`; lo pone `reloj.py`). Antes usaban
+  la hora real, y el 13-11-2026 a las 20:10 falló en los tres motores una comprobación que daba por hecha la tarifa de día:
+  habría fallado todas las noches, los fines de semana y los festivos.
+- **La app se repite a otras horas** (`HORAS` en `pruebas.sh`), para que un fallo de noche no se esconda: con cada cambio,
   un sábado de noche y el cruce de fin de año; cada noche, a siete (viernes y sábado de noche, festivo, fin de año,
   cambio de hora y los dos bordes de la tarifa). El 13-11-2026 pasan las 220 en las ocho.
-  Ojo con Playwright en Python: un número en `clock.install(time=…)` son **segundos**, no milisegundos. Se le pasa una fecha.
+- **No se usa el reloj falso de Playwright** (`clock.install`). Cambia también los temporizadores del navegador y, en
+  WebKit, hacía que a ratos una página no terminase de cargar o que lo tecleado llegase desordenado. `reloj.py` solo le
+  suma un desfase a la hora que ve la página; el tiempo sigue corriendo y los temporizadores no se tocan.
+- **Una pantalla que no carga no rompe la batería**: se cuenta como fallo y dice en qué estado se ha quedado.
 
 La demo pide iOS 15.4 o más nuevo (de marzo de 2022) por `dialog`, `BroadcastChannel` y `Array.at`.
 

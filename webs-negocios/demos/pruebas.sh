@@ -28,7 +28,6 @@ if [ "$QUE" != reglas ]; then
   python3 "$AQUI/pruebas-navegador/servidor_con_rangos.py" "$SITIO" 8766 >/dev/null 2>&1 & S2=$!
   sleep 1.5; cd "$AQUI/pruebas-navegador"
   echo "Motor: ${NAVEGADOR:-chromium}"
-  if [ -f diag_tmp.py ] && [ "${NAVEGADOR:-}" = webkit ]; then python3 diag_tmp.py || true; fi   # TEMPORAL
   paso "App: cliente, oficina y técnico" python3 app.py
   # la misma batería a otras horas: lo que funciona un martes por la mañana tiene que funcionar de noche, en fin de semana,
   # al cambiar de año y al cambiar la hora. Sin esto, un fallo así solo sale cuando alguien lanza las pruebas a esa hora.
