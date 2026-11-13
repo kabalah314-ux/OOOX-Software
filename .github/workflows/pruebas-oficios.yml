@@ -46,8 +46,10 @@ jobs:
         with:
           python-version: '3.12'
       - name: Instalar Playwright y el navegador
+        # Versiones fijas: así una versión nueva del probador no hace fallar la prueba de la noche sin que haya cambiado la app.
+        # Para subir de versión: cambiar el número aquí, mirar que las tres pasan y solo entonces dejarlo.
         run: |
-          pip install playwright pillow
+          pip install playwright==1.65.1 pillow==13.0.0
           python -m playwright install --with-deps ${{ matrix.motor }}
       - name: Pantallas en ${{ matrix.motor }}
         env:
