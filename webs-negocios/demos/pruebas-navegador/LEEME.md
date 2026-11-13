@@ -19,6 +19,7 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 | `app.py` | Cliente, centralita y técnico: cada pantalla y botón, errores, texto raro que no se ejecuta, fotos, pack Básico, dos pestañas, teclado, anchos de 320 a 1440 px, etiquetas y nombres, datos estropeados, modo privado, sin conexión | 220 bien |
 | `web.py` | La web: archivos, idiomas, la hora de Barcelona en 12 momentos (web y app dicen lo mismo), desglose de cada avería, barrio, menú, metadatos, 9 tamaños de pantalla, y la página de los tres móviles | 60 bien |
 | `entrada.py` | El vídeo de entrada con y sin trozos, en ordenador y móvil, lento y sin vídeo | 42 bien |
+| `muestra.py` | La muestra se rehace sola a las 8 horas (conserva el pack), y «Reiniciar» | 8 bien |
 
 Lo que no se puede probar aquí: Safari (iPhone) y Firefox, porque solo hay Chromium. La demo pide iOS 15.4
 o más nuevo (de marzo de 2022) por `dialog`, `BroadcastChannel` y `Array.at`.

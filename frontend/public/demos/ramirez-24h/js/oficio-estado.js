@@ -16,9 +16,17 @@ function guarda(){let dentro=false;
  catch(e){try{S.avisos.forEach(a=>{a.foto='';a.fotos=[]});localStorage.setItem(CLAVE,JSON.stringify(S));dentro=true}catch(e2){}}
  if(canal)canal.postMessage(dentro?{v:S.v}:{v:S.v,S})}
 function avisa(){subs.forEach(f=>{try{f(S)}catch(e){console.error(e)}})}
-function estado(){const x=lee();if(x)S=x;else if(!S){S=g.OFICIO_MUESTRA(K,cfg,Date.now());guarda()}return S}
+/* La muestra se rehace sola si tiene más de 8 horas: si no, quien abre la demo al día siguiente
+   ve «urgente sin asignar, hace 20 h», que da mala imagen del negocio. Lo que se haya probado se pierde. */
+const VIEJA=8*3600*1000;
+function muestra(pack){const x=g.OFICIO_MUESTRA(K,cfg,Date.now());x.t0=Date.now();x.pack=pack||'';return x}
+function estado(){const x=lee();
+ if(x&&!(Date.now()-(x.t0||0)>VIEJA))S=x;
+ else if(x){S=muestra(x.pack);S.v=Math.max(Date.now(),(x.v||0)+1);guarda()}
+ else if(!S){S=muestra('');guarda()}
+ return S}
 function hacer(a,quien){estado();const r=K.aplicar(S,cfg,a,quien,Date.now());if(r.ok){guarda();avisa()}return r}
-function reiniciar(){const pack=S&&S.pack;S=g.OFICIO_MUESTRA(K,cfg,Date.now());S.pack=pack||'';S.v=Date.now();guarda();avisa()}
+function reiniciar(){S=muestra(S&&S.pack);S.v=Date.now();guarda();avisa()}
 if(canal)canal.onmessage=e=>{const d=e.data||{};if(d.S&&(!S||d.S.v>=S.v))S=d.S;avisa()};
 g.addEventListener&&g.addEventListener('storage',e=>{if(e.key===CLAVE)avisa()});
 
