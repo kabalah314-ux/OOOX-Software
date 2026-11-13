@@ -730,18 +730,25 @@ $('#cp').addEventListener('input',()=>{const i=$('#cp'),v=i.value.replace(/\D/g,
 
 /* ===== entrada: el vídeo avanza con un gesto y se para en el portal ===== */
 const v=$('#v'),intro=$('#intro'),index=$('#index'),scrimB=$('#scrimB');let dur=5,target=0,cur=0,ready=false,auto=0,autoT=0,preTw=null;
-const wide=matchMedia('(min-aspect-ratio:1/1)');let ori='';
-function setOri(){const o=wide.matches?'h':'v';if(o===ori)return;if(auto||preTw)llega();ori=o;if(SHOT){v.poster=`assets/img/fin-${o}.webp`;return}v.poster=`assets/entrada-${o}-poster.jpg`;v.src=`assets/entrada-${o}.mp4`;v.load()}
+const wide=matchMedia('(min-aspect-ratio:1/1)');let ori='';const enteros={};
+/* Si el servidor no da el vídeo por trozos (las vistas previas de Cloudflare Pages no lo hacen), Chrome no deja saltar dentro de él
+   y el iPhone ni lo reproduce. Se pregunta antes: si contesta con el archivo entero, ese mismo archivo es el que se usa. */
+const salta=()=>{const s=v.seekable;return s.length>0&&s.end(s.length-1)>.5};
+function pon(o){const u=`assets/entrada-${o}.mp4`,va=s=>{if(o!==ori)return;v.src=s;v.load();if(auto){const p=v.play();if(p&&p.catch)p.catch(()=>{})}};
+ if(enteros[o])return va(enteros[o]);
+ fetch(u,{headers:{Range:'bytes=0-1'}}).then(r=>r.status===206||!r.ok?va(u):r.blob().then(b=>va(enteros[o]=URL.createObjectURL(b)))).catch(()=>va(u))}
+function setOri(){const o=wide.matches?'h':'v';if(o===ori)return;if(auto||preTw)llega();ori=o;if(SHOT){v.poster=`assets/img/fin-${o}.webp`;return}v.poster=`assets/entrada-${o}-poster.jpg`;if(v.getAttribute('src')){v.removeAttribute('src');v.load()}pon(o)}
 const vt=()=>Math.min(1,Math.max(0,cur))*(dur-.05);
-v.addEventListener('loadedmetadata',()=>{dur=v.duration||dur;v.currentTime=vt()});
+v.addEventListener('loadedmetadata',()=>{dur=v.duration||dur;if(salta())v.currentTime=vt()});
 wide.addEventListener('change',setOri);setOri();
 const tmax=()=>$('#track').offsetHeight-innerHeight;
 const prog=()=>Math.min(1,Math.max(0,scrollY/tmax()));
 function tick(){
  if(auto&&v.readyState>=2){const k=Math.min(1,v.currentTime/Math.max(.1,dur-.05));target=cur=k;scrollTo(0,k*tmax());
-  if(k>=1||v.ended)llega();else if(v.currentTime<.05&&performance.now()-autoT>3000){auto=0;v.pause();sinVideo()}}
+  if(k>=1||v.ended)llega()}
+ if(auto&&v.currentTime<.05&&performance.now()-autoT>3000){auto=0;v.pause();sinVideo()}
  cur+=(target-cur)*.12;if(Math.abs(target-cur)<.001)cur=target;
- if(!auto&&v.readyState>=1&&!isNaN(v.duration)){const q=vt();if(Math.abs(v.currentTime-q)>.02)v.currentTime=q}
+ if(!auto&&v.readyState>=1&&!isNaN(v.duration)&&salta()){const q=vt();if(Math.abs(v.currentTime-q)>.02)v.currentTime=q}
  const o=Math.max(0,1-cur*6.2);intro.style.opacity=o;intro.style.visibility=o<.02?'hidden':'visible';scrimB.style.opacity=ready?0:Math.max(0,1-cur*4);
  if(cur>.985&&!ready)arrive();pila();requestAnimationFrame(tick)}
 let gliding=false,holdUntil=0,inTrack=true;
@@ -756,7 +763,8 @@ function leave(){ready=false;document.body.classList.remove('ready');index.setAt
 function corta(){if(preTw){preTw.kill();preTw=null}if(auto){auto=0;v.pause()}}
 function entrar(){if(gliding||auto)return;if(ready||RM){glide(tmax(),RM?0:.6);return}
  gliding=true;HTML.classList.remove('snap');holdUntil=0;
- v.currentTime=vt();auto=1;autoT=performance.now();const p=v.play();if(p&&p.catch)p.catch(()=>{if(auto){auto=0;sinVideo()}})}
+ if(salta())v.currentTime=vt();else if(v.currentTime>.1)v.load();
+ auto=1;autoT=performance.now();const p=v.play();if(p&&p.catch)p.catch(e=>{if(auto&&!(e&&e.name==='AbortError')){auto=0;sinVideo()}})}
 function sinVideo(){const tw={y:scrollY},k=1-prog();preTw=gsap.to(tw,{y:tmax(),duration:Math.max(.3,k*(dur-.05)),ease:'none',onUpdate:()=>scrollTo(0,tw.y),onComplete:llega})}
 function llega(){preTw=null;auto=0;v.pause();target=cur=1;scrollTo(0,tmax());gliding=false;holdUntil=performance.now()+1200;onScroll();arrive()}
 function salir(){if(gliding||auto||scrollY<4)return;glide(0,1.5)}
@@ -860,7 +868,7 @@ else HEADS.forEach(s=>partir($(s)));
 
 /* llegar con enlace (#cuesta, #barrio, #garantia...) */
 (function(){const h=location.hash.slice(1);if(!h||SHOT)return;history.replaceState(null,'',location.pathname+location.search);if(!SECS.includes(h)&&h!=='dentro')return;
- v.addEventListener('loadedmetadata',()=>{v.currentTime=v.duration-.05},{once:true});scrollTo(0,tmax());target=cur=1;arrive();
+ v.addEventListener('loadedmetadata',()=>{if(salta())v.currentTime=v.duration-.05},{once:true});scrollTo(0,tmax());target=cur=1;arrive();
  if(h!=='dentro')setTimeout(()=>{scrollTo(0,yOf(h));onScroll()},120)})();
 
 applyLang();langFns.push(pintaVivo);pintaVivo();
