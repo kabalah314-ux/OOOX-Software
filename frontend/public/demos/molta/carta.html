@@ -346,6 +346,30 @@ function modal(el,on){el.inert=!on;el.setAttribute('aria-hidden',!on);if(EMB&&pa
 function openSheet(){if(DOCK()){veFila(cur);return}document.body.classList.add('sheet-open');modal(sheet,true);const t=sheet.querySelector(`.ssec[data-s="${D[cur].sec}"]`),g=t.closest('.sgrp'),a=g&&g.querySelector('.ssec')===t?g:t,b=$('#sBody');b.scrollTop=Math.max(0,a.offsetTop-b.offsetTop);spy();
  if(!RM)gsap.fromTo(sheet.querySelectorAll('.rp'),{rotation:-40},{rotation:0,duration:.55,ease:'power3.out',stagger:{each:.01,from:rowsEl.indexOf(rowsEl[cur])},delay:.08,overwrite:'auto'})}
 function closeSheet(){if(!document.body.classList.contains('sheet-open'))return;document.body.classList.remove('sheet-open');modal(sheet,false)}
+/* la carta entera se esconde sola: pasarse del final de la lista (o del principio) con la rueda o el dedo la cierra,
+   y en el móvil se arrastra hacia abajo desde la cabecera o desde arriba de la lista, como una hoja del teléfono.
+   El resto del gesto que la cierra no hace nada más (no pasa de sección). */
+(()=>{const sb=()=>$('#sBody'),abierta=()=>document.body.classList.contains('sheet-open'),
+  alFinal=b=>b.scrollTop+b.clientHeight>=b.scrollHeight-2,arriba=b=>b.scrollTop<=2;
+ let g={t:0,dir:0,acc:0,borde:false},traga=0;
+ addEventListener('wheel',e=>{const n=performance.now();
+  if(traga&&n-traga<=260){traga=n;e.preventDefault();e.stopImmediatePropagation();return}
+  traga=0;if(!abierta())return;const b=sb();if(!b||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;const d=Math.sign(e.deltaY);
+  if(!b.contains(e.target)){e.preventDefault();b.scrollBy(0,e.deltaY)}          // sobre la cabecera también se mueve la lista
+  if(n-g.t>260||d!==g.dir)g={t:n,dir:d,acc:0,borde:d>0?alFinal(b):arriba(b)};   // gesto nuevo: cuenta solo si empieza en el borde
+  g.t=n;if(!g.borde)return;g.acc+=Math.abs(e.deltaY);
+  if(g.acc>40){g.borde=false;traga=n;e.preventDefault();e.stopImmediatePropagation();closeSheet()}},{passive:false});
+ let t=null;const suelta=()=>{sheet.style.transition='';sheet.style.transform=''};
+ sheet.addEventListener('touchstart',e=>{if(!abierta()||e.touches.length>1){t=null;return}const b=sb(),p=e.touches[0],enLista=!!b&&b.contains(e.target),n=performance.now();
+  t={x0:p.clientX,y0:p.clientY,y:p.clientY,s:[[p.clientY,n]],desdeArriba:!enLista||arriba(b),alFinal:enLista&&alFinal(b),arr:false}},{passive:true});
+ sheet.addEventListener('touchmove',e=>{if(!t)return;const p=e.touches[0],dx=p.clientX-t.x0,dy=p.clientY-t.y0;t.y=p.clientY;t.s.push([p.clientY,performance.now()]);if(t.s.length>8)t.s.shift();
+  if(!t.arr&&t.desdeArriba&&dy>8&&dy>Math.abs(dx)*1.2){t.arr=true;sheet.style.transition='none'}
+  if(t.arr){e.preventDefault();sheet.style.transform=`translate(-50%,${Math.max(0,dy).toFixed(1)}px)`}},{passive:false});
+ sheet.addEventListener('touchend',()=>{if(!t)return;const dy=t.y-t.y0,n=performance.now(),u=t.s[t.s.length-1],q=t.s.find(([,ts])=>u[1]-ts<=100)||u,v=n-u[1]>90?0:(u[0]-q[0])/Math.max(16,u[1]-q[1]); // velocidad de los últimos 100 ms del dedo; si se paró antes de soltar, no cuenta
+  if(t.arr){suelta();if(dy>sheet.offsetHeight*.22||v>.45)closeSheet()}   // lejos o con un tirón: se cierra; si no, vuelve a su sitio
+  else if(t.alFinal&&dy<-60)closeSheet();
+  t=null},{passive:true});
+ sheet.addEventListener('touchcancel',()=>{if(t&&t.arr)suelta();t=null},{passive:true})})();
 $('#list').onclick=openSheet;$('#sClose').onclick=closeSheet;
 const parteEl=k=>sheet.querySelector(GR.length?`.sgrp[data-g="${k}"]`:`.ssec[data-s="${k}"]`);
 $('#stabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const t=parteEl(b.dataset.s),body=$('#sBody');gsap.to(body,{scrollTop:t.offsetTop-body.offsetTop,duration:RM?0:.55,ease:'power2.inOut'})});
@@ -356,9 +380,7 @@ function spy(){const body=$('#sBody'),y=body.scrollTop+60,P=[...sheet.querySelec
 $('#sBody').addEventListener('scroll',spy,{passive:true});
 sheet.addEventListener('click',e=>{const a=e.target.closest('.radd');if(a){const k=+a.dataset.a,key=keyOf(k,0);cart[key]=(cart[key]||0)+1;renderCart(true);a.classList.add('ok');a.innerHTML=I.ok;setTimeout(()=>{a.classList.remove('ok');a.innerHTML=I.plus},900);return}
  const m=e.target.closest('.rmain');if(!m)return;const k=+m.dataset.go;if(DOCK()){if(k!==cur)go(k,k>cur?1:-1);return}closeSheet();setTimeout(()=>{if(k!==cur)go(k,k>cur?1:-1)},RM?0:280)});
-/* deslizar la hoja hacia abajo la cierra */
-{let y0=null;sheet.addEventListener('touchstart',e=>{const b=$('#sBody');y0=(e.target.closest('.sbody')&&b.scrollTop>2)?null:e.touches[0].clientY},{passive:true});
- sheet.addEventListener('touchend',e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>80)closeSheet();y0=null},{passive:true})}
+/* deslizar la hoja hacia abajo la cierra: ahora la hoja sigue al dedo (ver «la carta entera se esconde sola», más arriba) */
 
 /* ===== la carta entera acoplada (modelos de lista): en pantallas anchas no es una hoja que sube, ocupa su mitad ===== */
 const DOCK=()=>CF.lista==='fija'&&innerWidth>900;
@@ -483,15 +505,20 @@ $('#next').onclick=nextD;$('#prev').onclick=prevD;
 const canScroll=(t,d)=>{for(let el=t;el&&el!==document.documentElement;el=el.parentElement){const cs=getComputedStyle(el);if(/(auto|scroll)/.test(cs.overflowY)&&el.scrollHeight>el.clientHeight+2){if(d>0?el.scrollTop+el.clientHeight<el.scrollHeight-2:el.scrollTop>2)return true}}return false};
 const overlay=()=>document.body.classList.contains('cart-open')||document.body.classList.contains('sheet-open')||!!document.querySelector('.thanks.on');
 if(EMB){
- addEventListener('wheel',e=>{if(Math.abs(e.deltaY)<=Math.abs(e.deltaX)||overlay())return;if(canScroll(e.target,e.deltaY))return;e.preventDefault();parent.postMessage({ooox:'wheel',dy:e.deltaY},'*')},{passive:false});
+ let fw={t:0,d:0,ok:true};   // un gesto que empieza moviendo una lista (la carta fija) se queda en la lista aunque llegue al final; el siguiente ya pasa de sección
+ addEventListener('wheel',e=>{if(Math.abs(e.deltaY)<=Math.abs(e.deltaX)||overlay())return;const n=performance.now(),d=Math.sign(e.deltaY);
+  if(n-fw.t>260||d!==fw.d)fw.ok=!canScroll(e.target,e.deltaY);fw.t=n;fw.d=d;if(!fw.ok)return;e.preventDefault();parent.postMessage({ooox:'wheel',dy:e.deltaY},'*')},{passive:false});
  let t0=null;
- addEventListener('touchstart',e=>{const t=e.touches[0];t0={x:t.clientX,y:t.clientY,el:e.target}},{passive:true});
+ addEventListener('touchstart',e=>{const t=e.touches[0];t0=overlay()?null:{x:t.clientX,y:t.clientY,el:e.target}},{passive:true}); // un gesto que empieza con la carta entera abierta es de la hoja
  addEventListener('touchend',e=>{if(!t0||overlay()){t0=null;return}const t=e.changedTouches[0],dx=t.clientX-t0.x,dy=t.clientY-t0.y;
   if(Math.abs(dy)>45&&Math.abs(dy)>Math.abs(dx)*1.3&&!canScroll(t0.el,-dy))parent.postMessage({ooox:'swipe',dir:dy<0?1:-1},'*');t0=null},{passive:true})}
 let wheelLock=0;addEventListener('wheel',e=>{if(overlay())return;const n=Date.now();
  if(EMB){if(Math.abs(e.deltaX)<=Math.abs(e.deltaY)||Math.abs(e.deltaX)<12||n<wheelLock)return;wheelLock=n+900;e.deltaX>0?nextD():prevD();return}
  const dl=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(n<wheelLock||Math.abs(dl)<12)return;wheelLock=n+1000;dl>0?nextD():prevD()},{passive:true});
 addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeSheet();cerrarMesa();return}if(overlay()||/INPUT|TEXTAREA/.test(e.target.tagName))return;
+ if(EMB&&parent!==window){const sp=e.key===' '&&(e.target===document.body||e.target===document.documentElement),   // dentro de la web: bajar o subir de sección también con el teclado
+  d=e.key==='ArrowDown'||e.key==='PageDown'||(sp&&!e.shiftKey)?1:e.key==='ArrowUp'||e.key==='PageUp'||(sp&&e.shiftKey)?-1:0;
+  if(d){e.preventDefault();if(!e.repeat)parent.postMessage({ooox:'swipe',dir:d},'*');return}}
  if(e.repeat&&/Arrow/.test(e.key))return;
  if(e.key==='ArrowRight'||(!EMB&&e.key==='ArrowDown'))nextD();if(e.key==='ArrowLeft'||(!EMB&&e.key==='ArrowUp'))prevD()});
 

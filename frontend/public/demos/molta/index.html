@@ -651,7 +651,7 @@ function raya(){const a=TL&&curSec&&TL.querySelector(`a[data-go="${curSec}"]`);i
  TIND.style.transform=`translateX(${a.offsetLeft}px) scaleX(${(a.offsetWidth/100).toFixed(3)})`;TIND.style.opacity='1'}
 addEventListener('resize',raya);
 function spy(){let on=null,hd='track';SECS.forEach(id=>{const t=document.getElementById(id).getBoundingClientRect().top;if(t<innerHeight*.45)on=id;if(t<=34)hd=id});
- if(on!==curSec){curSec=on;if(on==='carta'&&cf.contentWindow)cf.contentWindow.postMessage({ooox:'enter'},'*');$$('.tlinks a').forEach(a=>a.classList.toggle('on',a.dataset.go===on));raya()}
+ if(on!==curSec){if(curSec==='carta'&&document.activeElement===cf)cf.blur();curSec=on;if(on==='carta'&&cf.contentWindow)cf.contentWindow.postMessage({ooox:'enter'},'*');$$('.tlinks a').forEach(a=>a.classList.toggle('on',a.dataset.go===on));raya()}
  document.body.dataset.hdr=hd;document.body.classList.toggle('in-carta',on==='carta')}
 
 /* ===== hojas ===== */
