@@ -1,30 +1,32 @@
 # El buzón de mejoras (js/oficio-soporte.js) habla con el servidor de OOOX. En las pruebas no sale nada a internet:
 # todo navegador que abren las baterías nace con un servidor de mentira que contesta «no hay nada». Lo cargan todas.
-# La batería soporte.py pone encima el suyo, con memoria, que sigue las reglas del servidor de verdad
-# (webs-negocios/oficios-soporte/esquema.sql).
+#
+# Cómo: no se intercepta la red (en Firefox eso frena todas las cargas de la página y, al cambiar de pantalla deprisa,
+# deja fuentes a medio bajar que salen como errores de consola; visto el 13-11-2026). Se cambia, dentro de cada página,
+# la función con la que la app llama al buzón: si la dirección es la del buzón, contesta ella; lo demás sigue igual.
+#
+# La batería soporte.py apaga esto (ACTIVO = False) y pone su propio servidor, con memoria, que sigue las reglas del de
+# verdad (webs-negocios/oficios-soporte/esquema.sql).
 import json
 from playwright.async_api import Browser
 
+ACTIVO = True
 RUTA = '**/rest/v1/rpc/**'
 CORS = {'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS'}
 VACIO = {'ok': True, 'peticiones': [], 'novedades': [], 'sin_ofertas': False, 'demo': True}
-llamadas = []   # (función, cuerpo) de todo lo que la app ha intentado mandar: lo puede mirar quien quiera
+
+_JS = """(()=>{if(window.__buzonFalso)return;const f=window.fetch;window.__buzonFalso=[];
+window.fetch=function(u,o){const s=String(u&&u.url||u);if(s.indexOf('/rest/v1/rpc/')<0)return f.apply(this,arguments);
+ const fn=s.split('/').pop().split('?')[0];window.__buzonFalso.push(fn);
+ return Promise.resolve(new Response(JSON.stringify(fn==='oficios_buzon'?%s:{ok:false,err:'servidor'}),{status:200,headers:{'content-type':'application/json'}}))}})()""" % json.dumps(VACIO)
 
 async def contesta(route, datos, estado=200):
+    """Para quien pone su propio servidor de mentira interceptando la red (soporte.py)."""
     await route.fulfill(status=estado, headers={**CORS, 'content-type': 'application/json; charset=utf-8'}, body=json.dumps(datos))
-
-async def _nada(route):
-    rq = route.request
-    if rq.method == 'OPTIONS': return await route.fulfill(status=204, headers=CORS)
-    fn = rq.url.split('/')[-1].split('?')[0]
-    try: cuerpo = rq.post_data_json
-    except Exception: cuerpo = None
-    llamadas.append((fn, cuerpo))
-    await contesta(route, VACIO if fn == 'oficios_buzon' else {'ok': False, 'err': 'servidor'})
 
 _original = Browser.new_context
 async def _nuevo(self, *a, **kw):
     ctx = await _original(self, *a, **kw)
-    await ctx.route(RUTA, _nada)
+    if ACTIVO: await ctx.add_init_script(_JS)
     return ctx
 Browser.new_context = _nuevo

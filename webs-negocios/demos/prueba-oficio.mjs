@@ -365,7 +365,10 @@ ap({ tipo: 'cancelar', id: S.avisos[0].id }, C);
   es(h({ tipo: 'ausencia', tec: 'omar', de: LUN, a: LUN }, T('jordi')).err === 'permiso' && h({ tipo: 'ausencia', tec: 'omar', de: LUN, a: '2026-11-15' }, C).err === 'fechas' && h({ tipo: 'ausencia', tec: 'nadie', de: LUN, a: LUN }, C).err === 'tec', 'una ausencia la apunta la oficina, con fechas con sentido y para alguien del equipo');
   let r9 = h({ tipo: 'ausencia', tec: 'omar', de: LUN, a: LUN, motivo: 'Baja' }, C);
   es(r9.ok && r9.sueltos.join() === l1 && AH(l1).e === 'nuevo' && AH(l1).tec === '' && AH(l1).reasignar === true && AH(v1).tec === 'omar', 'al apuntar la baja, su cita del lunes vuelve sola a «sin asignar»; la del viernes no se toca');
-  es(JSON.stringify(K.sobran(SH, ch, th)) === JSON.stringify([{ dia: LUN, fr: 'f1', sobran: 1 }]) && K.resumen(SH, ch, th).reasignar === 1, 'y la app avisa de que el lunes a primera hora sobra una cita');
+  es(K.sobran(SH, ch, th).length === 0 && K.resumen(SH, ch, th).reasignar === 1, 'las dos del lunes siguen cabiendo con Laia y con Jordi, que es a quien se guarda para urgencias: no sobra ninguna y queda una por reasignar');
+  const rj = h({ tipo: 'ausencia', tec: 'jordi', de: LUN, a: LUN, motivo: 'Curso' }, C);
+  es(rj.ok && JSON.stringify(K.sobran(SH, ch, th)) === JSON.stringify([{ dia: LUN, fr: 'f1', sobran: 1 }]) && K.resumen(SH, ch, th).sobran.length === 1, 'si además falta Jordi ya no hay técnicos para las dos: la app avisa de que el lunes a primera hora sobra una cita');
+  es(h({ tipo: 'quitarAusencia', aus: rj.id }, C).ok && K.sobran(SH, ch, th).length === 0, 'y deja de avisar cuando Jordi vuelve');
   es(h({ tipo: 'asignar', id: l1, tec: 'omar' }, C).err === 'ausente_tec' && libres(LUN, 'f1') === 0, 'ese día no se le puede asignar nada, y el cliente ya no ve hueco');
   es(h({ tipo: 'mover', id: l2, cita: { dia: MAR2, fr: 'f2' } }, C).ok && AH(l2).cita.ok === true && AH(l2).tec === 'laia' && K.sobran(SH, ch, th).length === 0, 'se pasa la de Laia a la otra franja que dio el cliente: sigue siendo buena para él y ya no sobra ninguna');
   es(h({ tipo: 'mover', id: l2, cita: { dia: MIE, fr: 'f3' } }, C).ok && AH(l2).cita.ok === false && AH(l2).tec === '' && AH(l2).e === 'nuevo', 'pasarla a una tarde que el cliente no dio la deja pendiente de confirmar, y sin Laia, que por las tardes no trabaja');
@@ -379,6 +382,64 @@ ap({ tipo: 'cancelar', id: S.avisos[0].id }, C);
   const u2 = h({ tipo: 'pedir', av: 'fuga', cli: montse, origen: 'llamada' }, C).id;
   es(h({ tipo: 'asignar', id: u2, tec: 'laia' }, C).ok, 'una urgencia en horario va a cualquiera que esté trabajando');
   es(K.franjasDe(S = K.nuevo(), cfg, LUN, MAR).every(f => f.cap === N.cupo), 'un negocio sin horarios sigue con su número fijo por franja') }
+
+// 29b. la oficina puede poner una cita donde el cliente no: en el hueco que se guarda para urgencias y con menos de dos
+//      horas de margen. Lo que no puede es forzarla donde no trabaja nadie, donde ya no cabe o en una franja que acabó (13-11-2026)
+{ const NH = JSON.parse(JSON.stringify(N)); delete NH.cupo; NH.citas = { porFranja: 1, reserva: 1 };
+  const LV = tr => ({ 1: tr, 2: tr, 3: tr, 4: tr, 5: tr });
+  NH.tecnicos[0].horario = LV([[480, 840], [900, 1200]]);                      // Omar: de lunes a viernes, mañana y tarde
+  NH.tecnicos[1].horario = { 1: [[480, 840]], 2: [[480, 840]], 3: [[480, 840]], 4: [[480, 840]] };   // Laia: de lunes a jueves, solo mañanas
+  NH.tecnicos[2].horario = LV([[480, 1200]]); NH.tecnicos[2].guardia = 1;      // Jordi: jornada entera y guardias
+  const ch = K.cfgDe(NH); let SH = K.nuevo(), th = Date.parse('2026-11-10T09:00:00Z');   // martes 10-11-2026, 10:00
+  const h = (a, q) => K.aplicar(SH, ch, a, q, th += M), AH = id => SH.avisos.find(a => a.id === id);
+  const HOY = '2026-11-10', MIE = '2026-11-18', VIE = '2026-11-20', SAB = '2026-11-21', FEST = '2026-12-08';
+  const fr = (dia, id) => K.franjasDe(SH, ch, dia, th).find(f => f.id === id);
+  const pide = (dia, f, q, mas) => h(Object.assign({ tipo: 'pedir', av: 'grifo', cli: montse, cita: { dia, fr: f } }, mas), q);
+  // el viernes a primera hora trabajan Omar y Jordi: caben dos citas y al cliente se le ofrece una
+  es(fr(VIE, 'f1').tope === 2 && fr(VIE, 'f1').cap === 1 && fr(VIE, 'f1').ok && fr(VIE, 'f1').okOf && fr(VIE, 'f1').por === '', 'el viernes a primera hora caben dos citas y al cliente se le ofrece una: la otra se guarda para urgencias');
+  const c1 = pide(VIE, 'f1', CLI).id;
+  es(c1 && !fr(VIE, 'f1').ok && fr(VIE, 'f1').okOf && fr(VIE, 'f1').por === 'reserva' && fr(VIE, 'f1').libres === 0 && fr(VIE, 'f1').libresOf === 1 && pide(VIE, 'f1', CLI).err === 'franja' && pide(VIE, 'f1', {}).err === 'franja',
+    'dada esa, el cliente ya no puede; a la oficina le queda el hueco de urgencias');
+  const o1 = pide(VIE, 'f1', C, { origen: 'llamada' });
+  es(o1.ok && AH(o1.id).cita.of === 'reserva' && AH(o1.id).cita.ok === true && /hueco que se guarda para urgencias/.test(AH(o1.id).h[0].txt) && AH(c1).cita.of === undefined && AH(c1).h[0].txt === 'Cita pedida',
+    'la oficina sí la pone ahí, y queda escrito que usó el hueco de urgencias');
+  es(pide(VIE, 'f1', C).err === 'franja' && !fr(VIE, 'f1').okOf && fr(VIE, 'f1').libresOf === 0, 'pero no puede forzar una tercera: a esa hora solo trabajan dos');
+  es(K.sobran(SH, ch, th).length === 0, 'usar el hueco de urgencias no hace saltar el aviso de que sobran citas');
+  es(h({ tipo: 'asignar', id: c1, tec: 'omar' }, C).ok && h({ tipo: 'asignar', id: o1.id, tec: 'laia' }, C).err === 'horario' && h({ tipo: 'asignar', id: o1.id, tec: 'omar' }, C).err === 'lleno' && h({ tipo: 'asignar', id: o1.id, tec: 'jordi' }, C).ok,
+    'y las dos se reparten entre los dos que trabajan: ni a quien no viene ni dos al mismo');
+  // hoy, a una hora de la franja de 11 a 14
+  es(!fr(HOY, 'f2').ok && fr(HOY, 'f2').okOf && fr(HOY, 'f2').por === 'margen' && pide(HOY, 'f2', CLI).err === 'franja', 'a una hora de que empiece la franja, el cliente ya no puede pedirla');
+  const o2 = pide(HOY, 'f2', C, { origen: 'persona' });
+  es(o2.ok && AH(o2.id).cita.of === 'margen' && /menos de dos horas/.test(AH(o2.id).h[0].txt), 'la oficina sí, y queda escrito que fue con menos de dos horas');
+  es(fr(HOY, 'f1').okOf && pide(HOY, 'f1', C).ok, 'también en la franja que ya está en marcha, mientras no haya acabado');
+  es(K.diasDe(SH, ch, th, 6)[0].dia === HOY && K.diasDe(SH, ch, th, 6)[0].franjas.find(f => f.id === 'f3').ok, 'a las diez, el cliente aún puede pedir la tarde de hoy');
+  const c3 = pide(HOY, 'f3', CLI).id;      // por la tarde trabajan Omar y Jordi: con esta, el cliente ya no tiene hueco
+  th = Date.parse('2026-11-10T10:30:00Z');                                       // las 11:30: la primera franja ya acabó
+  es(!fr(HOY, 'f1').okOf && pide(HOY, 'f1', C).err === 'franja' && pide('2026-11-09', 'f3', C).err === 'franja', 'una franja que ya ha acabado, o un día que ya pasó, no los puede poner nadie');
+  th = Date.parse('2026-11-10T12:40:00Z');                                       // las 13:40: la tarde empieza en menos de dos horas
+  es(c3 && fr(HOY, 'f3').por === 'reserva+margen' && pide(HOY, 'f3', CLI).err === 'franja', 'la tarde de hoy, ya con una cita y a poco más de una hora: el cliente no puede por los dos motivos');
+  const o3 = pide(HOY, 'f3', C);
+  es(o3.ok && AH(o3.id).cita.of === 'reserva+margen' && /hoy mismo y en el hueco/.test(AH(o3.id).h[0].txt) && pide(HOY, 'f3', C).err === 'franja', 'la oficina pone una, y no más: por la tarde solo trabajan dos');
+  th = Date.parse('2026-11-10T17:30:00Z');                                       // las 18:30: solo queda la franja de 18 a 20, ya en marcha
+  es(K.diasDe(SH, ch, th, 6)[0].dia !== HOY && K.diasDe(SH, ch, th, 6, true)[0].dia === HOY && K.diasDe(SH, ch, th, 6, true)[0].franjas.filter(f => f.okOf).map(f => f.id).join() === 'f4',
+    'a última hora el cliente ya no ve el día de hoy; la oficina sí, con la franja que queda');
+  es(pide(SAB, 'f1', C).err === 'franja' && pide(FEST, 'f1', C).err === 'franja' && pide(VIE, 'f9', C).err === 'franja', 'ni en sábado ni en festivo ni en una franja que no existe: fuera de las citas, es una urgencia');
+  // un día sin nadie
+  ['omar', 'laia', 'jordi'].forEach(x => h({ tipo: 'ausencia', tec: x, de: MIE, a: MIE, motivo: 'Curso' }, C));
+  es(fr(MIE, 'f1').tope === 0 && !fr(MIE, 'f1').okOf && pide(MIE, 'f1', C).err === 'franja' && K.diasDe(SH, ch, th, 9, true).find(d => d.dia === MIE).franjas.every(f => !f.okOf),
+    'un día en que no viene nadie, la oficina tampoco puede poner cita');
+  // mover: lo mismo que al crearla
+  const c4 = pide(VIE, 'f3', CLI).id, c5 = pide('2026-11-19', 'f2', CLI).id;
+  es(c4 && h({ tipo: 'mover', id: c5, cita: { dia: VIE, fr: 'f3' }, confirmado: true }, C).ok && AH(c5).cita.of === 'reserva' && /hueco que se guarda para urgencias/.test(AH(c5).h[AH(c5).h.length - 1].txt),
+    'al cambiar una cita de hora, la oficina también puede usar el hueco de urgencias, y queda escrito');
+  es(h({ tipo: 'mover', id: c1, cita: { dia: VIE, fr: 'f3' } }, C).err === 'franja' && AH(c1).cita.fr === 'f1', 'y tampoco puede forzarla donde ya no cabe: la cita se queda como estaba');
+  es(h({ tipo: 'mover', id: c5, cita: { dia: '2026-11-19', fr: 'f2' }, confirmado: true }, C).ok && AH(c5).cita.of === undefined, 'si vuelve a una franja normal, deja de constar como hueco de urgencias');
+  // un negocio sin horarios: la oficina se salta el margen, pero no el número fijo de citas por franja
+  let S0 = K.nuevo(), t0 = Date.parse('2026-11-10T09:00:00Z'); const h0 = (a, q) => K.aplicar(S0, cfg, a, q, t0 += M);
+  const f0 = () => K.franjasDe(S0, cfg, HOY, t0).find(f => f.id === 'f2');
+  es(f0().tope === N.cupo && !f0().ok && f0().okOf && f0().por === 'margen' && h0({ tipo: 'pedir', av: 'grifo', cli: montse, cita: { dia: HOY, fr: 'f2' } }, CLI).err === 'franja', 'sin horarios, el tope es el número fijo de citas; a una hora, el cliente no puede');
+  let n0 = 0; while (h0({ tipo: 'pedir', av: 'grifo', cli: montse, cita: { dia: HOY, fr: 'f2' } }, C).ok && n0 < 9) n0++;
+  es(n0 === N.cupo && !f0().okOf, 'la oficina pone las que caben y ni una más') }
 
 // 30. lo que faltaba por probar, según la prueba de «reglas estropeadas adrede» (13-11-2026)
 p = K.precio(cfg, [{ k: 'mo', q: 99 }, { k: 'juntas', q: 99 }], {});

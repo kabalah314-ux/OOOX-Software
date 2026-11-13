@@ -45,7 +45,10 @@ const diaSemI = f => new Date(f + 'T12:00:00Z').getUTCDay();
 const conH = N => !!(N.horario || N.tecnicos.some(x => x.horario));
 const trabI = (N, tec, dia, de, a) => { const x = N.tecnicos.find(z => z.id === tec), h = x ? (x.horario || N.horario || null) : null; if (!h) return !conH(N); return (h[diaSemI(dia)] || []).some(t => t[0] <= de && t[1] >= a) };
 const ausI = (S, tec, dia) => (S.ausencias || []).some(u => u.tec === tec && u.de <= dia && u.a >= dia);
-const capI = (N, S, dia, f) => conH(N) ? Math.max(0, N.tecnicos.filter(x => trabI(N, x.id, dia, f.de, f.a) && !ausI(S, x.id, dia)).length * ((N.citas && N.citas.porFranja) || 1) - ((N.citas && N.citas.reserva) || 0)) : N.cupo;
+// lo que cabe de verdad en una franja (el tope de la oficina) y lo que se ofrece al cliente (eso menos lo guardado para urgencias)
+const topeI = (N, S, dia, f) => conH(N) ? N.tecnicos.filter(x => trabI(N, x.id, dia, f.de, f.a) && !ausI(S, x.id, dia)).length * ((N.citas && N.citas.porFranja) || 1) : N.cupo;
+const capI = (N, S, dia, f) => conH(N) ? Math.max(0, topeI(N, S, dia, f) - ((N.citas && N.citas.reserva) || 0)) : N.cupo;
+const cap0 = (N, S, A, f) => capI(N, S, A.cita.dia, f) - (enFr(S, A.cita.dia, A.cita.fr) - 1) > 0;
 const enFr = (S, dia, fr) => S.avisos.filter(a => a.cita && a.cita.dia === dia && a.cita.fr === fr && a.e !== 'cancelado').length;
 const laborI = (N, f) => { const w = diaSemI(f); return w >= 1 && w <= 5 && !(N.festivos || []).includes(f) };
 
@@ -123,8 +126,22 @@ function horarios(W, tipo, A, a, q, t) {
     if (f.ok && !(libres > 0)) rota('hueco-ofrecido-hueco-real', d.dia + ' ' + f.id + ': se ofrece y caben ' + cap + ' con ' + enFr(S, d.dia, f.id) + ' ya dadas');
     if (f.ok && d.dia === hoy && f.de < min + 120) rota('dos-horas-de-margen', d.dia + ' ' + f.id);
     if (f.libres !== Math.max(0, libres)) rota('huecos-bien-contados', d.dia + ' ' + f.id + ': dice ' + f.libres + ' y son ' + Math.max(0, libres)) }) });
-  // 2. una cita nueva o cambiada nunca pasa de lo que cabe en ese momento
-  if ((tipo === 'pedir' || tipo === 'mover') && A && A.cita) { const cap = capI(N, S, A.cita.dia, frDe(A.cita.fr)), n = enFr(S, A.cita.dia, A.cita.fr); if (n > cap) rota('cita-nueva-cabe', A.cita.dia + ' ' + A.cita.fr + ': ' + n + ' citas y caben ' + cap) }
+  // 1b. lo que puede poner la oficina: todo lo del cliente y, además, el hueco de urgencias y las franjas de hoy sin acabar. Nunca donde no cabe
+  K.diasDe(S, cfg, t, 6, true).forEach(d => { if (!laborI(N, d.dia)) rota('oficina-solo-dias-laborables', d.dia); d.franjas.forEach(f => {
+    const tope = topeI(N, S, d.dia, frDe(f.id)), n = enFr(S, d.dia, f.id);
+    if (f.ok && !f.okOf) rota('lo-del-cliente-lo-puede-la-oficina', d.dia + ' ' + f.id);
+    if (f.okOf && !(tope > n)) rota('la-oficina-no-fuerza-donde-no-cabe', d.dia + ' ' + f.id + ': caben ' + tope + ' y hay ' + n);
+    if (f.okOf && d.dia === hoy && f.a <= min) rota('la-oficina-no-pone-en-franja-acabada', d.dia + ' ' + f.id);
+    if (f.tope !== tope || f.libresOf !== Math.max(0, tope - n)) rota('tope-bien-contado', d.dia + ' ' + f.id + ': dice ' + f.tope + '/' + f.libresOf + ' y son ' + tope + '/' + Math.max(0, tope - n));
+    if ((f.por !== '') !== (f.okOf && !f.ok)) rota('se-dice-por-que-solo-la-oficina', d.dia + ' ' + f.id + ': «' + f.por + '»');
+    if (f.por.includes('margen') && !(d.dia === hoy && f.de < min + 120)) rota('margen-bien-dicho', d.dia + ' ' + f.id);
+    if (f.por.includes('reserva') && capI(N, S, d.dia, frDe(f.id)) - n > 0) rota('reserva-bien-dicha', d.dia + ' ' + f.id) }) });
+  // 2. una cita nueva o cambiada nunca pasa de lo que cabe en ese momento: para el cliente, lo que se le ofrece; para la oficina, el tope
+  if ((tipo === 'pedir' || tipo === 'mover') && A && A.cita) { const esOf = !!q && q.rol === 'centralita', f = frDe(A.cita.fr), cap = esOf ? topeI(N, S, A.cita.dia, f) : capI(N, S, A.cita.dia, f), n = enFr(S, A.cita.dia, A.cita.fr);
+    if (n > cap) rota('cita-nueva-cabe', A.cita.dia + ' ' + A.cita.fr + ': ' + n + ' citas y caben ' + cap + (esOf ? ' (oficina)' : ''));
+    if (!laborI(N, A.cita.dia) || A.cita.dia < hoy || (A.cita.dia === hoy && (esOf ? f.a <= min : f.de < min + 120))) rota('cita-nueva-a-tiempo', A.cita.dia + ' ' + A.cita.fr + (esOf ? ' (oficina)' : ''));
+    const debe = [cap0(N, S, A, f) ? '' : 'reserva', A.cita.dia === hoy && f.de < min + 120 ? 'margen' : ''].filter(Boolean).join('+');
+    if ((A.cita.of || '') !== debe) rota('queda-escrito-por-que-la-puso-la-oficina', A.id + ': dice «' + (A.cita.of || '') + '» y es «' + debe + '»') }
   // 3. al asignar: alguien que trabaja esa franja, que no está ausente y que la tiene libre
   if (tipo === 'asignar' && A && conH(N)) {
     if (!A.cita) { if (ausI(S, A.tec, hoy)) rota('urgencia-a-quien-esta', A.id + ' a ' + A.tec + ', ausente hoy');
@@ -137,7 +154,7 @@ function horarios(W, tipo, A, a, q, t) {
       if (!trabI(N, x.tec, x.cita.dia, f.de, f.a)) rota('cita-asignada-a-quien-trabaja', x.id + ': ' + x.tec + ' no trabaja el ' + x.cita.dia + ' en ' + f.id);
       const k = x.tec + ' ' + x.cita.dia + ' ' + f.id; lleva[k] = (lleva[k] || 0) + 1; if (lleva[k] > pf) rota('una-franja-lo-que-cabe-por-tecnico', k + ': ' + lleva[k]) } }
   // 5. el aviso de «sobran citas» es exacto
-  const esperado = {}; S.avisos.forEach(x => { if (x.cita && x.cita.dia >= hoy && ['nuevo', 'asignado', 'ausente'].includes(x.e)) { const k = x.cita.dia + ' ' + x.cita.fr, n = enFr(S, x.cita.dia, x.cita.fr) - capI(N, S, x.cita.dia, frDe(x.cita.fr)); if (n > 0) esperado[k] = n } });
+  const esperado = {}; S.avisos.forEach(x => { if (x.cita && x.cita.dia >= hoy && ['nuevo', 'asignado', 'ausente'].includes(x.e)) { const k = x.cita.dia + ' ' + x.cita.fr, n = enFr(S, x.cita.dia, x.cita.fr) - topeI(N, S, x.cita.dia, frDe(x.cita.fr)); if (n > 0) esperado[k] = n } });
   const dicho = {}; K.sobran(S, cfg, t).forEach(x => { dicho[x.dia + ' ' + x.fr] = x.sobran });
   if (JSON.stringify(Object.entries(esperado).sort()) !== JSON.stringify(Object.entries(dicho).sort())) rota('sobran-exacto', 'dice ' + JSON.stringify(dicho) + ' y son ' + JSON.stringify(esperado));
   // 6. ausencias bien formadas
@@ -146,7 +163,7 @@ function horarios(W, tipo, A, a, q, t) {
   for (const x of S.avisos) { if (!x.cita) continue;
     if (x.vale && x.vale.some(v => !K.esFecha(v.dia) || !frDe(v.fr))) rota('franjas-del-cliente-reales', x.id);
     if (x.cita.ok && x.vale && !x.vale.some(v => v.dia === x.cita.dia && v.fr === x.cita.fr)) rota('cita-buena-para-el-cliente', x.id + ': marcada como buena y el cliente no la dio') }
-  W.leyes += 12;
+  W.leyes += 21;
 }
 
 function unAviso(W, A, t) {

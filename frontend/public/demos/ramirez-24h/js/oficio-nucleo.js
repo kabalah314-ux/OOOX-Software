@@ -107,8 +107,11 @@ function trabaja(cfg,tec,dia,de,a){const h=horarioDe(cfg,tec);if(!h)return!cfg.c
 const ausente=(S,tec,dia)=>(S.ausencias||[]).some(u=>u.tec===tec&&u.de<=dia&&u.a>=dia);
 const citasDe=(S,tec,dia,fr,menos)=>S.avisos.filter(a=>a.id!==menos&&a.tec===tec&&a.cita&&a.cita.dia===dia&&a.cita.fr===fr&&a.e!=='cancelado').length;
 const enFranja=(S,dia,fr,menos)=>S.avisos.filter(a=>a.id!==menos&&a.cita&&a.cita.dia===dia&&a.cita.fr===fr&&a.e!=='cancelado').length;
-function capacidad(S,cfg,dia,f){if(!cfg.conHorario)return cfg.cupo;
- const n=Object.keys(cfg.tec).filter(id=>trabaja(cfg,id,dia,f.de,f.a)&&!ausente(S,id,dia)).length;return Math.max(0,n*cfg.porFranja-cfg.reserva)}
+/* lo que cabe de verdad en una franja, contando a quien se guarda para urgencias: es el tope de la oficina */
+function capacidadTotal(S,cfg,dia,f){if(!cfg.conHorario)return cfg.cupo;
+ return Object.keys(cfg.tec).filter(id=>trabaja(cfg,id,dia,f.de,f.a)&&!ausente(S,id,dia)).length*cfg.porFranja}
+/* lo que se ofrece al cliente: eso mismo, menos lo que se guarda para urgencias */
+function capacidad(S,cfg,dia,f){const n=capacidadTotal(S,cfg,dia,f);return cfg.conHorario?Math.max(0,n-cfg.reserva):n}
 /* ¿puede ir este técnico a este aviso? Devuelve '' si puede, o el motivo */
 function puedeIr(S,cfg,A,tec,t){if(typeof tec!=='string'||!cfg.tec[tec])return'tec';if(!cfg.conHorario)return'';
  if(A.cita){const f=cfg.franjas.find(x=>x.id===A.cita.fr);if(ausente(S,tec,A.cita.dia))return'ausente_tec';if(!f||!trabaja(cfg,tec,A.cita.dia,f.de,f.a))return'horario';
@@ -117,18 +120,25 @@ function puedeIr(S,cfg,A,tec,t){if(typeof tec!=='string'||!cfg.tec[tec])return't
  /* una urgencia fuera de horario va a quien hace guardias, si el negocio ha dicho quién las hace */
  const ahora=laborable(cfg,n.date)&&trabaja(cfg,tec,n.date,n.min,n.min);
  return!ahora&&cfg.hayGuardia&&!cfg.tec[tec].guardia?'horario':''}
-/* franjas que vienen con más citas de las que caben (pasa cuando alguien se pone enfermo): hay que mover alguna */
+/* franjas que vienen con más citas de las que caben contando a todo el que trabaja (pasa cuando alguien se pone enfermo): hay que mover alguna.
+   Usar el hueco que se guarda para urgencias no es que sobre nada: eso lo puede decidir la oficina. */
 function sobran(S,cfg,t){const hoy=madrid(t).date,vistas=new Set(),out=[];
  S.avisos.forEach(a=>{if(!a.cita||a.cita.dia<hoy||!['nuevo','asignado','ausente'].includes(a.e))return;const k=a.cita.dia+' '+a.cita.fr;if(vistas.has(k))return;vistas.add(k);
-  const f=cfg.franjas.find(x=>x.id===a.cita.fr);if(!f)return;const n=enFranja(S,a.cita.dia,a.cita.fr)-capacidad(S,cfg,a.cita.dia,f);if(n>0)out.push({dia:a.cita.dia,fr:a.cita.fr,sobran:n})});
+  const f=cfg.franjas.find(x=>x.id===a.cita.fr);if(!f)return;const n=enFranja(S,a.cita.dia,a.cita.fr)-capacidadTotal(S,cfg,a.cita.dia,f);if(n>0)out.push({dia:a.cita.dia,fr:a.cita.fr,sobran:n})});
  return out.sort((x,y)=>x.dia<y.dia?-1:x.dia>y.dia?1:x.fr<y.fr?-1:1)}
+/* Las franjas de un día. «ok» es lo que puede reservar el cliente: día laborable, con hueco y con dos horas de margen.
+   «okOf» es lo que puede poner la oficina: además, el hueco que se guarda para urgencias y las franjas de hoy que aún no
+   han acabado. Lo que no puede nadie: un día que no se trabaja, una franja que ya acabó o sin nadie que la trabaje con sitio.
+   «por» dice por qué una franja solo la puede poner la oficina: 'reserva', 'margen' o las dos. */
 function franjasDe(S,cfg,dia,t,menos){const n=madrid(t);
- return cfg.franjas.map(f=>{const usadas=enFranja(S,dia,f.id,menos),cap=capacidad(S,cfg,dia,f),libres=Math.max(0,cap-usadas);
-  const pasada=dia<n.date||(dia===n.date&&f.de<n.min+120);
-  return{id:f.id,de:f.de,a:f.a,txt:franjaTxt(f),cap,libres,ok:laborable(cfg,dia)&&!pasada&&libres>0}})}
-function diasDe(S,cfg,t,cuantos){const hoy=madrid(t).date,out=[];
+ return cfg.franjas.map(f=>{const usadas=enFranja(S,dia,f.id,menos),cap=capacidad(S,cfg,dia,f),tope=capacidadTotal(S,cfg,dia,f),libres=Math.max(0,cap-usadas);
+  const lab=laborable(cfg,dia),pasada=dia<n.date||(dia===n.date&&f.de<n.min+120),acabada=dia<n.date||(dia===n.date&&f.a<=n.min);
+  const ok=lab&&!pasada&&libres>0,okOf=lab&&!acabada&&tope>usadas;
+  return{id:f.id,de:f.de,a:f.a,txt:franjaTxt(f),cap,libres,ok,tope,libresOf:Math.max(0,tope-usadas),okOf,por:ok||!okOf?'':[libres>0?'':'reserva',pasada?'margen':''].filter(Boolean).join('+')}})}
+/* Los próximos días con cita. Con «of», como los ve la oficina. */
+function diasDe(S,cfg,t,cuantos,of){const hoy=madrid(t).date,out=[];
  for(let i=0;out.length<(cuantos||6)&&i<28;i++){const f=masDias(hoy,i);if(!laborable(cfg,f))continue;const fr=franjasDe(S,cfg,f,t);
-  if(i===0&&!fr.some(x=>x.ok))continue;out.push({dia:f,hoy:i===0,libres:fr.reduce((s,x)=>s+(x.ok?x.libres:0),0),franjas:fr})}
+  if(i===0&&!fr.some(x=>of?x.okOf:x.ok))continue;out.push({dia:f,hoy:i===0,libres:fr.reduce((s,x)=>s+(x.ok?x.libres:0),0),franjas:fr})}
  return out}
 const etaMin=(cfg,dis)=>{const z=typeof dis==='string'?cfg.zonas.dis[dis]:null;return(z&&cfg.zonas.banda[z[1]])||cfg.etaMax};
 
@@ -168,6 +178,8 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   else if(cp.length===5&&!dis)return{err:'zona'};
   return{cli:{nombre,tel,dir,cp,dis}}};
  const unaCita=c=>c&&typeof c==='object'&&typeof c.dia==='string'&&typeof c.fr==='string';
+ /* queda escrito cuando la oficina pone una cita donde el cliente no habría podido */
+ const porOf=c=>!c.of?'':c.of==='margen'?', con menos de dos horas de margen':c.of==='reserva'?', en el hueco que se guarda para urgencias':', hoy mismo y en el hueco que se guarda para urgencias';
  if(a.tipo!=='pedir'&&a.tipo!=='ausencia'&&a.tipo!=='quitarAusencia'&&!A)return R('aviso');
  /* si el técnico que lo llevaba ya no puede (cambio de hora o ausencia), el aviso vuelve a la bandeja marcado */
  const suelta=(X,por)=>{log(X,cfg.tec[X.tec].n+' '+por+': queda sin asignar');X.tec='';if(X.e==='asignado')X.e='nuevo';X.reasignar=true;sinMsg(X,['cita','vispera'])};
@@ -179,14 +191,14 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   const d=datosCli(a.cli,deWeb);if(d.err)return R(d.err);
   let cita=null;
   let vale=null;
-  if(a.cita){if(!unaCita(a.cita))return R('franja');const fr=franjasDe(S,cfg,a.cita.dia,t).find(f=>f.id===a.cita.fr);if(!fr||!fr.ok)return R('franja');cita={dia:a.cita.dia,fr:fr.id,ok:true};
+  if(a.cita){if(!unaCita(a.cita))return R('franja');const fr=franjasDe(S,cfg,a.cita.dia,t).find(f=>f.id===a.cita.fr);if(!fr||!(esC?fr.okOf:fr.ok))return R('franja');cita={dia:a.cita.dia,fr:fr.id,ok:true};if(fr.por)cita.of=fr.por;
    /* «vale»: la franja reservada y, si el cliente las dio, otras que también le van bien (hasta cuatro) */
    const hoy=madrid(t).date;vale=[{dia:cita.dia,fr:cita.fr}];
    (Array.isArray(a.alt)?a.alt:[]).slice(0,8).forEach(x=>{if(vale.length<5&&unaCita(x)&&esFecha(x.dia)&&x.dia>=hoy&&laborable(cfg,x.dia)&&cfg.franjas.some(f=>f.id===x.fr)&&!vale.some(v=>v.dia===x.dia&&v.fr===x.fr))vale.push({dia:x.dia,fr:x.fr})})}
   const n=++S.n,id=cfg.N.serie+'-'+String(n).padStart(4,'0');
   const X={id,n,v:0,t,origen:a.origen==null?'cita':ORIGEN.includes(a.origen)?a.origen:'otro',av:a.av,nota:txt(a.nota).trim().slice(0,400),foto:typeof a.foto==='string'&&a.foto.length<140000?a.foto:'',cli:d.cli,cita,urg:!cita,e:'nuevo',tec:'',msgs:[],h:[]};if(vale)X.vale=vale;
   const g0=garantiaDe(S,cfg,X.cli,t);if(g0.length)X.gar0=g0[g0.length-1];
-  S.avisos.push(X);log(X,cita?'Cita pedida':'Aviso recibido');
+  S.avisos.push(X);log(X,cita?'Cita pedida'+porOf(cita):'Aviso recibido');
   if(X.cli.tel)msg(X,'recibido');
   return ok({id})}
 
@@ -206,14 +218,14 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
  case 'mover':{
   if(!esC)return R('permiso');if(!['nuevo','asignado','ausente'].includes(A.e))return R('estado');
-  if(a.cita){if(!unaCita(a.cita))return R('franja');const fr=franjasDe(S,cfg,a.cita.dia,t,A.id).find(f=>f.id===a.cita.fr);if(!fr||!fr.ok)return R('franja');const yaVale=(A.vale||[]).some(v=>v.dia===a.cita.dia&&v.fr===fr.id);if(a.confirmado&&!yaVale)A.vale=(A.vale||[]).concat([{dia:a.cita.dia,fr:fr.id}]);
-   A.cita={dia:a.cita.dia,fr:fr.id,ok:yaVale||!!a.confirmado};A.urg=false}
+  if(a.cita){if(!unaCita(a.cita))return R('franja');const fr=franjasDe(S,cfg,a.cita.dia,t,A.id).find(f=>f.id===a.cita.fr);if(!fr||!fr.okOf)return R('franja');const yaVale=(A.vale||[]).some(v=>v.dia===a.cita.dia&&v.fr===fr.id);if(a.confirmado&&!yaVale)A.vale=(A.vale||[]).concat([{dia:a.cita.dia,fr:fr.id}]);
+   A.cita={dia:a.cita.dia,fr:fr.id,ok:yaVale||!!a.confirmado};if(fr.por)A.cita.of=fr.por;A.urg=false}
   else{A.cita=null;A.urg=true}
   if(A.tec&&puedeIr(S,cfg,A,A.tec,t))suelta(A,'no puede en ese horario');
   if(A.e==='ausente'){A.e=A.tec?'asignado':'nuevo';delete A.aus;sinMsg(A,['ausente'])}
   sinMsg(A,['cita','vispera']);
   if(A.cita&&A.e==='asignado'){msg(A,'cita');const v=masDias(A.cita.dia,-1);if(v>madrid(t).date)msg(A,'vispera',Date.parse(v+'T17:00:00Z'))}
-  log(A,A.cita?'Cita cambiada al '+fechaLarga(A.cita.dia):'Pasa a urgente');return ok()}
+  log(A,A.cita?'Cita cambiada al '+fechaLarga(A.cita.dia)+porOf(A.cita):'Pasa a urgente');return ok()}
 
  case 'voy':{
   if(!mio)return R('permiso');if(A.e!=='asignado')return R('estado');
@@ -321,5 +333,5 @@ function resumen(S,cfg,t){const hoy=madrid(t).date,caja={efectivo:0,tarjeta:0,bi
    if(A.pago&&A.tot){if(!A.pago.cobrado){pend.n++;pend.total+=A.tot.total}else if(madrid(A.pago.t).date===hoy){caja[A.pago.modo]+=A.tot.total;caja.total+=A.tot.total}}}});
  return{nuevos,urgentes,sinDatos,marcha,hechos,pend,caja,tec,canal,sobran:sobran(S,cfg,t),reasignar:S.avisos.filter(a=>a.reasignar&&a.e==='nuevo').length}}
 
-g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,franjaTxt,esFecha,trabaja,ausente,capacidad,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,resumen};
+g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

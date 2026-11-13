@@ -11,6 +11,7 @@ from playwright.async_api import async_playwright
 import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
 import buzon_falso     # el buzón de mejoras no sale a internet en las pruebas: ver buzon_falso.py
 from buzon_falso import RUTA, CORS, contesta
+buzon_falso.ACTIVO = False   # aquí el servidor de mentira es el de abajo, con memoria, y se pone interceptando la red
 from reloj import pon_hora, AHORA   # la hora de las pruebas es fija: ver reloj.py
 
 DATOS = open(sys.argv[1], encoding='utf-8').read() if len(sys.argv) > 1 else ''
@@ -66,7 +67,9 @@ def vigila(pg, nombre):
         if m.type != 'error': return
         t = m.text
         # sin conexión, el navegador escribe en la consola que no pudo cargar: eso es lo que se está probando, no un error de la página
-        (de_red if re.search(r'Failed to load resource|net::ERR|NetworkError|Load failed|access control checks|CORS|Cross-Origin', t) else errores).append(f'{nombre}: {t}')
+        # Firefox, con la red interceptada, a veces deja una fuente a medio bajar al cambiar de pantalla (código 2152398850, «carga cancelada»):
+        # lo dice el motor, no la página. Una fuente que de verdad falta da un 404 y eso sí cuenta, más abajo.
+        (de_red if re.search(r'Failed to load resource|net::ERR|NetworkError|Load failed|access control checks|CORS|Cross-Origin|downloadable font: download failed.*status=2152398850', t) else errores).append(f'{nombre}: {t}')
     pg.on('console', consola)
     pg.on('pageerror', lambda e: errores.append(f'{nombre}! {e}'))
     pg.on('response', lambda r: errores.append(f'{nombre}: {r.status} {r.url}') if r.status >= 400 and '/rest/v1/rpc/' not in r.url and '/assets/img/av-' not in r.url else None)
