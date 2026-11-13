@@ -38,6 +38,7 @@ if [ "$QUE" != reglas ]; then
   paso "Vídeo de entrada" python3 entrada.py
   paso "Otro negocio, de principio a fin" python3 negocio.py "$OTRO"
   paso "El mismo recorrido con el negocio de muestra" python3 negocio.py "$SITIO/js/oficio-datos.js"
+  paso "Horarios, turnos y ausencias en pantalla" python3 horarios.py
   paso "Mejoras: pedir, ver la respuesta y quedarse sin conexión" python3 soporte.py "$OTRO"
   kill $S1 $S2 2>/dev/null
 fi

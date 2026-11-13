@@ -8,7 +8,12 @@ const require = createRequire(import.meta.url);
 globalThis.window = globalThis;
 require(path.join(sitio, 'js/oficio-nucleo.js'));
 require(path.join(sitio, 'js/oficio-datos.js'));
-const K = globalThis.OficioNucleo, N = globalThis.OFICIO_NEGOCIO, cfg = K.cfgDe(N);
+const K = globalThis.OficioNucleo, N = globalThis.OFICIO_NEGOCIO;
+// Los ejemplos están escritos para el negocio de muestra SIN horarios: dos citas por franja, como estuvo hasta el 13-11-2026.
+// Las secciones de horarios se los ponen ellas mismas. La demo tal como se publica, con sus turnos, se mira en la última sección.
+const PUB = JSON.parse(JSON.stringify(N));
+if (N.horario || N.tecnicos.some(x => x.horario)) { N.tecnicos.forEach(x => { delete x.horario; delete x.guardia }); delete N.horario; delete N.citas; N.cupo = 2 }
+const cfg = K.cfgDe(N);
 let ok = 0, mal = 0;
 const es = (cond, txt) => { if (cond) ok++; else { mal++; console.log('  FALLA:', txt) } };
 const M = 60000, H = 60 * M, D = 24 * H;
@@ -404,6 +409,7 @@ ap({ tipo: 'cancelar', id: S.avisos[0].id }, C);
   es(o1.ok && AH(o1.id).cita.of === 'reserva' && AH(o1.id).cita.ok === true && /hueco que se guarda para urgencias/.test(AH(o1.id).h[0].txt) && AH(c1).cita.of === undefined && AH(c1).h[0].txt === 'Cita pedida',
     'la oficina sí la pone ahí, y queda escrito que usó el hueco de urgencias');
   es(pide(VIE, 'f1', C).err === 'franja' && !fr(VIE, 'f1').okOf && fr(VIE, 'f1').libresOf === 0, 'pero no puede forzar una tercera: a esa hora solo trabajan dos');
+  es(Object.keys(K.vistaCliente(SH, ch, o1.id).cita).sort().join() === 'dia,fr,ok' && K.vistaCliente(SH, ch, o1.id).cita.fr === 'f1' && K.vistaCliente(SH, ch, 'X-9999') === null, 'el cliente ve de su cita el día y la franja, no la nota de la oficina');
   es(K.sobran(SH, ch, th).length === 0, 'usar el hueco de urgencias no hace saltar el aviso de que sobran citas');
   es(h({ tipo: 'asignar', id: c1, tec: 'omar' }, C).ok && h({ tipo: 'asignar', id: o1.id, tec: 'laia' }, C).err === 'horario' && h({ tipo: 'asignar', id: o1.id, tec: 'omar' }, C).err === 'lleno' && h({ tipo: 'asignar', id: o1.id, tec: 'jordi' }, C).ok,
     'y las dos se reparten entre los dos que trabajan: ni a quien no viene ni dos al mismo');
@@ -439,7 +445,12 @@ ap({ tipo: 'cancelar', id: S.avisos[0].id }, C);
   const f0 = () => K.franjasDe(S0, cfg, HOY, t0).find(f => f.id === 'f2');
   es(f0().tope === N.cupo && !f0().ok && f0().okOf && f0().por === 'margen' && h0({ tipo: 'pedir', av: 'grifo', cli: montse, cita: { dia: HOY, fr: 'f2' } }, CLI).err === 'franja', 'sin horarios, el tope es el número fijo de citas; a una hora, el cliente no puede');
   let n0 = 0; while (h0({ tipo: 'pedir', av: 'grifo', cli: montse, cita: { dia: HOY, fr: 'f2' } }, C).ok && n0 < 9) n0++;
-  es(n0 === N.cupo && !f0().okOf, 'la oficina pone las que caben y ni una más') }
+  es(n0 === N.cupo && !f0().okOf, 'la oficina pone las que caben y ni una más');
+  // y las ausencias valen también sin horarios: a quien falta no se le puede asignar, y lo suyo vuelve a la bandeja
+  const MIE2 = '2026-11-18', a1 = h0({ tipo: 'pedir', av: 'grifo', cli: montse, cita: { dia: MIE2, fr: 'f1' } }, CLI).id, u0 = h0({ tipo: 'pedir', av: 'fuga', cli: montse, origen: 'llamada' }, C).id;
+  es(h0({ tipo: 'asignar', id: a1, tec: 'omar' }, C).ok && h0({ tipo: 'ausencia', tec: 'omar', de: HOY, a: MIE2, motivo: 'Baja' }, C).sueltos.join() === a1 && S0.avisos.find(x => x.id === a1).reasignar === true, 'sin horarios: al apuntar una baja, la cita de ese técnico vuelve a «sin asignar»');
+  es(h0({ tipo: 'asignar', id: a1, tec: 'omar' }, C).err === 'ausente_tec' && h0({ tipo: 'asignar', id: u0, tec: 'omar' }, C).err === 'ausente_tec' && h0({ tipo: 'asignar', id: a1, tec: 'laia' }, C).ok && h0({ tipo: 'asignar', id: u0, tec: 'jordi' }, C).ok,
+    'sin horarios: a quien está de baja no se le asigna ni una cita ni una urgencia; a los demás sí') }
 
 // 30. lo que faltaba por probar, según la prueba de «reglas estropeadas adrede» (13-11-2026)
 p = K.precio(cfg, [{ k: 'mo', q: 99 }, { k: 'juntas', q: 99 }], {});
@@ -461,6 +472,18 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   NP.tecnicos[0].horario = { 1: [[480, 1200]] }; NP.tecnicos[1].horario = { 1: [[480, 600]] };      // la segunda se va a las 10: no cubre la franja de 8 a 11
   const cp2 = K.cfgDe(NP), S2 = K.nuevo();
   es(K.trabaja(cp2, NP.tecnicos[0].id, '2026-11-16', 480, 660) && !K.trabaja(cp2, NP.tecnicos[1].id, '2026-11-16', 480, 660) && K.capacidad(S2, cp2, '2026-11-16', { de: 480, a: 660 }) === 1, 'quien solo trabaja un trozo de la franja no cuenta para esa franja') }
+
+// 35. la demo tal como se publica, con sus horarios de prueba (13-11-2026)
+{ const cp = K.cfgDe(PUB), SP = K.nuevo(), LUN = '2026-11-16', fr = K.franjasDe(SP, cp, LUN, MAR);
+  es(cp.conHorario && PUB.cupo === undefined && fr.map(f => f.tope).join() === '3,3,3,2' && fr.map(f => f.cap).join() === '2,2,2,1',
+    'la demo publicada: caben tres citas por franja y dos en la última; al cliente se le ofrece una menos, que se guarda para urgencias');
+  const X = { id: 'x', cita: { dia: LUN, fr: 'f4' } };
+  es(K.puedeIr(SP, cp, X, 'jordi', MAR) === 'horario' && K.puedeIr(SP, cp, X, 'omar', MAR) === '' && K.puedeIr(SP, cp, { id: 'y', cita: { dia: LUN, fr: 'f3' } }, 'jordi', MAR) === '',
+    'en la demo, Jordi no hace la franja de 18 a 20 y sí la de 15 a 18');
+  es(PUB.tecnicos.every(x => x.guardia) && K.puedeIr(SP, cp, { id: 'u' }, 'laia', Date.parse('2026-11-15T02:30:00Z')) === '', 'los tres hacen guardias: una urgencia de madrugada en domingo puede ir a cualquiera');
+  const horas = [MAR, Date.parse('2026-11-15T02:30:00Z'), Date.parse('2026-11-14T22:30:00Z'), Date.parse('2026-12-31T22:58:30Z'), Date.parse('2027-03-28T00:58:30Z'), Date.parse('2026-12-08T10:00:00Z')];
+  es(horas.every(t0 => { try { const SM = globalThis.OFICIO_MUESTRA(K, cp, t0); return SM.avisos.length >= 6 && K.sobran(SM, cp, t0).length === 0 && SM.avisos.filter(a => a.cita).every(a => a.cita.ok && !a.cita.of) } catch (e) { console.log('   ', e.message); return false } }),
+    'los avisos de muestra se construyen a cualquier hora con los turnos puestos: de noche, en domingo, en festivo, en fin de año y en el cambio de hora') }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

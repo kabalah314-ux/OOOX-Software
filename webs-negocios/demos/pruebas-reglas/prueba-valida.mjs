@@ -17,7 +17,7 @@ es(valida(V, K, HOY).errores.length === 0, 'el negocio de prueba no tiene errore
 // [qué se estropea, cómo, sobre qué negocio]
 const ROTOS = [
   ...['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'catalogo', 'averias'].map(k => ['falta «' + k + '»', N => { delete N[k] }]),
-  ['falta el cupo en un negocio sin horarios', N => { delete N.cupo }],
+  ['falta el cupo en un negocio sin horarios', N => { N.tecnicos.forEach(x => { delete x.horario; delete x.guardia }); delete N.horario; delete N.citas; delete N.cupo }],
   ['un pack que ya no existe', N => { N.pack = 'basico' }],
   ['la serie en minúsculas', N => { N.serie = 'r1' }],
   ['un teléfono de tres cifras', N => { N.tel = '123' }],
@@ -61,6 +61,8 @@ for (const [que, rompe, base] of ROTOS) {
   try { rompe(N); r = valida(N, K, HOY) } catch (e) { r = { errores: [], revienta: e.message } }
   es(r.errores.length > 0, que + (r.revienta ? ' (el validador revienta: ' + r.revienta + ')' : ' (el validador no dice nada)'));
 }
+{ const F = clon(R); F.tecnicos.forEach(x => { delete x.horario; delete x.guardia }); delete F.horario; delete F.citas; F.cupo = 2;
+  es(valida(F, K, HOY).errores.length === 0, 'el negocio de muestra sin horarios, con su número fijo de citas por franja, también vale') }
 // las caducidades: lo mismo que hoy pasa, dentro de un año tiene que fallar
 es(valida(R, K, '2027-08-01').errores.some(t => /festivos/.test(t)), 'con la fecha de dentro de nueve meses, avisa de que hay que renovar los festivos');
 es(valida(R, K, '2026-12-28').avisos.some(t => /festivos/.test(t)) && valida(R, K, '2026-12-28').errores.length === 0, 'cuando queda menos de un año, lo dice como aviso, sin parar nada');

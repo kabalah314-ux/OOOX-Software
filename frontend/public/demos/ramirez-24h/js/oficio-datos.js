@@ -14,13 +14,18 @@ g.OFICIO_NEGOCIO={
  /* tarifa normal de 8 a 20 h en días laborables; el resto, urgencia */
  tarifa:{dia:[480,1200],recargo:.4},
  festivos:['2026-01-01','2026-01-06','2026-04-03','2026-04-06','2026-05-01','2026-05-25','2026-06-24','2026-08-15','2026-09-11','2026-09-24','2026-10-12','2026-11-01','2026-12-06','2026-12-08','2026-12-25','2026-12-26','2027-01-01','2027-01-06','2027-03-26','2027-03-29','2027-05-01','2027-05-17','2027-06-24','2027-09-11','2027-09-24','2027-10-12','2027-11-01','2027-12-06','2027-12-08','2027-12-25'],
+ /* horarios y turnos, con valores de prueba (cada negocio pone los suyos):
+    Omar y Laia, de lunes a viernes, de 8 a 14 y de 15 a 20. Jordi, de 8 a 14 y de 15 a 18: la última franja no la hace.
+    Los tres hacen guardias, porque el servicio es de 24 horas. Cada técnico lleva una cita por franja y, de las que caben,
+    una no se ofrece al cliente: se guarda para urgencias y solo la puede usar la oficina. */
+ citas:{porFranja:1,reserva:1},
  tecnicos:[
-  {id:'omar',n:'Omar',ap:'Benali',tono:205},
-  {id:'laia',n:'Laia',ap:'Ferrer',tono:340},
-  {id:'jordi',n:'Jordi',ap:'Ramírez',tono:95,jefe:1}],
+  {id:'omar',n:'Omar',ap:'Benali',tono:205,guardia:1,horario:{1:[[480,840],[900,1200]],2:[[480,840],[900,1200]],3:[[480,840],[900,1200]],4:[[480,840],[900,1200]],5:[[480,840],[900,1200]]}},
+  {id:'laia',n:'Laia',ap:'Ferrer',tono:340,guardia:1,horario:{1:[[480,840],[900,1200]],2:[[480,840],[900,1200]],3:[[480,840],[900,1200]],4:[[480,840],[900,1200]],5:[[480,840],[900,1200]]}},
+  {id:'jordi',n:'Jordi',ap:'Ramírez',tono:95,jefe:1,guardia:1,horario:{1:[[480,840],[900,1080]],2:[[480,840],[900,1080]],3:[[480,840],[900,1080]],4:[[480,840],[900,1080]],5:[[480,840],[900,1080]]}}],
  zonas:{banda:{a:25,b:35,c:40},dis:{cve:['Ciutat Vella','a','Ciutat Vella'],eix:['Eixample','a','Eixample'],stm:['Sants-Montjuïc','a','Sants-Montjuïc'],cor:['Les Corts','a','Les Corts'],sar:['Sarrià-Sant Gervasi','c','Sarrià-St. Gervasi'],gra:['Gràcia','b','Gràcia'],hor:['Horta-Guinardó','c','Horta-Guinardó'],nou:['Nou Barris','c','Nou Barris'],and:['Sant Andreu','c','Sant Andreu'],smt:['Sant Martí','b','Sant Martí']},cp:{'08001':'cve','08002':'cve','08003':'cve','08039':'cve','08007':'eix','08008':'eix','08009':'eix','08010':'eix','08011':'eix','08013':'eix','08015':'eix','08029':'eix','08036':'eix','08037':'eix','08004':'stm','08014':'stm','08038':'stm','08040':'stm','08028':'cor','08034':'cor','08006':'sar','08017':'sar','08021':'sar','08022':'sar','08012':'gra','08023':'gra','08024':'gra','08025':'gra','08032':'hor','08035':'hor','08041':'hor','08016':'nou','08031':'nou','08033':'nou','08042':'nou','08027':'and','08030':'and','08005':'smt','08018':'smt','08019':'smt','08020':'smt','08026':'smt'}},
- /* citas sin prisa: franjas de días laborables y cuántas caben en cada una */
- franjas:[{id:'f1',de:480,a:660},{id:'f2',de:660,a:840},{id:'f3',de:900,a:1080},{id:'f4',de:1080,a:1200}],cupo:2,
+ /* citas sin prisa: las franjas de los días laborables. Cuántas caben en cada una sale de los horarios de arriba */
+ franjas:[{id:'f1',de:480,a:660},{id:'f2',de:660,a:840},{id:'f3',de:900,a:1080},{id:'f4',de:1080,a:1200}],
  /* el catálogo. u: lleva el recargo de urgencia · mat: es material · un: 'h' se cuenta por horas */
  catalogo:{
   desp:{t:'Desplazamiento en Barcelona',p10:30,u:1},

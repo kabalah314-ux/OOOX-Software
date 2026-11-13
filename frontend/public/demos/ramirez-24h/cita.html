@@ -39,6 +39,8 @@ legend b{color:var(--senal)}
 .op small{font-weight:400;color:var(--suave);margin-left:5px}
 .op[aria-pressed=true]{border-color:var(--senal);background:var(--asfalto-3)}
 .op[disabled]{border-style:dashed;color:var(--tenue);cursor:not-allowed}
+.otras{margin-top:18px}
+.otras .lb small{font-weight:400;color:var(--suave);margin-left:4px}
 .lb{font-size:.9375rem;font-weight:600}
 .duo{display:grid;grid-template-columns:minmax(0,1fr) 124px;gap:12px}
 .fotoz{display:flex;align-items:center;gap:12px}
@@ -87,7 +89,7 @@ const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
 const mem={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let S=Oficio.estado();
 const P=new URLSearchParams(location.search),av0=P.get('av')||mem.get('ramirez:av');
-const B={av:cfg.av[av0]?av0:'',nota:'',foto:'',dia:'',fr:'',nombre:'',tel:'',dir:'',cp:'',err:''};
+const B={av:cfg.av[av0]?av0:'',nota:'',foto:'',dia:'',fr:'',alt:[],nombre:'',tel:'',dir:'',cp:'',err:''};
 const ERR={av:'Elige qué te pasa.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nombre:'Escribe tu nombre.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en '+N.ciudad+'.'};
 const D3=['dom','lun','mar','mié','jue','vie','sáb'];
 const diaCorto=f=>{const h=K.madrid().date;return f===h?'hoy':f===K.masDias(h,1)?'mañana':D3[new Date(f+'T12:00:00Z').getUTCDay()]+' '+(+f.slice(8))};
@@ -97,6 +99,9 @@ const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cf
 
 function vPedir(){const dias=K.diasDe(S,cfg,Date.now(),5);if(!dias.find(x=>x.dia===B.dia))B.dia=(dias.find(x=>!x.hoy)||dias[0]).dia;
  const fr=dias.find(x=>x.dia===B.dia).franjas;if(!fr.find(f=>f.id===B.fr&&f.ok))B.fr='';
+ /* otras franjas que también le van bien: las libres de ese día y de los dos siguientes, hasta ocho para elegir y cuatro marcadas */
+ const i0=dias.findIndex(x=>x.dia===B.dia),cand=[];if(B.fr)dias.slice(i0,i0+3).forEach(x=>x.franjas.forEach(f=>{if(f.ok&&!(x.dia===B.dia&&f.id===B.fr)&&cand.length<8)cand.push({k:x.dia+'|'+f.id,txt:diaCorto(x.dia)+', '+f.txt})}));
+ B.alt=B.alt.filter(k=>cand.some(c=>c.k===k));
  const R=B.av&&K.rango(cfg,B.av,false),ult=mem.get('oficio:'+N.id+':mio'),U=ult&&K.vistaCliente(S,cfg,ult);
  const c=(id,lb,v,o)=>'<div class="campo'+(B.err===id||(id==='cp'&&B.err==='zona')?' mal':'')+'"><label for="c_'+id+'">'+lb+'</label><input id="c_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(B.err===id?' aria-invalid="true" aria-describedby="e_'+id+'"':'')+'>'+(B.err===id?'<p class="err" id="e_'+id+'">'+ERR[id]+'</p>':'')+'</div>';
  return'<h1>Pide cita sin prisa.</h1><p class="lead">Con cita, la tarifa es siempre la normal. ¿No puede esperar? <a href="./">Llama o manda una foto</a>: llegamos en 25–40 min.</p>'+
@@ -109,7 +114,8 @@ function vPedir(){const dias=K.diasDe(S,cfg,Date.now(),5);if(!dias.find(x=>x.dia
    '<div class="fotoz">'+(B.foto?'<img src="'+B.foto+'" alt="La foto que has añadido">':'')+'<label class="btn peq">'+(B.foto?'Cambiar la foto':'Añadir una foto')+'<input class="vh" type="file" accept="image/*" id="c_foto"></label></div></fieldset>'+
   '<fieldset><legend><b>2</b>¿Cuándo te va bien?</legend><div class="ops" role="group" aria-label="Día">'+dias.map(x=>'<button type="button" class="op" data-dia="'+x.dia+'" aria-pressed="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div>'+
    '<div class="ops" role="group" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-fr="'+f.id+'" aria-pressed="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'>'+f.txt+'<small>'+(f.ok?(f.libres===1?'queda 1':'quedan '+f.libres):f.libres?'ya no da tiempo':'completa')+'</small></button>').join('')+'</div>'+
-   (B.err==='franja'||B.err==='llena'?'<p class="fallo">'+ERR[B.err]+'</p>':'')+'</fieldset>'+
+   (B.err==='franja'||B.err==='llena'?'<p class="fallo">'+ERR[B.err]+'</p>':'')+
+   (cand.length?'<div class="campo otras"><span class="lb" id="l_alt">¿Te va bien también otra franja? <small>Opcional</small></span><p class="ayuda">Si hay que mover la cita, la pasamos a una de estas sin tener que llamarte.</p><div class="ops" role="group" aria-labelledby="l_alt">'+cand.map(c=>'<button type="button" class="op" data-alt="'+c.k+'" aria-pressed="'+B.alt.includes(c.k)+'">'+c.txt+'</button>').join('')+'</div></div>':'')+'</fieldset>'+
   '<fieldset><legend><b>3</b>¿Dónde vamos?</legend>'+c('nombre','Tu nombre',B.nombre,'autocomplete="name"')+c('tel','Teléfono, para avisarte por WhatsApp',B.tel,'type="tel" inputmode="tel" autocomplete="tel"')+
    '<div class="duo">'+c('dir','Calle, número y piso',B.dir,'autocomplete="street-address"')+c('cp','Código postal',B.cp,'inputmode="numeric" maxlength="5" autocomplete="postal-code"')+'</div>'+
    (B.err==='zona'?'<p class="fallo" id="zmal">'+ERR.zona+'</p>':zonaDe(B.cp)?'<p class="zona">'+esc(zonaDe(B.cp))+': llegamos.</p>':'')+'</fieldset>'+
@@ -143,7 +149,8 @@ document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.b
 document.addEventListener('change',e=>{const i=e.target;
  if(i.name==='av'){B.av=i.value;mem.set('ramirez:av',B.av);if(B.err==='av')B.err='';pinta();const n=$('input[name=av]:checked');if(n)n.focus()}
  if(i.id==='c_foto'&&i.files[0])Oficio.foto(i.files[0]).then(f=>{B.foto=f;pinta()}).catch(()=>toast('No he podido leer esa foto.'))});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-dia],[data-fr],#llama');if(!b)return;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-dia],[data-fr],[data-alt],#llama');if(!b)return;
+ if(b.dataset.alt){const k=b.dataset.alt,i=B.alt.indexOf(k);if(i>=0)B.alt.splice(i,1);else if(B.alt.length>=4)return toast('Con cuatro nos basta.');else B.alt.push(k);pinta();const n=$('[data-alt="'+k+'"]');if(n)n.focus();return}
  if(b.id==='llama'){const d=document.createElement('dialog');d.className='hoja';d.innerHTML='<div class="hc"><h2>Llamada directa</h2><button class="x" data-x aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="hb"><p style="font:800 2.6rem/1 var(--fd)">'+N.tel+'</p><p style="color:var(--suave)">En la web real, este botón llama con un toque. En la demo no llamamos a nadie.</p></div><div class="hp"><button class="btn ancho" data-x>Cerrar</button></div>';
   document.body.appendChild(d);d.addEventListener('close',()=>d.remove());d.addEventListener('click',x=>{if(x.target===d||x.target.closest('[data-x]'))d.close()});d.showModal();return}
  if(b.dataset.dia){B.dia=b.dataset.dia;B.fr=''}else B.fr=b.dataset.fr;
@@ -151,9 +158,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dia],[data
 document.addEventListener('submit',e=>{if(e.target.id!=='f')return;e.preventDefault();
  const falla=k=>{B.err=k;pinta();const i=$('#c_'+(k==='zona'?'cp':k))||$('.fallo');if(i){i.scrollIntoView({block:'center'});i.focus&&i.focus({preventScroll:true})}};
  if(!B.av)return falla('av');if(!B.fr)return falla('franja');
- const r=Oficio.hacer({tipo:'pedir',av:B.av,origen:'cita',nota:B.nota,foto:B.foto,cli:{nombre:B.nombre,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr}},{rol:'cliente'});
+ const r=Oficio.hacer({tipo:'pedir',av:B.av,origen:'cita',nota:B.nota,foto:B.foto,cli:{nombre:B.nombre,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},{rol:'cliente'});
  if(!r.ok)return falla(r.err==='franja'?'llena':r.err);
- mem.set('oficio:'+N.id+':mio',r.id);Object.assign(B,{nota:'',foto:'',fr:'',err:''});location.hash='#/aviso/'+r.id});
+ mem.set('oficio:'+N.id+':mio',r.id);Object.assign(B,{nota:'',foto:'',fr:'',alt:[],err:''});location.hash='#/aviso/'+r.id});
 pinta();
 })();
 </script>

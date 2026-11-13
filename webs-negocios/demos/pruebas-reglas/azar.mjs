@@ -143,14 +143,13 @@ function horarios(W, tipo, A, a, q, t) {
     const debe = [cap0(N, S, A, f) ? '' : 'reserva', A.cita.dia === hoy && f.de < min + 120 ? 'margen' : ''].filter(Boolean).join('+');
     if ((A.cita.of || '') !== debe) rota('queda-escrito-por-que-la-puso-la-oficina', A.id + ': dice «' + (A.cita.of || '') + '» y es «' + debe + '»') }
   // 3. al asignar: alguien que trabaja esa franja, que no está ausente y que la tiene libre
-  if (tipo === 'asignar' && A && conH(N)) {
-    if (!A.cita) { if (ausI(S, A.tec, hoy)) rota('urgencia-a-quien-esta', A.id + ' a ' + A.tec + ', ausente hoy');
-      const ahora = laborI(N, hoy) && trabI(N, A.tec, hoy, min, min); if (!ahora && N.tecnicos.some(x => x.guardia) && !N.tecnicos.find(x => x.id === A.tec).guardia) rota('fuera-de-horario-va-la-guardia', A.id + ' a ' + A.tec) }
-  }
+  if (tipo === 'asignar' && A && !A.cita) { if (ausI(S, A.tec, hoy)) rota('urgencia-a-quien-esta', A.id + ' a ' + A.tec + ', ausente hoy');
+    if (conH(N)) { const ahora = laborI(N, hoy) && trabI(N, A.tec, hoy, min, min); if (!ahora && N.tecnicos.some(x => x.guardia) && !N.tecnicos.find(x => x.id === A.tec).guardia) rota('fuera-de-horario-va-la-guardia', A.id + ' a ' + A.tec) } }
   // 4. siempre: ninguna cita de hoy en adelante está asignada a quien no puede, y nadie lleva más de las que le caben
-  if (conH(N)) { const lleva = {};
+  { const lleva = {};      // lo de las ausencias vale para todos los negocios; lo demás, para los que tienen horarios
     for (const x of S.avisos) { if (x.e !== 'asignado' || !x.cita || x.cita.dia < hoy) continue; const f = frDe(x.cita.fr);
       if (ausI(S, x.tec, x.cita.dia)) rota('cita-asignada-a-quien-esta', x.id + ': ' + x.tec + ' está ausente el ' + x.cita.dia);
+      if (!conH(N)) continue;
       if (!trabI(N, x.tec, x.cita.dia, f.de, f.a)) rota('cita-asignada-a-quien-trabaja', x.id + ': ' + x.tec + ' no trabaja el ' + x.cita.dia + ' en ' + f.id);
       const k = x.tec + ' ' + x.cita.dia + ' ' + f.id; lleva[k] = (lleva[k] || 0) + 1; if (lleva[k] > pf) rota('una-franja-lo-que-cabe-por-tecnico', k + ': ' + lleva[k]) } }
   // 5. el aviso de «sobran citas» es exacto
@@ -361,13 +360,17 @@ function variantes(N) {
   const max = clon(N); max.id += '-max'; max.cupo = 5; max.tarifa = { dia: [600, 720], recargo: 1 }; max.garantiaMeses = 36;
   max.franjas = [450, 570, 690, 870, 990, 1110].map((de, i) => ({ id: 'x' + i, de, a: de + 120 }));
   const todo = { 1: [[0, 1440]], 2: [[0, 1440]], 3: [[0, 1440]], 4: [[0, 1440]], 5: [[0, 1440]] };
-  if (conH(N)) { max.tecnicos.forEach(x => { x.horario = todo }); delete max.horario; max.citas = { porFranja: 3, reserva: 1 }; return [min, max] }
-  // el mismo negocio con turnos: uno a jornada entera, otro solo mañanas de lunes a jueves, otro entero y de guardia
-  const tur = clon(N); tur.id += '-turnos'; delete tur.cupo; tur.citas = { porFranja: 1, reserva: tur.tecnicos.length > 2 ? 1 : 0 };
+  const sinH = X => { X.tecnicos.forEach(x => { delete x.horario; delete x.guardia }); delete X.horario; delete X.citas; return X };
+  // el mismo negocio con otros turnos: uno a jornada entera, otro solo mañanas de lunes a jueves, otro entero y de guardia
+  const tur = sinH(clon(N)); tur.id += '-turnos'; delete tur.cupo; tur.citas = { porFranja: 1, reserva: tur.tecnicos.length > 2 ? 1 : 0 };
   const de = Math.min(...N.franjas.map(f => f.de)), a = Math.max(...N.franjas.map(f => f.a)), mitad = N.franjas[Math.floor((N.franjas.length - 1) / 2)].a;
   const LV = t => ({ 1: t, 2: t, 3: t, 4: t, 5: t });
   tur.tecnicos.forEach((x, i) => { if (i % 3 === 1) x.horario = { 1: [[de, mitad]], 2: [[de, mitad]], 3: [[de, mitad]], 4: [[de, mitad]] }; else { x.horario = LV([[de, a]]); if (i % 3 === 2) x.guardia = 1 } });
-  return [min, max, tur];
+  if (!conH(N)) return [min, max, tur];
+  max.tecnicos.forEach(x => { x.horario = todo }); delete max.horario; max.citas = { porFranja: 3, reserva: 1 };
+  // y sin horarios: un número fijo de citas por franja, como los negocios que aún no los han puesto
+  const fijo = sinH(clon(N)); fijo.id += '-fijo'; fijo.cupo = 2;
+  return [min, max, fijo, tur];
 }
 
 /* ---------- a correr ---------- */

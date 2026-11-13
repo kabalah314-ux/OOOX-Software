@@ -112,11 +112,12 @@ function capacidadTotal(S,cfg,dia,f){if(!cfg.conHorario)return cfg.cupo;
  return Object.keys(cfg.tec).filter(id=>trabaja(cfg,id,dia,f.de,f.a)&&!ausente(S,id,dia)).length*cfg.porFranja}
 /* lo que se ofrece al cliente: eso mismo, menos lo que se guarda para urgencias */
 function capacidad(S,cfg,dia,f){const n=capacidadTotal(S,cfg,dia,f);return cfg.conHorario?Math.max(0,n-cfg.reserva):n}
-/* ¿puede ir este técnico a este aviso? Devuelve '' si puede, o el motivo */
-function puedeIr(S,cfg,A,tec,t){if(typeof tec!=='string'||!cfg.tec[tec])return'tec';if(!cfg.conHorario)return'';
- if(A.cita){const f=cfg.franjas.find(x=>x.id===A.cita.fr);if(ausente(S,tec,A.cita.dia))return'ausente_tec';if(!f||!trabaja(cfg,tec,A.cita.dia,f.de,f.a))return'horario';
+/* ¿puede ir este técnico a este aviso? Devuelve '' si puede, o el motivo.
+   Quien tiene apuntada una ausencia ese día no puede, tenga o no horarios el negocio. Lo demás sale de los horarios. */
+function puedeIr(S,cfg,A,tec,t){if(typeof tec!=='string'||!cfg.tec[tec])return'tec';
+ if(A.cita){const f=cfg.franjas.find(x=>x.id===A.cita.fr);if(ausente(S,tec,A.cita.dia))return'ausente_tec';if(!cfg.conHorario)return'';if(!f||!trabaja(cfg,tec,A.cita.dia,f.de,f.a))return'horario';
   return citasDe(S,tec,A.cita.dia,A.cita.fr,A.id)>=cfg.porFranja?'lleno':''}
- const n=madrid(t);if(ausente(S,tec,n.date))return'ausente_tec';
+ const n=madrid(t);if(ausente(S,tec,n.date))return'ausente_tec';if(!cfg.conHorario)return'';
  /* una urgencia fuera de horario va a quien hace guardias, si el negocio ha dicho quién las hace */
  const ahora=laborable(cfg,n.date)&&trabaja(cfg,tec,n.date,n.min,n.min);
  return!ahora&&cfg.hayGuardia&&!cfg.tec[tec].guardia?'horario':''}
@@ -318,7 +319,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
 /* ---------- lo que puede ver el cliente de su aviso ---------- */
 function vistaCliente(S,cfg,id){const A=S.avisos.find(x=>x.id===id);if(!A)return null;const tec=cfg.tec[A.tec];
- return{id:A.id,av:A.av,e:A.e,urg:A.urg,cita:A.cita,t:A.t,tec:tec?tec.n:'',eta:A.e==='camino'?A.eta:0,sal:A.sal||0,ini:A.ini||0,fin:A.fin||0,
+ return{id:A.id,av:A.av,e:A.e,urg:A.urg,cita:A.cita?{dia:A.cita.dia,fr:A.cita.fr,ok:A.cita.ok}:null,t:A.t,tec:tec?tec.n:'',eta:A.e==='camino'?A.eta:0,sal:A.sal||0,ini:A.ini||0,fin:A.fin||0,
   total:A.tot?A.tot.total:0,tipo:A.tot?A.tot.tipo:0,pago:A.pago?{modo:A.pago.modo,cobrado:A.pago.cobrado}:null,gar:A.gar?A.gar.hasta:'',sinTrabajo:!!A.sinTrabajo}}
 
 /* ---------- las cifras del día para la centralita ---------- */

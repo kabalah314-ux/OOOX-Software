@@ -19,7 +19,7 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 
 | Archivo | Qué prueba | Resultado el 13-11-2026 |
 |---|---|---|
-| `prueba-oficio.mjs` (una carpeta más arriba) | Las reglas: tarifa, festivos, IVA, precio (con 1.000 presupuestos al azar), permisos, pasos, citas, horarios y ausencias, canales, garantía, mensajes | 214 bien |
+| `prueba-oficio.mjs` (una carpeta más arriba) | Las reglas: tarifa, festivos, IVA, precio (con 1.000 presupuestos al azar), permisos, pasos, citas, horarios y ausencias, lo que puede la oficina y lo que no (hueco de urgencias, margen de dos horas), canales, garantía, mensajes | 244 bien |
 | `app.py` | Cliente, centralita y técnico: cada pantalla y botón, errores, texto raro que no se ejecuta, fotos, dos pestañas, teclado, anchos de 320 a 1440 px, etiquetas y nombres, datos estropeados, modo privado, sin conexión | 220 bien |
 | `web.py` | La web: archivos, idiomas, la hora de Barcelona en 12 momentos (web y app dicen lo mismo), desglose de cada avería, barrio, menú, metadatos, 9 tamaños de pantalla, y la página de los tres móviles | 60 bien |
 | `entrada.py` | El vídeo de entrada con y sin trozos, en ordenador y en móvil (con el dedo y con la rueda), lento y sin vídeo. Sin esperas fijas | 42 bien |
@@ -27,13 +27,14 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 | `reloj.py` | No es una batería: pone la hora fija que ven las demás | — |
 | `webkit_linux.py` | No es una batería: tolera, solo en WebKit, una página pintada que no da la carga por terminada | — |
 | `negocio.py <datos.js>` | La app entera con los datos de otro negocio, de la cita al cobro, y que no quede rastro del negocio de muestra en 15 pantallas. Mira también que el botón de cada técnico diga lo mismo que la regla: quién puede ir y, si no, por qué | Voltio 34 bien · Ramírez 31 bien |
+| `horarios.py` | Horarios, turnos y ausencias en pantalla: el cliente ve solo huecos reales y marca otras franjas que le van bien; la oficina pone citas en el hueco de urgencias y con menos de dos horas, y no puede forzarlas donde no cabe; «Equipo» (quién trabaja, qué lleva, «No viene»), los avisos de arriba (sobran, por reasignar, por confirmar) y un negocio sin horarios. Cada cosa en pantalla se compara con lo que dicen las reglas | 76 bien |
 | `soporte.py <datos-de-otro-negocio.js>` | La sección «Mejoras» de la oficina: pedir algo a OOOX, ver el estado y la respuesta, novedades y baja de ofertas, sin conexión (se guarda y sale sola), lo que viaja y lo que no (ningún dato de los clientes), texto raro que no se ejecuta, teclado, y la copia de un negocio de verdad con su código de soporte. El servidor es de mentira y sigue las reglas del de verdad | 69 bien |
 | `buzon_falso.py` | No es una batería: hace que ningún navegador de las pruebas salga a internet cuando la app llama al buzón de OOOX | — |
 
 ## Motores
 
 En el contenedor de trabajo solo hay Chromium. Firefox y WebKit corren en GitHub con cada cambio
-(`.github/workflows/pruebas-oficios.yml`). El 13-11-2026 pasan los tres: 463 comprobaciones de pantallas en cada uno (394 de la app y la web más 69 de «Mejoras»).
+(`.github/workflows/pruebas-oficios.yml`). El 13-11-2026 pasan los tres: 539 comprobaciones de pantallas en cada uno (394 de la app y la web, 76 de horarios y 69 de «Mejoras»).
 
 - **WebKit no es Safari.** Es el mismo motor, pero en Linux lee el vídeo con otras piezas y a ratos no lo consigue
   (en la misma máquina, unas veces sí y otras no). Por eso, en WebKit, lo que depende de la posición del vídeo
@@ -76,3 +77,4 @@ En la fase 2 el orden lo pone el servidor.
 - **`../pruebas.sh`**: lo pasa todo, arranca los dos servidores y sale con error si algún bloque falla. Las baterías ya devuelven error al fallar (antes solo lo escribían).
 - Ya no existe el pack Básico: se han quitado sus comprobaciones.
 - **`soporte.py` y `buzon_falso.py`** (13-11, noche): la sección «Mejoras». La app llama a un servidor de fuera (el buzón de OOOX, en Supabase); en las pruebas ese servidor no existe: `buzon_falso.py` cambia la manera de abrir cada navegador para que toda llamada al buzón la conteste un servidor de mentira («no hay nada»), y `soporte.py` pone el suyo, con memoria. Así las pruebas no dependen de internet ni dejan peticiones falsas en la base de datos de verdad. Las reglas del servidor de verdad se prueban aparte, en `webs-negocios/oficios-soporte/pruebas.sql`.
+- **`horarios.py`** (13-11, noche): las pantallas de horarios. La demo lleva desde ese día horarios y turnos de prueba en su archivo de datos; las pruebas de reglas con ejemplos (`prueba-oficio.mjs`) siguen escritas para el negocio de muestra sin horarios (se los quitan al empezar) y miran la demo publicada en su última sección.
