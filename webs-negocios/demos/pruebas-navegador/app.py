@@ -20,7 +20,8 @@ def jpeg(w=1600, h=1200, color=(40, 120, 200)):
     b = io.BytesIO(); Image.new('RGB', (w, h), color).save(b, 'JPEG', quality=80); return b.getvalue()
 
 async def oye(pg, nombre):
-    pg.on('console', lambda m: errores.append(f'{nombre}: {m.text}') if m.type == 'error' else None)
+    pg.on('console', lambda m: webkit_linux.consola(m, nombre, errores))
+    pg.on('response', lambda r: errores.append(f'{nombre}: {r.status} {r.url}') if r.status >= 400 else None)
     pg.on('pageerror', lambda e: errores.append(f'{nombre}! {e}'))
     return pg
 
@@ -371,6 +372,7 @@ async def main():
         await ctx.set_offline(False)
         await br.close()
     print(f'\n{"BIEN" if not fallos else "MAL"}: {ok} comprobaciones pasan' + (f', {len(fallos)} fallan.' if fallos else '.'))
+    webkit_linux.resumen_rarezas()
     print('Errores de consola:', errores[:10] if errores else 'ninguno')
     sys.exit(1 if fallos or errores else 0)
 

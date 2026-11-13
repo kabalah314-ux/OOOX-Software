@@ -24,3 +24,23 @@ def _con_espera(original, que):
 
 Page.goto = _con_espera(Page.goto, 'al ir a')
 Page.reload = _con_espera(Page.reload, 'al recargar')
+
+# Lo mismo con la consola: cuando a ese motor se le atraganta una carga, escribe «Failed to load resource: WebKit encountered
+# an internal error» (o el mensaje a secas). Lo dice el motor, no la página, y no hay petición rota detrás. Se apunta como
+# rareza, con la dirección del recurso, y se enseña al final. Un archivo que de verdad falta da un 404 y eso sí es un fallo.
+rarezas = []
+
+def es_rareza(texto):
+    t = texto.strip()
+    return NAV == 'webkit' and 'Failed to load resource' in t and ('WebKit encountered an internal error' in t or t.endswith('Failed to load resource'))
+
+def consola(m, nombre, errores):
+    """Oyente de consola común: los errores de la página van a `errores`; las rarezas del motor, aparte."""
+    if m.type != 'error': return
+    try: donde = (m.location or {}).get('url', '')
+    except Exception: donde = ''
+    txt = f'{nombre}: {m.text}' + (f' [{donde.split("/")[-1][:70]}]' if donde else '')
+    (rarezas if es_rareza(m.text) else errores).append(txt)
+
+def resumen_rarezas():
+    if rarezas: print(f'  aviso: el motor WebKit dio {len(rarezas)} errores suyos al cargar, que no son de la página: {sorted(set(rarezas))[:6]}', flush=True)

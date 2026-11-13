@@ -16,7 +16,7 @@ def es(c, txt):
     else: fallos.append(txt); print('  MAL ', txt)
 
 def oye(pg, nombre):
-    pg.on('console', lambda m: errores.append(f'{nombre}: {m.text}') if m.type == 'error' else None)
+    pg.on('console', lambda m: webkit_linux.consola(m, nombre, errores))
     pg.on('pageerror', lambda e: errores.append(f'{nombre}! {e}'))
     pg.on('response', lambda r: rotos.append(f'{r.status} {r.url}') if r.status >= 400 else None)
     pg.on('requestfailed', lambda r: rotos.append(f'falla {r.url} {r.failure}') if r.url.startswith(B) else None)
@@ -187,6 +187,7 @@ async def main():
         await ctx.close()
         await br.close()
     print(f'\n{"BIEN" if not fallos else "MAL"}: {ok} comprobaciones pasan' + (f', {len(fallos)} fallan.' if fallos else '.'))
+    webkit_linux.resumen_rarezas()
     print('Errores de consola:', errores[:8] if errores else 'ninguno')
     print('Peticiones rotas:', sorted(set(rotos))[:8] if rotos else 'ninguna')
     sys.exit(1 if fallos or errores or rotos else 0)
