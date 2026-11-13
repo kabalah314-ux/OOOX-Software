@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es" data-demo>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tres móviles, un solo aviso · demo de OOOX Oficios</title>
+<meta name="description" content="La gestión de un fontanero en tres móviles conectados: el cliente pide, la centralita reparte y el técnico cierra el trabajo con tres toques. Todo de ejemplo.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14171a">
+<link rel="preload" href="assets/fuentes/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="oficio.css">
+<style>
+body{padding:0 0 calc(34px + var(--sb))}
+.ph,.tres,.pap,.pp{max-width:1300px;margin-left:auto;margin-right:auto;padding-left:18px;padding-right:18px}
+.ph{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding-top:16px;padding-bottom:10px}
+.fila1{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.wm{font:800 1.5rem/1 var(--fd);text-decoration:none;white-space:nowrap}
+.wm span{margin-left:.22em;padding:.02em .22em;border-radius:4px;background:var(--senal);color:var(--negro)}
+h1{font:800 clamp(3rem,13.4vw,8rem)/.88 var(--fd)}
+.lead{font-size:1.1875rem;max-width:32em;color:var(--suave)}
+.pasos{display:grid;gap:6px;counter-reset:p}
+.pasos li{counter-increment:p;display:grid;grid-template-columns:1.6em minmax(0,1fr);align-items:baseline}
+.pasos li::before{content:counter(p);font:800 1.25rem/1 var(--fd);color:var(--senal)}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.seg{display:inline-flex;padding:4px;border-radius:12px;background:var(--asfalto-2)}
+.seg button{min-height:44px;padding:0 16px;border-radius:9px;font-weight:600;color:var(--suave)}
+.seg button[aria-pressed=true]{background:var(--asfalto-3);color:var(--texto)}
+.ctl p{flex-basis:100%;max-width:34em;color:var(--suave)}
+.tabs{position:sticky;top:0;z-index:5;display:flex;gap:6px;padding:10px 18px;background:var(--asfalto)}
+.tabs button{position:relative;flex:1;min-height:46px;text-align:center;border-radius:10px;background:var(--asfalto-2);font-weight:600;color:var(--suave)}
+.tabs button[aria-selected=true]{background:var(--asfalto-3);color:var(--texto)}
+.tabs button.cambio::after{content:"";position:absolute;top:8px;right:10px;width:9px;height:9px;border-radius:50%;background:var(--senal)}
+.tres{padding-left:0;padding-right:0}
+.mv{display:none}
+.mv.on{display:block}
+.mv h2{display:none}
+.tel iframe{display:block;width:100%;height:calc(100svh - 66px);border:0;background:var(--asfalto)}
+.pap{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;margin-top:48px}
+.pap h2{font:800 clamp(2.2rem,8.4vw,4.4rem)/.94 var(--fd)}
+.pap p{margin-top:12px;max-width:30em;color:var(--suave)}
+.jor{display:grid;grid-template-columns:150px minmax(0,1fr);align-items:end;gap:16px;margin-top:24px}
+.jor img{width:150px;height:200px;object-fit:cover;border-radius:10px}
+.jor figcaption{max-width:18em}
+.hojap iframe{display:block;width:100%;height:900px;border:0;border-radius:6px;background:var(--papel)}
+.pp{margin-top:26px;color:var(--suave)}
+.pp span{display:block;max-width:60ch}
+.pp a{color:var(--texto);font-weight:600}
+@media (min-width:900px){
+ .ph,.tres,.pap,.pp{padding-left:32px;padding-right:32px}
+ .ph{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:end;gap:18px 44px;padding-top:24px}
+ .fila1,.ph h1,.lead{grid-column:1/-1}
+ .tabs{display:none}
+ .tres{display:grid;grid-template-columns:repeat(3,minmax(0,390px));justify-content:space-between;gap:18px;padding-top:16px}
+ .mv,.mv.on{display:block}
+ .mv h2{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;font:700 1.5rem/1 var(--fd)}
+ .mv h2 small{font:400 1rem/1 var(--fb);color:var(--suave)}
+ .tel{padding:6px;border-radius:30px;background:var(--asfalto-3)}
+ .tel iframe{height:min(780px,calc(100svh - 60px));border-radius:24px}
+ .pap{grid-template-columns:minmax(0,1fr) minmax(0,640px);align-items:start;gap:44px;margin-top:72px}
+}
+/* un solo momento: la entrada. Y al llegar a los papeles, la hoja sale como de una impresora */
+@media (prefers-reduced-motion:no-preference){
+ h1{overflow:clip;padding-bottom:.08em;margin-bottom:-.08em}
+ h1 span{display:block;animation:sale .95s var(--ease-out) both}
+ .lead,.pasos li,.ctl{animation:entra .8s var(--ease-out) both}
+ .lead{animation-delay:.12s}
+ .pasos li:nth-child(1){animation-delay:.2s}
+ .pasos li:nth-child(2){animation-delay:.27s}
+ .pasos li:nth-child(3){animation-delay:.34s}
+ .ctl{animation-delay:.42s}
+ .js .pap h2,.js .pap>div>p,.js .jor,.js .hojap{opacity:0;transform:translateY(44px);transition:opacity .7s var(--ease-out),transform .95s var(--ease-out)}
+ .js .pap.ve h2,.js .pap.ve>div>p,.js .pap.ve .jor,.js .pap.ve .hojap{opacity:1;transform:none}
+ .js .pap.ve>div>p{transition-delay:.08s}
+ .js .pap.ve .jor{transition-delay:.16s}
+ .js .pap.ve .hojap{transition-delay:.12s}
+}
+@media (min-width:900px) and (prefers-reduced-motion:no-preference){
+ .mv{animation:entra .85s var(--ease-out) both;animation-delay:.34s}
+ .mv:nth-child(2){animation-delay:.44s}
+ .mv:nth-child(3){animation-delay:.54s}
+}
+@keyframes sale{from{transform:translateY(108%)}}
+@keyframes entra{from{opacity:0;transform:translateY(28px)}}
+</style>
+</head>
+<body>
+<header class="ph">
+ <div class="fila1"><a class="wm" href="./" aria-label="Ramírez 24 h: volver a la web">Ramírez<span>24 h</span></a><a class="btn peq" href="https://ooox.es/#/webs" target="_blank" rel="noopener">Lo quiero para mi negocio</a></div>
+ <h1><span>Tres móviles, un solo aviso.</span></h1>
+ <p class="lead">El cliente pide, la centralita reparte y el técnico lo cierra. Lo que hace uno, lo ven los otros al momento.</p>
+ <ol class="pasos">
+  <li><span>En <b>Cliente</b>, pide una cita.</span></li>
+  <li><span>En <b>Centralita</b>, ábrela y asígnasela a Omar.</span></li>
+  <li><span>En <b>Técnico</b>, los tres toques: Voy, Empezar y Terminado.</span></li>
+ </ol>
+ <div class="ctl">
+  <div class="seg" role="group" aria-label="Pack"><button data-pack="basico" aria-pressed="false">Pack Básico</button><button data-pack="pro" aria-pressed="true">Pack Pro</button></div>
+  <button class="btn peq" id="re">Reiniciar la demo</button>
+  <p id="pk"></p>
+ </div>
+</header>
+<div class="tabs" role="tablist" aria-label="Qué móvil ver">
+ <button role="tab" aria-selected="true" aria-controls="m-cli" data-t="m-cli">Cliente</button>
+ <button role="tab" aria-selected="false" aria-controls="m-cen" data-t="m-cen">Centralita</button>
+ <button role="tab" aria-selected="false" aria-controls="m-tec" data-t="m-tec">Técnico</button>
+</div>
+<main>
+ <div class="tres">
+  <section class="mv on" id="m-cli"><h2>Cliente <small>en la web</small></h2><div class="tel" data-ui><iframe src="cita.html" title="La web, como la ve el cliente"></iframe></div></section>
+  <section class="mv" id="m-cen"><h2>Centralita <small>quien coge el teléfono y reparte</small></h2><div class="tel" data-ui><iframe src="app.html?fijo" title="La app, como la ve la centralita"></iframe></div></section>
+  <section class="mv" id="m-tec"><h2>Técnico <small>Omar, en la calle</small></h2><div class="tel" data-ui><iframe src="app.html?papel=tecnico&amp;tec=omar&amp;fijo" title="La app, como la ve el técnico"></iframe></div></section>
+ </div>
+ <section class="pap" aria-labelledby="papT">
+  <div>
+   <h2 id="papT">Al terminar, los papeles salen solos.</h2>
+   <p>Presupuesto firmado con el dedo, parte de trabajo y garantía, con los datos que ya estaban escritos. El IVA del 10 o del 21 % lo calcula la app. Es lo que añade el pack Pro.</p>
+   <figure class="jor"><img src="assets/img/jordi.webp" alt="Jordi Ramírez, el fundador, en la puerta de un portal" width="640" height="857" loading="lazy"><figcaption>Jordi Ramírez firma un año de garantía en cada trabajo.</figcaption></figure>
+  </div>
+  <div class="hojap" data-ui><iframe src="app.html?fijo&amp;solo#/papel/R-0139/parte" title="Un parte de trabajo de ejemplo" loading="lazy"></iframe></div>
+ </section>
+</main>
+<p class="pp"><span>Demo de OOOX Oficios con un negocio inventado. Lo que hagas se queda en este navegador y no llega a nadie. <a href="./">Volver a la web de Ramírez</a></span></p>
+<script src="js/oficio-nucleo.js"></script>
+<script src="js/oficio-datos.js"></script>
+<script src="js/oficio-estado.js"></script>
+<script>
+(function(){
+'use strict';
+const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)],C={rol:'centralita',id:'marta'};
+document.documentElement.classList.add('js');
+if('IntersectionObserver'in window){const io=new IntersectionObserver(E=>E.forEach(x=>{if(x.isIntersecting){x.target.classList.add('ve');io.disconnect()}}),{threshold:.12});io.observe($('.pap'))}else $('.pap').classList.add('ve');
+let v=Oficio.estado().v;
+function pinta(){const S=Oficio.estado(),pro=(S.pack||Oficio.cfg.pack)!=='basico';
+ $$('[data-pack]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.pack==='pro')===pro)));
+ $('#pk').textContent=pro?'Pro: además de los tres toques, el cliente firma el precio en el móvil y salen el parte, la garantía y los cobros.':'Básico: los avisos llegan, se reparten y el técnico los cierra con tres toques. Sin papeles.'}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-pack],#re,[data-t]');if(!b)return;
+ if(b.dataset.pack)Oficio.hacer({tipo:'pack',pack:b.dataset.pack},C);
+ else if(b.id==='re'){Oficio.reiniciar();$$('iframe').forEach(f=>{f.src=f.getAttribute('src')})}
+ else{$$('[data-t]').forEach(x=>{x.setAttribute('aria-selected',String(x===b));if(x===b)x.classList.remove('cambio')});$$('.mv').forEach(m=>m.classList.toggle('on',m.id===b.dataset.t))}
+ pinta()});
+Oficio.suscribir(S=>{pinta();if(S.v!==v){v=S.v;$$('[data-t][aria-selected=false]').forEach(x=>x.classList.add('cambio'))}});
+pinta();
+})();
+</script>
+</body>
+</html>
