@@ -1,14 +1,15 @@
 # Pruebas de la app de oficios (OOOX Oficios). Corren solas:
-#  - en cada cambio que toque la demo o sus pruebas, en cualquier rama;
+#  - en cada cambio que toque la demo, la copia de algún negocio o sus pruebas, en cualquier rama;
 #  - cada noche (solo desde la rama principal, que es como funciona GitHub), con el triple de recorridos al azar
 #    y una semilla nueva cada día.
-# La prueba de reglas estropeadas adrede tarda un minuto y corre siempre.
+# La prueba de reglas estropeadas adrede tarda unos minutos y corre siempre.
 # El repositorio es público: las máquinas estándar de GitHub no cuestan nada. No usar máquinas «grandes».
 name: Pruebas de la app de oficios
 on:
   push:
     paths:
       - 'frontend/public/demos/ramirez-24h/**'
+      - 'frontend/public/oficios/**'
       - 'webs-negocios/demos/**'
       - '.github/workflows/pruebas-oficios.yml'
   schedule:

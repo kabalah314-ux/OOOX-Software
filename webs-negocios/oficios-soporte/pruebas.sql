@@ -7,7 +7,7 @@
 --
 -- Qué miran: que el navegador no puede tocar las tablas, que cada función valida lo que recibe, que un negocio no ve
 -- lo de otro, que en la demo cada navegador ve solo lo suyo, los topes, el bloqueo por códigos fallados, la baja de
--- ofertas, los acuses de lectura y las vistas de Claude y de Oscar.
+-- ofertas, los acuses de lectura, las vistas de Claude y de Oscar y que las copias de prueba no cuentan como negocios.
 
 do $$
 declare
@@ -156,9 +156,12 @@ begin
   -- 15. las vistas: la cola por prioridad, los temas contando negocios de verdad (la demo no cuenta) y las copias
   insert into oficios.peticiones(negocio, tipo, texto, tema) values ('prueba-sql2', 'fallo', 'Lo mismo que le pasa al otro negocio.', 'asignar-no-responde');
   insert into oficios.peticiones(negocio, remitente, tipo, texto, tema) values ('prueba-demo', 'navegador-a', 'fallo', 'Lo mismo, pero desde la demo.', 'asignar-no-responde');
+  insert into oficios.negocios(id, nombre, prueba, clave_hash) values ('prueba-copia', 'Copia de prueba', true, oficios.huella('prueba-copia', 'clave-buena-1'));
+  insert into oficios.peticiones(negocio, tipo, texto, tema) values ('prueba-copia', 'fallo', 'Lo mismo, desde una copia de prueba.', 'asignar-no-responde');
   r := array_append(r, case when
         (select id = p1 from oficios.cola where negocio_id like 'prueba-%' limit 1)
-    and (select negocios = 2 and peticiones = 3 and abierta from oficios.temas where tema = 'asignar-no-responde')
+    and (select negocios = 2 and peticiones = 4 and abierta from oficios.temas where tema = 'asignar-no-responde')   -- ni la demo ni la copia de prueba cuentan como negocio
+    and (select prueba and peticiones = 1 from oficios.copias where id = 'prueba-copia') and (select bool_or(prueba) from oficios.cola where negocio_id = 'prueba-copia')
     and (select abiertas = 10 and peticiones = 10 and version = '2026.11.13' from oficios.copias where id = 'prueba-sql')
     then '15:ok' else '15:MAL' end);
 

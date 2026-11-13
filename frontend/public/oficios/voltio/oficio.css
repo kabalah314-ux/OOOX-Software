@@ -1,0 +1,157 @@
+/* OOOX Oficios · lo que comparten la app (app.html) y la parte del cliente (cita.html).
+   Regla del sistema: lo que maneja quien trabaja va sobre asfalto; lo que lee y firma el cliente, sobre papel. */
+@font-face{font-family:'Barlow';font-weight:400;font-display:swap;src:url(assets/fuentes/barlow-400.woff2) format('woff2')}
+@font-face{font-family:'Barlow';font-weight:500;font-display:swap;src:url(assets/fuentes/barlow-500.woff2) format('woff2')}
+@font-face{font-family:'Barlow';font-weight:600;font-display:swap;src:url(assets/fuentes/barlow-600.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:600;font-display:swap;src:url(assets/fuentes/barlow-condensed-600.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:700;font-display:swap;src:url(assets/fuentes/barlow-condensed-700.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:800;font-display:swap;src:url(assets/fuentes/barlow-condensed-800.woff2) format('woff2')}
+:root{
+ --asfalto:#14171a;--asfalto-2:#1c2025;--asfalto-3:#262b31;--linea:#30363d;--control:#4a525b;
+ --senal:#ffc400;--senal-2:#ffd23f;--negro:#141414;
+ --texto:#eeeeea;--suave:#b3bac1;--tenue:#8e969e;
+ --papel:#f5f6f7;--papel-2:#e9ebed;--tinta:#17191b;--tinta-2:#5d636a;--raya:#d9dcdf;
+ --agua:#7cc0ff;--agua-f:#13283c;--bien:#5fd39a;--bien-f:#15281f;--mal:#ff8f85;--mal-f:#2d1a18;--aviso-f:#2e2710;
+ --mal-papel:#b3261e;--bien-papel:#1d6b45;
+ --fd:'Barlow Condensed','Arial Narrow','Roboto Condensed',sans-serif;
+ --fb:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+ --ease-out:cubic-bezier(.23,1,.32,1);--sb:env(safe-area-inset-bottom,0px);
+ --cinta-fina:repeating-linear-gradient(-45deg,var(--senal) 0 6px,var(--negro) 6px 12px); /* taste-skill-ignore: la cinta de aviso amarilla y negra es la firma de la marca */
+}
+*,*::before,*::after{box-sizing:border-box}
+*{margin:0;padding:0}
+html{background:var(--asfalto);color:var(--texto);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{font:400 1.0625rem/1.4 var(--fb);min-height:100svh}
+/* las cifras, siempre del mismo ancho (el atajo «font» lo quitaría en cada regla) */
+*,*::before,*::after{font-variant-numeric:tabular-nums!important}
+img,svg,canvas{display:block;max-width:100%}
+ul,ol{list-style:none}
+button,input,textarea,select{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;text-align:inherit}
+a{color:inherit}
+h1,h2,h3{font-family:var(--fd);font-weight:700;line-height:1.05;letter-spacing:0}
+:focus-visible{outline:3px solid var(--senal);outline-offset:2px;border-radius:6px}
+.papel :focus-visible,.hoja.papel :focus-visible{outline-color:var(--tinta)}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+
+/* ---------- botones: uno principal por pantalla, en amarillo de señal ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;min-height:56px;padding:0 1.2em;border-radius:12px;border:2px solid var(--control);font:600 1.0625rem/1.1 var(--fb);text-decoration:none;white-space:nowrap;-webkit-user-select:none;user-select:none;transition:background-color .16s var(--ease-out),border-color .16s var(--ease-out),transform .12s var(--ease-out)}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:var(--senal);border-color:var(--senal);color:var(--negro)}
+.btn.pri:hover{background:var(--senal-2);border-color:var(--senal-2)}
+.btn[disabled],.btn[aria-disabled=true]{background:var(--asfalto-3);border-color:var(--asfalto-3);color:var(--tenue);cursor:not-allowed;transform:none}
+.btn.peq{min-height:44px;padding:0 .9em;border-radius:10px;font-size:1rem}
+.btn.ancho{width:100%}
+.btn svg{width:20px;height:20px;flex:none}
+.txt{min-height:44px;padding:0 .2em;font-weight:600;color:var(--texto);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--control)}
+.txt.mal{color:var(--mal)}
+.papel .btn,.hoja.papel .btn{border-color:#aeb4ba;color:var(--tinta)}
+.papel .btn.pri,.hoja.papel .btn.pri{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.papel .btn.pri:hover,.hoja.papel .btn.pri:hover{background:#000;border-color:#000}
+.papel .btn[disabled],.hoja.papel .btn[disabled]{background:var(--papel-2);border-color:var(--papel-2);color:#70777e}
+.papel .txt,.hoja.papel .txt{color:var(--tinta);text-decoration-color:#aeb4ba}
+.papel .txt.mal,.hoja.papel .txt.mal{color:var(--mal-papel)}
+
+/* ---------- estados ---------- */
+.pill{display:inline-flex;align-items:center;flex:none;white-space:nowrap;min-height:26px;padding:0 10px;border-radius:999px;font-size:.875rem;font-weight:600;background:var(--asfalto-3);color:var(--suave)}
+.pill.nuevo,.pill.cobro{background:var(--aviso-f);color:var(--senal-2)}
+.pill.camino,.pill.curso{background:var(--agua-f);color:var(--agua)}
+.pill.hecho{background:var(--bien-f);color:var(--bien)}
+.pill.ausente{background:var(--mal-f);color:var(--mal)}
+
+/* ---------- el recorrido del aviso ---------- */
+.pista{display:grid;grid-template-columns:repeat(5,1fr)}
+.pista li{position:relative;padding-top:24px;font-size:.8125rem;line-height:1.25;color:var(--tenue);text-align:center}
+.pista li::before{content:"";position:absolute;top:4px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--asfalto);border:2px solid var(--control);z-index:1}
+.pista li::after{content:"";position:absolute;top:9px;right:50%;width:100%;height:2px;background:var(--linea)}
+.pista li:first-child::after{display:none}
+.pista li.ok{color:var(--texto)}
+.pista li.ok::before{background:var(--senal);border-color:var(--senal)}
+.pista li.ok::after{background:var(--senal)}
+.pista li.ya::before{outline:5px solid rgba(255,196,0,.2)}
+.pista li.ya{font-weight:600}
+.pista time{display:block;color:var(--suave);font-weight:400}
+.papel .pista li,.cli .pista li{color:var(--tinta-2)}
+
+/* ---------- campos ---------- */
+.campo{display:grid;gap:6px}
+.campo>label,.campo>span.lb{font-size:.9375rem;font-weight:600}
+.campo input,.campo textarea,.campo select{width:100%;min-height:52px;padding:12px 14px;border-radius:10px;border:2px solid var(--control);background:var(--asfalto-2);color:var(--texto)}
+.campo textarea{min-height:88px;resize:vertical;line-height:1.35}
+.campo input::placeholder,.campo textarea::placeholder{color:var(--tenue)}
+.campo.mal input,.campo.mal textarea{border-color:var(--mal)}
+.campo .err{font-size:.9375rem;color:var(--mal)}
+.campo .ayuda{font-size:.9375rem;color:var(--suave)}
+.hoja.papel .campo input,.hoja.papel .campo textarea{background:#fff;border-color:#aeb4ba;color:var(--tinta)}
+.hoja.papel .campo input::placeholder,.hoja.papel .campo textarea::placeholder{color:#70777e}
+.hoja.papel .campo .err{color:var(--mal-papel)}
+.hoja.papel .campo .ayuda{color:var(--tinta-2)}
+
+/* ---------- hojas: suben desde abajo en el móvil ---------- */
+dialog.hoja{border:0;padding:0;margin:auto auto 0;width:100%;max-width:560px;max-height:92svh;border-radius:20px 20px 0 0;background:var(--asfalto-2);color:var(--texto);overflow:hidden}
+dialog.hoja[open]{display:flex;flex-direction:column}
+dialog.hoja::backdrop{background:rgba(8,10,12,.62)}
+dialog.hoja.papel{background:var(--papel);color:var(--tinta)}
+dialog.hoja.llena{max-height:100svh;height:100svh;border-radius:0}
+.hoja .hc{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px 6px}
+.hoja .hc h2{font-size:1.75rem}
+.hoja .x{display:grid;place-items:center;width:44px;height:44px;margin-right:-10px;border-radius:50%}
+.hoja .x svg{width:22px;height:22px}
+.hoja .hb{display:grid;gap:16px;padding:10px 20px 20px;overflow-y:auto;overscroll-behavior:contain}
+.hoja .hp{display:grid;gap:10px;padding:12px 20px calc(16px + var(--sb));border-top:1px solid var(--linea)}
+.hoja.papel .hp{border-top-color:var(--raya)}
+@media (min-width:700px){dialog.hoja{margin:auto;border-radius:16px}dialog.hoja.llena{height:auto;max-height:94svh;border-radius:16px;max-width:640px}}
+@media (prefers-reduced-motion:no-preference){dialog.hoja[open]{animation:sube .26s var(--ease-out)}dialog.hoja[open]::backdrop{animation:velo .2s linear}}
+@keyframes sube{from{transform:translateY(24px);opacity:0}}
+@keyframes velo{from{opacity:0}}
+
+/* ---------- vista previa de WhatsApp (en la demo no se escribe a nadie) ---------- */
+.wa{border-radius:12px;overflow:hidden;background:#e7ded3}
+.wa-hd{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#1f2c34;color:#fff;font-size:.9375rem}
+.wa-hd i{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:50%;background:#5d6b75;font-style:normal;font-weight:600}
+.wa-hd small{display:block;color:#a7b3ba}
+.wa-chat{padding:14px 12px 16px}
+.wa-b{margin-left:auto;max-width:88%;padding:8px 10px 6px;border-radius:10px 2px 10px 10px;background:#d9fdd3;color:#111;line-height:1.35;overflow-wrap:anywhere}
+.wa-b time{display:block;margin-top:2px;font-size:.75rem;color:#54656f;text-align:right}
+
+/* ---------- aviso corto que no interrumpe ---------- */
+#toast{position:fixed;left:50%;top:calc(66px + env(safe-area-inset-top,0px));z-index:90;transform:translate(-50%,-10px);box-shadow:0 10px 30px -12px rgba(0,0,0,.6); /* taste-skill-ignore: el aviso flota sobre la pantalla */
+ max-width:min(92vw,420px);padding:12px 16px;border-radius:12px;background:var(--papel);color:var(--tinta);font-weight:600;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s linear,transform .2s var(--ease-out)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- los papeles: presupuesto, parte y garantía ---------- */
+.papel{background:var(--papel);color:var(--tinta);border-radius:4px 4px 8px 8px}
+.doc{position:relative;max-width:680px;margin:0 auto;padding:26px clamp(18px,4.5vw,40px) 30px}
+.doc::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;border-radius:4px 4px 0 0;background:var(--cinta-fina)}
+.doc .dh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding:14px 0 12px;border-bottom:2px solid var(--tinta)}
+.doc .wm{font:800 1.9rem/1 var(--fd)}
+.doc .wm span{margin-left:.22em;padding:.02em .22em;border-radius:4px;background:var(--tinta);color:var(--papel)}
+.doc .dh p{font-size:.875rem;color:var(--tinta-2);text-align:right}
+@media (max-width:560px){.doc .dh{flex-direction:column;align-items:flex-start;gap:8px}.doc .dh p{text-align:left}}
+.doc h1{font-size:2.1rem;margin:18px 0 2px}
+.doc .dn{font-size:.9375rem;color:var(--tinta-2)}
+.doc h2{font:600 .9375rem/1.2 var(--fb);color:var(--tinta-2);margin:20px 0 6px}
+.doc .dos{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+.doc .lin{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 16px;padding:9px 0;border-bottom:1px solid var(--raya)}
+.doc .lin small{grid-column:1;font-size:.875rem;color:var(--tinta-2)}
+.doc .lin b{grid-column:2;grid-row:1;font-weight:600;font-variant-numeric:tabular-nums}
+.doc .tot{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-top:4px;padding-top:10px;border-top:2px solid var(--tinta);font:800 2rem/1 var(--fd)}
+.doc .iva{font-size:.9375rem;color:var(--tinta-2);text-align:right;margin-top:4px}
+.doc .fir{display:grid;gap:4px;margin-top:8px}
+.doc .fir svg{width:200px;height:74px;border-bottom:1px solid var(--tinta)}
+.doc .fir small,.doc .pie{font-size:.875rem;color:var(--tinta-2)}
+.doc .pie{margin-top:22px;padding-top:12px;border-top:1px solid var(--raya)}
+.doc .gran{font:800 4.4rem/.9 var(--fd)}
+.doc .sello{display:inline-block;margin-top:14px;transform:rotate(-4deg);border:3px solid var(--tinta);border-radius:6px;padding:6px 10px 5px;font:800 1.15rem/1 var(--fd);letter-spacing:.05em;text-transform:uppercase}
+.doc .fotos{display:flex;gap:8px;flex-wrap:wrap}
+.doc .fotos img{width:120px;height:90px;object-fit:cover;border-radius:6px}
+@media print{
+ html,body{background:#fff!important;padding:0!important}
+ .lado,.top,#nav,#toast,.noimp,.vdocs,.atras,dialog{display:none!important}
+ .marco{display:block!important}
+ main{display:block!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important}
+ .doc{max-width:none;border-radius:0}
+ .doc,.doc *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}

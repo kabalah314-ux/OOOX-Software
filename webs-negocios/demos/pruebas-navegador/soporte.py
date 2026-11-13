@@ -80,7 +80,11 @@ async def hasta(pg, js, ms=6000):
 async def toast(pg, trozo): return await hasta(pg, f"(()=>{{const e=document.querySelector('#toast');return e&&e.classList.contains('on')&&e.textContent.includes({json.dumps(trozo)})}})()")
 async def texto(pg, sel): return (await pg.locator(sel).first.inner_text()) if await pg.locator(sel).count() else ''
 async def a_mejoras(pg):
-    if await pg.evaluate("location.hash") == '#/mejoras': await pg.evaluate("location.hash='#/bandeja'")
+    # Si ya está en «Mejoras», sale y vuelve a entrar. Entre un cambio de dirección y el otro hay que esperar a que la otra pantalla esté
+    # pintada: si llegan seguidos, el navegador puede avisar de los dos cuando la dirección ya es la última, y la app, con razón, no ve
+    # ninguna entrada nueva y no vuelve a pedir el buzón. Le pasó a WebKit en las pruebas automáticas el 13-11-2026, una vez.
+    if await pg.evaluate("location.hash") == '#/mejoras':
+        await pg.evaluate("location.hash='#/bandeja'"); await pg.wait_for_function("!document.querySelector('#fMejora,#fCodigo')")
     await pg.evaluate("location.hash='#/mejoras'"); await pg.wait_for_selector('#fMejora,#fCodigo')
 async def escribe(pg, tipo, txt):
     if tipo: await pg.click(f'#fMejora [data-m-tipo="{tipo}"]')

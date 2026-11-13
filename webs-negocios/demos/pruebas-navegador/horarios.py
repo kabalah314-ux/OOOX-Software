@@ -33,7 +33,11 @@ async def hasta(pg, js, ms=6000):
 async def toast(pg, trozo): return await hasta(pg, f"(()=>{{const e=document.querySelector('#toast');return e&&e.classList.contains('on')&&e.textContent.includes({json.dumps(trozo)})}})()")
 async def texto(pg, sel): return (await pg.locator(sel).first.inner_text()) if await pg.locator(sel).count() else ''
 async def ir(pg, ruta, espera):
-    await pg.evaluate(f"location.hash={json.dumps(ruta)}"); await pg.wait_for_selector(espera)
+    # Cambia de pantalla y no sigue hasta que la app la ha pintado. La app pinta al oír el cambio de dirección; este oyente se apunta
+    # después del suyo, así que cuando salta, la pantalla nueva ya está. Sin esto, si lo que se espera ya estaba en la pantalla
+    # anterior (dos avisos seguidos, por ejemplo), se podía leer la vieja.
+    await pg.evaluate("r=>new Promise(ok=>{if(location.hash===r)return ok();addEventListener('hashchange',()=>setTimeout(ok,0),{once:true});location.hash=r})", ruta)
+    await pg.wait_for_selector(espera)
 K = 'OficioNucleo'
 # lo que dicen las reglas de las franjas de un día, visto por la oficina
 FR = "(d=>" + K + ".franjasDe(Oficio.estado(),Oficio.cfg,d,Date.now()).map(f=>({id:f.id,txt:f.txt,ok:f.ok,okOf:f.okOf,por:f.por,libres:f.libres,libresOf:f.libresOf,tope:f.tope})))"

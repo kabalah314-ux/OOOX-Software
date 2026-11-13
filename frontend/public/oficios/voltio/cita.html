@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="es" data-demo>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pide cita sin llamar</title>
+<meta name="description" content="Pide cita sin llamar: eliges la avería, el día y la franja. Con cita, tarifa normal.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14171a">
+<link rel="preload" href="assets/fuentes/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fuentes/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="oficio.css">
+<style>
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;padding:0 16px;background:var(--asfalto);border-bottom:1px solid var(--linea)}
+@media (max-width:359px){#llama .ll-u{display:none}}
+.wm{font:800 1.5rem/1 var(--fd);text-decoration:none;white-space:nowrap}
+.wm span{margin-left:.22em;padding:.02em .22em;border-radius:4px;background:var(--senal);color:var(--negro)}
+main{display:block;max-width:640px;margin:0 auto;padding:24px 18px calc(44px + var(--sb))}
+main:focus{outline:0}
+h1{font:800 1.75rem/1 var(--fd)}
+.lead{margin-top:12px;font-size:1.125rem;color:var(--suave)}
+.lead a{color:var(--texto);font-weight:600}
+.ult{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--linea)}
+.ult a{font-weight:600}
+fieldset{border:0;min-width:0;display:grid;gap:14px;margin-top:30px}
+legend{display:flex;gap:.45em;margin-bottom:14px;font:700 1.75rem/1 var(--fd)}
+legend b{color:var(--senal)}
+.avs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.avc{position:relative;display:grid;grid-template-columns:52px minmax(0,1fr);align-items:center;gap:10px;min-height:66px;padding:6px 10px 6px 6px;border-radius:12px;border:2px solid var(--control);font-weight:600;line-height:1.15;cursor:pointer}
+.avc img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:var(--asfalto-3)}
+.avc input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.avc:has(input:checked){border-color:var(--senal);background:var(--asfalto-3)}
+.avc:has(input:focus-visible){outline:3px solid var(--senal);outline-offset:2px}
+.rango{padding:12px 14px;border-radius:12px;background:var(--asfalto-2);border:1px solid var(--linea)}
+.rango b{font:700 1.5rem/1.1 var(--fd)}
+.rango small{display:block;margin-top:3px;font-size:.9375rem;color:var(--suave)}
+.ops{display:flex;flex-wrap:wrap;gap:8px}
+.op{min-height:52px;padding:0 16px;border-radius:999px;border:2px solid var(--control);font-weight:600}
+.op small{font-weight:400;color:var(--suave);margin-left:5px}
+.op[aria-pressed=true]{border-color:var(--senal);background:var(--asfalto-3)}
+.op[disabled]{border-style:dashed;color:var(--tenue);cursor:not-allowed}
+.otras{margin-top:18px}
+/* el mapa del técnico de camino: nueve teselas alrededor de su última posición y un punto en el centro */
+.mapa{margin-top:16px}
+.mapa-v{position:relative;height:220px;max-width:512px;margin:0 auto;overflow:hidden;border-radius:12px;background:#dfe3e6}
+.mapa-t{position:absolute;left:50%;top:50%;width:0;height:0}
+.mapa-t img{position:absolute;width:256px;height:256px;max-width:none}
+.mapa-p{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#ffc400;border:3px solid #15191c;box-shadow:0 0 0 7px rgba(255,196,0,.28)}
+.mapa-l{margin-top:8px}
+.mapa-f{margin-top:2px;font-size:.8125rem;text-align:right}
+.otras .lb small{font-weight:400;color:var(--suave);margin-left:4px}
+.lb{font-size:.9375rem;font-weight:600}
+.duo{display:grid;grid-template-columns:minmax(0,1fr) 124px;gap:12px}
+.fotoz{display:flex;align-items:center;gap:12px}
+.fotoz img{width:76px;height:57px;object-fit:cover;border-radius:8px}
+.zona{font-size:.9375rem;color:var(--bien)}
+.legal{margin-top:18px;font-size:.9375rem;color:var(--suave)}
+form>.btn{margin-top:16px}
+.fallo{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--mal-f);color:var(--mal);font-weight:600}
+/* el resguardo del cliente: papel */
+.doc h1{font:800 1.75rem/1 var(--fd)}
+.doc .frase{margin-top:10px;font-size:1.125rem}
+.doc .pista{margin:22px 0 6px}
+.doc .pista li::before{background:var(--papel);border-color:#aeb4ba}
+.doc .pista li::after{background:var(--raya)}
+.doc .pista li.ok{color:var(--tinta)}
+.doc .pista li.ok::before{background:var(--tinta);border-color:var(--tinta)}
+.doc .pista li.ok::after{background:var(--tinta)}
+.doc .pista li.ya::before{outline-color:rgba(23,25,27,.14)}
+.doc .pista time{color:var(--tinta-2)}
+.tras{display:grid;gap:10px;margin-top:18px}
+.tras .txt{justify-self:center;display:inline-flex;align-items:center}
+@media (min-width:560px){.avs{grid-template-columns:repeat(3,minmax(0,1fr))}h1,.doc h1{font-size:2rem}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a class="vh" href="#v">Saltar al contenido</a>
+<header class="top">
+ <a class="wm" href="./" id="marca"></a>
+ <button class="btn peq" id="llama"><span class="ll-u">¿Urgente? </span><span id="llamaTel"></span></button>
+</header>
+<main id="v" tabindex="-1"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="js/oficio-nucleo.js"></script>
+<script src="js/oficio-datos.js"></script>
+<script src="js/oficio-estado.js"></script>
+<script>
+(function(){
+'use strict';
+const {K,N,cfg}=Oficio,$=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* el rótulo y el teléfono salen del archivo de datos del negocio */
+const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
+{const m=$('#marca'),b=$('#llama');m.innerHTML=MARCA;m.setAttribute('aria-label',N.nombre+': volver a la web');$('#llamaTel').textContent=N.tel;b.setAttribute('aria-label','¿Urgente? Llama al '+N.tel);
+ if(!Oficio.DEMO){document.documentElement.removeAttribute('data-demo');b.addEventListener('click',e=>{e.stopImmediatePropagation();location.href='tel:+34'+K.tel9(N.tel)},true)}}
+const mem={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let S=Oficio.estado();
+const P=new URLSearchParams(location.search),av0=P.get('av')||mem.get('ramirez:av');
+const B={av:cfg.av[av0]?av0:'',nota:'',foto:'',dia:'',fr:'',alt:[],nombre:'',tel:'',dir:'',cp:'',err:''};
+const ERR={av:'Elige qué te pasa.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nombre:'Escribe tu nombre.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en '+N.ciudad+'.'};
+const D3=['dom','lun','mar','mié','jue','vie','sáb'];
+const diaCorto=f=>{const h=K.madrid().date;return f===h?'hoy':f===K.masDias(h,1)?'mañana':D3[new Date(f+'T12:00:00Z').getUTCDay()]+' '+(+f.slice(8))};
+const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?K.franjaTxt(f):''};
+const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
+const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cfg.zonas.dis[d][0]:''};
+
+function vPedir(){const dias=K.diasDe(S,cfg,Date.now(),5);if(!dias.find(x=>x.dia===B.dia))B.dia=(dias.find(x=>!x.hoy)||dias[0]).dia;
+ const fr=dias.find(x=>x.dia===B.dia).franjas;if(!fr.find(f=>f.id===B.fr&&f.ok))B.fr='';
+ /* otras franjas que también le van bien: las libres de ese día y de los dos siguientes, hasta ocho para elegir y cuatro marcadas */
+ const i0=dias.findIndex(x=>x.dia===B.dia),cand=[];if(B.fr)dias.slice(i0,i0+3).forEach(x=>x.franjas.forEach(f=>{if(f.ok&&!(x.dia===B.dia&&f.id===B.fr)&&cand.length<8)cand.push({k:x.dia+'|'+f.id,txt:diaCorto(x.dia)+', '+f.txt})}));
+ B.alt=B.alt.filter(k=>cand.some(c=>c.k===k));
+ const R=B.av&&K.rango(cfg,B.av,false),ult=mem.get('oficio:'+N.id+':mio'),U=ult&&K.vistaCliente(S,cfg,ult);
+ const c=(id,lb,v,o)=>'<div class="campo'+(B.err===id||(id==='cp'&&B.err==='zona')?' mal':'')+'"><label for="c_'+id+'">'+lb+'</label><input id="c_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(B.err===id?' aria-invalid="true" aria-describedby="e_'+id+'"':'')+'>'+(B.err===id?'<p class="err" id="e_'+id+'">'+ERR[id]+'</p>':'')+'</div>';
+ return'<h1>Pide cita sin prisa.</h1><p class="lead">Con cita, la tarifa es siempre la normal. ¿No puede esperar? <a href="./">Llama o manda una foto</a>: llegamos en 25–40 min.</p>'+
+  (U&&U.e!=='cancelado'?'<p class="ult">Ya tienes un aviso: '+U.id+', '+esc(cfg.av[U.av].n.toLowerCase())+'. <a href="#/aviso/'+U.id+'">Ver cómo va</a></p>':'')+
+  '<form id="f" novalidate>'+
+  '<fieldset><legend><b>1</b>¿Qué pasa?</legend><div class="avs">'+N.averias.map(a=>'<label class="avc"><img src="assets/img/av-'+a.id+'-s.webp" alt="" width="52" height="52" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>'+esc(a.n)+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>'+
+   (B.err==='av'?'<p class="fallo">'+ERR.av+'</p>':'')+
+   (R?'<p class="rango"><b class="num">'+(R.b?'De '+K.eur(R.a).replace(',00','')+' a '+K.eur(R.b).replace(',00',''):'Desde '+K.eur(R.a).replace(',00',''))+'</b><small>IVA incluido, en una vivienda. El precio exacto te lo cerramos antes de empezar y lo firmas.</small></p>':'')+
+   '<div class="campo"><label for="c_nota">Cuéntanos algo más</label><textarea id="c_nota" data-b="nota" placeholder="Opcional. Qué ves y desde cuándo pasa.">'+esc(B.nota)+'</textarea></div>'+
+   '<div class="fotoz">'+(B.foto?'<img src="'+B.foto+'" alt="La foto que has añadido">':'')+'<label class="btn peq">'+(B.foto?'Cambiar la foto':'Añadir una foto')+'<input class="vh" type="file" accept="image/*" id="c_foto"></label></div></fieldset>'+
+  '<fieldset><legend><b>2</b>¿Cuándo te va bien?</legend><div class="ops" role="group" aria-label="Día">'+dias.map(x=>'<button type="button" class="op" data-dia="'+x.dia+'" aria-pressed="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div>'+
+   '<div class="ops" role="group" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-fr="'+f.id+'" aria-pressed="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'>'+f.txt+'<small>'+(f.ok?(f.libres===1?'queda 1':'quedan '+f.libres):f.libres?'ya no da tiempo':'completa')+'</small></button>').join('')+'</div>'+
+   (B.err==='franja'||B.err==='llena'?'<p class="fallo">'+ERR[B.err]+'</p>':'')+
+   (cand.length?'<div class="campo otras"><span class="lb" id="l_alt">¿Te va bien también otra franja? <small>Opcional</small></span><p class="ayuda">Si hay que mover la cita, la pasamos a una de estas sin tener que llamarte.</p><div class="ops" role="group" aria-labelledby="l_alt">'+cand.map(c=>'<button type="button" class="op" data-alt="'+c.k+'" aria-pressed="'+B.alt.includes(c.k)+'">'+c.txt+'</button>').join('')+'</div></div>':'')+'</fieldset>'+
+  '<fieldset><legend><b>3</b>¿Dónde vamos?</legend>'+c('nombre','Tu nombre',B.nombre,'autocomplete="name"')+c('tel','Teléfono, para avisarte por WhatsApp',B.tel,'type="tel" inputmode="tel" autocomplete="tel"')+
+   '<div class="duo">'+c('dir','Calle, número y piso',B.dir,'autocomplete="street-address"')+c('cp','Código postal',B.cp,'inputmode="numeric" maxlength="5" autocomplete="postal-code"')+'</div>'+
+   (B.err==='zona'?'<p class="fallo" id="zmal">'+ERR.zona+'</p>':zonaDe(B.cp)?'<p class="zona">'+esc(zonaDe(B.cp))+': llegamos.</p>':'')+'</fieldset>'+
+  '<p class="legal">Usamos estos datos solo para atender tu aviso. Esto es una web de muestra: lo que escribas se queda en tu navegador y no llega a nadie.</p>'+
+  '<button class="btn pri ancho" type="submit">Pedir la cita</button></form>'}
+
+/* un mapa sencillo, sin librerías: las nueve teselas de alrededor de un punto, con el punto en el centro */
+function mapaHtml(M,pos,quien){const z=15,n=2**z,x=(pos.lon+180)/360*n,la=pos.lat*Math.PI/180,y=(1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n;
+ const tx=Math.floor(x),ty=Math.floor(y),ox=(x-tx)*256,oy=(y-ty)*256;let h='';
+ for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const X=((tx+i)%n+n)%n,Y=ty+j;if(Y<0||Y>=n)continue;
+  h+='<img alt="" width="256" height="256" decoding="async" src="'+esc(M.teselas.replace('{z}',z).replace('{x}',X).replace('{y}',Y))+'" style="left:'+(i*256)+'px;top:'+(j*256)+'px" onerror="this.style.visibility=\'hidden\'">'}
+ return'<div class="mapa-v" role="img" aria-label="Mapa con la última posición de '+esc(quien)+'"><div class="mapa-t" style="transform:translate('+(-ox).toFixed(1)+'px,'+(-oy).toFixed(1)+'px)">'+h+'</div><i class="mapa-p"></i></div>'}
+const haceMin=t=>{const m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?'ahora mismo':m===1?'hace 1 minuto':m<60?'hace '+m+' minutos':'hace más de una hora'};
+function bMapa(v,T){const M=cfg.mapa;if(!M||v.e!=='camino'||!v.pos)return'';const viejo=Date.now()-v.pos.t>5*60000,ok=typeof M.teselas==='string'&&/^https:\/\//.test(M.teselas);
+ return'<section class="mapa" id="mapa" aria-label="Dónde está '+esc(T)+'">'+(ok?mapaHtml(M,v.pos,T):'')+
+  '<p class="mapa-l"><b>Última posición de '+esc(T)+'</b>: '+haceMin(v.pos.t)+'.'+(viejo?' Puede que tenga la app cerrada mientras conduce.':'')+
+  (ok?'':' <a href="https://www.openstreetmap.org/?mlat='+v.pos.lat+'&amp;mlon='+v.pos.lon+'#map=16/'+v.pos.lat+'/'+v.pos.lon+'" target="_blank" rel="noopener noreferrer">Abrirla en un mapa</a>')+'</p>'+
+  (ok&&M.firma?'<p class="mapa-f">'+(typeof M.firmaUrl==='string'&&/^https:\/\//.test(M.firmaUrl)?'<a href="'+esc(M.firmaUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(M.firma)+'</a>':esc(M.firma))+'</p>':'')+'</section>'}
+function vAviso(id){const v=K.vistaCliente(S,cfg,id);
+ if(!v)return'<h1>No encuentro ese aviso.</h1><p class="lead">'+(Oficio.DEMO?'Puede que la demo se haya reiniciado. ':'')+'<a href="#/">Pedir una cita</a></p>';
+ const av=cfg.av[v.av],cu=v.cita?K.fechaLarga(v.cita.dia)+', '+frTxt(v.cita.fr):'',T=v.tec||'El técnico';
+ const orden={nuevo:0,ausente:0,cancelado:0,asignado:1,camino:2,curso:3,hecho:4}[v.e];
+ const tit={nuevo:v.cita?'Cita pedida':'Aviso recibido',asignado:v.cita?'Cita confirmada':'Ya tiene técnico',camino:'Va de camino',curso:'Está en tu casa',hecho:v.sinTrabajo?'Aviso cerrado':'Trabajo terminado',ausente:'No había nadie',cancelado:'Cita cancelada'}[v.e];
+ const frase={nuevo:v.cita?'Para el '+cu+'. Te confirmamos enseguida quién irá.':'Te decimos enseguida quién va y a qué hora llega.',
+  asignado:v.cita?'El '+cu+'. Irá '+esc(T)+'.':'Irá '+esc(T)+'. Sale enseguida.',
+  camino:esc(T)+' llega sobre las '+K.hora(v.eta)+'.',curso:esc(T)+' empezó a las '+K.hora(v.ini)+'. El precio ya está cerrado y firmado.',
+  hecho:v.total?(v.sinTrabajo?'Solo se ha cobrado el desplazamiento: '+K.eur(v.total)+'.':'Total: '+K.eur(v.total)+', IVA incluido. '+(v.pago&&v.pago.cobrado?'Pagado.':'Pendiente de pago.')+(v.gar?' Garantía hasta el '+K.fechaCorta(v.gar)+'.':'')):'Gracias por confiar en '+N.nombre+'.'+(v.gar?' Garantía hasta el '+K.fechaCorta(v.gar)+'.':''),
+  ausente:'Hemos ido y no hemos encontrado a nadie. Escríbenos y volvemos cuando te vaya bien.',cancelado:'Si quieres, pide otra cuando te vaya bien.'}[v.e];
+ const p=[['Recibido',v.t],['Asignado',0],['De camino',v.sal],['En casa',v.ini],['Hecho',v.fin]];
+ return'<article class="papel doc"><div class="dh"><span class="wm">'+MARCA+'</span><p>Aviso '+v.id+'<br>'+esc(av.n)+'</p></div><h1 tabindex="-1" id="tit">'+tit+'</h1><p class="frase">'+frase+'</p>'+
+  (v.e==='cancelado'?'':'<ol class="pista" aria-label="Cómo va tu aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>')+bMapa(v,T)+
+  '<p class="pie">'+(v.e==='hecho'?'El parte y la garantía te llegan por WhatsApp.':'Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga.')+' ¿Algo no cuadra? Llama al '+N.tel+'.</p></article>'+
+  '<div class="tras">'+(Oficio.DEMO?'<a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">Ver cómo le llega a '+esc(N.marca[0])+'</a>':'')+'<a class="txt" href="#/">Pedir otra cita</a></div>'}
+
+function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeURIComponent);return{v:h[0]||'',a:h[1]||''}}
+function pinta(){S=Oficio.estado();const r=ruta();$('#v').innerHTML=r.v==='aviso'?vAviso(r.a):vPedir();document.title=(r.v==='aviso'?'Tu aviso '+r.a:'Pide cita')+' · '+N.nombre}
+addEventListener('hashchange',()=>{pinta();scrollTo(0,0);const t=$('#tit')||$('#v');t.focus({preventScroll:true})});
+Oficio.suscribir(()=>{const a=document.activeElement;if(ruta().v!=='aviso'&&a&&a.closest&&a.closest('#f'))return;pinta()});
+setInterval(()=>{if(ruta().v==='aviso')pinta()},60000);
+
+document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.b){B[i.dataset.b]=i.value;
+ if(i.dataset.b==='cp'&&i.value.replace(/\D/g,'').length===5){B.err=zonaDe(i.value)?'':'zona';pinta();const n=$('#c_cp');n.focus();n.setSelectionRange(5,5)}}});
+document.addEventListener('change',e=>{const i=e.target;
+ if(i.name==='av'){B.av=i.value;mem.set('ramirez:av',B.av);if(B.err==='av')B.err='';pinta();const n=$('input[name=av]:checked');if(n)n.focus()}
+ if(i.id==='c_foto'&&i.files[0])Oficio.foto(i.files[0]).then(f=>{B.foto=f;pinta()}).catch(()=>toast('No he podido leer esa foto.'))});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-dia],[data-fr],[data-alt],#llama');if(!b)return;
+ if(b.dataset.alt){const k=b.dataset.alt,i=B.alt.indexOf(k);if(i>=0)B.alt.splice(i,1);else if(B.alt.length>=4)return toast('Con cuatro nos basta.');else B.alt.push(k);pinta();const n=$('[data-alt="'+k+'"]');if(n)n.focus();return}
+ if(b.id==='llama'){const d=document.createElement('dialog');d.className='hoja';d.innerHTML='<div class="hc"><h2>Llamada directa</h2><button class="x" data-x aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="hb"><p style="font:800 2.6rem/1 var(--fd)">'+N.tel+'</p><p style="color:var(--suave)">En la web real, este botón llama con un toque. En la demo no llamamos a nadie.</p></div><div class="hp"><button class="btn ancho" data-x>Cerrar</button></div>';
+  document.body.appendChild(d);d.addEventListener('close',()=>d.remove());d.addEventListener('click',x=>{if(x.target===d||x.target.closest('[data-x]'))d.close()});d.showModal();return}
+ if(b.dataset.dia){B.dia=b.dataset.dia;B.fr=''}else B.fr=b.dataset.fr;
+ if(B.err==='franja'||B.err==='llena')B.err='';pinta();const n=$(b.dataset.dia?'[data-dia="'+B.dia+'"]':'[data-fr="'+B.fr+'"]');if(n)n.focus()});
+document.addEventListener('submit',e=>{if(e.target.id!=='f')return;e.preventDefault();
+ const falla=k=>{B.err=k;pinta();const i=$('#c_'+(k==='zona'?'cp':k))||$('.fallo');if(i){i.scrollIntoView({block:'center'});i.focus&&i.focus({preventScroll:true})}};
+ if(!B.av)return falla('av');if(!B.fr)return falla('franja');
+ const r=Oficio.hacer({tipo:'pedir',av:B.av,origen:'cita',nota:B.nota,foto:B.foto,cli:{nombre:B.nombre,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},{rol:'cliente'});
+ if(!r.ok)return falla(r.err==='franja'?'llena':r.err);
+ mem.set('oficio:'+N.id+':mio',r.id);Object.assign(B,{nota:'',foto:'',fr:'',alt:[],err:''});location.hash='#/aviso/'+r.id});
+pinta();
+})();
+</script>
+</body>
+</html>

@@ -26,7 +26,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.13';
+const VERSION='2026.11.13b';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -62,7 +62,7 @@ function cfgDe(N){const vacio=()=>Object.create(null),limpio=o=>Object.assign(va
  const zonas={banda:limpio(N.zonas.banda),dis:limpio(N.zonas.dis),cp:limpio(N.zonas.cp)};
  return{N,cat,av,tec,pack:N.pack||'pro',recargo:N.tarifa.recargo,dia:N.tarifa.dia,festivos:N.festivos||[],franjas:N.franjas,cupo:N.cupo,zonas,
   etaMax:Math.max.apply(null,Object.values(zonas.banda)),horas:Object.keys(cat).find(k=>cat[k].un==='h')||'',meses:N.garantiaMeses||12,
-  conHorario:!!(N.horario||N.tecnicos.some(x=>x.horario)),porFranja:(N.citas&&N.citas.porFranja)||1,reserva:(N.citas&&N.citas.reserva)||0,hayGuardia:N.tecnicos.some(x=>x.guardia)}}
+  mapa:N.mapa&&typeof N.mapa==='object'?N.mapa:null,conHorario:!!(N.horario||N.tecnicos.some(x=>x.horario)),porFranja:(N.citas&&N.citas.porFranja)||1,reserva:(N.citas&&N.citas.reserva)||0,hayGuardia:N.tecnicos.some(x=>x.guardia)}}
 function nuevo(){return{esq:ESQ,v:0,n:0,avisos:[],ausencias:[]}}
 
 /* ---------- tarifa y precio ---------- */
@@ -231,11 +231,21 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  case 'voy':{
   if(!mio)return R('permiso');if(A.e!=='asignado')return R('estado');
   if(S.avisos.some(x=>x.id!==A.id&&x.tec===A.tec&&(x.e==='camino'||x.e==='curso')))return R('ocupado');
-  A.e='camino';A.sal=t;A.eta=t+etaMin(cfg,A.cli.dis)*MIN;sinMsg(A,['recibido','cita','vispera']);msg(A,'camino');log(A,'Va de camino');return ok({eta:A.eta})}
+  A.e='camino';A.sal=t;A.eta=t+etaMin(cfg,A.cli.dis)*MIN;delete A.pos;delete A.posNo;sinMsg(A,['recibido','cita','vispera']);msg(A,'camino');log(A,'Va de camino');return ok({eta:A.eta})}
+
+ /* La posición del técnico que va de camino. Solo si el negocio lo tiene activado (mapa en sus datos), solo la manda él,
+    solo mientras va, y solo se guarda la última: al llegar, al no encontrar a nadie o si deja de compartirla, se borra. */
+ case 'posicion':{
+  if(!mio)return R('permiso');if(!cfg.mapa)return R('mapa');if(A.e!=='camino'||A.posNo)return R('estado');
+  if(typeof a.lat!=='number'||typeof a.lon!=='number'||!(a.lat>=-90&&a.lat<=90)||!(a.lon>=-180&&a.lon<=180))return R('posicion');
+  A.pos={lat:Math.round(a.lat*1e5)/1e5,lon:Math.round(a.lon*1e5)/1e5,t};return ok()}
+ case 'sinPosicion':{
+  if(!mio)return R('permiso');if(!cfg.mapa)return R('mapa');if(A.e!=='camino'||A.posNo)return R('estado');
+  delete A.pos;A.posNo=true;log(A,'Deja de compartir su posición');return ok()}
 
  case 'ausente':{
   if(!mio)return R('permiso');if(A.e!=='camino')return R('estado');
-  A.e='ausente';A.aus=t;sinMsg(A,['camino']);msg(A,'ausente');log(A,'No había nadie');return ok()}
+  A.e='ausente';A.aus=t;delete A.pos;delete A.posNo;sinMsg(A,['camino']);msg(A,'ausente');log(A,'No había nadie');return ok()}
 
  case 'empezar':{
   if(!mio)return R('permiso');if(A.e!=='camino'&&A.e!=='asignado')return R('estado');
@@ -244,14 +254,14 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   const pr=precio(cfg,p.lineas,{urg:tarifaDe(cfg,A),local:!!p.local});if(!pr.total)return R('lineas');
   A.lin=pr.lineas.map(l=>l.k==='otro'?{k:'otro',t:l.t,p:l.p,q:1}:{k:l.k,q:l.q});A.local=!!p.local;
   A.pres=Object.assign({t,firma:p.firma},pr);A.tot=pr;
-  if(!A.sal)A.sal=t;A.e='curso';A.ini=t;A.pausas=[];sinMsg(A,['camino','recibido','cita','vispera']);
+  if(!A.sal)A.sal=t;A.e='curso';A.ini=t;A.pausas=[];delete A.pos;delete A.posNo;sinMsg(A,['camino','recibido','cita','vispera']);
   log(A,'Presupuesto firmado: '+eur(A.tot.total)+'. Empieza el trabajo');return ok()}
 
  case 'noacepta':{
   if(!mio)return R('permiso');if(A.e!=='camino'&&A.e!=='asignado')return R('estado');
   if(!PAGOS.includes(a.modo))return R('modo');
   const pr=precio(cfg,[{k:cfg.N.sinTrabajo,q:1}],{urg:tarifaDe(cfg,A),local:!!a.local});
-  A.tot=pr;A.lin=[{k:cfg.N.sinTrabajo,q:1}];A.local=!!a.local;A.sinTrabajo=true;A.e='hecho';A.fin=t;if(!A.sal)A.sal=t;
+  A.tot=pr;A.lin=[{k:cfg.N.sinTrabajo,q:1}];A.local=!!a.local;A.sinTrabajo=true;A.e='hecho';A.fin=t;if(!A.sal)A.sal=t;delete A.pos;delete A.posNo;
   A.pago={modo:a.modo,t,cobrado:a.modo!=='pendiente'};sinMsg(A,['camino','recibido','cita','vispera']);msg(A,'hecho');if(!A.pago.cobrado)msg(A,'cobro',t+3*1440*MIN);
   log(A,'No acepta el precio. Solo el desplazamiento: '+eur(pr.total));return ok()}
 
@@ -319,7 +329,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
 /* ---------- lo que puede ver el cliente de su aviso ---------- */
 function vistaCliente(S,cfg,id){const A=S.avisos.find(x=>x.id===id);if(!A)return null;const tec=cfg.tec[A.tec];
- return{id:A.id,av:A.av,e:A.e,urg:A.urg,cita:A.cita?{dia:A.cita.dia,fr:A.cita.fr,ok:A.cita.ok}:null,t:A.t,tec:tec?tec.n:'',eta:A.e==='camino'?A.eta:0,sal:A.sal||0,ini:A.ini||0,fin:A.fin||0,
+ return{id:A.id,av:A.av,e:A.e,urg:A.urg,cita:A.cita?{dia:A.cita.dia,fr:A.cita.fr,ok:A.cita.ok}:null,t:A.t,tec:tec?tec.n:'',eta:A.e==='camino'?A.eta:0,pos:A.e==='camino'&&A.pos?{lat:A.pos.lat,lon:A.pos.lon,t:A.pos.t}:null,sal:A.sal||0,ini:A.ini||0,fin:A.fin||0,
   total:A.tot?A.tot.total:0,tipo:A.tot?A.tot.tipo:0,pago:A.pago?{modo:A.pago.modo,cobrado:A.pago.cobrado}:null,gar:A.gar?A.gar.hasta:'',sinTrabajo:!!A.sinTrabajo}}
 
 /* ---------- las cifras del día para la centralita ---------- */

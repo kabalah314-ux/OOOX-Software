@@ -57,4 +57,9 @@ function firma(lienzo,alCambiar){const cx=lienzo.getContext('2d');let trazos=[],
 const firmaSvg=d=>'<svg viewBox="0 0 300 110" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Firma"><path d="'+String(d).replace(/[^MLC0-9 .-]/g,'')+'"/></svg>';
 
 g.Oficio={K,N,cfg,DEMO,estado,hacer,reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg};
+/* Una copia de prueba (prueba:true en los datos del negocio) lo dice arriba en todas sus pantallas: así nadie la toma por un
+   negocio en marcha. Va con sus colores puestos aquí para no depender de la hoja de estilos de cada página. */
+if(N.prueba===true&&typeof document!=='undefined'&&document.body&&!document.getElementById('prb')){const p=document.createElement('p');p.id='prb';
+ p.textContent='Copia de prueba de OOOX Oficios. Este negocio aún no está en marcha: lo que hagas aquí se queda en este navegador.';
+ p.style.cssText='margin:0;padding:7px 16px;background:#3a2f0a;color:#ffd34d;font:500 .8125rem/1.35 system-ui,sans-serif;text-align:center';document.body.prepend(p)}
 })(window);

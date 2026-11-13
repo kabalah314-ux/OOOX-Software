@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas'];
+const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba'];
 const esTexto = (x, min = 1, max = 200) => typeof x === 'string' && x.trim().length >= min && x.length <= max;
 const esNum = x => typeof x === 'number' && Number.isFinite(x);
 const esEntero = x => Number.isInteger(x);
@@ -145,6 +145,23 @@ export function valida(N, K, hoy) {
       if (N.cupo != null) A('cupo: con horarios puestos ya no se usa; los huecos salen de los horarios.');
     }
   }
+
+  // ---- mapa (opcional): con él, el técnico comparte su posición con el cliente desde «Voy» hasta que llega
+  if (N.mapa != null) {
+    const m = N.mapa;
+    if (!m || typeof m !== 'object' || Array.isArray(m)) E('mapa: tiene que ser un objeto, aunque esté vacío ({}), o no estar.');
+    else {
+      Object.keys(m).forEach(k => { if (!['teselas', 'firma', 'firmaUrl'].includes(k)) E('mapa: «' + k + '» no es un dato que la app use.') });
+      if (m.teselas != null) {
+        if (typeof m.teselas !== 'string' || !/^https:\/\/[^\s"'<>]+$/.test(m.teselas) || !['{z}', '{x}', '{y}'].every(t => m.teselas.includes(t))) E('mapa.teselas: tiene que ser una dirección https con {z}, {x} y {y}.');
+        if (typeof m.firma !== 'string' || m.firma.trim().length < 3) E('mapa.firma: con un mapa de fondo hay que poner la firma de quien lo da (por ejemplo «© OpenStreetMap»).');
+        else if (/tile\.openstreetmap\.org/.test(String(m.teselas))) A('mapa.teselas: el servidor gratuito de OpenStreetMap vale para una demo; un negocio en marcha necesita un proveedor o un servidor propio.');
+      } else A('mapa: sin «teselas», el cliente verá cuándo se compartió la posición y un enlace para abrirla, pero no un mapa en la página.');
+      if (m.firmaUrl != null && (typeof m.firmaUrl !== 'string' || !/^https:\/\/[^\s"'<>]+$/.test(m.firmaUrl))) E('mapa.firmaUrl: tiene que ser una dirección https.');
+    }
+  }
+  // ---- copia de prueba (opcional): la app avisa en pantalla de que el negocio aún no está en marcha
+  if (N.prueba != null && typeof N.prueba !== 'boolean') E('prueba: tiene que ser true o false.');
 
   // ---- catálogo
   const cat = N.catalogo || {}, claves = Object.keys(cat);

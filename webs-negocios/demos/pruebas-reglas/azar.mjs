@@ -30,8 +30,8 @@ const clon = o => JSON.parse(JSON.stringify(o));
 class Rota extends Error { constructor(ley, detalle) { super(ley + ': ' + detalle); this.ley = ley; this.detalle = detalle } }
 const rota = (ley, detalle) => { throw new Rota(ley, detalle) };
 const SALTOS = new Set(['asignado>nuevo', 'nuevo>asignado', 'nuevo>cancelado', 'asignado>camino', 'asignado>curso', 'asignado>hecho', 'asignado>cancelado', 'camino>curso', 'camino>ausente', 'camino>hecho', 'curso>hecho', 'ausente>asignado', 'ausente>nuevo', 'ausente>cancelado']);
-const SOLO_CENTRALITA = ['asignar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado'];
-const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo'];
+const SOLO_CENTRALITA = ['asignar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado'];
+const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'pos', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo'];
 const FEO = /undefined|NaN|\bnull\b|\[object|Invalid|Infinity/;
 function numerosLimpios(o, donde) {
   if (typeof o === 'number') { if (!Number.isFinite(o)) rota('numeros-limpios', donde + ' = ' + o) }
@@ -104,6 +104,16 @@ function paso(W, a, q, t) {
     if (x.cita && x.e !== 'cancelado' && !conH(W.N)) { const k = x.cita.dia + ' ' + x.cita.fr; porFranja[k] = (porFranja[k] || 0) + 1; if (porFranja[k] > cfg.cupo) rota('cupo', k + ' lleva ' + porFranja[k] + ' citas y caben ' + cfg.cupo) }
   }
   horarios(W, tipo, A, a, q, t);
+  // --- el mapa: una posición solo existe mientras el técnico va de camino, solo si el negocio lo tiene activado, y es una sola
+  for (const x of S.avisos) {
+    if (x.pos !== undefined) { if (x.e !== 'camino') rota('posicion-solo-de-camino', x.id + ' está en «' + x.e + '» y guarda posición');
+      if (!W.N.mapa) rota('posicion-solo-si-el-negocio-quiere', x.id);
+      if (x.posNo) rota('posicion-borrada-si-deja-de-compartir', x.id);
+      const p = x.pos; if (!p || typeof p.lat !== 'number' || typeof p.lon !== 'number' || !(p.lat >= -90 && p.lat <= 90) || !(p.lon >= -180 && p.lon <= 180) || !Number.isFinite(p.t) || Object.keys(p).sort().join() !== 'lat,lon,t') rota('posicion-bien-formada', x.id + ': ' + JSON.stringify(p)) }
+    if (x.posNo !== undefined && x.e !== 'camino') rota('marca-de-no-compartir-solo-de-camino', x.id + ' en «' + x.e + '»');
+    let V; try { V = K.vistaCliente(S, cfg, x.id) } catch (e) { rota('vista-no-revienta', e.message) }
+    if ((V.pos !== null) !== (x.e === 'camino' && x.pos !== undefined)) rota('el-cliente-ve-la-posicion-solo-de-camino', x.id) }
+  if ((tipo === 'posicion' || tipo === 'sinPosicion') && A && !(q && q.rol === 'tecnico' && q.id === A.tec)) rota('la-posicion-es-cosa-del-tecnico', A.id + ' por ' + JSON.stringify(q));
   // --- lo que ven la centralita y el cliente
   let R; try { R = K.resumen(S, cfg, t) } catch (e) { rota('resumen-no-revienta', e.message) }
   if (R.caja.total !== R.caja.efectivo + R.caja.tarjeta + R.caja.bizum + R.caja.transferencia) rota('caja-cuadra', JSON.stringify(R.caja));
@@ -113,7 +123,7 @@ function paso(W, a, q, t) {
   if (Object.keys(R.canal).join() !== K.ORIGEN.join() || Object.values(R.canal).some(n => !Number.isInteger(n) || n < 0) || Object.values(R.canal).reduce((a, b) => a + b, 0) > S.avisos.length) rota('cifras-por-canal', JSON.stringify(R.canal));
   if (A) { let V; try { V = K.vistaCliente(S, cfg, A.id) } catch (e) { rota('vista-no-revienta', e.message) } for (const k of Object.keys(V)) if (!VISTA.includes(k)) rota('el-cliente-ve-lo-justo', 've «' + k + '»') }
   try { K.diasDe(S, cfg, t, 6).forEach(d => d.franjas.forEach(f => { if (f.ok && !(f.libres > 0)) rota('franja-ofrecida-con-hueco', d.dia + ' ' + f.id) })) } catch (e) { if (e instanceof Rota) throw e; rota('citas-no-revientan', e.message) }
-  W.leyes += 14; return r;
+  W.leyes += 21; return r;
 }
 
 /* ---- las leyes de los horarios: el cliente solo ve huecos reales y la oficina solo asigna a quien puede ---- */
@@ -262,11 +272,13 @@ function generador(G) {
     const cancelar = () => [{ tipo: 'cancelar', id: A.id, motivo: pick(['', 'Ya lo ha arreglado', 'x'.repeat(200)]) }, C];
     const empezar = () => [{ tipo: 'empezar', id: A.id, pres: { lineas: lineas(A, 0), firma: firma(), local: r() < .15 } }, suyo];
     const noacepta = () => [{ tipo: 'noacepta', id: A.id, modo: modo(), local: r() < .15 }, suyo];
+    const posicion = () => r() < .2 ? [{ tipo: 'sinPosicion', id: A.id }, r() < .85 ? suyo : pick([C, T(pick(tecs)), { rol: 'cliente' }])]
+      : [{ tipo: 'posicion', id: A.id, lat: r() < .1 ? pick([91, -200, '41.3', null, NaN, undefined]) : 41.3 + r() * .2, lon: r() < .05 ? pick([181, 'x', null]) : 2.05 + r() * .2, prec: pick([5, 30, 800, -1, 'x', undefined]) }, r() < .85 ? suyo : pick([C, T(pick(tecs)), { rol: 'cliente' }])];
     switch (A.e) {
       case 'nuevo': if (!A.cli.tel || !A.cli.dir || !A.cli.dis) return u < .7 ? [{ tipo: 'completar', id: A.id, cli: cliente() }, C] : u < .85 ? asignar() : cancelar();
         return u < .6 ? asignar() : u < .75 ? mover() : u < .83 ? cancelar() : u < .9 ? anotar() : enviado();
       case 'asignado': return u < .45 ? [{ tipo: 'voy', id: A.id }, suyo] : u < .55 ? empezar() : u < .65 ? asignar() : u < .75 ? mover() : u < .8 ? cancelar() : u < .85 ? noacepta() : u < .9 ? anotar() : enviado();
-      case 'camino': return u < .6 ? empezar() : u < .75 ? [{ tipo: 'ausente', id: A.id }, suyo] : u < .85 ? noacepta() : u < .9 ? anotar() : enviado();
+      case 'camino': return u < .35 ? posicion() : u < .7 ? empezar() : u < .8 ? [{ tipo: 'ausente', id: A.id }, suyo] : u < .87 ? noacepta() : u < .93 ? anotar() : enviado();
       case 'curso': return u < .35 ? [{ tipo: 'terminar', id: A.id, modo: modo(), firma: r() < .5 ? FIRMA : undefined }, suyo] : u < .55 ? [{ tipo: 'pausa', id: A.id }, suyo] : u < .75 ? [{ tipo: 'ampliar', id: A.id, lineas: lineas(A, 1), firma: firma() }, suyo] : u < .9 ? anotar() : enviado();
       case 'ausente': return u < .5 ? asignar() : u < .75 ? mover() : u < .9 ? cancelar() : enviado();
       case 'hecho': return u < .5 ? [{ tipo: 'cobrar', id: A.id, modo: r() < .1 ? 'pendiente' : pick(K.PAGOS.filter(m => m !== 'pendiente')) }, r() < .5 ? C : suyo] : enviado();
@@ -274,9 +286,9 @@ function generador(G) {
     }
   }
   function cualquiera(S, A) {
-    const tipo = pick(['completar', 'asignar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'pack', 'borrar', 'pedir']);
+    const tipo = pick(['completar', 'asignar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'pack', 'borrar', 'pedir', 'posicion', 'sinPosicion']);
     const quien = pick([C, { rol: 'cliente' }, T(pick(tecs)), T(pick(tecs)), { rol: 'tecnico', id: pick(RAROS) }, { rol: pick(RAROS) }, {}]);
-    return [{ tipo, id: A.id, tec: pick(tecs), modo: pick(K.PAGOS), firma: FIRMA, pres: { lineas: lineas(A, 0), firma: FIRMA }, lineas: lineas(A, 1), k: pick(Object.keys(K.MSG)), pack: pick(['basico', 'pro']), cita: null, av: pick(avs), cli: cliente() }, quien];
+    return [{ tipo, id: A.id, lat: 41.38, lon: 2.17, tec: pick(tecs), modo: pick(K.PAGOS), firma: FIRMA, pres: { lineas: lineas(A, 0), firma: FIRMA }, lineas: lineas(A, 1), k: pick(Object.keys(K.MSG)), pack: pick(['basico', 'pro']), cita: null, av: pick(avs), cli: cliente() }, quien];
   }
   function basura(S) {
     const A = S.avisos.length ? pick(S.avisos) : { id: 'X-0001' };

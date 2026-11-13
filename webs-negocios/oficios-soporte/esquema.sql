@@ -34,6 +34,9 @@ create table if not exists oficios.negocios (
   url         text,
   creado      timestamptz not null default now()
 );
+-- Una copia de prueba (un negocio inventado, o la muestra que se le enseña a un posible cliente): puede escribir en
+-- «Mejoras» como cualquiera, pero no cuenta a la hora de decidir qué piden «varios negocios».
+alter table oficios.negocios add column if not exists prueba boolean not null default false;
 
 create table if not exists oficios.cambios (
   id        bigint generated always as identity primary key,
@@ -221,13 +224,13 @@ grant execute on function public.oficios_ofertas(text, text, boolean) to anon, a
 -- Vistas para Claude y para Oscar (no están en la API)
 create or replace view oficios.cola as
   select p.id, p.creada, n.nombre as negocio, p.negocio as negocio_id, n.demo, p.tipo, p.estado, p.prioridad, p.tema, p.texto, p.quien, p.pantalla, p.version, p.aparato,
-         p.revision, p.borrador, p.respuesta, p.duplicada_de, p.cambio
+         p.revision, p.borrador, p.respuesta, p.duplicada_de, p.cambio, n.prueba
   from oficios.peticiones p join oficios.negocios n on n.id = p.negocio
   where p.estado in ('nueva','revisada','aceptada','en_curso')
   order by coalesce(p.prioridad, 2), p.creada;
 
-create or replace view oficios.temas as        -- lo que más se repite: candidato a cambio para todas las copias
-  select p.tema, count(distinct p.negocio) filter (where not n.demo) as negocios, count(*) as peticiones,
+create or replace view oficios.temas as        -- lo que más se repite: candidato a cambio para todas las copias. Ni la demo ni las copias de prueba cuentan
+  select p.tema, count(distinct p.negocio) filter (where not n.demo and not n.prueba) as negocios, count(*) as peticiones,
          min(p.creada) as primera, max(p.creada) as ultima,
          bool_or(p.estado in ('nueva','revisada','aceptada','en_curso')) as abierta
   from oficios.peticiones p join oficios.negocios n on n.id = p.negocio
@@ -238,10 +241,10 @@ create or replace view oficios.temas as        -- lo que más se repite: candida
 create or replace view oficios.copias as       -- cada copia: plan, versión, última vez vista y lo que tiene abierto
   select n.id, n.nombre, n.plan, n.activo, n.demo, n.version, n.visto, n.sin_ofertas,
          count(p.id) filter (where p.estado in ('nueva','revisada','aceptada','en_curso')) as abiertas,
-         count(p.id) as peticiones
+         count(p.id) as peticiones, n.prueba
   from oficios.negocios n left join oficios.peticiones p on p.negocio = n.id
   group by n.id
-  order by n.demo, n.nombre;
+  order by n.demo, n.prueba, n.nombre;
 
 -- La demo pública. Su código es «DEMO» y lo sabe todo el mundo: por eso cada navegador ve solo lo suyo.
 insert into oficios.negocios (id, nombre, plan, demo, clave_hash, url)

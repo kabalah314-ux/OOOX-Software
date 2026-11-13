@@ -59,6 +59,7 @@ async def main():
         t = await guarda(k, 'cita')
         es(N['marca'][0] in (await k.locator('#marca').inner_text()) and N['tel'] in (await k.locator('#llama').inner_text()), 'cita: el rótulo y el teléfono son los del negocio')
         es(N['nombre'] in await k.title(), 'cita: el título de la pestaña lleva el nombre del negocio')
+        es((await k.locator('#prb').count() == 1) == (N.get('prueba') is True), 'cita: el aviso de «copia de prueba» sale arriba solo si el negocio está marcado como prueba')
         es(await k.locator('input[name=av]').count() == len(N['averias']), 'cita: salen todas las averías del negocio')
         frs = await k.locator('[data-fr]').all_inner_texts()
         es(len(frs) == len(N['franjas']) and all(re.match(r'^de \d{1,2}(:\d{2})? a \d{1,2}(:\d{2})?', x.strip()) for x in frs), f'cita: las franjas se leen bien {frs[:4]}')
@@ -77,6 +78,7 @@ async def main():
         # ---------- 2. la oficina ----------
         c = await pagina(ctx, 'oficina', False); await c.set_viewport_size({'width': 1280, 'height': 860})
         await c.goto(B + 'app.html'); await c.wait_for_selector(f'a.fila[href="#/aviso/{idc}"]')
+        es((await c.locator('#prb').count() == 1) == (N.get('prueba') is True) and await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), 'oficina: lo mismo con el aviso de «copia de prueba», y no descoloca la pantalla')
         t = await guarda(c, 'bandeja')
         es(N['marca'][0] in await c.locator('#marca').inner_text() and N['nombre'] in await c.title(), 'oficina: rótulo y título del negocio')
         es(all(x['n'] in t for x in N['tecnicos']), 'oficina: sale todo el equipo del negocio')

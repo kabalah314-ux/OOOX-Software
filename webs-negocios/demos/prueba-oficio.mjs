@@ -485,5 +485,47 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(horas.every(t0 => { try { const SM = globalThis.OFICIO_MUESTRA(K, cp, t0); return SM.avisos.length >= 6 && K.sobran(SM, cp, t0).length === 0 && SM.avisos.filter(a => a.cita).every(a => a.cita.ok && !a.cita.of) } catch (e) { console.log('   ', e.message); return false } }),
     'los avisos de muestra se construyen a cualquier hora con los turnos puestos: de noche, en domingo, en festivo, en fin de año y en el cambio de hora') }
 
+// 36. el mapa: la posición del técnico que va de camino. Solo la manda él, solo mientras va, solo la última, y se borra al llegar (13-11-2026)
+{ empieza(); const BCN = { lat: 41.3879212, lon: 2.1699187 };
+  const id = ap({ tipo: 'pedir', av: 'fuga', cli: montse, origen: 'llamada' }, C).id; ap({ tipo: 'asignar', id, tec: 'omar' }, C);
+  es(!!cfg.mapa && ap(Object.assign({ tipo: 'posicion', id }, BCN), T('omar')).err === 'estado' && A(id).pos === undefined, 'antes de «Voy» no se comparte ninguna posición');
+  ap({ tipo: 'voy', id }, T('omar')); const h0 = A(id).h.length, v0 = S.v;
+  es(K.vistaCliente(S, cfg, id).pos === null, 'de camino y sin posición todavía, el cliente no ve ninguna');
+  es(ap(Object.assign({ tipo: 'posicion', id }, BCN), T('laia')).err === 'permiso' && ap(Object.assign({ tipo: 'posicion', id }, BCN), C).err === 'permiso' && ap(Object.assign({ tipo: 'posicion', id }, BCN), CLI).err === 'permiso' && A(id).pos === undefined,
+    'la posición solo la puede mandar el técnico que lleva el aviso: ni otro técnico, ni la oficina, ni el cliente');
+  es([{ lat: '41.38', lon: 2.17 }, { lat: 91, lon: 2 }, { lat: 41, lon: 181 }, { lat: NaN, lon: 2 }, { lat: null, lon: null }, {}, { lat: 41 }].every(x => ap(Object.assign({ tipo: 'posicion', id }, x), T('omar')).err === 'posicion') && A(id).pos === undefined,
+    'una posición imposible, a medias o que no es un número no se guarda');
+  const r1 = ap(Object.assign({ tipo: 'posicion', id, prec: 12.7 }, BCN), T('omar'));
+  es(r1.ok && A(id).pos.lat === 41.38792 && A(id).pos.lon === 2.16992 && A(id).pos.t === t && Object.keys(A(id).pos).sort().join() === 'lat,lon,t' && A(id).h.length === h0 && S.v === v0 + 1,
+    'la suya sí: se guarda redondeada a un metro, con su hora, sin llenar el historial');
+  const V = K.vistaCliente(S, cfg, id);
+  es(V.pos && V.pos.lat === 41.38792 && V.pos.lon === 2.16992 && V.pos.t === A(id).pos.t && Object.keys(V.pos).sort().join() === 'lat,lon,t', 'el cliente ve esa posición y cuándo se tomó');
+  ap({ tipo: 'posicion', id, lat: 41.39, lon: 2.16 }, T('omar'));
+  es(A(id).pos.lat === 41.39 && A(id).pos.lon === 2.16 && JSON.stringify(A(id)).split('"lat"').length === 2, 'solo se guarda la última: no queda el recorrido');
+  es(ap({ tipo: 'sinPosicion', id }, T('laia')).err === 'permiso' && ap({ tipo: 'sinPosicion', id }, C).err === 'permiso', 'dejar de compartir también es cosa suya');
+  es(ap({ tipo: 'sinPosicion', id }, T('omar')).ok && A(id).pos === undefined && A(id).posNo === true && K.vistaCliente(S, cfg, id).pos === null && /Deja de compartir/.test(A(id).h[A(id).h.length - 1].txt),
+    'si deja de compartir, la posición se borra, el cliente deja de verla y queda escrito');
+  es(ap(Object.assign({ tipo: 'posicion', id }, BCN), T('omar')).err === 'estado' && ap({ tipo: 'sinPosicion', id }, T('omar')).err === 'estado' && A(id).pos === undefined, 'y ya no se vuelve a guardar en ese viaje');
+  // no había nadie → se reasigna → vuelve a ir: se comparte otra vez
+  ap({ tipo: 'ausente', id }, T('omar')); es(A(id).posNo === undefined && A(id).pos === undefined, 'al no encontrar a nadie no queda ni la posición ni la marca');
+  ap({ tipo: 'asignar', id, tec: 'omar' }, C); ap({ tipo: 'voy', id }, T('omar'));
+  es(ap(Object.assign({ tipo: 'posicion', id }, BCN), T('omar')).ok && !!K.vistaCliente(S, cfg, id).pos, 'en el viaje siguiente vuelve a compartirse');
+  ap({ tipo: 'empezar', id, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], firma: F } }, T('omar'));
+  es(A(id).e === 'curso' && A(id).pos === undefined && K.vistaCliente(S, cfg, id).pos === null && ap(Object.assign({ tipo: 'posicion', id }, BCN), T('omar')).err === 'estado', 'al llegar y empezar, la posición se borra y ya no se admite ninguna más');
+  // «no acepta el precio» también borra
+  const id2 = ap({ tipo: 'pedir', av: 'fuga', cli: montse, origen: 'llamada' }, C).id; ap({ tipo: 'asignar', id: id2, tec: 'laia' }, C); ap({ tipo: 'voy', id: id2 }, T('laia')); ap(Object.assign({ tipo: 'posicion', id: id2 }, BCN), T('laia'));
+  es(!!A(id2).pos && ap({ tipo: 'noacepta', id: id2, modo: 'efectivo' }, T('laia')).ok && A(id2).pos === undefined, 'si el cliente no acepta el precio y se cierra el aviso, la posición también se borra');
+  // por si acaso: una posición o una marca que quedasen guardadas por error (una copia vieja de los datos, o un cambio futuro que se olvide de borrarlas)
+  const id3 = ap({ tipo: 'pedir', av: 'fuga', cli: montse, origen: 'llamada' }, C).id; ap({ tipo: 'asignar', id: id3, tec: 'jordi' }, C);
+  A(id3).pos = { lat: BCN.lat, lon: BCN.lon, t }; A(id3).posNo = true;
+  es(A(id3).e === 'asignado' && K.vistaCliente(S, cfg, id3).pos === null, 'una posición que quedase guardada por error no la ve el cliente si el técnico no va de camino');
+  es(ap({ tipo: 'voy', id: id3 }, T('jordi')).ok && A(id3).pos === undefined && A(id3).posNo === undefined && K.vistaCliente(S, cfg, id3).pos === null && ap(Object.assign({ tipo: 'posicion', id: id3 }, BCN), T('jordi')).ok,
+    'y al salir se parte de cero: ni la posición vieja ni la marca de no compartir');
+  // un negocio que no lo tiene activado
+  const NM = JSON.parse(JSON.stringify(N)); delete NM.mapa; const cm = K.cfgDe(NM), SM = K.nuevo(); let tm = MAR; const hm = (a, q) => K.aplicar(SM, cm, a, q, tm += M);
+  const im = hm({ tipo: 'pedir', av: 'fuga', cli: montse, origen: 'llamada' }, C).id; hm({ tipo: 'asignar', id: im, tec: 'omar' }, C); hm({ tipo: 'voy', id: im }, T('omar'));
+  es(cm.mapa === null && hm(Object.assign({ tipo: 'posicion', id: im }, BCN), T('omar')).err === 'mapa' && hm({ tipo: 'sinPosicion', id: im }, T('omar')).err === 'mapa' && SM.avisos[0].pos === undefined && SM.avisos[0].posNo === undefined && K.vistaCliente(SM, cm, im).pos === null,
+    'un negocio sin el mapa activado no guarda posiciones de nadie, ni apunta que se dejan de compartir') }
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

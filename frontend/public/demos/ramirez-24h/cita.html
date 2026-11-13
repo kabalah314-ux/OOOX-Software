@@ -40,6 +40,14 @@ legend b{color:var(--senal)}
 .op[aria-pressed=true]{border-color:var(--senal);background:var(--asfalto-3)}
 .op[disabled]{border-style:dashed;color:var(--tenue);cursor:not-allowed}
 .otras{margin-top:18px}
+/* el mapa del técnico de camino: nueve teselas alrededor de su última posición y un punto en el centro */
+.mapa{margin-top:16px}
+.mapa-v{position:relative;height:220px;max-width:512px;margin:0 auto;overflow:hidden;border-radius:12px;background:#dfe3e6}
+.mapa-t{position:absolute;left:50%;top:50%;width:0;height:0}
+.mapa-t img{position:absolute;width:256px;height:256px;max-width:none}
+.mapa-p{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#ffc400;border:3px solid #15191c;box-shadow:0 0 0 7px rgba(255,196,0,.28)}
+.mapa-l{margin-top:8px}
+.mapa-f{margin-top:2px;font-size:.8125rem;text-align:right}
 .otras .lb small{font-weight:400;color:var(--suave);margin-left:4px}
 .lb{font-size:.9375rem;font-weight:600}
 .duo{display:grid;grid-template-columns:minmax(0,1fr) 124px;gap:12px}
@@ -122,6 +130,18 @@ function vPedir(){const dias=K.diasDe(S,cfg,Date.now(),5);if(!dias.find(x=>x.dia
   '<p class="legal">Usamos estos datos solo para atender tu aviso. Esto es una web de muestra: lo que escribas se queda en tu navegador y no llega a nadie.</p>'+
   '<button class="btn pri ancho" type="submit">Pedir la cita</button></form>'}
 
+/* un mapa sencillo, sin librerías: las nueve teselas de alrededor de un punto, con el punto en el centro */
+function mapaHtml(M,pos,quien){const z=15,n=2**z,x=(pos.lon+180)/360*n,la=pos.lat*Math.PI/180,y=(1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n;
+ const tx=Math.floor(x),ty=Math.floor(y),ox=(x-tx)*256,oy=(y-ty)*256;let h='';
+ for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const X=((tx+i)%n+n)%n,Y=ty+j;if(Y<0||Y>=n)continue;
+  h+='<img alt="" width="256" height="256" decoding="async" src="'+esc(M.teselas.replace('{z}',z).replace('{x}',X).replace('{y}',Y))+'" style="left:'+(i*256)+'px;top:'+(j*256)+'px" onerror="this.style.visibility=\'hidden\'">'}
+ return'<div class="mapa-v" role="img" aria-label="Mapa con la última posición de '+esc(quien)+'"><div class="mapa-t" style="transform:translate('+(-ox).toFixed(1)+'px,'+(-oy).toFixed(1)+'px)">'+h+'</div><i class="mapa-p"></i></div>'}
+const haceMin=t=>{const m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?'ahora mismo':m===1?'hace 1 minuto':m<60?'hace '+m+' minutos':'hace más de una hora'};
+function bMapa(v,T){const M=cfg.mapa;if(!M||v.e!=='camino'||!v.pos)return'';const viejo=Date.now()-v.pos.t>5*60000,ok=typeof M.teselas==='string'&&/^https:\/\//.test(M.teselas);
+ return'<section class="mapa" id="mapa" aria-label="Dónde está '+esc(T)+'">'+(ok?mapaHtml(M,v.pos,T):'')+
+  '<p class="mapa-l"><b>Última posición de '+esc(T)+'</b>: '+haceMin(v.pos.t)+'.'+(viejo?' Puede que tenga la app cerrada mientras conduce.':'')+
+  (ok?'':' <a href="https://www.openstreetmap.org/?mlat='+v.pos.lat+'&amp;mlon='+v.pos.lon+'#map=16/'+v.pos.lat+'/'+v.pos.lon+'" target="_blank" rel="noopener noreferrer">Abrirla en un mapa</a>')+'</p>'+
+  (ok&&M.firma?'<p class="mapa-f">'+(typeof M.firmaUrl==='string'&&/^https:\/\//.test(M.firmaUrl)?'<a href="'+esc(M.firmaUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(M.firma)+'</a>':esc(M.firma))+'</p>':'')+'</section>'}
 function vAviso(id){const v=K.vistaCliente(S,cfg,id);
  if(!v)return'<h1>No encuentro ese aviso.</h1><p class="lead">'+(Oficio.DEMO?'Puede que la demo se haya reiniciado. ':'')+'<a href="#/">Pedir una cita</a></p>';
  const av=cfg.av[v.av],cu=v.cita?K.fechaLarga(v.cita.dia)+', '+frTxt(v.cita.fr):'',T=v.tec||'El técnico';
@@ -134,7 +154,7 @@ function vAviso(id){const v=K.vistaCliente(S,cfg,id);
   ausente:'Hemos ido y no hemos encontrado a nadie. Escríbenos y volvemos cuando te vaya bien.',cancelado:'Si quieres, pide otra cuando te vaya bien.'}[v.e];
  const p=[['Recibido',v.t],['Asignado',0],['De camino',v.sal],['En casa',v.ini],['Hecho',v.fin]];
  return'<article class="papel doc"><div class="dh"><span class="wm">'+MARCA+'</span><p>Aviso '+v.id+'<br>'+esc(av.n)+'</p></div><h1 tabindex="-1" id="tit">'+tit+'</h1><p class="frase">'+frase+'</p>'+
-  (v.e==='cancelado'?'':'<ol class="pista" aria-label="Cómo va tu aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>')+
+  (v.e==='cancelado'?'':'<ol class="pista" aria-label="Cómo va tu aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>')+bMapa(v,T)+
   '<p class="pie">'+(v.e==='hecho'?'El parte y la garantía te llegan por WhatsApp.':'Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga.')+' ¿Algo no cuadra? Llama al '+N.tel+'.</p></article>'+
   '<div class="tras">'+(Oficio.DEMO?'<a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">Ver cómo le llega a '+esc(N.marca[0])+'</a>':'')+'<a class="txt" href="#/">Pedir otra cita</a></div>'}
 

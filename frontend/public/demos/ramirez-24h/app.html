@@ -326,7 +326,7 @@ const PAGO={efectivo:'Efectivo',tarjeta:'Tarjeta',bizum:'Bizum',transferencia:'T
 const ERR={nombre:'Escribe el nombre del cliente.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
  datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
  horario:'Ese técnico no trabaja a esa hora. Elige a otro.',ausente_tec:'Ese técnico está ausente ese día.',lleno:'Ese técnico ya tiene esa franja ocupada.',
- fechas:'Revisa las fechas de la ausencia.',ausencia:'Esa ausencia ya no está apuntada.',aviso:'Ese aviso ya no existe.'};
+ fechas:'Revisa las fechas de la ausencia.',mapa:'Este negocio no tiene activado el mapa.',posicion:'Esa posición no vale.',ausencia:'Esa ausencia ya no está apuntada.',aviso:'Ese aviso ya no existe.'};
 /* por qué no puede ir un técnico a un aviso; sale de las reglas (K.puedeIr), aquí solo se dice con palabras */
 /* la oficina puede poner una cita donde el cliente no: en el hueco que se guarda para urgencias y con menos de dos horas */
 const POR={margen:'menos de 2 h',reserva:'hueco de urgencias','reserva+margen':'hueco de urgencias'};
@@ -422,6 +422,7 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
  h+='<div class="cab"><div><h1>'+esc(av.n)+'</h1><p class="sub">'+A.id+(barrio(A)?' · '+esc(barrio(A)):'')+' · '+(A.cita?'cita '+diaTxt(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente')+'</p></div><span class="pill '+A.e+'">'+EST[A.e]+'</span></div>'+pista(A)+bGar(A);
  if(esT){h+=bCliente(A,true);
   if(mio&&A.e==='curso')h+=bTrabajo(A);
+  if(mio)h+=bGeo(A);
   if(pro())h+=bDinero(A);
   if(mio)h+=bMensajes(A);
   if(!mio)h+='<p class="hueco" style="margin-top:12px">'+(t?'Este aviso lo lleva '+esc(t.n)+'.':'Este aviso todavía no tiene técnico.')+'</p>';
@@ -429,11 +430,37 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
   else if(A.e==='camino')h+='<div class="accion"><button class="btn pri ancho" data-a="empezar" data-id="'+A.id+'">Empezar</button><button class="txt" data-a="ausente" data-id="'+A.id+'">No había nadie</button></div>';
   else if(A.e==='curso')h+='<div class="accion"><button class="btn pri ancho" data-a="terminar" data-id="'+A.id+'">Terminado</button></div>';
  }else{h+=bCliente(A,false);
+  if(A.e==='camino'&&A.pos&&t)h+='<p class="mnota" id="posOf" style="margin-top:12px">'+esc(t.n)+' compartió su posición '+hace(A.pos.t)+'. El cliente la ve en su página.</p>';
   if(abierto&&A.cli.tel)h+=bReparto(A)+bCita(A);
   h+=bDinero(A);
   h+=bMensajes(A)+bHist(A);
   if(abierto)h+='<p class="fin"><button class="txt mal" data-a="cancelar" data-id="'+A.id+'">Cancelar el aviso</button></p>'}
  return h}
+
+/* ===== técnico: su posición, solo si el negocio tiene el mapa activado y solo desde «Voy» hasta llegar =====
+   El móvil la da mientras la app está en pantalla. Se manda como mucho cada 20 segundos, o antes si se ha movido unos 40 metros.
+   Solo se guarda la última; al llegar, al no encontrar a nadie o al pulsar «Dejar de compartir», se borra. */
+const GEO={id:'',w:null,e:'',ult:0,lat:0,lon:0};
+function geoPara(){if(GEO.w!=null&&navigator.geolocation)try{navigator.geolocation.clearWatch(GEO.w)}catch(e){}GEO.w=null;GEO.id='';GEO.e=''}
+function geoSync(){const A=Q.rol==='tecnico'&&cfg.mapa?S.avisos.find(a=>a.tec===Q.id&&a.e==='camino'&&!a.posNo):null;
+ if(!A){if(GEO.id)geoPara();return}
+ if(GEO.id===A.id)return;
+ geoPara();GEO.id=A.id;GEO.ult=0;
+ if(!navigator.geolocation){GEO.e='sin';return}
+ GEO.e='busca';const id=A.id;
+ const bien=p=>{if(GEO.id!==id)return;const c=p.coords,ahora=Date.now(),lejos=Math.abs(c.latitude-GEO.lat)+Math.abs(c.longitude-GEO.lon)>.0004;
+  if(GEO.e==='ok'&&ahora-GEO.ult<20000&&!lejos)return;
+  const r=Oficio.hacer({tipo:'posicion',id,lat:c.latitude,lon:c.longitude},Q);
+  if(r.ok){GEO.e='ok';GEO.ult=ahora;GEO.lat=c.latitude;GEO.lon=c.longitude}else if(r.err!=='posicion')geoPara()};
+ const mal=e=>{if(GEO.id!==id)return;const antes=GEO.e;GEO.e=e&&e.code===1?'no':GEO.e==='ok'?'ok':'falla';if(GEO.e!==antes&&ruta().v==='aviso')pinta()};
+ try{GEO.w=navigator.geolocation.watchPosition(bien,mal,{enableHighAccuracy:true,maximumAge:15000,timeout:30000})}catch(e){GEO.e='sin'}}
+function bGeo(A){if(!cfg.mapa||A.e!=='camino')return'';
+ const txt=A.posNo?'Has dejado de compartir tu posición en este aviso. El cliente ve solo la hora de llegada.'
+  :A.pos?'El cliente ve dónde estás hasta que llegues. Última vez, '+hace(A.pos.t)+'. Si pasas a otra app o bloqueas el móvil, se queda en la última.'
+  :GEO.e==='no'?'No se comparte: este móvil no ha dado permiso de ubicación a la app. El cliente ve solo la hora de llegada.'
+  :GEO.e==='sin'||GEO.e==='falla'?'Este móvil no da la ubicación ahora mismo. El cliente ve solo la hora de llegada.'
+  :'Buscando tu posición para enseñársela al cliente…';
+ return'<section class="blq" id="geo"><h2>Tu posición</h2><p class="ln" id="geoT">'+txt+'</p>'+(A.posNo?'':'<div class="acts"><button class="btn peq" data-a="geoNo" data-id="'+A.id+'">Dejar de compartir</button></div>')+'</section>'}
 
 /* ===== técnico: hoy ===== */
 function vHoy(){const hoy=K.madrid().date,M=S.avisos.filter(a=>a.tec===Q.id&&['asignado','camino','curso'].includes(a.e));
@@ -634,7 +661,7 @@ function pinta(){S=Oficio.estado();const r=ruta(),esT=Q.rol==='tecnico';let h,do
  else{dos=true;const p0=ANCHO.matches&&(S.avisos.filter(a=>a.e==='nuevo'||a.e==='ausente').sort((a,b)=>(b.urg-a.urg)||(a.t-b.t))[0]||S.avisos.find(a=>['curso','camino','asignado'].includes(a.e)));
   h=p0?'<div class="col lst">'+vBandeja(p0.id)+'</div><div class="col">'+vAviso(p0.id)+'</div>':'<div class="col lst">'+vBandeja('')+'</div><div class="col sin">'+vElige()+'</div>'}
  const v=$('#v');v.className=(dos?'dos ':'')+(det?'det ':'')+(papel?'papelv ':'')+(!esT&&(r.v==='cobros'||r.v==='nuevo'||(r.v==='mejoras'&&SOP))?'estrecha ':'')+Q.rol;v.innerHTML=h;document.body.classList.toggle('det',det);
- CUR=dos||r.v==='nuevo'?'bandeja':r.v==='equipo'&&!esT?'agenda':r.v;pNav();
+ CUR=dos||r.v==='nuevo'?'bandeja':r.v==='equipo'&&!esT?'agenda':r.v;pNav();geoSync();
  const t=cfg.tec[Q.id],quien=(esT?ava(Q.id):'<i class="av c" aria-hidden="true">C</i>')+'<span>'+(esT?esc(t.n):'Centralita')+'</span>';
  $('#quien').innerHTML=FIJO?'<span class="quien" style="border-color:transparent">'+quien+'</span>':'<button class="quien" data-a="menu" aria-haspopup="dialog" aria-label="Cambiar de papel o de pack. Ahora: '+(esT?t.n:'centralita')+'">'+quien+I.baja+'</button>';
  document.title=(esT?t.n:'Centralita')+' · '+N.nombre+' por dentro'}
@@ -751,6 +778,7 @@ const ACC={
  empezar:A=>hPrecio(A,false),
  terminar:A=>hCierre(A),
  pausa:A=>{const r=hacer({tipo:'pausa',id:A.id});if(r.ok)toast(r.pausa?'En pausa: el tiempo no cuenta.':'Sigue el trabajo.')},
+ geoNo:A=>{if(hacer({tipo:'sinPosicion',id:A.id}).ok){geoPara();toast('Ya no se comparte tu posición en este aviso.')}},
  ausencia:(A,b)=>hAusencia(b.dataset.tec||'',b.dataset.dia||''),
  quitaAus:(A,b)=>{const r=Oficio.hacer({tipo:'quitarAusencia',aus:b.dataset.aus},Q);toast(r.ok?'Ausencia quitada. Ya se le puede asignar.':ERR[r.err]||'No se ha podido quitar.')},
  confirma:A=>{if(A.cita&&hacer({tipo:'mover',id:A.id,cita:{dia:A.cita.dia,fr:A.cita.fr},confirmado:true}).ok)toast('Cita confirmada con el cliente.')},
