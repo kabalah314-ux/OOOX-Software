@@ -48,6 +48,15 @@ Las rutas son relativas a la carpeta del archivo de configuración.
 3. En la web: el vídeo arranca con el primer gesto, acaba en el fotograma del portal y vuelve al
    principio al subir (`prueba` de siempre con Playwright).
 
+## En la página
+
+- El vídeo se carga con `pon()` (web de Ramírez): antes pregunta al servidor si lo da por trozos y, si
+  contesta con el archivo entero, usa ese archivo. Sin eso, en las vistas previas `*.pages.dev` Chrome no
+  deja saltar dentro del vídeo en la primera visita (el scroll no lo mueve) y el iPhone no lo reproduce.
+  En ooox.es el vídeo sí llega por trozos.
+- La página deja el vídeo parado 0,05 s antes del final: por eso los últimos fotogramas son iguales y
+  llevan más calidad que el resto.
+
 ## Receta en Flow (probada el 13-11-2026 con Ramírez)
 
 - Vídeo · **Fotogramas** · primer fotograma = foto de llegada, último = foto final.
