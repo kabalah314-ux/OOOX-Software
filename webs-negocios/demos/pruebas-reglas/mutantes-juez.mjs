@@ -15,6 +15,7 @@ const SRV = path.resolve(process.env.OFICIOS_SERVIDOR_ORIGEN || path.join(aqui, 
 const M = [
   ['tras diez códigos fallados se sigue entrando con el bueno', "if (e === 'bloqueo') return R('bloqueo');", "if (e === 'bloqueo') return { ok: true, q: { rol: 'centralita', id: 'oficina' } };"],
   ['un bloqueo se confunde con un código malo', "if (e === 'bloqueo') return R('bloqueo');", ''],
+  ['el juez no le dice al almacén desde qué conexión llaman', "texto(p.red, 80) ? p.red : ''", "''"],
   ['entra un técnico que no está en los datos del negocio', "if (e.rol === 'tecnico' && !cfg.tec[e.id]) return R('clave');", ''],
   ['un negocio dado de baja sigue entrando', 'return n && n.activo && n.datos ? n : null;', 'return n && n.datos ? n : null;'],
   ['un negocio que no existe contesta distinto que un código malo', ": 'clave');   // un negocio", ": 'negocio');   // un negocio"],

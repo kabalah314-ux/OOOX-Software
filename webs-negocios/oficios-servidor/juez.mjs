@@ -51,7 +51,7 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
   /* quién es: lo dice el almacén a partir del código; un técnico tiene que existir en los datos del negocio */
   async function quien(neg, cfg, p) {
     if (!texto(p.persona, 40) || !texto(p.codigo, 80)) return R('clave');
-    const e = await almacen.entra(neg.id, p.persona, p.codigo);
+    const e = await almacen.entra(neg.id, p.persona, p.codigo, texto(p.red, 80) ? p.red : '');   // «red»: la conexión, que la pone el servidor
     if (e === 'bloqueo') return R('bloqueo');
     if (!e || (e.rol !== 'centralita' && e.rol !== 'tecnico')) return R('clave');
     if (e.rol === 'tecnico' && !cfg.tec[e.id]) return R('clave');

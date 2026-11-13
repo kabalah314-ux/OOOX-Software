@@ -15,12 +15,14 @@ export function creaAlmacen({ ahora = () => Date.now(), estorbo = null } = {}) {
 
     /* ---- el contrato ---- */
     async negocio(id) { const n = neg(id); return n ? { id: n.id, activo: n.activo, datos: copia(n.datos), v: n.v, cab: copia(n.cab) } : null; },
-    async entra(id, persona, codigo) {
-      const n = neg(id); if (!n) return null; const t = ahora();
-      n.fallos = n.fallos.filter(x => t - x < 600000);
-      if (n.fallos.length >= 10) return 'bloqueo';
-      const p = n.personas.get(persona);
-      if (!p || p.codigo !== codigo) { n.fallos.push(t); return null; }
+    /* como el de verdad: solo cuentan los fallos de una persona que existe; diez desde la misma conexión la bloquean a ella */
+    async entra(id, persona, codigo, red = '') {
+      const n = neg(id); if (!n || !n.activo) return null; const t = ahora();
+      const p = n.personas.get(persona); if (!p) return null;
+      n.fallos = n.fallos.filter(x => t - x.t < 600000);
+      const suyos = n.fallos.filter(x => x.persona === persona);
+      if (suyos.filter(x => x.red === red).length >= 10 || suyos.length >= 200) return 'bloqueo';
+      if (p.codigo !== codigo) { n.fallos.push({ t, persona, red }); return null; }
       return { rol: p.rol, id: p.id };
     },
     async vivos(id) { const n = neg(id); return n ? [...n.avisos.values()].map(copia) : []; },

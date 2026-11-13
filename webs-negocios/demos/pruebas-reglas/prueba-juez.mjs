@@ -123,6 +123,7 @@ let id2;
 { for (let i = 0; i < 10; i++) await J.atiende({ que: 'leer', negocio: 'ramirez', persona: 'oficina', codigo: 'intento-' + i });
   const b = await J.atiende(Object.assign({ que: 'entrar' }, OF)), h = await hacer(OF, { tipo: 'anotar', id: id2, obs: 'No debe entrar.' });
   es(!b.ok && b.err === 'bloqueo' && !h.ok && h.err === 'bloqueo', 'tras diez códigos fallados, ni el código bueno entra');
+  es((await J.atiende(Object.assign({ que: 'entrar', red: 'otra-conexion' }, OF))).ok && (await J.atiende(Object.assign({ que: 'entrar' }, T(tecR[0])))).ok, 'pero el bloqueo es de esa conexión y de esa persona: desde otra conexión, y los demás, siguen entrando');
   es((await J.atiende({ que: 'entrar', negocio: 'voltio', persona: 'oficina', codigo: 'codigo-oficina-v' })).ok, 'el otro negocio sigue entrando');
   reloj.t += 601000; es((await J.atiende(Object.assign({ que: 'entrar' }, OF))).ok, 'a los diez minutos vuelve a entrar'); }
 
@@ -178,8 +179,12 @@ let idW, llaveW;
   const r = await J.atiende({ que: 'hacer', negocio: 'voltio', persona: 'oficina', codigo: 'codigo-oficina-v', accion: { tipo: 'pedir', av: NV.averias[0].id, origen: 'llamada', cli: cliDe(NV) }, desde: 0 });
   es(r.ok && crudo('voltio').v === 1 && crudo('ramirez').v === vr && r.cambios.avisos.length === 1 && r.cambios.avisos[0].id.startsWith(NV.serie), 'un aviso de un negocio no mueve la versión del otro, y lleva su propia serie');
   es(!JSON.stringify(r).includes('Clara Web') && !(await J.atiende({ que: 'hacer', negocio: 'voltio', persona: 'oficina', codigo: 'codigo-oficina-v', accion: { tipo: 'anotar', id: id2, obs: 'colado' } })).ok && crudo('ramirez').avisos.get(id2).datos.obs !== 'colado', 'desde un negocio no se lee ni se toca un aviso de otro');
+  const fv = [...crudo('voltio').avisos.values()][0];
+  es((await J.atiende({ que: 'ver', negocio: 'voltio', aviso: fv.id, llave: fv.llave })).ok && (await J.atiende({ que: 'huecos', negocio: 'voltio' })).ok, 'mientras está de alta, su web da huecos y el enlace de su cliente abre');
   A.baja('voltio');
-  es(igual(await J.atiende({ que: 'entrar', negocio: 'voltio', persona: 'oficina', codigo: 'codigo-oficina-v' }), { ok: false, err: 'clave' }) && crudo('ramirez').activo, 'un negocio dado de baja ya no entra, y contesta lo mismo que un código malo'); }
+  es(igual(await J.atiende({ que: 'entrar', negocio: 'voltio', persona: 'oficina', codigo: 'codigo-oficina-v' }), { ok: false, err: 'clave' }) && crudo('ramirez').activo, 'un negocio dado de baja ya no entra, y contesta lo mismo que un código malo');
+  es(igual(await J.atiende({ que: 'ver', negocio: 'voltio', aviso: fv.id, llave: fv.llave }), { ok: false, err: 'enlace' }) && !(await J.atiende({ que: 'huecos', negocio: 'voltio' })).ok
+    && !(await J.atiende({ que: 'pedir', negocio: 'voltio', red: 'r', accion: { tipo: 'pedir', av: NV.averias[0].id, origen: 'web', cli: {} } })).ok && crudo('voltio').v === 1, 'y de baja tampoco da huecos, ni admite citas, ni abre los enlaces de sus clientes'); }
 
 // 11. lo guardado es igual a repetir el diario
 es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada negocio, y lo que ve cada cliente, es igual a repetir su diario desde cero');
