@@ -85,6 +85,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .tec small{display:block;font-size:.875rem;color:var(--suave)}
 .tec b{font-weight:600}
 .tec[aria-pressed=true]{border-color:var(--senal);background:var(--asfalto-3)}
+.tec.no{border-style:dashed}
 .tec .va{font-size:.875rem;font-weight:600;color:var(--senal-2)}
 .gordo{font:700 2.25rem/1 var(--fd)}
 .lins{margin-top:10px}
@@ -285,7 +286,11 @@ const ORIG={llamada:'por teléfono',web:'desde la web',cita:'cita en la web',wha
 const EST={nuevo:'Sin asignar',asignado:'Asignado',camino:'De camino',curso:'Trabajando',hecho:'Terminado',ausente:'No había nadie',cancelado:'Cancelado'};
 const PAGO={efectivo:'Efectivo',tarjeta:'Tarjeta',bizum:'Bizum',transferencia:'Transferencia',pendiente:'Lo paga después'};
 const ERR={nombre:'Escribe el nombre del cliente.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
- datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.'};
+ datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
+ horario:'Ese técnico no trabaja a esa hora. Elige a otro.',ausente_tec:'Ese técnico está ausente ese día.',lleno:'Ese técnico ya tiene esa franja ocupada.',
+ fechas:'Revisa las fechas de la ausencia.',ausencia:'Esa ausencia ya no está apuntada.',aviso:'Ese aviso ya no existe.'};
+/* por qué no puede ir un técnico a un aviso; sale de las reglas (K.puedeIr), aquí solo se dice con palabras */
+const NOVA={ausente_tec:()=>'Ausente ese día',lleno:()=>'Ya tiene esa franja ocupada',horario:A=>A.cita?'No trabaja en esa franja':'Ahora no trabaja y no hace guardias'};
 const ava=id=>{const t=cfg.tec[id];return t?'<i class="av" style="--h:'+t.tono+'" aria-hidden="true">'+t.n[0]+'</i>':'<i class="av c" aria-hidden="true">C</i>'};
 const lq=l=>l.un==='h'?dur(Math.round(l.q*60)):l.q>1?l.q+' unidades':'';
 const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
@@ -336,9 +341,9 @@ function bCliente(A,esT){const c=A.cli;let h='<section class="blq"><h2>Cliente</
  h+='<div class="acts"><button class="btn peq" data-a="llamar" data-id="'+A.id+'">'+I.tel+K.telBonito(c.tel)+'</button><a class="btn peq" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.dir.split(',')[0]+', '+c.cp+' '+N.ciudad)+'">'+I.mapa+'Mapa</a></div>';
  return h+'</section>'}
 function bGar(A){const G=A.gar0&&el(A.gar0);if(!G)return'';return'<p class="ojo">Puede ser garantía: <a href="#/aviso/'+G.id+'">'+G.id+'</a>, '+esc(cfg.av[G.av].n.toLowerCase())+', terminado el '+K.fechaCorta(K.madrid(G.fin).date)+'.</p>'}
-function bReparto(A){const r=K.resumen(S,cfg,Date.now());
- return'<section class="blq"><h2>'+(A.tec?'Lo lleva':'¿Quién va?')+'</h2><div class="tecs">'+N.tecnicos.map(t=>{const x=r.tec[t.id],B=x.aviso&&el(x.aviso);
-  return'<button class="tec" data-a="asignar" data-id="'+A.id+'" data-tec="'+t.id+'" aria-pressed="'+(A.tec===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n)+' '+esc(t.ap)+'</b><small>'+(x.e==='curso'?'Trabajando en '+esc(barrio(B))+', lleva '+dur(K.minutos(B,Date.now())):x.e==='camino'?'De camino a '+esc(barrio(B)):'Libre ahora')+' · '+(x.hoy+x.hechos)+' hoy</small></span>'+(A.tec===t.id?'<span class="va">Asignado</span>':'')+'</button>'}).join('')+'</div></section>'}
+function bReparto(A){const r=K.resumen(S,cfg,Date.now()),rep=['nuevo','asignado','ausente'].includes(A.e);
+ return'<section class="blq"><h2>'+(A.tec?'Lo lleva':'¿Quién va?')+'</h2><div class="tecs">'+N.tecnicos.map(t=>{const x=r.tec[t.id],B=x.aviso&&el(x.aviso),no=rep&&A.tec!==t.id?K.puedeIr(S,cfg,A,t.id,Date.now()):'';
+  return'<button class="tec'+(no?' no':'')+'" data-a="asignar" data-id="'+A.id+'" data-tec="'+t.id+'" aria-pressed="'+(A.tec===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n)+' '+esc(t.ap)+'</b><small>'+(no&&NOVA[no]?NOVA[no](A):x.e==='curso'?'Trabajando en '+esc(barrio(B))+', lleva '+dur(K.minutos(B,Date.now())):x.e==='camino'?'De camino a '+esc(barrio(B)):'Libre ahora')+' · '+(x.hoy+x.hechos)+' hoy</small></span>'+(A.tec===t.id?'<span class="va">Asignado</span>':'')+'</button>'}).join('')+'</div></section>'}
 function bCita(A){return'<section class="blq"><h2>Cuándo</h2><div class="cita"><p>'+(A.cita?'Cita '+diaTxt(A.cita.dia)+', '+frTxt(A.cita.fr)+'. Tarifa normal.':'Urgente: cuanto antes.'+(K.tarifaDe(cfg,A)?' Tarifa de urgencia.':' Tarifa normal.'))+'</p><button class="btn peq" data-a="cita" data-id="'+A.id+'">'+(A.cita?'Cambiar':'Dar cita')+'</button></div></section>'}
 function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
  let h='<section class="blq"><h2>'+(A.e==='hecho'?(A.sinTrabajo?'Solo el desplazamiento':'Total del trabajo'):'Presupuesto firmado')+'</h2><p class="gordo num">'+K.eur(T.total)+'</p><p class="ln">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+(p?' · '+(p.cobrado?'cobrado, '+PAGO[p.modo].toLowerCase():'pendiente de pago'):'')+'</p>';

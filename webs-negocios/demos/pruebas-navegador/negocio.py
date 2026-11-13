@@ -133,6 +133,15 @@ async def main():
         es(bool(tu), 'urgencia en domingo: hay alguien a quien se le puede asignar')
         no = [x['id'] for x in N['tecnicos'] if x['id'] != tu and not x.get('guardia')] if any(x.get('guardia') for x in N['tecnicos']) else []
         if no: es(await tl.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{u}',tec:'{no[0]}'}},{{rol:'centralita'}}).err") == 'horario', 'urgencia en domingo: a quien no hace guardias no se le puede asignar')
+        # la pantalla dice lo mismo que la regla: en el botón de quien no puede ir pone por qué, y al tocarlo no se asigna
+        await c.goto(B + f'app.html#/aviso/{u}'); await c.reload(); await c.wait_for_selector('.tec[data-tec]')
+        vista = await c.evaluate(f"(()=>{{const S=Oficio.estado(),A=S.avisos.find(a=>a.id==='{u}');return [...document.querySelectorAll('.tec[data-tec]')].map(b=>({{id:b.dataset.tec,no:b.classList.contains('no'),txt:b.querySelector('small').textContent,regla:OficioNucleo.puedeIr(S,Oficio.cfg,A,b.dataset.tec,Date.now())}}))}})()")
+        es(len(vista) == len(N['tecnicos']) and all(v['no'] == bool(v['regla']) for v in vista), f'urgencia en domingo: la pantalla marca a quien no puede ir, igual que la regla {[(v["id"], v["regla"]) for v in vista]}')
+        es(all('Libre ahora' not in v['txt'] for v in vista if v['regla']), f'urgencia en domingo: en el botón de quien no puede ir pone por qué {[v["txt"] for v in vista if v["regla"]]}')
+        if no:
+            await c.click(f'.tec[data-tec={no[0]}]'); await c.wait_for_timeout(300)
+            dicho = await c.locator('#toast').inner_text(); sigue = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{u}').tec||''")
+            es('no trabaja' in dicho and not sigue, f'urgencia en domingo: al tocar a quien no puede ir, la app lo explica y no asigna («{dicho}», técnico «{sigue}»)')
         await tl.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{u}',tec:'{tu}'}},{{rol:'centralita'}})")
         tec = tu
         await tl.goto(B + f'app.html?papel=tecnico&tec={tec}#/aviso/{u}'); await tl.wait_for_selector('[data-a=voy]'); await tl.click('[data-a=voy]'); await tl.wait_for_selector('[data-a=empezar]')

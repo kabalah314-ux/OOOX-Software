@@ -24,12 +24,12 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 | `web.py` | La web: archivos, idiomas, la hora de Barcelona en 12 momentos (web y app dicen lo mismo), desglose de cada avería, barrio, menú, metadatos, 9 tamaños de pantalla, y la página de los tres móviles | 60 bien |
 | `entrada.py` | El vídeo de entrada con y sin trozos, en ordenador y en móvil (con el dedo y con la rueda), lento y sin vídeo. Sin esperas fijas | 42 bien |
 | `muestra.py` | La muestra se rehace sola a las 8 horas, y «Reiniciar» | 7 bien |
-| `negocio.py <datos.js>` | La app entera con los datos de otro negocio, de la cita al cobro, y que no quede rastro del negocio de muestra en 15 pantallas | Voltio 31 bien · Ramírez 29 bien |
+| `negocio.py <datos.js>` | La app entera con los datos de otro negocio, de la cita al cobro, y que no quede rastro del negocio de muestra en 15 pantallas. Mira también que el botón de cada técnico diga lo mismo que la regla: quién puede ir y, si no, por qué | Voltio 34 bien · Ramírez 31 bien |
 
 ## Motores
 
 En el contenedor de trabajo solo hay Chromium. Firefox y WebKit corren en GitHub con cada cambio
-(`.github/workflows/pruebas-oficios.yml`). El 13-11-2026 pasan los tres: 389 comprobaciones de pantallas en cada uno.
+(`.github/workflows/pruebas-oficios.yml`). El 13-11-2026 pasan los tres: 394 comprobaciones de pantallas en cada uno.
 
 - **WebKit no es Safari.** Es el mismo motor, pero en Linux lee el vídeo con otras piezas y a ratos no lo consigue
   (en la misma máquina, unas veces sí y otras no). Por eso, en WebKit, lo que depende de la posición del vídeo

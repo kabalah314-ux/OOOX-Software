@@ -1,7 +1,8 @@
 # Pruebas de la app de oficios (OOOX Oficios). Corren solas:
 #  - en cada cambio que toque la demo o sus pruebas, en cualquier rama;
-#  - cada noche (solo desde la rama principal, que es como funciona GitHub), con más recorridos al azar,
-#    una semilla nueva cada día y la prueba de reglas estropeadas adrede.
+#  - cada noche (solo desde la rama principal, que es como funciona GitHub), con el triple de recorridos al azar
+#    y una semilla nueva cada día.
+# La prueba de reglas estropeadas adrede tarda un minuto y corre siempre.
 # El repositorio es público: las máquinas estándar de GitHub no cuestan nada. No usar máquinas «grandes».
 name: Pruebas de la app de oficios
 on:
@@ -28,9 +29,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Reglas, datos, recorridos al azar y restos
+      - name: Reglas, datos, recorridos al azar, restos y reglas estropeadas adrede
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then export SEMILLA=$(date -u +%Y%m%d) TANDAS=300 MUTANTES=1; fi
+          export MUTANTES=1
+          if [ "${{ github.event_name }}" = "schedule" ]; then export SEMILLA=$(date -u +%Y%m%d) TANDAS=300; fi
           bash webs-negocios/demos/pruebas.sh reglas
   pantallas:
     name: Pantallas en ${{ matrix.motor }}

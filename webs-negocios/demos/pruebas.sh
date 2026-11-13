@@ -4,7 +4,7 @@
 #   SITIO=<carpeta del sitio>   por defecto, la demo publicada en este repositorio
 #   NAVEGADOR=chromium|firefox|webkit   motor para las pruebas de pantallas (por defecto, chromium)
 #   TANDAS=100  SEMILLA=20261113   tamaño y semilla de los recorridos al azar
-#   MUTANTES=1  añade la prueba de «reglas estropeadas adrede» (tarda varios minutos)
+#   MUTANTES=1  añade la prueba de «reglas estropeadas adrede» (tarda un minuto; en GitHub corre siempre)
 set -u
 AQUI="$(cd "$(dirname "$0")" && pwd)"
 SITIO="$(cd "${SITIO:-$AQUI/../../frontend/public/demos/ramirez-24h}" && pwd)"
