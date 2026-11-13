@@ -1,0 +1,12 @@
+{
+  "video": "../../originales/flow-2026-11-13/entrada-h-omni12flash-360p-borrador.mp4",
+  "primera": "../../originales/flow-2026-11-13/llega-h.jpg",
+  "ultima": "../../originales/flow-2026-11-13/finalH.jpg",
+  "salida": "salida/entrada-h",
+  "ancho": 1280,
+  "alto": 720,
+  "fps": 30,
+  "velocidad": [[0, 2.0], [1.6, 2.0], [3.0, 1.25], [6.9999, 1.25], [7.0, 2.0]],
+  "rotulos": [[202, 166, 283, 207]],
+  "crf": 25.5
+}
