@@ -25,6 +25,7 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 | `entrada.py` | El vídeo de entrada con y sin trozos, en ordenador y en móvil (con el dedo y con la rueda), lento y sin vídeo. Sin esperas fijas | 42 bien |
 | `muestra.py` | La muestra se rehace sola a las 8 horas, y «Reiniciar» | 7 bien |
 | `reloj.py` | No es una batería: pone la hora fija que ven las demás | — |
+| `webkit_linux.py` | No es una batería: tolera, solo en WebKit, una página pintada que no da la carga por terminada | — |
 | `negocio.py <datos.js>` | La app entera con los datos de otro negocio, de la cita al cobro, y que no quede rastro del negocio de muestra en 15 pantallas. Mira también que el botón de cada técnico diga lo mismo que la regla: quién puede ir y, si no, por qué | Voltio 34 bien · Ramírez 31 bien |
 
 ## Motores
@@ -52,6 +53,10 @@ En el contenedor de trabajo solo hay Chromium. Firefox y WebKit corren en GitHub
   WebKit, hacía que a ratos una página no terminase de cargar o que lo tecleado llegase desordenado. `reloj.py` solo le
   suma un desfase a la hora que ve la página; el tiempo sigue corriendo y los temporizadores no se tocan.
 - **Una pantalla que no carga no rompe la batería**: se cuenta como fallo y dice en qué estado se ha quedado.
+- **WebKit, a ratos, no da una página por cargada** aunque esté pintada y funcione (una vez de cada varios cientos,
+  en pantallas distintas, con y sin la hora cambiada; solo en ese motor). `webkit_linux.py` le espera 2,5 s y, si no
+  llega, la prueba sigue y avisa diciendo qué faltaba. Si un día el aviso sale siempre en la misma pantalla o por lo
+  mismo, deja de ser una rareza del motor y hay que mirarlo.
 
 La demo pide iOS 15.4 o más nuevo (de marzo de 2022) por `dialog`, `BroadcastChannel` y `Array.at`.
 

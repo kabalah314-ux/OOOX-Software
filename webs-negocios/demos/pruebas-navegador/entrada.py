@@ -2,6 +2,7 @@ import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, sys
 from playwright.async_api import async_playwright
+import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
 # El vídeo de entrada, con un servidor que da el vídeo por trozos (8766) y con otro que no (8765), en ordenador y en móvil.
 # No hay esperas fijas: cada paso espera a que la página llegue a su estado, con un tope. Una máquina lenta tarda más y no por eso falla.
 # En móvil el gesto es un dedo (así entra un teléfono de verdad) y, donde el motor lo deja, también la rueda.

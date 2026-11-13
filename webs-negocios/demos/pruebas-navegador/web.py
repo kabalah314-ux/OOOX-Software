@@ -5,6 +5,7 @@ NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, sys, re, json, urllib.request
 from datetime import datetime, timezone
 from playwright.async_api import async_playwright
+import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
 B = f'http://127.0.0.1:{PORT}/'
