@@ -25,6 +25,8 @@
 (function(g){
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
+/* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
+const VERSION='2026.11.13';
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -319,5 +321,5 @@ function resumen(S,cfg,t){const hoy=madrid(t).date,caja={efectivo:0,tarjeta:0,bi
    if(A.pago&&A.tot){if(!A.pago.cobrado){pend.n++;pend.total+=A.tot.total}else if(madrid(A.pago.t).date===hoy){caja[A.pago.modo]+=A.tot.total;caja.total+=A.tot.total}}}});
  return{nuevos,urgentes,sinDatos,marcha,hechos,pend,caja,tec,canal,sobran:sobran(S,cfg,t),reasignar:S.avisos.filter(a=>a.reasignar&&a.e==='nuevo').length}}
 
-g.OficioNucleo={ESQ,PAGOS,ORIGEN,MSG,franjaTxt,esFecha,trabaja,ausente,capacidad,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,resumen};
+g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,franjaTxt,esFecha,trabaja,ausente,capacidad,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -27,11 +27,13 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 | `reloj.py` | No es una batería: pone la hora fija que ven las demás | — |
 | `webkit_linux.py` | No es una batería: tolera, solo en WebKit, una página pintada que no da la carga por terminada | — |
 | `negocio.py <datos.js>` | La app entera con los datos de otro negocio, de la cita al cobro, y que no quede rastro del negocio de muestra en 15 pantallas. Mira también que el botón de cada técnico diga lo mismo que la regla: quién puede ir y, si no, por qué | Voltio 34 bien · Ramírez 31 bien |
+| `soporte.py <datos-de-otro-negocio.js>` | La sección «Mejoras» de la oficina: pedir algo a OOOX, ver el estado y la respuesta, novedades y baja de ofertas, sin conexión (se guarda y sale sola), lo que viaja y lo que no (ningún dato de los clientes), texto raro que no se ejecuta, teclado, y la copia de un negocio de verdad con su código de soporte. El servidor es de mentira y sigue las reglas del de verdad | 69 bien |
+| `buzon_falso.py` | No es una batería: hace que ningún navegador de las pruebas salga a internet cuando la app llama al buzón de OOOX | — |
 
 ## Motores
 
 En el contenedor de trabajo solo hay Chromium. Firefox y WebKit corren en GitHub con cada cambio
-(`.github/workflows/pruebas-oficios.yml`). El 13-11-2026 pasan los tres: 394 comprobaciones de pantallas en cada uno.
+(`.github/workflows/pruebas-oficios.yml`). El 13-11-2026 pasan los tres: 463 comprobaciones de pantallas en cada uno (394 de la app y la web más 69 de «Mejoras»).
 
 - **WebKit no es Safari.** Es el mismo motor, pero en Linux lee el vídeo con otras piezas y a ratos no lo consigue
   (en la misma máquina, unas veces sí y otras no). Por eso, en WebKit, lo que depende de la posición del vídeo
@@ -73,4 +75,4 @@ En la fase 2 el orden lo pone el servidor.
 - **Motor del navegador**: todas las baterías aceptan `NAVEGADOR=chromium|firefox|webkit`. En el contenedor de trabajo solo está Chromium; los tres motores corren en GitHub con cada cambio (`.github/workflows/pruebas-oficios.yml`).
 - **`../pruebas.sh`**: lo pasa todo, arranca los dos servidores y sale con error si algún bloque falla. Las baterías ya devuelven error al fallar (antes solo lo escribían).
 - Ya no existe el pack Básico: se han quitado sus comprobaciones.
-
+- **`soporte.py` y `buzon_falso.py`** (13-11, noche): la sección «Mejoras». La app llama a un servidor de fuera (el buzón de OOOX, en Supabase); en las pruebas ese servidor no existe: `buzon_falso.py` cambia la manera de abrir cada navegador para que toda llamada al buzón la conteste un servidor de mentira («no hay nada»), y `soporte.py` pone el suyo, con memoria. Así las pruebas no dependen de internet ni dejan peticiones falsas en la base de datos de verdad. Las reglas del servidor de verdad se prueban aparte, en `webs-negocios/oficios-soporte/pruebas.sql`.

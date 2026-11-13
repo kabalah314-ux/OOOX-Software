@@ -8,9 +8,10 @@ import { leeNegocio } from './valida-negocio.mjs';
 
 const sitio = process.argv[2];
 if (!sitio) { console.log('Uso: node restos.mjs <carpeta del sitio>'); process.exit(2) }
-const COMUNES = ['app.html', 'cita.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-estado.js'];
+const COMUNES = ['app.html', 'cita.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js'];
 const { N } = leeNegocio(path.join(sitio, 'js/oficio-datos.js'));
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const palabra = t => new RegExp('(?<![\\p{L}\\p{N}])' + esc(t) + '(?![\\p{L}\\p{N}])', 'iu');
 
 // 1) lo que identifica al negocio: no puede salir en ningún sitio, ni en un comentario
 const textos = new Map();
@@ -37,7 +38,8 @@ for (const f of COMUNES) {
   lineas.forEach((l, i) => {
     const dice = (que, t) => { mal++; console.log('  RESTO  ' + f + ':' + (i + 1) + '  ' + que + ' «' + t + '»  …' + l.slice(Math.max(0, l.toLowerCase().indexOf(t.toLowerCase()) - 30), l.toLowerCase().indexOf(t.toLowerCase()) + t.length + 30).trim() + '…') };
     // los nombres del catálogo, las averías y las zonas se buscan tal cual están escritos («Mano de obra» no es «la mano de obra»)
-    for (const [t, que] of textos) if (['catálogo', 'avería', 'zona'].includes(que) ? l.includes(t) : l.toLowerCase().includes(t.toLowerCase())) dice(que, t);
+    // los nombres de las personas se buscan como palabra entera: «Ferrer» no es «noreferrer», ni «Pau» es «pausa»
+    for (const [t, que] of textos) if (['catálogo', 'avería', 'zona'].includes(que) ? l.includes(t) : que === 'técnico' ? palabra(t).test(l) : l.toLowerCase().includes(t.toLowerCase())) dice(que, t);
     const m = l.match(telRe); if (m) dice('teléfono', m[0]);
     for (const [k, que] of claves) if (new RegExp('(?<!class=)[\'"`]' + esc(k) + '[\'"`]').test(l) || new RegExp('\\.(cat|av|tec)\\.' + esc(k) + '\\b').test(l)) dice(que + ' (clave)', k);
   });

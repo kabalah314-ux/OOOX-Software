@@ -200,6 +200,18 @@ main.papelv{max-width:760px}
 /* ===== el menú de la demo ===== */
 .mrol{display:grid;gap:8px}
 .mnota{font-size:.9375rem;color:var(--suave)}
+.pets{display:grid;gap:8px}
+.pet{padding:12px 14px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2)}
+.pet.nueva{border-color:var(--senal)}
+.pet .pc{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pet .pt{font-weight:600}
+.pet .px{margin-top:6px;white-space:pre-line;overflow-wrap:anywhere}
+.pet .pm{margin-top:6px;font-size:.875rem;color:var(--suave)}
+.pet .pr{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--asfalto-3)}
+.pet .pr .lb{display:block;margin-bottom:2px;font-size:.875rem;color:var(--suave)}
+.pet .pr p{white-space:pre-line;overflow-wrap:anywhere}
+.pet a.txt{display:inline-flex;align-items:center;margin-top:4px}
+.mpie{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-top:10px;font-size:.9375rem;color:var(--suave)}
 
 @media (min-width:960px){
  body{padding-bottom:0}
@@ -253,6 +265,7 @@ main.papelv{max-width:760px}
 <script src="js/oficio-nucleo.js"></script>
 <script src="js/oficio-datos.js"></script>
 <script src="js/oficio-estado.js"></script>
+<script src="js/oficio-soporte.js"></script>
 <script>
 (function(){
 'use strict';
@@ -271,7 +284,8 @@ const sv=(d,x)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const I={mas:sv('<path d="M12 5v14M5 12h14"/>'),atras:sv('<path d="M15 5l-7 7 7 7"/>'),x:sv('<path d="M6 6l12 12M18 6L6 18"/>'),baja:sv('<path d="M6 9l6 6 6-6"/>'),
  tel:sv('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>'),mapa:sv('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.800-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'),
  bandeja:sv('<path d="M4 13l2-8h12l2 8v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 13h5l1 2h4l1-2h5"/>'),agenda:sv('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>'),
- euro:sv('<path d="M17 7a6 6 0 1 0 0 10M5 10h8M5 14h8"/>'),hoy:sv('<path d="M5 6h14M5 12h14M5 18h9"/>'),hecho:sv('<path d="M5 12.5l4.500 4.500L19 7"/>')};
+ euro:sv('<path d="M17 7a6 6 0 1 0 0 10M5 10h8M5 14h8"/>'),hoy:sv('<path d="M5 6h14M5 12h14M5 18h9"/>'),hecho:sv('<path d="M5 12.5l4.500 4.500L19 7"/>'),
+ mejoras:sv('<path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-7l-4 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8.5 9.5h7M8.5 12.5h4"/>')};
 const hace=t=>{const m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?'ahora mismo':m<60?'hace '+m+' min':m<1440?'hace '+Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':''):'hace '+Math.floor(m/1440)+' d'};
 const dur=m=>m<1?'menos de 1 min':m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
 const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?K.franjaTxt(f):''};
@@ -455,29 +469,97 @@ function vPapel(id,tipo){const A=el(id);if(!A||!A.tot)return'<div class="cab"><d
  return'<div class="noimp"><a class="atras" href="#/aviso/'+A.id+'">'+I.atras+'Aviso '+A.id+'</a><div class="cab"><div><h1 class="vh">Papeles del aviso '+A.id+'</h1></div></div><nav class="vdocs" aria-label="Papeles">'+tipos.map(x=>'<a href="#/papel/'+A.id+'/'+x[0]+'"'+(x[0]===tipo?' aria-current="page"':'')+'>'+x[1]+'</a>').join('')+'</nav></div><article class="papel doc">'+cab+d.replace('<h1>','<h2 class="h1" style="font:700 2.1rem/1.05 var(--fd);color:var(--tinta);margin:18px 0 2px">').replace('</h1>','</h2>')+(Oficio.DEMO?'<p class="pie">Documento de ejemplo de una demo: empresa, cliente e importes son inventados.</p>':'')+'</article>'+
   '<div class="dacts noimp"><button class="btn pri" data-a="imprimir">Imprimir o guardar en PDF</button>'+(A.e==='hecho'?'<button class="btn" data-a="msg" data-id="'+A.id+'" data-k="hecho">Enviar al cliente</button>':'')+'</div>'}
 
+/* ===== mejoras: lo que la oficina le pide a OOOX y lo que OOOX contesta ===== */
+const SOP=Oficio.soporte,M={tipo:'',texto:'',quien:'',err:'',env:false,cambia:false,codErr:'',carga:false,sinRed:false,nov:[],pet:[]};
+let mP=null,MLH='';const RASTRO=[],PANT=['bandeja','agenda','cobros','nuevo','aviso','papel'];   /* RASTRO: las tres últimas pantallas (solo el nombre) antes de entrar aquí; viajan con la petición */
+const MERR={tipo:'Elige qué es: un fallo, una mejora o una duda.',texto:'Cuéntalo con algo más de detalle: al menos 10 letras.',largo:'Es demasiado largo: como mucho 2.000 letras.',clave:'Ese código de soporte no vale. Revísalo.',corto:'Escribe el código de soporte que te dio OOOX.',bloqueo:'Demasiados intentos con un código que no vale. Espera diez minutos.',limite:'Has mandado muchas peticiones seguidas. Prueba dentro de un rato.',red:'No hay conexión con OOOX. Prueba dentro de un rato.',servidor:'No se ha podido enviar. Prueba otra vez.'};
+const MPILL={mirando:'camino',aceptada:'curso',en_curso:'curso',hecha:'hecho',descartada:'ausente'},MNOV={novedad:'Novedad',oferta:'Oferta',aviso:'Aviso'};
+const mHace=x=>{const t=Date.parse(x);return isNaN(t)?'':hace(t)};
+function mListas(){const c=SOP.cache(),T=OficioSoporte.TIPOS,E=OficioSoporte.ESTADOS,enCola=c.peticiones.filter(p=>p.estado==='en_cola').length;
+ let h='<section class="sec" id="mPet"><h2>Tus peticiones <span class="n">'+c.peticiones.length+'</span></h2>'+
+  (c.peticiones.length?'<ul class="pets">'+c.peticiones.map(p=>{const nv=M.pet.includes(p.id);
+   return'<li class="pet'+(nv?' nueva':'')+'"><div class="pc"><span class="pt">'+esc(T[p.tipo]||'Petición')+'</span><span class="pill '+(MPILL[p.estado]||'')+'">'+esc(E[p.estado]||'Recibida')+'</span></div><p class="px">'+esc(p.texto)+'</p>'+
+    '<p class="pm">'+(nv?'Sin leer · ':'')+(p.quien?esc(p.quien)+' · ':'')+mHace(p.creada)+'</p>'+(p.respuesta?'<div class="pr"><span class="lb">OOOX responde</span><p>'+esc(p.respuesta)+'</p></div>':'')+'</li>'}).join('')+'</ul>'
+   :'<p class="hueco">'+(M.carga&&!c.t?'Buscando tus peticiones…':'Aún no has pedido nada. Lo que mandes aparecerá aquí, con su respuesta.')+'</p>')+
+  (enCola?'<p class="mpie">'+(enCola===1?'Hay 1 petición sin enviar: saldrá sola cuando haya conexión.':'Hay '+enCola+' peticiones sin enviar: saldrán solas cuando haya conexión.')+' <button class="txt" type="button" data-a="mReintenta">Probar ahora</button></p>':'')+
+  (M.sinRed&&!enCola?'<p class="mpie">Sin conexión con OOOX: ves lo último que se guardó en este aparato.</p>':'')+'</section>';
+ h+='<section class="sec" id="mNov"><h2>Novedades de OOOX <span class="n">'+c.novedades.length+'</span></h2>'+
+  (c.novedades.length?'<ul class="pets">'+c.novedades.map(n=>{const nv=M.nov.includes(n.id),ok=typeof n.enlace==='string'&&/^https:\/\/[^\s"'<>]+$/.test(n.enlace);
+   return'<li class="pet'+(nv?' nueva':'')+'"><div class="pc"><span class="pt">'+esc(n.titulo)+'</span><span class="pill">'+(MNOV[n.tipo]||'Novedad')+'</span></div><p class="px">'+esc(n.texto)+'</p>'+
+    (ok?'<a class="txt" href="'+esc(n.enlace)+'" target="_blank" rel="noopener noreferrer">Ver más</a>':'')+'<p class="pm">'+(nv?'Sin leer · ':'')+mHace(n.desde)+'</p></li>'}).join('')+'</ul>'
+   :'<p class="hueco">Cuando haya algo nuevo en la app, te lo contamos aquí.</p>')+
+  '<p class="mpie">'+(c.sin_ofertas?'No recibes ofertas de OOOX. <button class="txt" type="button" data-a="mOfertas" data-q="1">Volver a recibirlas</button>':'Aquí también pueden llegarte ofertas de OOOX. <button class="txt" type="button" data-a="mOfertas" data-q="0">No quiero ofertas</button>')+'</p></section>';
+ if(!Oficio.DEMO)h+='<p class="mpie"><button class="txt" type="button" data-a="mCambia">Cambiar el código de soporte</button></p>';
+ return h}
+function vMejoras(){let h='<div class="cab"><div><h1>Mejoras</h1><p class="sub">Dinos qué falla o qué echas de menos. Lo lee OOOX y te contesta aquí mismo.</p></div></div>';
+ if(Oficio.DEMO)h+='<p class="ojo">Esto es una demo. Lo que escribas llega a OOOX como prueba y solo se ve en este navegador.</p>';
+ if(!SOP.codigo()||M.cambia)return h+'<form class="form" id="fCodigo" novalidate><div class="campo'+(M.codErr?' mal':'')+'"><label for="m_cod">Código de soporte</label><input id="m_cod" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80"'+(M.codErr?' aria-invalid="true" aria-describedby="e_mcod"':' aria-describedby="a_mcod"')+'>'+
+   (M.codErr?'<p class="err" id="e_mcod">'+MERR[M.codErr]+'</p>':'')+'<p class="ayuda" id="a_mcod">Te lo dio OOOX al dar de alta el negocio. Se guarda solo en este aparato.</p></div>'+
+   '<button class="btn pri ancho" id="mCodOk">Guardar el código</button>'+(SOP.codigo()?'<button class="btn ancho" type="button" data-a="mCancela">Dejarlo como está</button>':'')+'</form>';
+ const T=OficioSoporte.TIPOS,eT=M.err==='tipo',eX=M.err==='texto'||M.err==='largo';
+ return h+'<form class="form" id="fMejora" novalidate>'+
+  '<div class="campo'+(eT?' mal':'')+'"><span class="lb" id="l_mt">¿Qué es?</span><div><div class="seg tres" role="group" aria-labelledby="l_mt">'+Object.keys(T).map(k=>'<button type="button" data-m-tipo="'+k+'" aria-pressed="'+(M.tipo===k)+'">'+T[k]+'</button>').join('')+'</div></div><p class="err" id="e_mtipo"'+(eT?'':' hidden')+'>'+MERR.tipo+'</p></div>'+
+  '<div class="campo'+(eX?' mal':'')+'"><label for="m_texto">Cuéntalo</label><textarea id="m_texto" data-m="texto" rows="4" maxlength="2000"'+(eX?' aria-invalid="true" aria-describedby="e_mtexto"':' aria-describedby="a_mtexto"')+'>'+esc(M.texto)+'</textarea>'+
+   (eX?'<p class="err" id="e_mtexto">'+MERR[M.err]+'</p>':'<p class="ayuda" id="a_mtexto">Qué estabas haciendo, qué pasó y qué esperabas. Sin datos de tus clientes.</p>')+'</div>'+
+  '<div class="campo"><label for="m_quien">¿Quién lo pide? (opcional)</label><input id="m_quien" data-m="quien" value="'+esc(M.quien)+'" maxlength="60" autocomplete="off"></div>'+
+  '<p class="mnota">Con la petición viajan el nombre de las últimas pantallas por las que has pasado, el tamaño de la pantalla, la versión de la app y el tipo de aparato. Nada de tus avisos ni de tus clientes.</p>'+
+  '<button class="btn pri ancho" id="mOk"'+(M.env?' disabled':'')+'>'+(M.env?'Enviando…':'Enviar a OOOX')+'</button></form><div id="mLista">'+(MLH=mListas())+'</div>'}
+function mPonListas(){const x=$('#mLista'),h=mListas();if(x&&h!==MLH){x.innerHTML=h;MLH=h}}
+/* Lo que estaba sin leer al entrar se queda marcado mientras se mira; el número del menú baja a cero. */
+function mVisto(){const s=SOP.sinVer();s.nov.forEach(x=>{if(!M.nov.includes(x))M.nov.push(x)});s.pet.forEach(x=>{if(!M.pet.includes(x))M.pet.push(x)});if(s.nov.length||s.pet.length)SOP.marcaVisto()}
+function mTrae(fuerza){if(!SOP||!SOP.codigo())return Promise.resolve(null);
+ if(mP)return fuerza?mP.then(()=>mTrae(true)):mP;
+ if(!fuerza&&!SOP.toca(60000))return Promise.resolve(null);
+ M.carga=true;return mP=SOP.buzon().then(r=>{mP=null;M.carga=false;M.sinRed=!r.ok&&r.err==='red';
+  const mal=!r.ok&&(r.err==='clave'||r.err==='bloqueo')&&!Oficio.DEMO;if(mal){if(r.err==='clave')SOP.olvidaCodigo();M.cambia=true;M.codErr=r.err}
+  if(ruta().v==='mejoras'&&Q.rol!=='tecnico'){if(mal)pinta();else{mVisto();mPonListas()}}
+  pNav();return r})}
+function mEnvia(){if(M.env)return;const p={tipo:M.tipo,texto:M.texto,quien:M.quien,pantalla:(RASTRO.join(' > ')||'bandeja')+' · '+innerWidth+'×'+innerHeight};
+ const e=String(M.texto).trim().length>2000?'largo':SOP.valida(p);
+ if(e){M.err=e;pinta();const i=e==='tipo'?$('#fMejora [data-m-tipo]'):$('#m_texto');if(i){i.focus({preventScroll:true});i.closest('.campo').scrollIntoView({block:'center'})}return}
+ M.env=true;M.err='';const b=$('#mOk');if(b){b.disabled=true;b.textContent='Enviando…'}
+ SOP.enviar(p).then(r=>{M.env=false;
+  if(r.ok){M.tipo='';M.texto='';toast(r.enCola?'Sin conexión: queda guardada y saldrá sola.':'Enviada. Te contestamos aquí.')}
+  else if(r.err==='clave'&&!Oficio.DEMO){SOP.olvidaCodigo();M.cambia=true;M.codErr='clave';toast(MERR.clave)}
+  else toast(MERR[r.err]||MERR.servidor);
+  const fin=()=>{if(ruta().v==='mejoras'){pinta();if(r.ok){const i=$('#fMejora [data-m-tipo]');if(i)i.focus({preventScroll:true})}}};
+  if(r.ok&&!r.enCola)mTrae(true).then(fin,fin);else fin()})}
+function mCodigo(){const i=$('#m_cod');if(!SOP.ponCodigo(i?i.value:'')){M.codErr='corto';pinta();const j=$('#m_cod');if(j)j.focus();return}
+ M.cambia=false;M.codErr='';const b=$('#mCodOk');if(b){b.disabled=true;b.textContent='Comprobando…'}
+ mTrae(true).then(r=>{if(!M.cambia)toast(r&&r.ok?'Código guardado en este aparato.':'Guardado. Sin conexión no se puede comprobar todavía.');if(ruta().v==='mejoras'){pinta();const j=$('#m_cod');if(j)j.focus()}})}
+
 /* ===== pintar ===== */
 const ANCHO=matchMedia('(min-width:960px)');ANCHO.addEventListener('change',()=>pinta());
 function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeURIComponent);return{v:h[0]||(Q.rol==='tecnico'?'hoy':'bandeja'),a:h[1]||'',b:h[2]||''}}
+let CUR='',NAVH='';
+/* El menú, con sus números. Se puede repintar solo, sin tocar la pantalla. */
+function pNav(){const esT=Q.rol==='tecnico',res=K.resumen(S,cfg,Date.now()),mios=S.avisos.filter(a=>a.tec===Q.id&&a.e==='asignado').length,cur=CUR;
+ const L=esT?[['hoy','Hoy',I.hoy,mios],['hechos','Hechos',I.hecho,0]]:[['bandeja','Bandeja',I.bandeja,res.nuevos],['agenda','Agenda',I.agenda,0]].concat(pro()?[['cobros','Cobros',I.euro,res.pend.n]]:[],SOP?[['mejoras','Mejoras',I.mejoras,SOP.sinLeer(),' sin leer']]:[]);
+ const h=L.map(x=>'<a href="#/'+x[0]+'"'+(cur===x[0]||(esT&&x[0]==='hoy'&&cur==='aviso')?' aria-current="page"':'')+'>'+x[2]+'<span>'+x[1]+'</span>'+(x[3]?'<span class="n" aria-label="'+x[3]+(x[4]||' por atender')+'">'+x[3]+'</span>':'')+'</a>').join('');
+ if(h!==NAVH){$('#nav').innerHTML=h;NAVH=h}}
 function pinta(){S=Oficio.estado();const r=ruta(),esT=Q.rol==='tecnico';let h,dos=false,det=false,papel=false;
+ const mej=!esT&&SOP&&r.v==='mejoras';
+ if(mej){if(CUR!=='mejoras'){M.nov=[];M.pet=[];mVisto();mTrae(false)}}
+ else if(!esT){const x=PANT.includes(r.v)?r.v:'bandeja';if(RASTRO[RASTRO.length-1]!==x){RASTRO.push(x);if(RASTRO.length>3)RASTRO.shift()}}
  if(r.v==='aviso'){det=true;if(esT)h=vAviso(r.a);else{dos=true;h='<div class="col lst">'+vBandeja(r.a)+'</div><div class="col">'+vAviso(r.a)+'</div>'}}
  else if(r.v==='papel'){det=true;papel=true;h=vPapel(r.a,r.b)}
  else if(esT)h=r.v==='hechos'?vHechos():vHoy();
  else if(r.v==='agenda')h=vAgenda(r.a);
  else if(r.v==='cobros'&&pro())h=vCobros();
+ else if(r.v==='mejoras'&&SOP)h=vMejoras();
  else if(r.v==='nuevo'){det=true;h=vNuevo()}
  else{dos=true;const p0=ANCHO.matches&&(S.avisos.filter(a=>a.e==='nuevo'||a.e==='ausente').sort((a,b)=>(b.urg-a.urg)||(a.t-b.t))[0]||S.avisos.find(a=>['curso','camino','asignado'].includes(a.e)));
   h=p0?'<div class="col lst">'+vBandeja(p0.id)+'</div><div class="col">'+vAviso(p0.id)+'</div>':'<div class="col lst">'+vBandeja('')+'</div><div class="col sin">'+vElige()+'</div>'}
- const v=$('#v');v.className=(dos?'dos ':'')+(det?'det ':'')+(papel?'papelv ':'')+(!esT&&(r.v==='cobros'||r.v==='nuevo')?'estrecha ':'')+Q.rol;v.innerHTML=h;document.body.classList.toggle('det',det);
- const res=K.resumen(S,cfg,Date.now()),mios=S.avisos.filter(a=>a.tec===Q.id&&a.e==='asignado').length,cur=dos||r.v==='nuevo'?'bandeja':r.v;
- const L=esT?[['hoy','Hoy',I.hoy,mios],['hechos','Hechos',I.hecho,0]]:[['bandeja','Bandeja',I.bandeja,res.nuevos],['agenda','Agenda',I.agenda,0]].concat(pro()?[['cobros','Cobros',I.euro,res.pend.n]]:[]);
- $('#nav').innerHTML=L.map(x=>'<a href="#/'+x[0]+'"'+(cur===x[0]||(esT&&x[0]==='hoy'&&cur==='aviso')?' aria-current="page"':'')+'>'+x[2]+'<span>'+x[1]+'</span>'+(x[3]?'<span class="n" aria-label="'+x[3]+' por atender">'+x[3]+'</span>':'')+'</a>').join('');
+ const v=$('#v');v.className=(dos?'dos ':'')+(det?'det ':'')+(papel?'papelv ':'')+(!esT&&(r.v==='cobros'||r.v==='nuevo'||(r.v==='mejoras'&&SOP))?'estrecha ':'')+Q.rol;v.innerHTML=h;document.body.classList.toggle('det',det);
+ CUR=dos||r.v==='nuevo'?'bandeja':r.v;pNav();
  const t=cfg.tec[Q.id],quien=(esT?ava(Q.id):'<i class="av c" aria-hidden="true">C</i>')+'<span>'+(esT?esc(t.n):'Centralita')+'</span>';
  $('#quien').innerHTML=FIJO?'<span class="quien" style="border-color:transparent">'+quien+'</span>':'<button class="quien" data-a="menu" aria-haspopup="dialog" aria-label="Cambiar de papel o de pack. Ahora: '+(esT?t.n:'centralita')+'">'+quien+I.baja+'</button>';
  document.title=(esT?t.n:'Centralita')+' · '+N.nombre+' por dentro'}
 addEventListener('hashchange',()=>{pinta();scrollTo(0,0);$('#v').focus({preventScroll:true})});
-Oficio.suscribir(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('#fNuevo,[data-obs]'))return;pinta()});
+/* Si llega un cambio mientras alguien escribe, la pantalla no se toca (perdería el foco), pero los números del menú sí se ponen al día. */
+Oficio.suscribir(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,[data-obs]')){S=Oficio.estado();pNav();return}pinta()});
 setInterval(()=>{$$('[data-reloj]').forEach(e=>{const A=el(e.dataset.reloj);if(A)e.textContent=dur(K.minutos(A,Date.now()))})},15000);
-setInterval(()=>{const a=document.activeElement;if(document.querySelector('dialog[open]')||(a&&a.closest&&a.closest('#fNuevo,[data-obs]')))return;pinta()},60000);
+setInterval(()=>{const a=document.activeElement;if(document.querySelector('dialog[open]')||(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,[data-obs]')))return;pinta()},60000);
 
 /* ===== las hojas de cada paso ===== */
 function hMsg(A,k){const txt=K.mensaje(cfg,A,k),m=A.msgs.find(x=>x.k===k&&!x.env);
@@ -580,7 +662,11 @@ const ACC={
  ausente:A=>{if(hacer({tipo:'ausente',id:A.id}).ok){toast('Apuntado: no había nadie. Vuelve a la centralita.');location.hash='#/hoy'}},
  empezar:A=>hPrecio(A,false),
  terminar:A=>hCierre(A),
- pausa:A=>{const r=hacer({tipo:'pausa',id:A.id});if(r.ok)toast(r.pausa?'En pausa: el tiempo no cuenta.':'Sigue el trabajo.')}
+ pausa:A=>{const r=hacer({tipo:'pausa',id:A.id});if(r.ok)toast(r.pausa?'En pausa: el tiempo no cuenta.':'Sigue el trabajo.')},
+ mCambia:()=>{M.cambia=true;M.codErr='';pinta();const i=$('#m_cod');if(i)i.focus()},
+ mCancela:()=>{M.cambia=false;M.codErr='';pinta()},
+ mReintenta:()=>{mTrae(true).then(r=>toast(r&&r.ok?(SOP.cola().length?'Todavía no ha salido todo. Se volverá a probar.':'Enviado.'):MERR.red))},
+ mOfertas:(A,b)=>{const q=b.dataset.q==='1';b.disabled=true;SOP.ofertas(q).then(r=>{toast(r.ok?(r.sin_ofertas?'Hecho: no verás más ofertas de OOOX.':'Hecho: volverás a ver las ofertas.'):MERR.red);b.disabled=false;mPonListas();const n=$('#mLista [data-a="mOfertas"]');if(n)n.focus({preventScroll:true})})}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b){e.preventDefault();S=Oficio.estado();const A=b.dataset.id?el(b.dataset.id):null;if(b.dataset.id&&!A)return toast(ERR.estado);ACC[b.dataset.a](A,b);return}
  const o=e.target.closest('#fNuevo [data-b-av],#fNuevo [data-b-or],#fNuevo [data-b-cu],#fNuevo [data-b-dia],#fNuevo [data-b-fr]');if(o){const x=o.dataset;if(x.bAv)B.av=x.bAv;if(x.bOr)B.or=x.bOr;if(x.bCu)B.cuando=x.bCu;if(x.bDia){B.dia=x.bDia;B.fr=''}if(x.bFr)B.fr=x.bFr;B.err='';pinta()}});
@@ -589,6 +675,13 @@ document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.b
 document.addEventListener('change',e=>{const i=e.target;
  if(i.dataset&&i.dataset.obs)Oficio.hacer({tipo:'anotar',id:i.dataset.obs,obs:i.value},Q);
  if(i.dataset&&i.dataset.foto&&i.files[0])Oficio.foto(i.files[0]).then(f=>{if(hacer({tipo:'anotar',id:i.dataset.foto,foto:f}).ok)toast('Foto guardada en el parte.')}).catch(()=>toast('No he podido leer esa foto.'))});
+document.addEventListener('click',e=>{const t=e.target.closest('#fMejora [data-m-tipo]');if(!t)return;M.tipo=t.dataset.mTipo;if(M.err==='tipo')M.err='';
+ $$('#fMejora [data-m-tipo]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mTipo===M.tipo)));const x=$('#e_mtipo');if(x){x.hidden=true;x.closest('.campo').classList.remove('mal')}});
+document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.m&&Object.prototype.hasOwnProperty.call(M,i.dataset.m))M[i.dataset.m]=i.value});
+document.addEventListener('submit',e=>{const f=e.target.id;if(f==='fMejora'){e.preventDefault();mEnvia()}else if(f==='fCodigo'){e.preventDefault();mCodigo()}});
+addEventListener('online',()=>{if(SOP&&Q.rol!=='tecnico'&&SOP.cola().length)mTrae(true)});
+/* De vez en cuando la centralita mira si OOOX ha contestado algo: como mucho cada media hora, y enseguida si hay algo sin enviar. */
+if(SOP){const mira=()=>{if(Q.rol!=='tecnico'&&SOP.codigo()&&(SOP.toca(18e5)||(SOP.cola().length&&navigator.onLine!==false)))mTrae(true)};setTimeout(mira,1500);setInterval(mira,3e5)}
 document.addEventListener('submit',e=>{if(e.target.id!=='fNuevo')return;e.preventDefault();
  if(B.cuando==='cita'&&!B.fr){B.err='franja';pinta();return}
  const r=Oficio.hacer({tipo:'pedir',av:B.av,origen:B.or,nota:B.nota,cli:{nombre:B.nombre,tel:B.tel,dir:B.dir,cp:B.cp},cita:B.cuando==='cita'?{dia:B.dia,fr:B.fr}:null},Q);

@@ -4,6 +4,7 @@ import asyncio, json
 from reloj import pon_hora   # la hora de las pruebas es fija: ver reloj.py
 from playwright.async_api import async_playwright
 import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
+import buzon_falso     # el buzón de mejoras no sale a internet en las pruebas: ver buzon_falso.py
 B='http://127.0.0.1:8765/'
 async def main():
     ok=0; mal=[]

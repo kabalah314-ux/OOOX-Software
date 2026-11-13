@@ -21,6 +21,7 @@ if [ "$QUE" != navegador ]; then
   paso "Reglas, con ejemplos" node "$AQUI/prueba-oficio.mjs" "$SITIO"
   paso "Reglas, con recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$SITIO/js/oficio-datos.js" --negocio "$OTRO" --tandas "${TANDAS:-100}" --semilla "${SEMILLA:-20261113}"
   paso "Restos del negocio de muestra en los archivos comunes" node "$R/restos.mjs" "$SITIO"
+  paso "Buzón de mejoras, sin navegador" node "$R/prueba-soporte.mjs" "$SITIO"
   [ "${MUTANTES:-0}" = 1 ] && paso "Reglas estropeadas adrede" node "$R/mutantes.mjs" "$SITIO"
 fi
 if [ "$QUE" != reglas ]; then
@@ -37,6 +38,7 @@ if [ "$QUE" != reglas ]; then
   paso "Vídeo de entrada" python3 entrada.py
   paso "Otro negocio, de principio a fin" python3 negocio.py "$OTRO"
   paso "El mismo recorrido con el negocio de muestra" python3 negocio.py "$SITIO/js/oficio-datos.js"
+  paso "Mejoras: pedir, ver la respuesta y quedarse sin conexión" python3 soporte.py "$OTRO"
   kill $S1 $S2 2>/dev/null
 fi
 echo; if [ $mal = 0 ]; then echo "TODO BIEN"; else echo "FALLAN $mal BLOQUES"; fi

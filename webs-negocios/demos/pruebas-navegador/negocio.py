@@ -8,6 +8,7 @@ import asyncio, sys, re, json
 from datetime import datetime
 from playwright.async_api import async_playwright
 import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
+import buzon_falso     # el buzón de mejoras no sale a internet en las pruebas: ver buzon_falso.py
 
 DATOS = open(sys.argv[1], encoding='utf-8').read()
 PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 8765

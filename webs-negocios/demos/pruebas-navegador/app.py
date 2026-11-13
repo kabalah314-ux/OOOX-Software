@@ -5,6 +5,7 @@ NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, sys, io, json, re
 from playwright.async_api import async_playwright
 import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
+import buzon_falso     # el buzón de mejoras no sale a internet en las pruebas: ver buzon_falso.py
 from PIL import Image
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8765

@@ -10,7 +10,8 @@ Todo lo de esta carpeta corre en Node, sin navegador, en segundos. Para pasarlo 
 | `prueba-valida.mjs` | Prueba al validador: estropea un dato cada vez y comprueba que lo dice. | El validador deja pasar un archivo mal hecho. |
 | `../prueba-oficio.mjs` | Las reglas con ejemplos escritos a mano, con los precios del negocio de muestra. | Una regla da un resultado distinto del esperado. |
 | `azar.mjs` | Miles de recorridos al azar sobre las reglas, con varios negocios y sus variantes extremas. Tras cada paso comprueba las leyes (dinero, permisos, estados, horarios, mensajes). | Se rompe una ley. Da la semilla y el caso mínimo para repetirlo. |
-| `restos.mjs` | Busca datos del negocio de muestra en los archivos comunes de la app. | Algo de un negocio está escrito fuera de `js/oficio-datos.js`. |
+| `restos.mjs` | Busca datos del negocio de muestra en los archivos comunes de la app. Los nombres de las personas se buscan como palabra entera («Ferrer» no es «noreferrer»). | Algo de un negocio está escrito fuera de `js/oficio-datos.js`. |
+| `prueba-soporte.mjs` | El buzón de mejoras (`js/oficio-soporte.js`) sin navegador y sin red: qué se da por bueno, qué viaja, el código de soporte, la cola sin conexión, lo que está sin leer, la demo y los aparatos que no dejan guardar. 60 comprobaciones. | La app manda algo que no debe, pierde una petición sin conexión o se rompe con datos guardados estropeados. |
 | `mutantes.mjs` | Estropea adrede una regla cada vez y pasa las pruebas. Mide si las pruebas valen. | Una regla estropeada no la caza ninguna prueba: falta una prueba. |
 | `negocios/voltio.js` | Un segundo negocio inventado, hecho distinto a propósito (otro oficio, otra ciudad, horarios por técnico). | — |
 
