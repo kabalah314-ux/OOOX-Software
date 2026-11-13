@@ -35,7 +35,7 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 ## Motores
 
 En el contenedor de trabajo solo hay Chromium. Firefox y WebKit corren en GitHub con cada cambio
-(`.github/workflows/pruebas-oficios.yml`). El 13-11-2026 pasan los tres: 539 comprobaciones de pantallas en cada uno (394 de la app y la web, 76 de horarios y 69 de «Mejoras»).
+(`.github/workflows/pruebas-oficios.yml`). El 14-11-2026 de madrugada pasan los tres: 618 comprobaciones de pantallas en cada uno (398 de la app y la web, 35 de la copia de Voltio servida desde su carpeta, 76 de horarios, 40 del mapa y 69 de «Mejoras»).
 
 - **WebKit no es Safari.** Es el mismo motor, pero en Linux lee el vídeo con otras piezas y a ratos no lo consigue
   (en la misma máquina, unas veces sí y otras no). Por eso, en WebKit, lo que depende de la posición del vídeo
