@@ -7,7 +7,10 @@
 #   MUTANTES=1  añade la prueba de «reglas estropeadas adrede» (tarda un minuto; en GitHub corre siempre)
 set -u
 AQUI="$(cd "$(dirname "$0")" && pwd)"
-SITIO="$(cd "${SITIO:-$AQUI/../../frontend/public/demos/ramirez-24h}" && pwd)"
+# la carpeta del sitio: la del repositorio o, en la copia del PC, la que está al lado (../site)
+if [ -z "${SITIO:-}" ]; then for d in "$AQUI/../../frontend/public/demos/ramirez-24h" "$AQUI/../site"; do [ -d "$d" ] && { SITIO="$d"; break; }; done; fi
+[ -d "${SITIO:-}" ] || { echo "No encuentro la carpeta del sitio. Pásala así: SITIO=<carpeta> bash pruebas.sh"; exit 2; }
+SITIO="$(cd "$SITIO" && pwd)"
 QUE="${1:-todo}"; mal=0; R="$AQUI/pruebas-reglas"; OTRO="$R/negocios/voltio.js"
 paso(){ echo; echo "── $1"; shift; "$@" || { mal=$((mal+1)); echo "   ✗ FALLA este bloque"; }; }
 if [ "$QUE" != navegador ]; then
