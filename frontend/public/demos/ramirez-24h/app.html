@@ -190,8 +190,8 @@ main>*:has(+ .accion){margin-bottom:18px}
 
 /* ===== papeles en pantalla ===== */
 main.papelv{max-width:760px}
-.vdocs{display:flex;gap:8px;margin:6px 0 14px;overflow-x:auto}
-.vdocs a{flex:none;display:flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--linea);text-decoration:none;font-weight:600;color:var(--suave)}
+.vdocs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;margin:6px 0 14px}
+.vdocs a{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.15;min-height:44px;padding:6px 8px;border-radius:12px;border:1px solid var(--linea);text-decoration:none;font-weight:600;color:var(--suave)}
 .vdocs a[aria-current]{background:var(--asfalto-3);border-color:var(--control);color:var(--texto)}
 .dacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 
@@ -267,7 +267,7 @@ const I={mas:sv('<path d="M12 5v14M5 12h14"/>'),atras:sv('<path d="M15 5l-7 7 7 
  bandeja:sv('<path d="M4 13l2-8h12l2 8v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 13h5l1 2h4l1-2h5"/>'),agenda:sv('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>'),
  euro:sv('<path d="M17 7a6 6 0 1 0 0 10M5 10h8M5 14h8"/>'),hoy:sv('<path d="M5 6h14M5 12h14M5 18h9"/>'),hecho:sv('<path d="M5 12.5l4.500 4.500L19 7"/>')};
 const hace=t=>{const m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?'ahora mismo':m<60?'hace '+m+' min':m<1440?'hace '+Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':''):'hace '+Math.floor(m/1440)+' d'};
-const dur=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
+const dur=m=>m<1?'menos de 1 min':m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
 const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?'de '+f.de/60+' a '+f.a/60:''};
 const D3=['dom','lun','mar','mié','jue','vie','sáb'];
 const diaTxt=f=>{const h=K.madrid().date;return f===h?'hoy':f===K.masDias(h,1)?'mañana':'el '+K.fechaLarga(f)};
@@ -564,7 +564,7 @@ const ACC={
  cancelar:A=>hCancelar(A),
  cobrar:A=>hCobrar(A),
  ampliar:A=>hPrecio(A,true),
- asignar:(A,b)=>{if(A.tec===b.dataset.tec)return;const antes=A.tec;if(hacer({tipo:'asignar',id:A.id,tec:b.dataset.tec}).ok)toast((antes?'Cambiado: ahora va ':'Asignado a ')+cfg.tec[b.dataset.tec].n+'.'+(A.cita?' Queda escrito el mensaje de la cita.':''))},
+ asignar:(A,b)=>{const otraVez=A.e==='ausente';if(A.tec===b.dataset.tec&&!otraVez)return;const antes=A.tec&&A.tec!==b.dataset.tec;if(hacer({tipo:'asignar',id:A.id,tec:b.dataset.tec}).ok)toast((otraVez&&!antes?'Vuelve a ir ':antes?'Cambiado: ahora va ':'Asignado a ')+cfg.tec[b.dataset.tec].n+'.'+(A.cita?' Queda escrito el mensaje de la cita.':''))},
  voy:A=>{const r=hacer({tipo:'voy',id:A.id});if(r.ok){toast('De camino. Llegas sobre las '+K.hora(r.eta)+'.');if(ruta().v!=='aviso')location.hash='#/aviso/'+A.id}},
  ausente:A=>{if(hacer({tipo:'ausente',id:A.id}).ok){toast('Apuntado: no había nadie. Vuelve a la centralita.');location.hash='#/hoy'}},
  empezar:A=>{if(pro())hPrecio(A,false);else if(hacer({tipo:'empezar',id:A.id}).ok)toast('Empieza el trabajo.')},

@@ -149,7 +149,7 @@ dialog.hoja.llena{max-height:100svh;height:100svh;border-radius:0}
 .doc .fotos img{width:120px;height:90px;object-fit:cover;border-radius:6px}
 @media print{
  html,body{background:#fff!important;padding:0!important}
- .lado,.top,#nav,#toast,.noimp,dialog{display:none!important}
+ .lado,.top,#nav,#toast,.noimp,.vdocs,.atras,dialog{display:none!important}
  .marco{display:block!important}
  main{display:block!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important}
  .doc{max-width:none;border-radius:0}

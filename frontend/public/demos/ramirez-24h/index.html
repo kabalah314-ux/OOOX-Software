@@ -613,7 +613,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 
 /* ===== la hora de Barcelona lo decide todo: llegada, tarifa y precio ===== */
 const TZ='Europe/Madrid',SUR=.4;
-const HOL=['2026-01-01','2026-01-06','2026-04-03','2026-04-06','2026-05-01','2026-05-25','2026-06-24','2026-08-15','2026-09-11','2026-09-24','2026-10-12','2026-12-08','2026-12-25','2026-12-26','2027-01-01','2027-01-06','2027-03-26','2027-03-29','2027-05-17','2027-06-24','2027-09-24','2027-10-12','2027-11-01','2027-12-08'];
+const HOL=['2026-01-01','2026-01-06','2026-04-03','2026-04-06','2026-05-01','2026-05-25','2026-06-24','2026-08-15','2026-09-11','2026-09-24','2026-10-12','2026-11-01','2026-12-06','2026-12-08','2026-12-25','2026-12-26','2027-01-01','2027-01-06','2027-03-26','2027-03-29','2027-05-01','2027-05-17','2027-06-24','2027-09-11','2027-09-24','2027-10-12','2027-11-01','2027-12-06','2027-12-08','2027-12-25'];
 function madrid(d){const p=new Intl.DateTimeFormat('en-GB',{timeZone:TZ,weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d||new Date()),g=k=>(p.find(x=>x.type===k)||{}).value;
  return{day:{Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[g('weekday')],min:+g('hour')*60+ +g('minute'),date:g('year')+'-'+g('month')+'-'+g('day'),dmy:g('day')+'/'+g('month')+'/'+g('year')}}
 const hhmm=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};

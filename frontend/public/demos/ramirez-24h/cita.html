@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="oficio.css">
 <style>
 .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;padding:0 16px;background:var(--asfalto);border-bottom:1px solid var(--linea)}
+@media (max-width:359px){#llama .ll-u{display:none}}
 .wm{font:800 1.5rem/1 var(--fd);text-decoration:none;white-space:nowrap}
 .wm span{margin-left:.22em;padding:.02em .22em;border-radius:4px;background:var(--senal);color:var(--negro)}
 main{display:block;max-width:640px;margin:0 auto;padding:24px 18px calc(44px + var(--sb))}
@@ -67,7 +68,7 @@ form>.btn{margin-top:16px}
 <a class="vh" href="#v">Saltar al contenido</a>
 <header class="top">
  <a class="wm" href="./" aria-label="Ramírez 24 h: volver a la web">Ramírez<span>24 h</span></a>
- <button class="btn peq" id="llama">¿Urgente? 930 00 00 00</button>
+ <button class="btn peq" id="llama" aria-label="¿Urgente? Llama al 930 00 00 00"><span class="ll-u">¿Urgente? </span>930 00 00 00</button>
 </header>
 <main id="v" tabindex="-1"></main>
 <div id="toast" role="status" aria-live="polite"></div>

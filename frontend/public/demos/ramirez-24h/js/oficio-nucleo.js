@@ -93,14 +93,14 @@ function mensaje(cfg,A,k){const N=cfg.N,n=(A.cli.nombre||'').split(' ')[0],hola=
  const tot=A.tot?eur(A.tot.total):'';
  switch(k){
   case 'recibido':return hola+'Hemos recibido tu aviso '+A.id+' ('+av.n.toLowerCase()+'). '+(A.cita?'Te confirmamos enseguida quién irá.':'Te decimos enseguida quién va y a qué hora llega.')+' '+N.nombre+'.';
-  case 'cita':return hola+'Tu cita queda para el '+fechaLarga(A.cita.dia)+', '+frt+'. Irá '+T+'. Con cita, la tarifa es la normal. Si necesitas cambiarla, contesta a este mensaje. '+N.nombre+'.';
-  case 'vispera':return hola+'Te recordamos la cita de mañana, '+frt+', en '+A.cli.dir+'. Irá '+T+'. '+N.nombre+'.';
-  case 'camino':return hola+T+' va de camino y llega sobre las '+hora(A.eta)+'. '+N.nombre+'.';
+  case 'cita':if(!A.cita)return'';return hola+'Tu cita queda para el '+fechaLarga(A.cita.dia)+', '+frt+'. Irá '+T+'. Con cita, la tarifa es la normal. Si necesitas cambiarla, contesta a este mensaje. '+N.nombre+'.';
+  case 'vispera':if(!A.cita)return'';return hola+'Te recordamos la cita de mañana, '+frt+', en '+A.cli.dir+'. Irá '+T+'. '+N.nombre+'.';
+  case 'camino':return hola+T+' va de camino'+(A.eta?' y llega sobre las '+hora(A.eta):'')+'. '+N.nombre+'.';
   case 'ausente':return hola+T+' ha estado en '+A.cli.dir+' a las '+hora(A.aus||A.t)+' y no ha encontrado a nadie. ¿Cuándo te va bien que volvamos?';
   case 'hecho':return A.tot?(A.sinTrabajo?hola+'Hoy solo hemos cobrado el desplazamiento: '+tot+'. ':hola+'Trabajo terminado. Total: '+tot+', IVA incluido. ')+(A.pago&&A.pago.cobrado?'Pagado ('+A.pago.modo+'). ':'Queda pendiente de pago. ')+(A.gar?'Tienes garantía hasta el '+fechaCorta(A.gar.hasta)+'. Te adjuntamos el parte. ':'')+N.nombre+'.'
    :hola+'Trabajo terminado. Gracias por confiar en '+N.nombre+'.';
   case 'resena':return hola+'¿Todo bien con la reparación? Si tienes un minuto, tu opinión en Google nos ayuda mucho: '+N.resenas+' Gracias.';
-  case 'cobro':return hola+'Te recordamos que queda pendiente el pago del trabajo '+A.id+': '+tot+'. Puedes hacerlo por Bizum o por transferencia. Gracias. '+N.nombre+'.';
+  case 'cobro':if(!A.tot)return'';return hola+'Te recordamos que queda pendiente el pago del trabajo '+A.id+': '+tot+'. Puedes hacerlo por Bizum o por transferencia. Gracias. '+N.nombre+'.';
  }return''}
 const MSG={recibido:'Aviso recibido',cita:'Cita confirmada',vispera:'Recordatorio de la víspera',camino:'Va de camino',ausente:'No había nadie',hecho:'Trabajo terminado',resena:'Pedir reseña',cobro:'Recordar el pago'};
 

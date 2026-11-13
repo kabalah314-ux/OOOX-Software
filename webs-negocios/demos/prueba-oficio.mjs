@@ -1,5 +1,5 @@
 // Comprueba las reglas de oficios (js/oficio-nucleo.js): el recorrido de un aviso y los casos raros.
-// Uso: node webs-negocios/demos/prueba-oficio.mjs frontend/public/demos/ramirez-24h
+// Uso: node prueba-oficio.mjs <carpeta del sitio>
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -213,6 +213,103 @@ es(ap({ tipo: 'cosa-rara', id: r.id }, C).err === 'accion', 'una acción que no 
 let fallos = 0;
 for (let i = 0; i < 7 * 48; i++) { try { const X = globalThis.OFICIO_MUESTRA(K, cfg, MAR + i * 30 * M); if (X.avisos.length !== 6 || !X.avisos.some(a => a.gar0)) fallos++ } catch (e) { fallos++; if (fallos === 1) console.log('   ', e.message) } }
 es(fallos === 0, 'la muestra se genera en las 336 medias horas de una semana, con su aviso en garantía');
+
+
+// 19. festivos y cambio de hora (13-11-2026: se añadió el 6-12-2027, que faltaba)
+es(K.urgente(cfg, Date.parse('2027-12-06T10:00:00Z')), 'el 6 de diciembre de 2027 (lunes, Constitución) es urgencia');
+es(!K.franjasDe(S, cfg, '2027-12-06', Date.parse('2027-12-01T10:00:00Z')).some(f => f.ok), 'y ese día no hay citas');
+es(cfg.festivos.filter(d => new Date(d + 'T12:00:00Z').getUTCDay() % 6).every(d => K.urgente(cfg, Date.parse(d + 'T10:00:00Z'))), 'todos los festivos entre semana son urgencia a media mañana');
+es(['2026-05-25', '2026-09-24', '2027-05-17', '2027-09-24'].every(d => cfg.festivos.includes(d)), 'las dos fiestas de Barcelona de 2026 y 2027 están (Segona Pasqua y la Mercè)');
+es(!K.urgente(cfg, Date.parse('2026-03-30T06:30:00Z')) && K.urgente(cfg, Date.parse('2026-03-30T05:59:00Z')), 'el lunes después del cambio de hora: 8:30 es normal y 7:59 es urgencia');
+es(!K.urgente(cfg, Date.parse('2026-10-26T07:30:00Z')) && K.urgente(cfg, Date.parse('2026-10-26T06:59:00Z')), 'y tras volver al horario de invierno: 8:30 normal, 7:59 urgencia');
+
+// 20. el precio con mil combinaciones al azar: siempre cuadra
+{ let malos = 0, ej = ''; let semilla = 7; const azar = n => { semilla = (semilla * 16807) % 2147483647; return semilla % n };
+  const claves = Object.keys(cfg.cat);
+  for (let i = 0; i < 1000; i++) {
+    const lin = []; const n = 1 + azar(5);
+    for (let j = 0; j < n; j++) { const k = claves[azar(claves.length)]; lin.push(k === 'mo' ? { k, q: [0.25, 1, 1.5, 2, 3.75][azar(5)] } : { k, q: 1 + azar(3) }) }
+    if (azar(4) === 0) lin.push({ k: 'otro', t: 'Pieza rara', p: (1 + azar(9000)) / 100 });
+    const o = { urg: !!azar(2), local: azar(5) === 0 }, x = K.precio(cfg, lin, o);
+    const ok1 = x.lineas.reduce((s, l) => s + l.imp, 0) === x.total && x.base + x.iva === x.total && [10, 21].includes(x.tipo) && Number.isInteger(x.total) && x.total >= 0;
+    const ok2 = !o.local || x.tipo === 21;
+    const ok3 = K.precio(cfg, lin, { ...o, urg: false }).total <= K.precio(cfg, lin, { ...o, urg: true }).total;
+    if (!(ok1 && ok2 && ok3)) { malos++; if (!ej) ej = JSON.stringify({ lin, o, x: { t: x.total, b: x.base, i: x.iva, tipo: x.tipo } }) } }
+  es(malos === 0, 'mil presupuestos al azar: suma de líneas = total, base + IVA = total, céntimos enteros, local al 21 %, la urgencia nunca abarata' + (ej ? ' · ' + ej : '')) }
+p = K.precio(cfg, [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'juntas' }], { urg: true, local: true });
+es(p.tipo === 21 && p.total > 11700, 'urgencia en un local: recargo y además IVA del 21 %');
+
+// 21. ningún mensaje sale con huecos («undefined», «NaN», «null»)
+empieza();
+{ const rr = []; rr.push(ap({ tipo: 'pedir', av: 'fuga', cli: montse }, CLI));
+  rr.push(ap({ tipo: 'pedir', av: 'cisterna', cli: { nombre: 'Ana Pons', tel: '600000147', dir: 'C/ Sardenya 300, 5.º', cp: '08025' }, cita: { dia: K.diasDe(S, cfg, t, 6)[2].dia, fr: 'f3' } }, CLI));
+  ap({ tipo: 'asignar', id: rr[0].id, tec: 'omar' }, C); ap({ tipo: 'asignar', id: rr[1].id, tec: 'laia' }, C);
+  ap({ tipo: 'voy', id: rr[0].id }, T('omar')); ap({ tipo: 'empezar', id: rr[0].id, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], firma: F } }, T('omar'));
+  ap({ tipo: 'terminar', id: rr[0].id, modo: 'pendiente', firma: F }, T('omar'));
+  let huecos = []; for (const X of S.avisos) for (const k of K.MSG ? Object.keys(K.MSG) : []) { let m = ''; try { m = K.mensaje(cfg, X, k) } catch (e) { m = 'ERROR ' + e.message } if (/undefined|NaN|null|\[object|ERROR/.test(m)) huecos.push(X.id + ' ' + k + ': ' + m.slice(0, 80)) }
+  es(huecos.length === 0, 'ningún mensaje sale con huecos ni falla, aunque el aviso no tenga cita, hora de llegada o total' + (huecos.length ? ' · ' + huecos[0] : ''));
+  es(S.avisos.every(X => X.msgs.every(m => Object.keys(K.MSG).includes(m.k) && K.mensaje(cfg, X, m.k).length > 20)), 'solo se programan mensajes que existen, y todos con texto')
+  ap({ tipo: 'asignar', id: rr[1].id, tec: 'laia' }, C); const conCita = A(rr[1].id); ap({ tipo: 'enviado', id: conCita.id, k: 'cita' }, C); ap({ tipo: 'mover', id: conCita.id }, C);
+  es(K.mensaje(cfg, A(conCita.id), 'cita') === '' && A(conCita.id).msgs.some(m => m.k === 'cita' && m.env), 'una cita ya avisada que pasa a urgente: el mensaje enviado queda en la lista y no rompe nada') }
+
+// 22. cancelar, mensajes enviados y quién puede qué
+empieza();
+r = ap({ tipo: 'pedir', av: 'grifo', cli: montse }, CLI); const c1 = r.id;
+es(ap({ tipo: 'cancelar', id: c1 }, T('omar')).err === 'permiso' && ap({ tipo: 'cancelar', id: c1 }, CLI).err === 'permiso', 'solo la centralita cancela');
+es(ap({ tipo: 'enviado', id: c1, k: 'recibido' }, CLI).err === 'permiso', 'el cliente no marca mensajes');
+es(ap({ tipo: 'enviado', id: c1, k: 'recibido' }, C).ok && A(c1).msgs.find(m => m.k === 'recibido').env === t, 'la centralita marca «aviso recibido» como enviado');
+es(ap({ tipo: 'enviado', id: c1, k: 'recibido' }, C).err === 'mensaje', 'y no se puede marcar dos veces');
+es(ap({ tipo: 'cancelar', id: c1, motivo: 'Ya no hace falta' }, C).ok && A(c1).e === 'cancelado' && A(c1).msgs.every(m => m.env), 'cancelado: se quitan los mensajes que no habían salido');
+es(ap({ tipo: 'asignar', id: c1, tec: 'omar' }, C).err === 'estado' && ap({ tipo: 'anotar', id: c1, obs: 'x' }, C).err === 'estado', 'un aviso cancelado ya no se reparte ni se anota');
+es(K.vistaCliente(S, cfg, c1).e === 'cancelado', 'el cliente ve que está cancelado');
+r = ap({ tipo: 'pedir', av: 'grifo', cli: montse }, CLI);
+es(r.id === 'R-0002', 'los números siguen en orden aunque se cancele un aviso');
+
+// 23. pausas, notas, fotos y el técnico ocupado
+const c2 = r.id; ap({ tipo: 'asignar', id: c2, tec: 'omar' }, C);
+es(ap({ tipo: 'pausa', id: c2 }, T('omar')).err === 'estado', 'no se pausa lo que no ha empezado');
+ap({ tipo: 'voy', id: c2 }, T('omar'));
+r = ap({ tipo: 'pedir', av: 'atasco', cli: { nombre: 'Pau Roig', tel: '600000144', dir: 'C/ Balmes 100, 1.º', cp: '08008' } }, CLI); const c3 = r.id;
+ap({ tipo: 'asignar', id: c3, tec: 'omar' }, C);
+es(ap({ tipo: 'empezar', id: c3, pres: { lineas: [{ k: 'desatasco' }], firma: F } }, T('omar')).err === 'ocupado', 'con un aviso de camino no se empieza otro');
+ap({ tipo: 'empezar', id: c2, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'grifon' }], firma: F } }, T('omar'));
+const i2 = A(c2).ini; t = i2 + 10 * M; ap({ tipo: 'pausa', id: c2 }, T('omar'));
+es(K.enPausa(A(c2)), 'en pausa');
+es(ap({ tipo: 'anotar', id: c2, obs: '  Falta la llave de paso del baño.  ' }, T('laia')).err === 'permiso', 'Laia no anota en el aviso de Omar');
+es(ap({ tipo: 'anotar', id: c2, obs: 'x'.repeat(900) }, T('omar')).ok && A(c2).obs.length === 400, 'la nota se corta a 400 letras');
+for (let i = 0; i < 4; i++) ap({ tipo: 'anotar', id: c2, foto: 'data:image/jpeg;base64,AAAA' + i }, T('omar'));
+es(A(c2).fotos.length === 4 && ap({ tipo: 'anotar', id: c2, foto: 'data:image/jpeg;base64,BBBB' }, T('omar')).err === 'fotos', 'cuatro fotos como mucho');
+es(ap({ tipo: 'anotar', id: c2, foto: 'x'.repeat(150000) }, T('omar')).ok && A(c2).fotos.length === 4, 'una foto demasiado grande no se guarda');
+t = i2 + 40 * M; r = ap({ tipo: 'terminar', id: c2, modo: 'tarjeta' }, T('omar'));
+const trab = Math.round((A(c2).pausas[0][0] - i2) / M);
+es(r.ok && !K.enPausa(A(c2)) && A(c2).min === trab && trab < 15, 'terminar en pausa cierra la pausa: solo cuentan los ' + trab + ' minutos de antes de parar');
+es(A(c2).tot.tipo === 10, 'desplazamiento, una hora y un grifo nuevo: el material es el 31,8 %, sigue al 10 %');
+es(ap({ tipo: 'voy', id: c3 }, T('omar')).ok, 'ya libre, Omar puede ir al siguiente');
+es(ap({ tipo: 'cobrar', id: c2, modo: 'efectivo' }, C).err === 'estado', 'lo cobrado no se cobra otra vez');
+
+// 24. reasignar, pasar a urgente y lo que ve el cliente en cada paso
+empieza();
+r = ap({ tipo: 'pedir', av: 'cisterna', cli: montse, cita: { dia: K.diasDe(S, cfg, t, 6)[3].dia, fr: 'f2' } }, CLI); const c4 = r.id;
+ap({ tipo: 'asignar', id: c4, tec: 'omar' }, C);
+es(ap({ tipo: 'asignar', id: c4, tec: 'laia' }, C).ok && A(c4).tec === 'laia', 'antes de salir se puede cambiar de técnico');
+es(ap({ tipo: 'mover', id: c4 }, C).ok && A(c4).urg && !A(c4).cita && !A(c4).msgs.some(m => (m.k === 'cita' || m.k === 'vispera') && !m.env), 'pasarlo a urgente quita la cita y sus mensajes');
+const vistas = [];
+vistas.push(K.vistaCliente(S, cfg, c4));
+ap({ tipo: 'voy', id: c4 }, T('laia')); vistas.push(K.vistaCliente(S, cfg, c4));
+es(ap({ tipo: 'asignar', id: c4, tec: 'omar' }, C).err === 'estado', 'de camino ya no se cambia de técnico');
+ap({ tipo: 'empezar', id: c4, pres: { lineas: [{ k: 'cisterna' }], firma: F } }, T('laia')); vistas.push(K.vistaCliente(S, cfg, c4));
+ap({ tipo: 'terminar', id: c4, modo: 'efectivo' }, T('laia')); vistas.push(K.vistaCliente(S, cfg, c4));
+es(vistas.map(v => v.e).join(',') === 'asignado,camino,curso,hecho', 'el cliente ve los cuatro pasos');
+es(vistas.every(v => v.tec === 'Laia' && !/600000143|Verdi|Montse|Ferrer/.test(JSON.stringify(v))), 'y en ninguno ve teléfono, dirección, nombre ni apellido de nadie');
+es(vistas[1].eta > t - 60 * M && vistas[2].eta === 0, 'la hora de llegada solo mientras va de camino');
+
+// 25. citas: viernes por la tarde y víspera de festivo
+const VIE = Date.parse('2026-11-13T16:30:00Z');          // viernes 13-11-2026, 17:30 en Madrid
+const dv = K.diasDe(S, cfg, VIE, 3);
+es(!dv.some(d => d.dia === '2026-11-13'), 'un viernes a las 17:30 ya no se ofrece hoy (no queda ninguna franja)');
+es(dv[0].dia === '2026-11-16' && dv[0].franjas.every(f => f.ok), 'el primer día que se ofrece es el lunes, con las cuatro franjas');
+const dd = K.diasDe(S, cfg, Date.parse('2026-12-07T10:00:00Z'), 3).map(d => d.dia);
+es(!dd.includes('2026-12-08') && dd.includes('2026-12-09'), 'el día de la Inmaculada se salta');
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);
