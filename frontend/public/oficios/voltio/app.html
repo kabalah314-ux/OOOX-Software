@@ -693,10 +693,10 @@ const ZERR={nadie:'Este teléfono todavía no tiene avisos en el servidor. Esper
  lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.',servidor:'El servidor ha fallado. Prueba otra vez en un momento.'};
 function hZona(A){const t9=K.tel9(A.cli.tel);if(!t9){toast('Este aviso todavía no tiene teléfono.');return}
  if(!Oficio.DEMO&&!SRV){hoja(hc('Zona del cliente')+'<div class="hb"><p>La zona del cliente todavía no está abierta en esta copia: llegará con el acceso de cada cliente por el servidor.</p></div><div class="hp"><button class="btn ancho" data-x>Cerrar</button></div>');return}
- const n=(A.cli.nombre||'').split(' ')[0],url=cod=>new URL('cliente.html#/entra/'+t9+'/'+cod,location.href).href;
- const msg=cod=>(n?'Hola, '+n+'. ':'Hola. ')+'En tu zona de '+N.nombre+' tienes tus avisos, tus presupuestos y tus garantías: '+url(cod)+' . Si te pide el código, es este: '+cod+'. '+N.nombre+'.';
+ const n=(A.cli.nombre||'').split(' ')[0],zonaUrl=cod=>new URL('cliente.html#/entra/'+t9+'/'+cod,location.href).href;
+ const msg=cod=>(n?'Hola, '+n+'. ':'Hola. ')+'En tu zona de '+N.nombre+' tienes tus avisos, tus presupuestos y tus garantías: '+zonaUrl(cod)+' . Si te pide el código, es este: '+cod+'. '+N.nombre+'.';
  if(Oficio.DEMO){const cod=K.CLIENTE_DEMO;
-  hoja(hc('Zona del cliente')+'<div class="hb"><p>Ahí tiene sus avisos, sus presupuestos, sus partes y sus garantías. Entra con su teléfono y el código que le llega en este mensaje.</p>'+waHtml(msg(cod),K.nomCli(A.cli))+'<p class="dn">En la app real, este botón abre WhatsApp con el mensaje ya escrito. En la demo no se escribe a nadie: su zona se abre aquí.</p></div><div class="hp"><a class="btn pri ancho" id="zAbre" target="_blank" rel="noopener" href="'+esc(url(cod))+'">Abrir su zona</a></div>');return}
+  hoja(hc('Zona del cliente')+'<div class="hb"><p>Ahí tiene sus avisos, sus presupuestos, sus partes y sus garantías. Entra con su teléfono y el código que le llega en este mensaje.</p>'+waHtml(msg(cod),K.nomCli(A.cli))+'<p class="dn">En la app real, este botón abre WhatsApp con el mensaje ya escrito. En la demo no se escribe a nadie: su zona se abre aquí.</p></div><div class="hp"><a class="btn pri ancho" id="zAbre" target="_blank" rel="noopener" href="'+esc(zonaUrl(cod))+'">Abrir su zona</a></div>');return}
  const d=hoja(hc('Zona del cliente')+'<div class="hb" id="zB"></div><div class="hp" id="zP"></div>');let seguro=false;
  const pon=(r,cambiado)=>{if(!d.open)return;seguro=false;
   if(!r||!r.ok){$('#zB',d).innerHTML='<p class="ojo" role="alert">'+(ZERR[r&&r.err]||ZERR.servidor)+'</p>';$('#zP',d).innerHTML='<button class="btn pri ancho" id="zOtra">Probar otra vez</button><button class="btn ancho" data-x>Cerrar</button>';return}
