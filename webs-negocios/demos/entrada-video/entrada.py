@@ -33,10 +33,14 @@ W, H = int(C.get('ancho', 1280)), int(C.get('alto', 720))
 FPS = float(C.get('fps', 30))
 VEL = C.get('velocidad', [[0, 1.25]])            # [[segundo del clip, velocidad], ...] interpolada por tramos
 COLA = int(C.get('cola', 23))                    # fotogramas finales del clip en los que todo funde hacia la foto final
+COLA_CORTA = int(C.get('cola_corta', COLA))      # si es menor: lo que aún se mueve espera a estos últimos fotogramas para fundir
 ARRANQUE = int(C.get('arranque', 10))            # fotogramas del clip en los que se va la foto de llegada
 NITIDEZ = float(C.get('nitidez', 0.6))           # enfoque suave de lo que se mueve
 SIG = float(C.get('corte', 10.0))                # px de salida: por encima, luz y bulto del vídeo; por debajo, detalle de la foto
 ROTULOS = C.get('rotulos', [])                   # [x0,y0,x1,y1] a tamaño de trabajo: rótulos que el vídeo deforma
+ROT_IGUAL = float(C.get('rotulo_igual', 0.97))   # parte del rótulo que tiene que estar ya como en el último fotograma
+ROT_ESPERA = int(C.get('rotulo_espera', 3))      # fotogramas del clip que se espera con el rótulo ya en su sitio
+ROT_RAMPA = float(C.get('rotulo_rampa', 6))      # y fotogramas del clip en los que entra el de la foto
 CRF = float(C.get('crf', 25.5))
 
 
@@ -157,16 +161,26 @@ sA[0] = 1; sB[-1] = 1
 sA = np.stack([G(m, 1.5) for m in sA]); sB = np.stack([G(m, 1.5) for m in sB]); sA[0] = 1; sB[-1] = 1
 # lo que lleva un rato igual que el final y no estaba al principio (lo recién aparcado) pasa a ser la foto tal cual
 gB = np.stack([G(np.clip((p - 2) / 8.0, 0, 1), 2.0) for p in racha((sB >= 0.98).astype(np.float32))])
+ROT = []                                                               # por rótulo: su pluma y cuánto entra en cada fotograma
 if ROTULOS:
     G4 = np.stack([G(f, 4.0) for f in Vf])
     for (x0, y0, x1, y1) in ROTULOS:                                   # en cuanto nada lo tapa, el rótulo es el de la foto
         ya, yb, xa, xb = max(0, y0 - 8), min(MH, y1 + 8), max(0, x0 - 8), min(MW, x1 + 8)
-        libre = [float((np.abs(G4[t][ya:yb, xa:xb] - G4[N - 1][ya:yb, xa:xb]).max(axis=2) < 14).mean()) >= 0.97 for t in range(N)]
-        pluma = np.zeros((MH, MW), np.float32); pluma[y0:y1, x0:x1] = 1; pluma = G(pluma, 3.0); r = 0
+        libre = [float((np.abs(G4[t][ya:yb, xa:xb] - G4[N - 1][ya:yb, xa:xb]).max(axis=2) < 14).mean()) >= ROT_IGUAL for t in range(N)]
+        pluma = np.zeros((MH, MW), np.float32); pluma[y0:y1, x0:x1] = 1; pluma = G(pluma, 3.0); r = 0; entra = []
         for t in range(N):
             r = (r + 1) if libre[t] else 0
-            gB[t] = np.maximum(gB[t], pluma * float(np.clip((r - 3) / 6.0, 0, 1)))
+            entra.append(float(np.clip((r - ROT_ESPERA) / ROT_RAMPA, 0, 1)))
+        ROT.append((pluma, entra))
+        desde = next((t for t in range(N) if entra[t] >= 1), None)
+        print(f'rótulo {x0},{y0},{x1},{y1}: el de la foto desde el fotograma {desde} del clip' if desde is not None else f'rótulo {x0},{y0},{x1},{y1}: OJO, no llega a entrar')
     del G4
+NE = {}                                                                # cola por zonas: dónde el clip aún no está como en su último fotograma
+if COLA_CORTA < COLA:
+    k13 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (13, 13)); ne = np.zeros((MH, MW), np.float32)
+    for t in range(N - 1, N - 2 - COLA, -1):                           # hacia atrás: lo que se va a mover después tampoco funde antes
+        ne = np.maximum(ne, cv2.dilate(1 - paso(np.abs(MU[t] - MU[N - 1]).max(axis=2), 10, 24), k13))
+        NE[t] = G(ne, 3.0)
 del MU, ML, VL, L, Vf
 
 # ---------- 3. cada fotograma ----------
@@ -196,9 +210,15 @@ def fotograma(t, f_orig):
     f = tot * np.clip((26.0 - d) / 12.0, 0, 1)                         # misma luz que la foto: la foto tal cual
     f = np.maximum(f, suave(1 - t / 8.0) * a)
     f = np.maximum(f, (1 - a) * m2s(gB[t]))
-    out = out * (1 - f[..., None]) + P * f[..., None]
+    fr = f
+    for pluma, entra in ROT:                                           # rótulos: la foto final tal cual, aunque el vídeo no se quede quieto del todo
+        if entra[t] > 0: fr = np.maximum(fr, (1 - a) * m2s(pluma) * entra[t])
+    out = out * (1 - fr[..., None]) + P * f[..., None] + B * (fr - f)[..., None]
     kB = suave((t - (N - 1 - COLA)) / float(COLA))
-    if kB > 0: out = out * (1 - kB) + B * kB
+    if kB > 0 and t in NE:                                             # lo quieto funde despacio; lo que aún se mueve, al final y deprisa
+        ne = m2s(NE[t])[..., None]
+        kB = kB * (1 - ne) + suave((t - (N - 1 - COLA_CORTA)) / float(COLA_CORTA)) * ne
+    if np.any(kB > 0): out = out * (1 - kB) + B * kB
     kG = suave(1 - t / float(ARRANQUE))
     if kG > 0: out = out * (1 - kG) + A * kG
     return np.rint(np.clip(out, 0, 255)).astype(np.uint8)
