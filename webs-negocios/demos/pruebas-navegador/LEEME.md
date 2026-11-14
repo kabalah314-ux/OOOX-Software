@@ -32,7 +32,7 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 | `soporte.py <datos-de-otro-negocio.js>` | La sección «Mejoras» de la oficina: pedir algo a OOOX, ver el estado y la respuesta, novedades y baja de ofertas, sin conexión (se guarda y sale sola), lo que viaja y lo que no (ningún dato de los clientes), texto raro que no se ejecuta, teclado, y la copia de un negocio de verdad con su código de soporte. El servidor es de mentira y sigue las reglas del de verdad | 69 bien |
 | `buzon_falso.py` | No es una batería: hace que ningún navegador de las pruebas salga a internet, ni al buzón de OOOX ni al servidor de los avisos | — |
 | `servidor_local.mjs <carpeta> <puerto> [--datos <otro.js>]` | No es una batería: un servidor local con el MISMO juez que el de verdad y un almacén en memoria. Sirve la carpeta y le pone «servidor» apuntando a sí mismo. Tiene puertas solo para pruebas (`/__prueba/…`): poner la hora, mirar lo guardado, retirar un código, cortar la red, perder una respuesta | — |
-| `servidor.py [puerto]` | El modo servidor con la oficina, dos técnicos y un cliente, cada uno en su navegador: entrar con código (malo, de otro, con mayúsculas), crear, asignar y que le llegue al técnico, sin cobertura con un rechazo, el servidor caído y la app recargada, una respuesta perdida, la cita del cliente con foto, su enlace con y sin llave, dos pestañas, segundo plano, código retirado y cerrar sesión | 74 bien. Se pasa con la plantilla y con cada copia que lleve servidor |
+| `servidor.py [puerto]` | El modo servidor con la oficina, dos técnicos y un cliente, cada uno en su navegador: entrar con código (malo, de otro, con mayúsculas), crear, asignar y que le llegue al técnico, sin cobertura con un rechazo, el servidor caído y la app recargada, una respuesta perdida, la cita del cliente con foto, su enlace con y sin llave, dos pestañas, segundo plano, código retirado y cerrar sesión | 77 bien. Se pasa con la plantilla y con cada copia que lleve servidor |
 
 ## Motores
 
@@ -97,3 +97,8 @@ En la fase 2 el orden lo pone el servidor.
   terminal, `python3 servidor.py 8768`. Los códigos de prueba están en `http://127.0.0.1:8768/__prueba/codigos`.
 - Lo que encontró la primera pasada: al echar a alguien (código retirado), la pantalla de entrar volvía con
   «Centralita» elegida y había que acordarse de cambiarla. Ahora recuerda quién usó ese aparato la última vez.
+- Lo que encontró GitHub y no el ordenador de pruebas (14-11-2026): en Chromium, más lento allí, el último paso caía
+  justo cuando la app repinta la pantalla cada minuto. La pantalla de entrar se repintaba y volvía a «Centralita» con
+  el código borrado; al entrar, «ese código no es el de esa persona». Le habría pasado a cualquiera que tardase un
+  minuto en escribir su código. Ahora lo elegido y lo escrito se guardan según se teclea, y si la pantalla ya está
+  puesta no se toca. La prueba lo fuerza: repinta a medio escribir y mira que no se pierde nada.

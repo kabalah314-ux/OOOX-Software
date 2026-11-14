@@ -233,8 +233,16 @@ async def main():
         await o.goto(B + 'app.html#/bandeja'); await o.wait_for_selector('[data-a=menu]'); await o.click('[data-a=menu]'); await o.wait_for_selector('#mSal'); await o.wait_for_timeout(250); await o.click('#mSal')
         es(await pasa(o, "!!document.querySelector('#fEntra')") and await o.evaluate(f"localStorage.getItem('oficio:{N['id']}:sesion')===null&&localStorage.getItem('oficio:{N['id']}:srv')===null"), 'cerrar la sesión: vuelve a la pantalla de entrar y no deja nada guardado en el aparato')
         es('Marta' not in await o.inner_text('body') and await o.evaluate('Oficio.estado().avisos.length') == 0, 'y no queda a la vista ningún dato de clientes')
-        await o.select_option('#e_quien', T1); await o.fill('#e_cod', COD[T1]); await o.click('#fEntra [type=submit]'); await o.wait_for_selector('#nav a')
-        es(await o.evaluate(f"Oficio.estado().avisos.every(a=>a.tec==='{T1}')") and await o.evaluate('Oficio.sesion().rol') == 'tecnico', 'en ese mismo navegador entra un técnico y solo recibe lo suyo')
+        es(await o.input_value('#e_cod') == '' and await o.input_value('#e_quien') == 'oficina', 'la pantalla de entrar sale limpia: sin el código anterior y con quien usó este aparato')
+        # la pantalla se vuelve a pintar sola (cambia la dirección, pasa un minuto): lo elegido y lo escrito no se pueden perder
+        await o.select_option('#e_quien', T1); await o.locator('#e_cod').press_sequentially(COD[T1][:9]); await o.locator('h1').first.click()
+        await o.evaluate("dispatchEvent(new HashChangeEvent('hashchange'))"); await o.wait_for_timeout(200)
+        es(await o.input_value('#e_quien') == T1 and await o.input_value('#e_cod') == COD[T1][:9], 'si la pantalla de entrar se repinta a medias, no se pierde ni quién eres ni lo que llevabas escrito')
+        await o.locator('#e_cod').press('End'); await o.locator('#e_cod').press_sequentially(COD[T1][9:]); await o.evaluate("dispatchEvent(new HashChangeEvent('hashchange'))")
+        es(await o.input_value('#e_cod') == COD[T1] and await o.evaluate("document.activeElement.id") != '', 'ni con el código entero ya escrito')
+        await o.click('#fEntra [type=submit]'); await pasa(o, "Oficio.sesion()&&document.querySelector('#nav a')", 8000)
+        pista = await o.evaluate("JSON.stringify({sesion:Oficio.sesion(),quien:(document.querySelector('#e_quien')||{}).value,error:(document.querySelector('#e_ecod')||{}).textContent,red:Oficio.red()})")
+        es(await o.evaluate('!!Oficio.sesion()') and await o.evaluate(f"Oficio.estado().avisos.every(a=>a.tec==='{T1}')") and await o.evaluate('Oficio.sesion().rol') == 'tecnico', f'en ese mismo navegador entra un técnico y solo recibe lo suyo {pista}')
 
         # ---------- 15. al final, todo cuadra ----------
         E = estado()

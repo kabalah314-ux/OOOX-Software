@@ -163,7 +163,7 @@ Con navegador:
 
 - `pruebas-navegador/servidor.py`: la oficina, dos técnicos y un cliente, cada uno en su navegador, contra el servidor
   local. Entrar, crear, asignar, que le llegue al técnico, sin cobertura, el servidor caído, una respuesta perdida, un
-  rechazo, la cita del cliente y su enlace, dos pestañas, segundo plano, código retirado y cerrar sesión. 74.
+  rechazo, la cita del cliente y su enlace, dos pestañas, segundo plano, código retirado y cerrar sesión. 77.
   Se pasa dos veces: con la plantilla y los datos de Voltio, y con la copia de Voltio servida desde su carpeta.
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 

@@ -702,25 +702,30 @@ function hMsg(A,k){const txt=K.mensaje(cfg,A,k),m=A.msgs.find(x=>x.k===k&&!x.env
  $('#mOk',d).onclick=()=>{if(m&&hacer({tipo:'enviado',id:A.id,k}).ok)toast(Oficio.DEMO?'Mensaje enviado (en la demo, solo se apunta).':'Apuntado como enviado.');d.close()}}
 function hLlamar(A){hoja(hc('Llamar al cliente')+'<div class="hb"><p class="gordo num">'+K.telBonito(A.cli.tel)+'</p>'+(Oficio.DEMO?'<p class="dn">En la app real, este botón llama con un toque. En la demo no llamamos a nadie: el teléfono es inventado.</p></div><div class="hp"><button class="btn ancho" data-x>Cerrar</button></div>':'</div><div class="hp"><a class="btn pri ancho" href="tel:+34'+K.tel9(A.cli.tel)+'">Llamar</a></div>'))}
 /* ===== con servidor: entrar con el código de cada uno, el aviso de conexión y la sesión ===== */
-const EN={quien:(SRV&&Oficio.ultima())||'oficina',err:'',va:false,ver:false};
+/* Lo que se elige y se escribe en «Entrar» se guarda aquí según se teclea: si la pantalla se vuelve a pintar (cambia la
+   dirección, pasa un minuto), no se pierde ni vuelve a «Centralita» sin que nadie lo vea. El código no sale de la memoria. */
+const EN={quien:(SRV&&Oficio.ultima())||'oficina',cod:'',err:'',va:false,ver:false,pintado:''};
 const ENERR={clave:'Ese código no es el de esa persona. Son 16 letras y números; da igual si pones los guiones.',corto:'Escribe tu código.',bloqueo:'Demasiados intentos seguidos. Espera diez minutos y prueba otra vez.',red:'No hay conexión con el servidor. Comprueba internet y prueba otra vez.',datos:'Esa persona ya no está en los datos de este negocio. Avisa a OOOX.',servidor:'El servidor ha fallado. Prueba otra vez en un momento.',lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.'};
 function pEntra(){const m=Oficio.red().motivo,L=[['oficina','Centralita']].concat(N.tecnicos.map(t=>[t.id,t.n+' '+t.ap]));
  if(!L.some(x=>x[0]===EN.quien))EN.quien='oficina';
+ /* si ya está en pantalla tal cual, no se toca: así no se mueve el cursor ni se cierra el teclado del móvil */
+ const marca=[m,EN.err,EN.va,EN.ver].join('|');if($('#fEntra')&&EN.pintado===marca){if($('#e_quien').value!==EN.quien)$('#e_quien').value=EN.quien;if($('#e_cod').value!==EN.cod)$('#e_cod').value=EN.cod;return}
+ EN.pintado=marca;
  const h='<div class="entra"><div class="cab"><div><h1>Entrar</h1><p class="sub">'+esc(N.nombre)+' por dentro. Cada persona entra con su código.</p></div></div>'+
   (m==='clave'&&!EN.err?'<p class="ojo">Tu código ha dejado de valer en este aparato. Pide uno nuevo a quien lleva la app. Lo que tenías sin enviar sigue guardado aquí y saldrá cuando entres.</p>':'')+
   '<form id="fEntra" novalidate><div class="campo"><label for="e_quien">Quién eres</label><select id="e_quien">'+L.map(x=>'<option value="'+esc(x[0])+'"'+(EN.quien===x[0]?' selected':'')+'>'+esc(x[1])+'</option>').join('')+'</select></div>'+
-  '<div class="campo'+(EN.err?' mal':'')+'"><label for="e_cod">Tu código</label><input id="e_cod" type="'+(EN.ver?'text':'password')+'" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false"'+(EN.err?' aria-invalid="true" aria-describedby="e_ecod"':' aria-describedby="a_ecod"')+'>'+
+  '<div class="campo'+(EN.err?' mal':'')+'"><label for="e_cod">Tu código</label><input id="e_cod" value="'+esc(EN.cod)+'" type="'+(EN.ver?'text':'password')+'" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false"'+(EN.err?' aria-invalid="true" aria-describedby="e_ecod"':' aria-describedby="a_ecod"')+'>'+
    (EN.err?'<p class="err" id="e_ecod">'+(ENERR[EN.err]||ENERR.servidor)+'</p>':'<p class="ayuda" id="a_ecod">Te lo da quien lleva la app en el negocio. Se queda guardado en este aparato hasta que cierres la sesión.</p>')+
    '<button class="txt ver" type="button" id="eVer" aria-pressed="'+EN.ver+'">'+(EN.ver?'Ocultar el código':'Ver el código')+'</button></div>'+
   '<button class="btn pri ancho" type="submit"'+(EN.va?' disabled':'')+'>'+(EN.va?'Entrando…':'Entrar')+'</button></form></div>';
  const v=$('#v');v.className='estrecha';v.innerHTML=h;document.body.classList.remove('det');geoPara();
  if(NAVH!==''){$('#nav').innerHTML='';NAVH=''}$('#quien').innerHTML='';CUR='entrar';document.title='Entrar · '+N.nombre+' por dentro'}
-function entra(){if(EN.va)return;const c=$('#e_cod').value;EN.quien=$('#e_quien').value;
- if(c.trim().length<8){EN.err='corto';pEntra();$('#e_cod').focus();return}
- EN.va=true;EN.err='';const guarda=c;pEntra();$('#e_cod').value=guarda;
- Oficio.entrar(EN.quien,c).then(r=>{EN.va=false;
-  if(r.ok){EN.err='';EN.ver=false;location.hash='#/';pinta();scrollTo(0,0);$('#v').focus({preventScroll:true});return}
-  EN.err=r.err;pEntra();const i=$('#e_cod');i.value=guarda;i.focus()})}
+function entra(){if(EN.va)return;EN.cod=$('#e_cod').value;EN.quien=$('#e_quien').value;
+ if(EN.cod.trim().length<8){EN.err='corto';pEntra();$('#e_cod').focus();return}
+ EN.va=true;EN.err='';pEntra();
+ Oficio.entrar(EN.quien,EN.cod).then(r=>{EN.va=false;
+  if(r.ok){EN.err='';EN.ver=false;EN.cod='';EN.pintado='';location.hash='#/';pinta();scrollTo(0,0);$('#v').focus({preventScroll:true});return}
+  EN.err=r.err;pEntra();$('#e_cod').focus()})}
 function pRed(){const e=$('#red');if(!e||!SRV)return;const r=Oficio.red();let t='';
  if(Oficio.sesion()){
   if(r.motivo==='bloqueo')t='Hay demasiados intentos fallidos con tu código. La app vuelve a probar sola en unos minutos.';
@@ -735,7 +740,7 @@ function hSesion(){const esT=Q.rol==='tecnico',t=cfg.tec[Q.id],r=Oficio.red();
  let seguro=false;
  $('#mSal',d).onclick=()=>{const n=Oficio.red().cola;
   if(n&&!seguro){seguro=true;$('#mSal',d).textContent=n===1?'Salir y perder ese cambio':'Salir y perder esos '+n+' cambios';$('#mCola',d).textContent='Hay '+(n===1?'1 cambio':n+' cambios')+' sin enviar. Si sales ahora, se pierden.';return}
-  d.close();Oficio.salir();location.hash='#/';pinta();toast('Sesión cerrada.')}}
+  d.close();EN.cod='';EN.err='';EN.pintado='';Oficio.salir();location.hash='#/';pinta();toast('Sesión cerrada.')}}
 function hMenu(){if(SRV)return hSesion();const esT=Q.rol==='tecnico';
  const d=hoja(hc(Oficio.DEMO?'Estás viendo la demo':'Quién usa la app')+'<div class="hb"><div class="campo"><span class="lb">Como</span><div class="mrol"><button class="tec" data-rol="centralita" aria-pressed="'+(!esT)+'"><i class="av c" aria-hidden="true">C</i><span><b>Centralita</b><small>Quien coge el teléfono y reparte</small></span></button>'+
   N.tecnicos.map(t=>'<button class="tec" data-rol="'+t.id+'" aria-pressed="'+(esT&&Q.id===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n+' '+t.ap)+'</b><small>Técnico'+(t.jefe?' y dueño':'')+'</small></span></button>').join('')+'</div></div>'+
@@ -857,7 +862,9 @@ document.addEventListener('click',e=>{const t=e.target.closest('#fMejora [data-m
  $$('#fMejora [data-m-tipo]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mTipo===M.tipo)));const x=$('#e_mtipo');if(x){x.hidden=true;x.closest('.campo').classList.remove('mal')}});
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.m&&Object.prototype.hasOwnProperty.call(M,i.dataset.m))M[i.dataset.m]=i.value});
 document.addEventListener('submit',e=>{const f=e.target.id;if(f==='fMejora'){e.preventDefault();mEnvia()}else if(f==='fCodigo'){e.preventDefault();mCodigo()}else if(f==='fEntra'){e.preventDefault();entra()}});
-document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#eVer'))return;const i=$('#e_cod'),c=i.value;EN.ver=!EN.ver;EN.quien=$('#e_quien').value;pEntra();const n=$('#e_cod');n.value=c;n.focus()});
+document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#eVer'))return;EN.ver=!EN.ver;pEntra();$('#e_cod').focus()});
+document.addEventListener('input',e=>{if(e.target.id==='e_cod')EN.cod=e.target.value});
+document.addEventListener('change',e=>{if(e.target.id==='e_quien')EN.quien=e.target.value});
 addEventListener('online',()=>{if(SOP&&Q.rol!=='tecnico'&&SOP.cola().length)mTrae(true)});
 /* De vez en cuando la centralita mira si OOOX ha contestado algo: como mucho cada media hora, y enseguida si hay algo sin enviar. */
 if(SOP){const mira=()=>{if(Q.rol!=='tecnico'&&SOP.codigo()&&(SOP.toca(18e5)||(SOP.cola().length&&navigator.onLine!==false)))mTrae(true)};setTimeout(mira,1500);setInterval(mira,3e5)}
