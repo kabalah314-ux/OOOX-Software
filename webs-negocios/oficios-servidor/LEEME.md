@@ -167,9 +167,13 @@ Con navegador:
   Se pasa dos veces: con la plantilla y los datos de Voltio, y con la copia de Voltio servida desde su carpeta.
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
+GitHub las pasa en cada cambio: reglas y datos en una máquina, y las pantallas en Chromium, Firefox y WebKit. En verde
+el 14-11-2026 con el commit `acb9626`.
+
 En vivo (14-11-2026), contra la función desplegada y sin navegador: entrar bien y mal, crear, asignar, leer como cada
 técnico, enlace del cliente bueno y malo, cita desde la web con el origen y el técnico forzados, acción repetida,
-permisos y cancelar. Quedan en el servidor dos avisos de prueba de Voltio (`VS-0001` y `VS-0002`, con «Prueba de
+permisos y cancelar. Y desde la vista previa, en un navegador de verdad: los huecos libres y el enlace del cliente, con
+su llave y con una inventada. Entrar con código desde una página publicada queda para Oscar. Quedan en el servidor dos avisos de prueba de Voltio (`VS-0001` y `VS-0002`, con «Prueba de
 Claude» por nombre).
 
 ## Lo que falta
@@ -185,3 +189,7 @@ Claude» por nombre).
 7. **Copia de seguridad**: el plan gratis no hace copias automáticas. Antes del primer negocio de verdad, o plan de pago
    (desde 25 $ al mes, con el visto bueno de Oscar) o una copia diaria propia.
 8. **Texto legal** del formulario del cliente (quién es el responsable de los datos): lo tiene que revisar la gestoría.
+9. **Freno general por conexión** en la función. Hoy tienen freno pedir cita (5 por hora y conexión, 40 por hora en
+   total) y los códigos fallados (10 en diez minutos). Mirar huecos o llamar sin más no lo tiene: alguien con mala idea
+   podría gastar las 500.000 llamadas al mes del plan gratis. No cuesta dinero (la función dejaría de contestar hasta
+   el mes siguiente), pero antes de un negocio de verdad hay que ponerlo.
