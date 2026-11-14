@@ -99,6 +99,8 @@ const mem={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(
 let S=Oficio.estado();
 const P=new URLSearchParams(location.search),av0=P.get('av')||mem.get('ramirez:av');
 const B={av:cfg.av[av0]?av0:'',nota:'',foto:'',dia:'',fr:'',alt:[],nombre:'',apellidos:'',tel:'',dir:'',cp:'',err:''};
+/* desde «Pedir otra cita» de la zona del cliente: sus datos ya puestos, una sola vez */
+{const y=mem.get('oficio:'+N.id+':yo');if(y){try{const o=JSON.parse(y);['nombre','apellidos','tel','dir','cp'].forEach(k=>{if(o&&typeof o[k]==='string')B[k]=k==='tel'?K.telBonito(o[k]):o[k]})}catch(e){}try{localStorage.removeItem('oficio:'+N.id+':yo')}catch(e){}}}
 const ERR={av:'Elige qué te pasa.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nombre:'Escribe tu nombre.',apellidos:'Escribe tus apellidos.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en '+N.ciudad+'.'};
 /* con servidor: los huecos los da él (días y franjas libres, sin cifras) y el aviso se sigue con la llave del enlace */
 const SRV=Oficio.SRV,H={dias:null,err:'',t:0,va:false};

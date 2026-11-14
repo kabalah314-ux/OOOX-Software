@@ -305,6 +305,7 @@ body.conred main.dos{padding-top:0}
 <script src="js/oficio-datos.js"></script>
 <script src="js/oficio-espejo.js"></script>
 <script src="js/oficio-estado.js"></script>
+<script src="js/oficio-papeles.js"></script>
 <script src="js/oficio-soporte.js"></script>
 <script>
 (function(){
@@ -403,7 +404,7 @@ function bCliente(A,esT){const c=A.cli;let h='<section class="blq"><h2>Cliente</
  h+=(esT?'<p class="dir">'+esc(c.dir)+'</p><p class="ln">'+esc(c.cp)+' '+esc(barrio(A))+' · '+esc(K.nomCli(c))+'</p>':'<p class="gr">'+esc(K.nomCli(c))+'</p><p class="ln">'+esc(c.dir)+' · '+esc(c.cp)+' '+esc(barrio(A))+'</p>');
  if(A.nota)h+='<p class="dice">'+esc(A.nota)+'</p>';
  if(A.foto)h+='<img class="fotoc" src="'+A.foto+'" alt="Foto que ha mandado el cliente">';
- h+='<div class="acts"><button class="btn peq" data-a="llamar" data-id="'+A.id+'">'+I.tel+K.telBonito(c.tel)+'</button><a class="btn peq" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.dir.split(',')[0]+', '+c.cp+' '+N.ciudad)+'">'+I.mapa+'Mapa</a></div>';
+ h+='<div class="acts"><button class="btn peq" data-a="llamar" data-id="'+A.id+'">'+I.tel+K.telBonito(c.tel)+'</button><a class="btn peq" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.dir.split(',')[0]+', '+c.cp+' '+N.ciudad)+'">'+I.mapa+'Mapa</a>'+(esT?'':'<button class="btn peq" data-a="zona" data-id="'+A.id+'">Su zona</button>')+'</div>';
  return h+'</section>'}
 function bGar(A){const G=A.gar0&&el(A.gar0);if(!G)return'';return'<p class="ojo">Puede ser garantía: <a href="#/aviso/'+G.id+'">'+G.id+'</a>, '+esc(cfg.av[G.av].n.toLowerCase())+', terminado el '+K.fechaCorta(K.madrid(G.fin).date)+'.</p>'}
 function bReparto(A){const r=K.resumen(S,cfg,Date.now()),rep=['nuevo','asignado','ausente'].includes(A.e);
@@ -579,24 +580,9 @@ function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true);if(!dias.find(x=>
 
 /* ===== los papeles ===== */
 function vPapel(id,tipo){const A=el(id);if(!A||!A.tot)return'<div class="cab"><div><h1>Papeles</h1><p class="sub">Este aviso todavía no tiene papeles.</p></div></div><p class="fin"><a class="txt" href="#/aviso/'+esc(id)+'">Volver al aviso</a></p>';
- const tipos=[A.pres&&['presupuesto','Presupuesto'],A.e==='hecho'&&['parte','Parte de trabajo'],A.gar&&['garantia','Garantía']].filter(Boolean);if(!tipos.find(x=>x[0]===tipo))tipo=tipos[tipos.length>1&&A.e==='hecho'?1:0][0];
- const c=A.cli,av=cfg.av[A.av],t=cfg.tec[A.tec],f=K.fechaCorta;
- const cab='<div class="dh"><span class="wm">'+MARCA+'</span><p>'+esc(N.razon)+' · NIF '+N.nif+'<br>'+esc(N.dir)+' · '+N.tel+'</p></div>';
- const cli='<div class="dos"><div><h2>Cliente</h2><p><b>'+esc(K.nomCli(c))+'</b><br>'+esc(c.dir)+'<br>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(c.tel)+'</p></div><div><h2>Trabajo</h2><p>'+esc(av.n)+'<br>Técnico: '+esc(t.n+' '+t.ap)+'<br>'+(A.cita?'Con cita':'Aviso urgente')+' · '+(A.tot.urg?'tarifa de urgencia':'tarifa normal')+'</p></div></div>';
- const lin=L=>L.map(l=>'<div class="lin"><span>'+esc(l.t)+'</span><b>'+K.eur(l.imp)+'</b>'+(lq(l)||l.u?'<small>'+[lq(l),l.u?'con el '+PCT+' % de urgencia':''].filter(Boolean).join(' · ')+'</small>':'')+'</div>').join('');
- const tot=T=>'<div class="tot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+(T.motivo==='material'?'. El material pasa del 40 % del trabajo.':T.motivo==='local'?'. Local o vivienda de menos de dos años.':'')+'</p>';
- const fir=(x,txt)=>x?'<div class="fir">'+Oficio.firmaSvg(x.firma)+'<small>'+txt+' el '+f(K.madrid(x.t).date)+' a las '+K.hora(x.t)+'</small></div>':'';
- let d='';
- if(tipo==='presupuesto')d='<h1>Presupuesto</h1><p class="dn">N.º P-'+A.id+' · '+f(K.madrid(A.pres.t).date)+', '+K.hora(A.pres.t)+'</p>'+cli+'<h2>Lo que se va a hacer</h2>'+lin(A.pres.lineas)+tot(A.pres)+'<h2>Aceptado por el cliente</h2>'+fir(A.pres,'Firmado en el móvil del técnico')+
-  (A.amp?'<h2>Ampliaciones firmadas después</h2>'+A.amp.map(m=>'<div class="lin"><span>'+m.lineas.map(l=>esc(l.t)+(lq(l)?', '+lq(l):'')).join(' · ')+'</span><b>+ '+K.eur(m.dif)+'</b><small>Firmada a las '+K.hora(m.t)+(m.dif!==m.lineas.reduce((s,l)=>s+l.imp,0)?'. Incluye el cambio de IVA de todo el trabajo':'')+'</small></div>').join(''):'')+
-  '<p class="pie">Precio cerrado antes de empezar. Si durante el trabajo hace falta algo más, se dice el precio y se firma antes de hacerlo.</p><p class="sello">Precio cerrado</p>';
- else if(tipo==='parte')d='<h1>Parte de trabajo</h1><p class="dn">N.º '+A.id+' · '+f(K.madrid(A.fin).date)+'</p>'+cli+'<h2>Tiempos</h2><p>Aviso: '+K.hora(A.t)+' · Llegada: '+K.hora(A.ini||A.fin)+' · Fin: '+K.hora(A.fin)+(A.sinTrabajo?'':' · Trabajo: '+dur(A.min||0))+'</p>'+
-  '<h2>'+(A.sinTrabajo?'El cliente no aceptó el presupuesto':'Trabajo y material')+'</h2>'+lin(A.tot.lineas)+tot(A.tot)+'<h2>Pago</h2><p>'+(A.pago.cobrado?'Cobrado el '+f(K.madrid(A.pago.t).date)+': '+PAGO[A.pago.modo].toLowerCase()+'.':'Pendiente de pago.')+'</p>'+
-  (A.obs?'<h2>Nota del técnico</h2><p>'+esc(A.obs)+'</p>':'')+(A.fotos&&A.fotos.length?'<h2>Fotos</h2><div class="fotos">'+A.fotos.map(x=>'<img src="'+x+'" alt="Foto del trabajo">').join('')+'</div>':'')+
-  (A.conf?'<h2>Conforme</h2>'+fir(A.conf,'Firmado por el cliente'):'')+'<p class="pie">Este parte no es una factura. La factura la emite '+esc(N.razon)+' con su programa de facturas.'+(A.gar?' Garantía de un año, hasta el '+f(A.gar.hasta)+'.':'')+'</p>';
- else d='<h1>Garantía</h1><p class="dn">Trabajo '+A.id+' · terminado el '+f(K.madrid(A.fin).date)+'</p><p class="gran" style="margin-top:18px">1 año</p><p>Hasta el <b>'+f(A.gar.hasta)+'</b>.</p>'+cli+'<h2>Qué cubre</h2><p>'+esc(av.n)+': la mano de obra'+(A.tot.lineas.some(l=>l.mat)?' y el material que pusimos ('+A.tot.lineas.filter(l=>l.mat).map(l=>esc(l.t.toLowerCase())).join(', ')+')':'')+'.</p>'+
-  '<p style="margin-top:12px">Si lo que arreglamos vuelve a fallar dentro del año, volvemos sin cobrar el desplazamiento ni la mano de obra.</p><h2>Cómo pedirla</h2><p>Llama al '+N.tel+' o escribe por WhatsApp con el número del trabajo: <b>'+A.id+'</b>.</p><p class="pie">'+esc(N.razon)+' · NIF '+N.nif+'</p><p class="sello">Garantía de '+esc(N.nombre)+'</p>';
- return'<div class="noimp"><a class="atras" href="#/aviso/'+A.id+'">'+I.atras+'Aviso '+A.id+'</a><div class="cab"><div><h1 class="vh">Papeles del aviso '+A.id+'</h1></div></div><nav class="vdocs" aria-label="Papeles">'+tipos.map(x=>'<a href="#/papel/'+A.id+'/'+x[0]+'"'+(x[0]===tipo?' aria-current="page"':'')+'>'+x[1]+'</a>').join('')+'</nav></div><article class="papel doc">'+cab+d.replace('<h1>','<h2 class="h1" style="font:700 2.1rem/1.05 var(--fd);color:var(--tinta);margin:18px 0 2px">').replace('</h1>','</h2>')+(Oficio.DEMO?'<p class="pie">Documento de ejemplo de una demo: empresa, cliente e importes son inventados.</p>':'')+'</article>'+
+ const tipos=OficioPapeles.tipos(A);tipo=OficioPapeles.elige(A,tipo);
+ const d=OficioPapeles.doc(A,tipo,{K,N,cfg,firmaSvg:Oficio.firmaSvg});
+ return'<div class="noimp"><a class="atras" href="#/aviso/'+A.id+'">'+I.atras+'Aviso '+A.id+'</a><div class="cab"><div><h1 class="vh">Papeles del aviso '+A.id+'</h1></div></div><nav class="vdocs" aria-label="Papeles">'+tipos.map(x=>'<a href="#/papel/'+A.id+'/'+x[0]+'"'+(x[0]===tipo?' aria-current="page"':'')+'>'+x[1]+'</a>').join('')+'</nav></div><article class="papel doc">'+d.replace('<h1>','<h2 class="h1" style="font:700 2.1rem/1.05 var(--fd);color:var(--tinta);margin:18px 0 2px">').replace('</h1>','</h2>')+(Oficio.DEMO?'<p class="pie">Documento de ejemplo de una demo: empresa, cliente e importes son inventados.</p>':'')+'</article>'+
   '<div class="dacts noimp"><button class="btn pri" data-a="imprimir">Imprimir o guardar en PDF</button>'+(A.e==='hecho'?'<button class="btn" data-a="msg" data-id="'+A.id+'" data-k="hecho">Enviar al cliente</button>':'')+'</div>'}
 
 /* ===== mejoras: lo que la oficina le pide a OOOX y lo que OOOX contesta ===== */
@@ -700,6 +686,12 @@ function hMsg(A,k){const txt=K.mensaje(cfg,A,k),m=A.msgs.find(x=>x.k===k&&!x.env
  const d=hoja(hc(K.MSG[k])+'<div class="hb">'+waHtml(txt,A.cli.nombre)+(Oficio.DEMO?'<p class="dn">En la app real, este botón abre WhatsApp con el mensaje ya escrito para '+esc(A.cli.nombre.split(' ')[0])+'. En la demo no se escribe a nadie.</p></div><div class="hp"><button class="btn pri ancho" id="mOk">'+(m?'Enviar':'Entendido')+'</button></div>'
   :'<p class="dn">Se abre WhatsApp con el mensaje ya escrito. Revísalo y envíalo desde allí.</p></div><div class="hp"><a class="btn pri ancho" id="mOk" target="_blank" rel="noopener" href="https://wa.me/34'+K.tel9(A.cli.tel)+'?text='+encodeURIComponent(txt)+'">Abrir WhatsApp</a></div>'));
  $('#mOk',d).onclick=()=>{if(m&&hacer({tipo:'enviado',id:A.id,k}).ok)toast(Oficio.DEMO?'Mensaje enviado (en la demo, solo se apunta).':'Apuntado como enviado.');d.close()}}
+/* la zona del cliente: el mensaje con su enlace y su código. En la demo, el código de la muestra y el enlace se abre aquí */
+function hZona(A){const t9=K.tel9(A.cli.tel);if(!t9){toast('Este aviso todavía no tiene teléfono.');return}
+ if(!Oficio.DEMO){hoja(hc('Zona del cliente')+'<div class="hb"><p>La zona del cliente todavía no está abierta en esta copia: llegará con el acceso de cada cliente por el servidor.</p></div><div class="hp"><button class="btn ancho" data-x>Cerrar</button></div>');return}
+ const cod=K.CLIENTE_DEMO,url=new URL('cliente.html#/entra/'+t9+'/'+cod,location.href).href,n=(A.cli.nombre||'').split(' ')[0];
+ const txt=(n?'Hola, '+n+'. ':'Hola. ')+'En tu zona de '+N.nombre+' tienes tus avisos, tus presupuestos y tus garantías: '+url+' . Si te pide el código, es este: '+cod+'. '+N.nombre+'.';
+ hoja(hc('Zona del cliente')+'<div class="hb"><p>Ahí tiene sus avisos, sus presupuestos, sus partes y sus garantías. Entra con su teléfono y el código que le llega en este mensaje.</p>'+waHtml(txt,K.nomCli(A.cli))+'<p class="dn">En la app real, este botón abre WhatsApp con el mensaje ya escrito. En la demo no se escribe a nadie: su zona se abre aquí.</p></div><div class="hp"><a class="btn pri ancho" id="zAbre" target="_blank" rel="noopener" href="'+esc(url)+'">Abrir su zona</a></div>')}
 function hLlamar(A){hoja(hc('Llamar al cliente')+'<div class="hb"><p class="gordo num">'+K.telBonito(A.cli.tel)+'</p>'+(Oficio.DEMO?'<p class="dn">En la app real, este botón llama con un toque. En la demo no llamamos a nadie: el teléfono es inventado.</p></div><div class="hp"><button class="btn ancho" data-x>Cerrar</button></div>':'</div><div class="hp"><a class="btn pri ancho" href="tel:+34'+K.tel9(A.cli.tel)+'">Llamar</a></div>'))}
 /* ===== con servidor: entrar con el código de cada uno, el aviso de conexión y la sesión ===== */
 /* Lo que se elige y se escribe en «Entrar» se guarda aquí según se teclea: si la pantalla se vuelve a pintar (cambia la
@@ -830,6 +822,7 @@ const ACC={
  menu:()=>hMenu(),
  imprimir:()=>window.print(),
  llamar:A=>hLlamar(A),
+ zona:A=>hZona(A),
  msg:(A,b)=>hMsg(A,b.dataset.k),
  completar:A=>hCompletar(A),
  cita:A=>hCita(A),

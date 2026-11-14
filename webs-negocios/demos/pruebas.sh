@@ -54,6 +54,7 @@ if [ "$QUE" != reglas ]; then
   for h in ${HORAS:-2026-11-14T23:30:00+01:00 2026-12-31T23:58:30+01:00}; do paso "App a otra hora ($h)" env AHORA="$h" python3 app.py; done
   paso "Web y página de los tres móviles" python3 web.py
   paso "Muestra de la demo" python3 muestra.py
+  paso "Zona del cliente: entrar con el teléfono y ver lo suyo" python3 cliente.py
   paso "Vídeo de entrada" python3 entrada.py
   paso "Otro negocio, de principio a fin" python3 negocio.py "$OTRO"
   paso "El mismo recorrido con el negocio de muestra" python3 negocio.py "$SITIO/js/oficio-datos.js"
@@ -61,6 +62,7 @@ if [ "$QUE" != reglas ]; then
   if [ -d "$COPIAS" ]; then for d in "$COPIAS"/*/js/oficio-datos.js; do [ -f "$d" ] || continue; c="$(dirname "$(dirname "$d")")"
     ( cd "$c" && exec python3 -m http.server 8767 >/dev/null 2>&1 ) & S3=$!; sleep 1
     paso "Copia $(basename "$c"), de principio a fin y servida desde su carpeta" python3 negocio.py "$d" 8767
+    paso "Copia $(basename "$c"): la zona del cliente" python3 cliente.py 8767 --copia
     kill $S3 2>/dev/null; wait $S3 2>/dev/null
     # si la copia va con servidor, además se prueba así: desde su carpeta, contra un servidor local (nunca contra el de verdad)
     if [ -n "$JUEZ" ] && grep -q "servidor" "$d"; then

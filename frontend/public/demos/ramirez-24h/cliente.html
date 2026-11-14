@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es" data-demo>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tu zona</title>
+<meta name="description" content="Tu zona de cliente: tus avisos, tus presupuestos, tus partes y tus garantías.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14171a">
+<link rel="preload" href="assets/fuentes/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fuentes/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="oficio.css">
+<style>
+/* La zona del cliente: entra con su teléfono y un código, y tiene a mano todo lo suyo. Los papeles, sobre papel. */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;padding:0 16px;background:var(--asfalto);border-bottom:1px solid var(--linea)}
+.wm{font:800 1.5rem/1 var(--fd);text-decoration:none;white-space:nowrap}
+.wm span{margin-left:.22em;padding:.02em .22em;border-radius:4px;background:var(--senal);color:var(--negro)}
+main{display:block;max-width:640px;margin:0 auto;padding:24px 18px calc(44px + var(--sb))}
+main:focus{outline:0}
+h1{font:800 1.75rem/1 var(--fd)}
+.lead{margin-top:12px;font-size:1.125rem;color:var(--suave)}
+.lead a{color:var(--texto);font-weight:600}
+form{display:grid;gap:14px;margin-top:24px}
+form>.btn{margin-top:4px}
+.fallo{padding:12px 14px;border-radius:12px;background:var(--mal-f);color:var(--mal);font-weight:600}
+.muestra{margin-top:28px;padding:14px;border-radius:12px;border:1px dashed var(--control)}
+.muestra p{font-size:.9375rem;color:var(--suave)}
+.muestra p b{color:var(--texto)}
+.muestra .ops{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.acciones{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.sec{margin-top:30px}
+.sec>h2{margin-bottom:10px;font:700 1.375rem/1.1 var(--fd)}
+.tarjetas{display:grid;gap:10px}
+.tj{display:grid;gap:4px;padding:14px;border-radius:12px;background:var(--asfalto-2);border:1px solid var(--linea);color:inherit;text-decoration:none}
+a.tj:hover{border-color:var(--control)}
+.tj .k{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9375rem;color:var(--suave)}
+.tj b{font:700 1.25rem/1.1 var(--fd)}
+.tj small{font-size:.9375rem;color:var(--suave)}
+.vacio{color:var(--suave)}
+.datos p+p{margin-top:2px}
+.atras{display:inline-flex;align-items:center;gap:6px;color:var(--suave);font-weight:600;text-decoration:none}
+.vdocs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 16px}
+.vdocs a{padding:8px 14px;border-radius:999px;border:1px solid var(--control);color:inherit;font-weight:600;text-decoration:none}
+.vdocs a[aria-current=page]{border-color:var(--senal);background:var(--asfalto-3)}
+.dacts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.doc h1{font:800 1.75rem/1 var(--fd)}
+@media print{.top,.noimp,#toast{display:none!important}main{max-width:none;margin:0;padding:0}}
+@media (min-width:560px){h1,.doc h1{font-size:2rem}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a class="vh" href="#v">Saltar al contenido</a>
+<header class="top">
+ <a class="wm" href="./" id="marca"></a>
+ <a class="btn peq" href="cita.html">Pedir cita</a>
+</header>
+<main id="v" tabindex="-1"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="js/oficio-nucleo.js"></script>
+<script src="js/oficio-datos.js"></script>
+<script src="js/oficio-espejo.js"></script>
+<script src="js/oficio-estado.js"></script>
+<script src="js/oficio-papeles.js"></script>
+<script>
+(function(){
+'use strict';
+const {K,N,cfg}=Oficio,P=OficioPapeles,esc=P.esc,$=(s,r)=>(r||document).querySelector(s);
+const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
+{const m=$('#marca');m.innerHTML=MARCA;m.setAttribute('aria-label',N.nombre+': volver a la web');if(!Oficio.DEMO)document.documentElement.removeAttribute('data-demo')}
+const mem={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+/* la sesión del cliente en este aparato: su teléfono. En la demo no hay servidor: entra quien tenga un aviso con ese teléfono y el código de la demo */
+const CLAVE='oficio:'+N.id+':cliente';
+const EST={nuevo:'Recibido',asignado:'Asignado',camino:'De camino',curso:'Trabajando',hecho:'Terminado',ausente:'No había nadie',cancelado:'Cancelado'};
+const PILL={nuevo:'nuevo',asignado:'nuevo',camino:'camino',curso:'curso',hecho:'hecho',ausente:'ausente',cancelado:''};
+const ERR={tel:'El teléfono tiene que tener 9 cifras.',cod:'Ese código no es. Lo tienes en el WhatsApp que te mandamos.',nadie:'Con ese teléfono no tenemos ningún aviso. Si es la primera vez, pide cita.'};
+let S=Oficio.estado(),F={tel:'',cod:'',err:''},vista='';
+const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
+const sesion=()=>{try{const x=JSON.parse(mem.get(CLAVE)||'null');return x&&K.tel9(x.tel)?x:null}catch(e){return null}};
+const codigo=s=>{const d=String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');return d.length===8?d.slice(0,4)+'-'+d.slice(4):d};
+const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?K.franjaTxt(f):''};
+const avN=a=>(cfg.av[a.av]||{n:'Aviso'}).n;
+
+/* entrar: devuelve el motivo si no puede */
+function entra(tel,cod){const t9=K.tel9(tel);if(!t9)return'tel';if(codigo(cod)!==K.CLIENTE_DEMO)return'cod';
+ if(!K.perfilCliente(Oficio.estado(),cfg,t9))return'nadie';mem.set(CLAVE,JSON.stringify({tel:t9}));return''}
+
+/* los clientes de la muestra, para entrar con un toque en la demo */
+function muestra(){const vistos={},L=[];S.avisos.slice().sort((a,b)=>b.t-a.t).forEach(a=>{const t9=a.cli&&K.tel9(a.cli.tel);if(t9&&!vistos[t9]&&K.nomCli(a.cli)){vistos[t9]=1;L.push({tel:t9,n:K.nomCli(a.cli)})}});return L.slice(0,5)}
+
+const campo=(id,lb,v,o)=>'<div class="campo'+(F.err===id?' mal':'')+'"><label for="z_'+id+'">'+lb+'</label><input id="z_'+id+'" data-f="'+id+'" value="'+esc(v)+'" '+(o||'')+(F.err===id?' aria-invalid="true" aria-describedby="e_'+id+'"':'')+'>'+(F.err===id?'<p class="err" id="e_'+id+'">'+ERR[id]+'</p>':'')+'</div>';
+
+function vEntra(){
+ if(!Oficio.DEMO)return'<h1>Tu zona</h1><p class="lead">La zona de cliente de '+esc(N.nombre)+' todavía no está abierta. Mientras, sigue tu aviso con el enlace que te mandamos por WhatsApp o llámanos al '+esc(N.tel)+'.</p>';
+ const L=muestra();
+ return'<h1>Tu zona</h1><p class="lead">Tus avisos, tus presupuestos, tus partes y tus garantías de '+esc(N.nombre)+', a mano.</p>'+
+  '<form id="fE" novalidate>'+campo('tel','Tu teléfono',F.tel,'type="tel" inputmode="tel" autocomplete="tel"')+campo('cod','El código de tu WhatsApp',F.cod,'autocomplete="one-time-code" autocapitalize="off" spellcheck="false"')+
+  (F.err==='nadie'?'<p class="fallo" role="alert">'+ERR.nadie+'</p>':'')+'<button class="btn pri ancho" type="submit">Entrar</button></form>'+
+  (L.length?'<div class="muestra"><p><b>En la demo</b>, el código de todos los clientes de muestra es <b class="num">'+K.CLIENTE_DEMO+'</b>. En la app de verdad, a cada cliente le llega el suyo por WhatsApp. O entra con un toque como uno de ellos:</p><div class="ops">'+
+   L.map(c=>'<button type="button" class="btn peq" data-entra="'+c.tel+'">'+esc(c.n)+'</button>').join('')+'</div></div>':'')}
+
+function tjAhora(a){const v=a.vista||{};
+ return'<a class="tj" href="cita.html#/aviso/'+esc(a.id)+'"><span class="k"><span>'+esc(a.id)+' · '+(a.cita?esc(K.fechaCorta(a.cita.dia))+', '+esc(frTxt(a.cita.fr)):'urgente')+'</span><span class="pill '+PILL[a.e]+'">'+EST[a.e]+'</span></span><b>'+esc(avN(a))+'</b><small>'+(v.tec?'Va '+esc(v.tec)+'. ':'')+'Toca para ver cómo va.</small></a>'}
+function tjHecho(a,hoy){const gar=a.gar?(a.gar.hasta>=hoy?' · garantía hasta el '+K.fechaCorta(a.gar.hasta):' · garantía terminada'):'';
+ return'<a class="tj" href="#/aviso/'+esc(a.id)+'"><span class="k"><span>'+esc(a.id)+' · '+K.fechaCorta(K.madrid(a.fin||a.t).date)+'</span><span class="pill hecho">Terminado</span></span><b>'+esc(avN(a))+'</b><small>'+
+  (a.tot?K.eur(a.tot.total)+' · '+(a.pago&&a.pago.cobrado?'pagado':'pendiente de pago'):'')+gar+'</small></a>'}
+
+function vPerfil(Pf){const c=Pf.cli,hoy=K.madrid().date,n=(c.nombre||'').split(' ')[0];
+ const ahora=Pf.avisos.filter(a=>a.e!=='hecho'&&a.e!=='cancelado'),hechos=Pf.avisos.filter(a=>a.e==='hecho'),canc=Pf.avisos.filter(a=>a.e==='cancelado');
+ let h='<h1>Hola'+(n?', '+esc(n):'')+'.</h1><p class="lead">Lo tuyo con '+esc(N.nombre)+': tus avisos, tus presupuestos, tus partes y tus garantías.</p>'+
+  '<div class="acciones"><button class="btn pri" id="otra">Pedir otra cita</button><button class="btn" id="salir">Salir</button></div>';
+ h+='<section class="sec"><h2>Ahora</h2>'+(ahora.length?'<div class="tarjetas">'+ahora.map(tjAhora).join('')+'</div>':'<p class="vacio">No tienes ningún aviso abierto.</p>')+'</section>';
+ h+='<section class="sec"><h2>Tus trabajos</h2>'+(hechos.length?'<div class="tarjetas">'+hechos.map(a=>tjHecho(a,hoy)).join('')+'</div>':'<p class="vacio">Todavía no hay ningún trabajo terminado.</p>')+
+  (canc.length?'<p class="vacio" style="margin-top:10px">'+(canc.length===1?'Un aviso cancelado':canc.length+' avisos cancelados')+': '+canc.map(a=>esc(a.id)).join(', ')+'.</p>':'')+'</section>';
+ h+='<section class="sec"><h2>Tus facturas</h2><p class="vacio">Las facturas las hace '+esc(N.razon)+' con su programa de facturas. Cuando las suba, las tendrás aquí.</p></section>';
+ h+='<section class="sec datos"><h2>Tus datos</h2><p><b>'+esc(K.nomCli(c))+'</b></p><p>'+esc(c.dir)+'</p><p>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(Pf.tel)+'</p><p class="vacio" style="margin-top:8px">Si algo no está bien, díselo a '+esc(N.nombre)+' al '+esc(N.tel)+'.</p></section>';
+ if(Oficio.DEMO)h+='<p class="vacio" style="margin-top:28px">Demo de OOOX Oficios: los clientes, los avisos y los importes son inventados.</p>';
+ return h}
+
+function vPapel(Pf,id,tipo){const A=Pf.avisos.find(x=>x.id===id),volver='<a class="atras" href="#/">Tu zona</a>';
+ if(!A)return'<div class="noimp">'+volver+'</div><h1>No está en tu zona</h1><p class="lead">Ese aviso no es de este teléfono.</p>';
+ const T=P.tipos(A);
+ if(!T.length)return'<div class="noimp">'+volver+'</div><h1>'+esc(avN(A))+'</h1><p class="lead">Este aviso todavía no tiene papeles: los tendrás cuando el técnico te dé el presupuesto. <a href="cita.html#/aviso/'+esc(A.id)+'">Mira cómo va</a>.</p>';
+ tipo=P.elige(A,tipo);
+ return'<div class="noimp">'+volver+'<nav class="vdocs" aria-label="Papeles">'+T.map(x=>'<a href="#/aviso/'+esc(A.id)+'/'+x[0]+'"'+(x[0]===tipo?' aria-current="page"':'')+'>'+x[1]+'</a>').join('')+'</nav></div>'+
+  '<article class="papel doc">'+P.doc(A,tipo,{K,N,cfg,firmaSvg:Oficio.firmaSvg})+(Oficio.DEMO?'<p class="pie">Documento de ejemplo de una demo: empresa, cliente e importes son inventados.</p>':'')+'</article>'+
+  '<div class="dacts noimp"><button class="btn pri" id="imprime">Imprimir o guardar en PDF</button></div>'}
+
+function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/');return{v:h[0]||'',a:decodeURIComponent(h[1]||''),b:decodeURIComponent(h[2]||'')}}
+function pinta(){S=Oficio.estado();let r=ruta();
+ /* el enlace del WhatsApp: entra y se quita de la barra, para que el código no se quede a la vista */
+ if(r.v==='entra'){const e=Oficio.DEMO?entra(r.a,r.b):'';F={tel:e?r.a:'',cod:'',err:e};history.replaceState(null,'','#/');r=ruta()}
+ const se=Oficio.DEMO?sesion():null,Pf=se?K.perfilCliente(S,cfg,se.tel):null;if(se&&!Pf)mem.del(CLAVE);
+ const v=!Pf?'entra':r.v==='aviso'?'aviso/'+r.a+'/'+r.b:'perfil';
+ $('#v').innerHTML=!Pf?vEntra():r.v==='aviso'?vPapel(Pf,r.a,r.b):vPerfil(Pf);
+ document.title=(Pf?'Tu zona':'Entra en tu zona')+' · '+N.nombre;
+ if(v!==vista){const cambia=!!vista;vista=v;if(cambia){scrollTo(0,0);$('#v').focus({preventScroll:true})}}}
+
+document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.f)F[i.dataset.f]=i.value});
+document.addEventListener('submit',e=>{if(e.target.id!=='fE')return;e.preventDefault();const r=entra(F.tel,F.cod);
+ if(r){F.err=r;pinta();const i=$('#z_'+(r==='nadie'?'tel':r));if(i)i.focus();return}
+ F={tel:'',cod:'',err:''};if(location.hash!=='#/')location.hash='#/';pinta();toast('Ya estás en tu zona.')});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-entra],#salir,#otra,#imprime');if(!b)return;
+ if(b.dataset.entra){if(!entra(b.dataset.entra,K.CLIENTE_DEMO)){F={tel:'',cod:'',err:''};pinta()}return}
+ if(b.id==='salir'){mem.del(CLAVE);F={tel:'',cod:'',err:''};if(location.hash!=='#/')location.hash='#/';pinta();toast('Has salido de tu zona.');return}
+ if(b.id==='imprime'){window.print();return}
+ if(b.id==='otra'){const se=sesion(),Pf=se&&K.perfilCliente(Oficio.estado(),cfg,se.tel);if(Pf){const c=Pf.cli;mem.set('oficio:'+N.id+':yo',JSON.stringify({nombre:c.nombre,apellidos:c.apellidos,tel:Pf.tel,dir:c.dir,cp:c.cp}))}location.href='cita.html'}});
+addEventListener('hashchange',pinta);
+Oficio.suscribir(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('#fE'))return;pinta()});
+pinta();
+})();
+</script>
+</body>
+</html>

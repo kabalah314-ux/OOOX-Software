@@ -33,6 +33,7 @@ const rota = (ley, detalle) => { throw new Rota(ley, detalle) };
 const SALTOS = new Set(['asignado>nuevo', 'nuevo>asignado', 'nuevo>cancelado', 'asignado>camino', 'asignado>curso', 'asignado>hecho', 'asignado>cancelado', 'camino>curso', 'camino>ausente', 'camino>hecho', 'curso>hecho', 'ausente>asignado', 'ausente>nuevo', 'ausente>cancelado']);
 const SOLO_CENTRALITA = ['asignar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado'];
 const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'pos', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo'];
+const PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'cli', 'vista'];   // lo que puede llevar cada aviso del perfil del cliente
 const FEO = /undefined|NaN|\bnull\b|\[object|Invalid|Infinity/;
 function numerosLimpios(o, donde) {
   if (typeof o === 'number') { if (!Number.isFinite(o)) rota('numeros-limpios', donde + ' = ' + o) }
@@ -123,6 +124,17 @@ function paso(W, a, q, t) {
   numerosLimpios(R, 'resumen');
   if (Object.keys(R.canal).join() !== K.ORIGEN.join() || Object.values(R.canal).some(n => !Number.isInteger(n) || n < 0) || Object.values(R.canal).reduce((a, b) => a + b, 0) > S.avisos.length) rota('cifras-por-canal', JSON.stringify(R.canal));
   if (A) { let V; try { V = K.vistaCliente(S, cfg, A.id) } catch (e) { rota('vista-no-revienta', e.message) } for (const k of Object.keys(V)) if (!VISTA.includes(k)) rota('el-cliente-ve-lo-justo', 've «' + k + '»') }
+  // --- el perfil del cliente: todo lo suyo, nada de otro, nada interno, lo último primero; y es una copia
+  if (A && A.cli && K.tel9(A.cli.tel)) {
+    let P; try { P = K.perfilCliente(S, cfg, A.cli.tel) } catch (e) { rota('perfil-no-revienta', e.message) }
+    const t9 = K.tel9(A.cli.tel), suyos = S.avisos.filter(x => x.cli && K.tel9(x.cli.tel) === t9);
+    if (!P || P.tel !== t9 || P.avisos.length !== suyos.length) rota('perfil-todo-lo-suyo', A.id + ': ' + (P ? P.avisos.length : 'nada') + ' de ' + suyos.length);
+    for (const x of P.avisos) { if (K.tel9(x.cli.tel) !== t9) rota('perfil-solo-lo-suyo', x.id); for (const k of Object.keys(x)) if (!PERFIL_OK.includes(k)) rota('perfil-sin-lo-interno', x.id + ' lleva «' + k + '»') }
+    for (let i = 1; i < P.avisos.length; i++) if (P.avisos[i - 1].t < P.avisos[i].t) rota('perfil-lo-ultimo-primero', P.avisos[i].id);
+    for (const x of P.avisos) { const Y = S.avisos.find(y => y.id === x.id);   // una copia: nada de lo que lleva es lo mismo que guarda el aviso
+      for (const k of Object.keys(x)) if (x[k] && typeof x[k] === 'object' && Y[k] === x[k]) rota('perfil-es-una-copia', x.id + '.' + k);
+      for (const k of ['tot', 'pres']) if (x[k] && x[k].lineas && Y[k].lineas === x[k].lineas) rota('perfil-es-una-copia', x.id + '.' + k + '.lineas') }
+    W.leyes += 5 }
   try { K.diasDe(S, cfg, t, 6).forEach(d => d.franjas.forEach(f => { if (f.ok && !(f.libres > 0)) rota('franja-ofrecida-con-hueco', d.dia + ' ' + f.id) })) } catch (e) { if (e instanceof Rota) throw e; rota('citas-no-revientan', e.message) }
   W.leyes += 21; return r;
 }

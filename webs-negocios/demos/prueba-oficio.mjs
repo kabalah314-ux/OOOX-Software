@@ -551,5 +551,27 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(K.nomCli(null) === '' && K.nomCli('hola') === '' && K.nomCli({ nombre: ' Ana ', apellidos: ' Pons ' }) === 'Ana Pons' && K.nomCli({ apellidos: 'Pons' }) === 'Pons' && K.nomCli({ nombre: 5 }) === '5', 'nombre y apellidos juntos, sin espacios de sobra, y nada si no hay cliente');
 }
 
+// el perfil del cliente (14-11-2026): todo lo suyo por su teléfono, nada de otro ni nada interno, y una copia
+{ empieza();
+  const a1 = ap({ tipo: 'pedir', av: 'fuga', cli: montse }, CLI).id;
+  const otro = ap({ tipo: 'pedir', av: 'grifo', cli: { nombre: 'Pau', apellidos: 'Roig', tel: '600000144', dir: 'C/ Balmes 100, 1.º', cp: '08008' } }, CLI).id;
+  ap({ tipo: 'asignar', id: a1, tec: 'omar' }, C); ap({ tipo: 'voy', id: a1 }, T('omar'));
+  ap({ tipo: 'empezar', id: a1, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], firma: F } }, T('omar'));
+  ap({ tipo: 'terminar', id: a1, modo: 'efectivo' }, T('omar'));
+  const a2 = ap({ tipo: 'pedir', av: 'atasco', origen: 'llamada', nota: 'Dice que el vecino es muy pesado', cli: { ...montse, tel: '+34 600 00 01 43', dir: 'C/ Verdi 30, 1.º' } }, C).id;
+  const P = K.perfilCliente(S, cfg, '600 000 143');
+  es(P && P.tel === '600000143' && P.avisos.map(a => a.id).join() === [a2, a1].join(), 'el perfil lleva los avisos de su teléfono, aunque se escribiera distinto, y lo último primero');
+  es(!P.avisos.some(a => a.id === otro) && !JSON.stringify(P).includes('600000144') && !JSON.stringify(P).includes('Roig'), 'y nada de otro cliente');
+  const A1 = P.avisos.find(a => a.id === a1);
+  es(A1.e === 'hecho' && !!A1.pres && A1.tot.total === A(a1).tot.total && A1.tot.total > 0 && !!A1.gar && A1.gar.hasta === A(a1).gar.hasta && A1.pago.cobrado && A1.vista.e === 'hecho', 'lleva sus papeles: el presupuesto firmado, el total, el pago y la garantía');
+  es(P.avisos.every(a => !('h' in a) && !('msgs' in a) && !('nota' in a) && !('vale' in a) && !('origen' in a)) && !JSON.stringify(P).includes('vecino'), 'pero no el diario, los mensajes ni la nota con la que entró el aviso');
+  es(P.cli.nombre === 'Montse' && P.cli.apellidos === 'Vila' && P.cli.dir === 'C/ Verdi 30, 1.º' && A1.cli.dir === montse.dir, 'sus datos son los del último aviso, y cada aviso lleva la dirección donde se hizo');
+  A1.tot.total = 0; A1.cli.nombre = 'X'; P.avisos[0].e = 'roto';
+  es(A(a1).tot.total > 0 && A(a1).cli.nombre === 'Montse' && A(a2).e === 'nuevo', 'es una copia: tocarla no cambia los avisos');
+  es(K.perfilCliente(S, cfg, '699999999') === null && K.perfilCliente(S, cfg, 'hola') === null && K.perfilCliente(null, cfg, '600000143') === null, 'un teléfono sin avisos, uno mal escrito o sin datos: nada');
+  es(K.perfilCliente(S, cfg, '0034600000143').avisos.length === 2, 'con el prefijo de España, el mismo perfil');
+  es(K.CLIENTE_DEMO === '2468-1357', 'el código de los clientes de muestra en la demo');
+}
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

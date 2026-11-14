@@ -26,7 +26,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.14b';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.14c';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -334,6 +334,18 @@ function vistaCliente(S,cfg,id){const A=S.avisos.find(x=>x.id===id);if(!A)return
  return{id:A.id,av:A.av,e:A.e,urg:A.urg,cita:A.cita?{dia:A.cita.dia,fr:A.cita.fr,ok:A.cita.ok}:null,t:A.t,tec:tec?tec.n:'',eta:A.e==='camino'?A.eta:0,pos:A.e==='camino'&&A.pos?{lat:A.pos.lat,lon:A.pos.lon,t:A.pos.t}:null,sal:A.sal||0,ini:A.ini||0,fin:A.fin||0,
   total:A.tot?A.tot.total:0,tipo:A.tot?A.tot.tipo:0,pago:A.pago?{modo:A.pago.modo,cobrado:A.pago.cobrado}:null,gar:A.gar?A.gar.hasta:'',sinTrabajo:!!A.sinTrabajo}}
 
+/* ---------- el perfil del cliente: todo lo suyo y nada más ---------- */
+/* Lo que es de un cliente lo decide su teléfono. Se le da lo que ya lleva en sus papeles (presupuesto, parte y garantía)
+   y la vista de cada aviso. Nunca el diario interno, los mensajes, la nota con la que entró el aviso ni nada de otro cliente.
+   Se devuelve una copia: tocarla no cambia los avisos. */
+const PERFIL=['id','av','e','urg','t','cita','tec','ini','fin','min','sinTrabajo','pres','amp','tot','pago','gar','obs','conf','fotos','cli'];
+const CLIENTE_DEMO='2468-1357';   /* en la demo, sin servidor, los clientes de muestra entran con este código */
+function perfilCliente(S,cfg,tel){const t9=tel9(tel);if(!t9||!S||!Array.isArray(S.avisos))return null;
+ const mios=S.avisos.filter(a=>a&&a.cli&&tel9(a.cli.tel)===t9).sort((a,b)=>b.t-a.t);if(!mios.length)return null;
+ const avisos=mios.map(A=>{const o={};PERFIL.forEach(k=>{if(A[k]!==undefined)o[k]=JSON.parse(JSON.stringify(A[k]))});o.vista=vistaCliente(S,cfg,A.id);return o});
+ const c=mios[0].cli;
+ return{tel:t9,cli:{nombre:txt(c.nombre),apellidos:txt(c.apellidos),dir:txt(c.dir),cp:txt(c.cp),dis:txt(c.dis)},avisos}}
+
 /* ---------- las cifras del día para la centralita ---------- */
 function resumen(S,cfg,t){const hoy=madrid(t).date,caja={efectivo:0,tarjeta:0,bizum:0,transferencia:0,total:0},pend={n:0,total:0},tec={};
  Object.keys(cfg.tec).forEach(id=>{tec[id]={hoy:0,hechos:0,e:'libre',aviso:''}});
@@ -346,5 +358,5 @@ function resumen(S,cfg,t){const hoy=madrid(t).date,caja={efectivo:0,tarjeta:0,bi
    if(A.pago&&A.tot){if(!A.pago.cobrado){pend.n++;pend.total+=A.tot.total}else if(madrid(A.pago.t).date===hoy){caja[A.pago.modo]+=A.tot.total;caja.total+=A.tot.total}}}});
  return{nuevos,urgentes,sinDatos,marcha,hechos,pend,caja,tec,canal,sobran:sobran(S,cfg,t),reasignar:S.avisos.filter(a=>a.reasignar&&a.e==='nuevo').length}}
 
-g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,resumen};
+g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

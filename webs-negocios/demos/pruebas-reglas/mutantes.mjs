@@ -16,6 +16,12 @@ const NUCLEO = fs.readFileSync(path.join(sitio, 'js/oficio-nucleo.js'), 'utf8'),
 // [qué regla se estropea, texto que hay, texto que se pone]
 const M = [
   ['la urgencia empieza un minuto tarde', 'n.min>=cfg.dia[1]', 'n.min>cfg.dia[1]'],
+  ['el perfil mira el teléfono tal cual está escrito', 'tel9(a.cli.tel)===t9', 'a.cli.tel===tel'],
+  ['el perfil lleva el diario', "const PERFIL=['id',", "const PERFIL=['h','id',"],
+  ['el perfil lleva la nota con la que entró el aviso', "'obs','conf','fotos','cli'];", "'obs','conf','fotos','cli','nota'];"],
+  ['el perfil no es una copia', 'o[k]=JSON.parse(JSON.stringify(A[k]))', 'o[k]=A[k]'],
+  ['el perfil va del más viejo al más nuevo', '.sort((a,b)=>b.t-a.t);if(!mios.length)return null;', '.sort((a,b)=>a.t-b.t);if(!mios.length)return null;'],
+  ['los datos del perfil son los del aviso más viejo', 'const c=mios[0].cli;', 'const c=mios[mios.length-1].cli;'],
   ['se puede pedir sin apellidos', "if(apellidos.length<2)return{err:'apellidos'};", ''],
   ['los apellidos se guardan con los espacios de sobra', "apellidos=txt(c1.apellidos).trim().replace(/\\s+/g,' ').slice(0,80)", "apellidos=txt(c1.apellidos).slice(0,80)"],
   ['los apellidos no se cortan', "apellidos=txt(c1.apellidos).trim().replace(/\\s+/g,' ').slice(0,80)", "apellidos=txt(c1.apellidos).trim().replace(/\\s+/g,' ')"],

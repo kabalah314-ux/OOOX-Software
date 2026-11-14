@@ -23,6 +23,7 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 | `app.py` | Cliente, centralita y técnico: cada pantalla y botón, errores, texto raro que no se ejecuta, fotos, dos pestañas, teclado, anchos de 320 a 1440 px, etiquetas y nombres, datos estropeados, modo privado, sin conexión, y los apellidos (que se piden y que se rellenan con el teléfono) | 222 bien |
 | `web.py` | La web: archivos, idiomas, la hora de Barcelona en 12 momentos (web y app dicen lo mismo), desglose de cada avería, barrio, menú, metadatos, 9 tamaños de pantalla, y la página de los tres móviles | 60 bien |
 | `entrada.py` | El vídeo de entrada con y sin trozos, en ordenador y en móvil (con el dedo y con la rueda), lento y sin vídeo. Sin esperas fijas | 42 bien |
+| `cliente.py [puerto] [--copia]` | La zona del cliente: entrar con el teléfono y el código (y lo que no vale), ver todos sus avisos y ninguno de otro, sus papeles (parte, presupuesto con su firma y garantía), un aviso ajeno escrito a mano en la dirección, «Pedir otra cita» con sus datos una sola vez, salir, el enlace del mensaje de la oficina y el enlace de la web. Con `--copia`, que en un negocio de verdad todavía no está abierta | 27 bien (demo) · 4 bien (copia) |
 | `muestra.py` | La muestra se rehace sola a las 8 horas, y «Reiniciar» | 7 bien |
 | `reloj.py` | No es una batería: pone la hora fija que ven las demás | — |
 | `webkit_linux.py` | No es una batería: tolera, solo en WebKit, una página pintada que no da la carga por terminada | — |
