@@ -1,10 +1,12 @@
 // La función «oficio» de Supabase: el juez con el almacén de verdad.
 // Aquí no se decide nada: todo lo que se puede y no se puede hacer está en juez.mjs y en las reglas (oficio-nucleo.js).
-// Se despliega con tres archivos: este, juez.mjs y oficio-nucleo.js (el mismo de la app, sin tocar).
+// Las reglas y el juez no se copian aquí: se traen del repositorio, de una versión exacta (el número largo de las dos
+// líneas de abajo es el commit). Así lo que corre en el servidor es, letra por letra, lo que pasó las pruebas.
+// Para llevar al servidor un cambio de las reglas o del juez: cambiar ese número en las dos líneas y volver a desplegar.
 // No pide la llave de Supabase a quien llama (verify_jwt = false): cada persona entra con su código, y eso lo mira el juez.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-import "./oficio-nucleo.js";   // las reglas: quedan en globalThis.OficioNucleo
-import { crea } from "./juez.mjs";
+import "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/e646a470bb16282703f0fda8281fb91f2d2e7f29/frontend/public/demos/ramirez-24h/js/oficio-nucleo.js";   // las reglas: quedan en globalThis.OficioNucleo
+import { crea } from "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/e646a470bb16282703f0fda8281fb91f2d2e7f29/webs-negocios/oficios-servidor/juez.mjs";
 
 // deno-lint-ignore no-explicit-any
 const K = (globalThis as any).OficioNucleo;
@@ -31,8 +33,9 @@ const almacen = {
   tope: (negocio: string, clave: string, max: number, ventana: number) => srv("tope", { negocio, clave, max, ventana }),
 };
 const juez = crea({ K, almacen, aviso: (e: unknown) => console.error("juez:", e) });
+const VERSION = { reglas: K && K.VERSION, commit: "e646a470bb16" };   // para saber desde fuera qué versión corre
 
-const CAB = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type, apikey, authorization, x-client-info", "access-control-allow-methods": "POST, OPTIONS", "access-control-max-age": "86400" };
+const CAB = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type, apikey, authorization, x-client-info", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-max-age": "86400" };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...CAB, "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 async function huella(t: string) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("oficios:" + t));
@@ -41,6 +44,7 @@ async function huella(t: string) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CAB });
+  if (req.method === "GET") return json({ ok: true, oficio: VERSION });
   if (req.method !== "POST") return json({ ok: false, err: "peticion" }, 405);
   // deno-lint-ignore no-explicit-any
   let p: any = null;
