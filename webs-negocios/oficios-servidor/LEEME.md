@@ -6,8 +6,9 @@ https://claude.ai/artifact/AHLx7anfXkAhZUVP51FyrY
 
 **Estado a 14-11-2026: funciona de punta a punta para la copia de prueba Voltio Sur.** El servidor está desplegado en
 Supabase (proyecto `neuron-staging`, plan gratis, región de Irlanda) y la app ya habla con él: se entra con un código por
-persona, lo que se hace se ve al momento y se manda, y cada aparato se pone al día solo. Ningún negocio de verdad lo usa
-todavía. La demo de Ramírez sigue sin servidor, como siempre.
+persona, lo que se hace se ve al momento y se manda, y cada aparato se pone al día solo. Desde el 14-11 por la noche, el
+cliente también entra en su zona (`cliente.html`) con su teléfono y un código que le manda la oficina por WhatsApp. Ningún
+negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como siempre.
 
 ## Las piezas
 
@@ -16,7 +17,7 @@ todavía. La demo de Ramírez sigue sin servidor, como siempre.
 | `juez.mjs` | El juez: la única puerta por la que cambia un aviso. Comprueba quién es, pasa la acción por las mismas reglas que la app (`js/oficio-nucleo.js`) y guarda. No sabe de Supabase ni de internet | Hecho |
 | `almacen-memoria.mjs` | Un almacén de mentira, en memoria, con el mismo contrato que el de verdad. Para las pruebas y para el servidor local de las pruebas de pantallas | Hecho |
 | `almacen.sql` | Las tablas y funciones del almacén de verdad, en Supabase (apartado `oficios`). Aplicado | Hecho |
-| `pruebas-almacen.sql` | 22 comprobaciones del almacén de verdad. Se pasan en la base de datos y no dejan nada escrito | Hecho |
+| `pruebas-almacen.sql` | 31 comprobaciones del almacén de verdad. Se pasan en la base de datos y no dejan nada escrito | Hecho |
 | `funcion/index.ts` | La función `oficio` de Supabase: envuelve al juez con el almacén de verdad. Desplegada | Hecho |
 | `js/oficio-espejo.js` (en la app) | El espejo: lo que el aparato sabe del servidor y lo que le falta por enviar. Sin red ni reloj: se prueba sin navegador | Hecho |
 | `js/oficio-estado.js` (en la app) | Con `servidor` en los datos del negocio: la sesión, la red, cada cuánto se pregunta y lo que se guarda en el aparato | Hecho |
@@ -39,6 +40,15 @@ todavía. La demo de Ramírez sigue sin servidor, como siempre.
   red, la segunda no se hace: se devuelve el resultado de la primera. La marca vale solo para quien la puso y tiene
   que tener 12 letras o más.
 - **Diario**: una línea por acción aceptada, con quién, cuándo y qué. Lo guardado es siempre igual a repetir el diario.
+- **La zona del cliente.** Lo que es de un cliente lo decide su teléfono (`K.perfilCliente`). La oficina pide el código de
+  ese teléfono (`acceso`): ocho letras (`abcd-efgh`), del mismo abecedario que las llaves. Si ya tenía uno, recibe el mismo,
+  para poder mandárselo otra vez; si pide cambiarlo, sale uno nuevo y el de antes deja de valer. Solo la centralita, y solo
+  para un teléfono con algún aviso. El código se guarda tal cual en `oficios.clientes` (no su huella) para poder volver a
+  mandarlo: lo que abre está en la misma base de datos. Ninguna otra respuesta lo lleva: ni `pedir`, ni `huecos`, ni lo que
+  leen la oficina o los técnicos.
+- **El freno de la zona.** Cuentan todos los códigos fallados, sea o no el teléfono de un cliente: así el freno no deja
+  averiguar quién es cliente. En diez minutos: diez desde la misma conexión bloquean ese teléfono a esa conexión;
+  doscientos, a todas; y cincuenta desde una conexión, con el teléfono que sea, bloquean esa conexión.
 
 ## Lo que se le puede pedir (`juez.atiende(petición)`)
 
@@ -52,14 +62,17 @@ Contesta siempre `{ok:true, …}` o `{ok:false, err}`. Nunca lanza.
 | `pedir` | Cualquiera, desde la web | `negocio, accion` (solo `pedir`), `clave` | `id, llave` y nada más |
 | `huecos` | Cualquiera | `negocio` | `dias: [{dia, hoy, franjas: [{id, ok}]}]`, sin cifras ni datos |
 | `ver` | El cliente, con su enlace | `negocio, aviso, llave` | `vista` |
+| `acceso` | Solo la oficina | `negocio, persona, codigo, tel` y, para cambiarlo, `cambia: true` | `tel, codigo, nuevo` |
+| `perfil` | El cliente, en su zona | `negocio, tel, codigo` (el suyo) | `perfil`: `{tel, cli, avisos}`; cada aviso, con su `vista` y su `llave` |
 
 `cambios` es `{v, entero, cab, avisos}`. `entero:true` quiere decir «tira lo que tengas y quédate con esto». La oficina
 recibe todos los avisos y la cabecera (contadores y ausencias); un técnico, solo los avisos que lleva y los `fuera`.
 
 Errores propios del juez: `clave` (código malo, persona o negocio que no existe, negocio de baja: todos contestan lo
-mismo), `bloqueo` (diez códigos fallados en diez minutos desde la misma conexión), `accion`, `grande`, `permiso` (por la
-puerta de la web solo se puede pedir), `limite`, `enlace`, `negocio`, `lleno`, `peticion` y `servidor`. Los demás son
-los de las reglas.
+mismo; en la zona del cliente, también un teléfono que no es suyo), `bloqueo` (demasiados códigos fallados seguidos),
+`accion`, `grande`, `permiso` (por la puerta de la web solo se puede pedir; un técnico no da códigos de la zona), `tel`
+(un teléfono mal escrito), `nadie` (un teléfono sin avisos), `limite`, `enlace`, `negocio`, `lleno`, `peticion` y
+`servidor`. Los demás son los de las reglas.
 
 ## Dónde está y cómo se llama
 
@@ -124,10 +137,16 @@ Las pantallas llaman a lo mismo con o sin servidor (`Oficio.estado`, `Oficio.hac
 - **El cliente** (`cita.html`): los huecos se los da el servidor, sin cifras; al pedir recibe su número y su llave, que
   se guarda en su navegador; su enlace es `cita.html#/aviso/<número>/<llave>`.
 - **Varias pestañas** del mismo navegador se avisan entre ellas y no se pisan lo pendiente.
+- **La zona del cliente** (`cliente.html`): entra con su teléfono y su código, o con un toque en el enlace del mensaje
+  (`cliente.html#/entra/<teléfono>/<código>`; el código se quita de la barra al momento). Se guardan en su navegador
+  hasta que sale. Lo suyo se pide al abrir, cada medio minuto mientras se mira y al volver a la página; si su código ha
+  cambiado, sale solo y se le dice por qué. Cada aviso abierto enlaza con su página en directo (`cita.html`, con su llave).
+- **«Su zona»** en el aviso (solo la oficina): pide el código al servidor, enseña el mensaje y lo abre en WhatsApp con el
+  teléfono del cliente. «Cambiar el código» pide confirmarlo.
 
 ## El contrato del almacén
 
-Ocho funciones. Devuelven siempre copias.
+Once funciones. Devuelven siempre copias.
 
 | Función | Qué hace |
 |---|---|
@@ -139,6 +158,9 @@ Ocho funciones. Devuelven siempre copias.
 | `cambios(negocio, desde)` | `{v, cab, avisos}` con los avisos cambiados después de esa versión |
 | `vista(negocio, aviso, llave)` | Lo que ve el cliente, si la llave es la de ese aviso |
 | `tope(negocio, clave, max, ventana)` | Frena abusos: `true` si aún cabe |
+| `cliente(negocio, tel)` | `{codigo, activo}` del código de la zona de ese teléfono, o nada |
+| `ponCliente(negocio, tel, codigo)` | Guarda el código de ese teléfono (el de antes deja de valer). `{ok}` |
+| `clienteEntra(negocio, tel, codigo, red)` | `true`, nada, o `'bloqueo'`. Cuenta los fallos (ver «El freno de la zona») |
 
 ## Pruebas
 
@@ -147,23 +169,25 @@ bloque solo).
 
 Sin navegador:
 
-- `pruebas-reglas/prueba-juez.mjs`: el juez, con ejemplos escritos a mano. 56.
+- `pruebas-reglas/prueba-juez.mjs`: el juez, con ejemplos escritos a mano. 82 (26 de la zona del cliente).
 - `pruebas-reglas/azar-juez.mjs`: dos negocios, once aparatos cada tanda, acciones al azar, otros aparatos que se
-  adelantan entre que el juez lee y guarda, y acciones mandadas dos veces. 9.000 pasos y 1,29 millones de comprobaciones.
-- `pruebas-reglas/mutantes-juez.mjs`: se quita adrede cada protección del juez y se mira que alguna prueba lo note. 35 de 35.
+  adelantan entre que el juez lee y guarda, y acciones mandadas dos veces; y la oficina que da o cambia códigos de la zona
+  y el cliente que entra con ellos. 9.000 pasos y 1,29 millones de comprobaciones.
+- `pruebas-reglas/mutantes-juez.mjs`: se quita adrede cada protección del juez y se mira que alguna prueba lo note. 51 de 51.
 - `pruebas-reglas/prueba-espejo.mjs`: el espejo de la app contra el juez de verdad, con ejemplos. 71.
 - `pruebas-reglas/azar-espejo.mjs`: varios aparatos con su espejo, red que falla (peticiones que no llegan, respuestas
   que se pierden, aparatos sin cobertura), la app que se cierra y se abre, códigos que se retiran. Leyes: lo que se ve es
   siempre lo último del servidor más lo pendiente, en orden; al calmarse todo, cada aparato ve lo que le toca; cada
   acción acaba una sola vez en el diario o rechazada y avisada. 45.000 pasos y 256.000 comprobaciones.
 - `pruebas-reglas/mutantes-espejo.mjs`: lo mismo que con el juez, para el espejo. 29 de 29.
-- `oficios-servidor/pruebas-almacen.sql`: el almacén de verdad, en la base de datos. 22.
+- `oficios-servidor/pruebas-almacen.sql`: el almacén de verdad, en la base de datos. 31, en verde el 14-11-2026.
 
 Con navegador:
 
 - `pruebas-navegador/servidor.py`: la oficina, dos técnicos y un cliente, cada uno en su navegador, contra el servidor
   local. Entrar, crear, asignar, que le llegue al técnico, sin cobertura, el servidor caído, una respuesta perdida, un
-  rechazo, la cita del cliente y su enlace, dos pestañas, segundo plano, código retirado y cerrar sesión. 77.
+  rechazo, la cita del cliente y su enlace, la zona del cliente (el código que da la oficina, entrar con el enlace o a mano,
+  cambiar el código, un técnico que no puede y el freno), dos pestañas, segundo plano, código retirado y cerrar sesión. 96.
   Se pasa dos veces: con la plantilla y los datos de Voltio, y con la copia de Voltio servida desde su carpeta.
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
@@ -193,3 +217,5 @@ Claude» por nombre).
    total) y los códigos fallados (10 en diez minutos). Mirar huecos o llamar sin más no lo tiene: alguien con mala idea
    podría gastar las 500.000 llamadas al mes del plan gratis. No cuesta dinero (la función dejaría de contestar hasta
    el mes siguiente), pero antes de un negocio de verdad hay que ponerlo.
+10. **La zona del cliente con sus facturas**: hoy enseña presupuestos, partes y garantías. Las facturas llegarán cuando
+   Oscar decida cómo se hacen (un proveedor de Verifactu o el programa de facturas de cada negocio).

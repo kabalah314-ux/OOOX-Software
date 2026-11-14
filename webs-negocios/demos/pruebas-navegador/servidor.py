@@ -4,7 +4,7 @@
 # Uso: python3 servidor.py [puerto]     (NAVEGADOR=chromium|firefox|webkit)   Antes: node servidor_local.mjs <carpeta> <puerto>
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')
-import asyncio, sys, json, time, base64, tempfile, urllib.request
+import asyncio, sys, json, time, base64, tempfile, urllib.request, urllib.parse
 from playwright.async_api import async_playwright
 import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
 import buzon_falso
@@ -197,6 +197,55 @@ async def main():
         await y.goto(B + f'cita.html#/aviso/{A1}/' + 'a' * 24); es(await pasa(y, "/No encuentro ese aviso/.test(document.querySelector('#v').textContent)"), 'ni con una llave inventada')
         await cy.close(); await cx.close()
 
+        # ---------- 10 bis. la zona del cliente: la oficina le da su código y el cliente entra con él ----------
+        await o.goto(B + f'app.html#/aviso/{A1}'); await o.wait_for_selector('[data-a=zona]'); a0 = cuenta()['acceso']; await o.click('[data-a=zona]')
+        es(await pasa(o, "!!document.querySelector('#zWa')") and cuenta()['acceso'] == a0 + 1, 'oficina: «Su zona» pide el código al servidor y prepara el mensaje')
+        C1 = (api('__prueba/clientes').get('612345678') or {}).get('codigo', ''); ZONA = f'cliente.html#/entra/612345678/{C1}'
+        txt = await o.inner_text('dialog[open] .wa'); wa = await o.get_attribute('#zWa', 'href')
+        es(len(C1) == 9 and await o.inner_text('#zCod') == C1 and C1 in txt and ZONA in txt, 'el mensaje lleva el enlace de su zona y su código, el que guarda el servidor')
+        es(wa.startswith('https://wa.me/34612345678?text=') and ZONA in urllib.parse.unquote(wa.split('text=', 1)[1]), '«Abrir WhatsApp» lleva ese mensaje al teléfono del cliente')
+        await o.click('dialog[open] [data-x]'); await o.wait_for_timeout(250); await o.click('[data-a=zona]'); await pasa(o, "!!document.querySelector('#zCod')")
+        es(await o.inner_text('#zCod') == C1 and 'ya tenía' in await o.inner_text('#zNota'), 'si la oficina lo vuelve a abrir, es el mismo código: se lo puede mandar otra vez')
+        await o.click('dialog[open] [data-x]'); await o.wait_for_timeout(250)
+        cz = await contexto(br); z = await pagina(cz, 'zona del cliente')
+        await z.goto(B + ZONA)
+        es(await pasa(z, "!!document.querySelector('#salir')", 9000) and z.url.endswith('#/') and C1 not in z.url, 'el cliente abre el enlace del mensaje: entra solo y el código no se queda en la barra')
+        t = await z.inner_text('#v')
+        es(t.startswith('Hola, Marta') and A1 in t and A2 not in t and 'Lucía' not in t, 'en su zona ve su aviso y nada de otro cliente')
+        es(await z.evaluate(f"JSON.parse(localStorage.getItem('oficio:{N['id']}:cliente')).tel") == '612345678', 'la sesión se queda en su navegador')
+        LLV = estado()['llaves'][A1]
+        es(await z.get_attribute(f"a.tj[href^='cita.html#/aviso/{A1}/']", 'href') == f'cita.html#/aviso/{A1}/{LLV}', 'la tarjeta de su aviso lleva el enlace con su llave')
+        await z.click(f"a.tj[href^='cita.html#/aviso/{A1}/']")
+        es(await pasa(z, f"location.pathname.endsWith('cita.html')&&document.querySelector('#v').textContent.includes('{A1}')&&!/No encuentro|Buscando/.test(document.querySelector('#v').textContent)", 9000), 'y con ella abre la página de su aviso, en directo')
+        await z.goto(B + 'cliente.html'); await z.wait_for_selector('#salir'); await z.click('#salir'); await z.wait_for_selector('#fE')
+        es(await z.evaluate(f"localStorage.getItem('oficio:{N['id']}:cliente')") is None, 'salir: vuelve a pedir el código y no queda nada guardado')
+        await z.fill('#z_tel', '612345678'); await z.fill('#z_cod', 'zzzz-zzzz'); await z.click('#fE [type=submit]')
+        es(await pasa(z, "!!document.querySelector('.campo.mal #z_cod')") and 'no van juntos' in await z.inner_text('#fE') and await z.evaluate("document.activeElement.id") == 'z_cod', 'un código que no es: no entra, lo dice en su campo y deja el cursor ahí')
+        await z.fill('#z_tel', '612 34 56 78'); await z.fill('#z_cod', ' ' + C1.upper().replace('-', ' ') + ' '); await z.click('#fE [type=submit]')
+        es(await pasa(z, "!!document.querySelector('#salir')"), 'con el código en mayúsculas y con espacios, y el teléfono con espacios, entra')
+        # la oficina cambia el código: el de antes deja de valer
+        await o.click('[data-a=zona]'); await pasa(o, "!!document.querySelector('#zCambia')"); await o.click('#zCambia')
+        es('dejará de valer' in await o.inner_text('#zNota') and api('__prueba/clientes')['612345678']['codigo'] == C1, 'cambiar el código pide confirmarlo, y hasta entonces no cambia nada')
+        await o.click('#zCambia'); await pasa(o, f"!!document.querySelector('#zCod')&&document.querySelector('#zCod').textContent!=='{C1}'")
+        C2 = api('__prueba/clientes')['612345678']['codigo']
+        es(C2 != C1 and await o.inner_text('#zCod') == C2 and 'Código cambiado' in await o.inner_text('#zNota'), 'cambiado: la oficina ve el código nuevo, listo para mandarlo')
+        await o.click('dialog[open] [data-x]'); await o.wait_for_timeout(250)
+        await z.wait_for_timeout(3200); await z.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
+        es(await pasa(z, "!!document.querySelector('#fE')&&/ha dejado de valer/.test(document.querySelector('#fE').textContent)", 8000) and await z.evaluate(f"localStorage.getItem('oficio:{N['id']}:cliente')") is None, 'al cliente, al volver a su zona, el código viejo ya no le vale: sale y se le dice por qué')
+        await z.goto(B + ZONA)
+        es(await pasa(z, "/no van juntos/.test(document.querySelector('#fE').textContent)") and await z.locator('#salir').count() == 0, 'el enlace viejo tampoco entra')
+        await z.goto(B + f'cliente.html#/entra/612345678/{C2}')
+        es(await pasa(z, "!!document.querySelector('#salir')"), 'con el código nuevo, sí')
+        # un técnico no da códigos
+        await t1.goto(B + f'app.html#/aviso/{A2}'); await t1.wait_for_selector('#nav a', state='attached'); await pasa(t1, f"document.querySelector('#v').textContent.includes('{A2}')")
+        es(await t1.locator('[data-a=zona]').count() == 0 and await t1.evaluate("Oficio.acceso('698765432').then(r=>r.err)") == 'permiso', 'un técnico no tiene «Su zona» y, si lo pide igualmente, el servidor no le da el código')
+        # el freno: diez códigos fallados con un teléfono
+        cz2 = await contexto(br); z2 = await pagina(cz2, 'zona, intentos'); await z2.goto(B + 'cliente.html'); await z2.wait_for_selector('#fE')
+        for i in range(10): await z2.evaluate(f"Oficio.perfil('698765432','zzzz-zz{'abcdefghjk'[i]}a')")
+        await z2.fill('#z_tel', '698765432'); await z2.fill('#z_cod', 'zzzz-zzzz'); await z2.click('#fE [type=submit]')
+        es(await pasa(z2, "/Demasiados intentos/.test(document.querySelector('#fE').textContent)"), 'tras diez códigos fallados con un teléfono, se dice que espere')
+        await cz2.close()
+
         # ---------- 11. dos pestañas de la oficina ----------
         o2 = await pagina(co, 'oficina, otra pestaña'); await o2.goto(B + 'app.html#/bandeja'); await o2.wait_for_selector('#nav a')
         es(await o2.locator('#fEntra').count() == 0 and await pasa(o2, tiene(A2, 'asignado')), 'otra pestaña del mismo navegador: ya está dentro y al día')
@@ -252,7 +301,7 @@ async def main():
         suyo = await t2.evaluate("JSON.stringify(Oficio.estado().avisos.map(a=>a.id+':'+a.e+':'+a.v))")
         es(json.loads(suyo) == [f"{a['id']}:{a['e']}:{a['v']}" for a in E['avisos'] if a['tec'] == T2], 'lo que ve el técnico es exactamente lo suyo en el servidor')
         fuera = []
-        for pg in (o, t1, t2, k): fuera += await pg.evaluate('__n.fuera')
+        for pg in (o, t1, t2, k, z): fuera += await pg.evaluate('__n.fuera')
         es(all('/functions/' not in u and 'oficios_v' not in u for u in fuera), f'ninguna pantalla ha intentado hablar con el servidor de verdad {[u for u in fuera if "/functions/" in u][:2]}')
         es(not errores, f'sin errores de consola {errores[:3]}')
         await br.close()

@@ -1,7 +1,8 @@
 # La zona del cliente (cliente.html): entra con su teléfono y un código, y ve todo lo suyo y nada de otro.
 # Uso: python3 cliente.py [puerto] [--copia]
 #   sin --copia: la demo (avisos de muestra, el código de la demo), en un móvil
-#   con --copia: una copia de un negocio de verdad servida desde su carpeta; ahí la zona todavía no está abierta
+#   con --copia: una copia de un negocio de verdad servida desde su carpeta. Sin servidor, la zona todavía no está abierta;
+#                con servidor, pide el teléfono y el código (entrar de verdad se prueba en servidor.py, contra uno local)
 import os, sys
 NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, json
@@ -25,12 +26,19 @@ async def main():
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         if COPIA:
             await pg.goto(B + 'cliente.html'); await pg.wait_for_selector('main h1')
-            t = await pg.locator('main').inner_text()
-            es('todavía no está abierta' in t and await pg.locator('#fE').count() == 0, 'copia: la zona del cliente dice que todavía no está abierta y no pide nada')
-            N = await pg.evaluate('Oficio.N')
+            t = await pg.locator('main').inner_text(); N = await pg.evaluate('Oficio.N'); SRV = await pg.evaluate('Oficio.SRV')
             es(N['nombre'] in t and N['nombre'] in await pg.title(), 'copia: con el nombre del negocio')
-            await pg.goto(B + 'cliente.html#/entra/600000143/2468-1357'); await pg.wait_for_timeout(300)
-            es(await pg.locator('#fE').count() == 0 and 'Hola' not in await pg.locator('main').inner_text() and '2468' not in pg.url, 'copia: el enlace de la demo no abre nada y el código no se queda en la barra')
+            if SRV:   # con servidor la zona está abierta; aquí el servidor no contesta (buzon_falso): la de verdad se prueba en servidor.py
+                es(await pg.locator('#fE').count() == 1 and 'todavía no está abierta' not in t and await pg.locator('.muestra').count() == 0 and '2468' not in t, 'copia con servidor: la zona pide el teléfono y el código, sin la muestra ni el código de la demo')
+                await pg.goto(B + 'cliente.html#/entra/600000143/2468-1357'); await pg.wait_for_timeout(400)
+                es(await pg.locator('#salir').count() == 0 and '2468' not in pg.url, 'copia: el enlace con el código de la demo no entra y el código no se queda en la barra')
+                await pg.fill('#z_tel', '600000143'); await pg.fill('#z_cod', 'abcd-efgh'); await pg.click('#fE [type=submit]')
+                await pg.wait_for_function("!!document.querySelector('.fallo')", timeout=5000)
+                es('No hay conexión' in await pg.locator('#fE').inner_text() and await pg.evaluate("localStorage.getItem('oficio:'+Oficio.N.id+':cliente')") is None and 'juez' in await pg.evaluate('window.__buzonFalso'), 'copia: sin servidor que conteste lo dice y no entra (en las pruebas no se sale a internet)')
+            else:
+                es('todavía no está abierta' in t and await pg.locator('#fE').count() == 0, 'copia sin servidor: la zona del cliente dice que todavía no está abierta y no pide nada')
+                await pg.goto(B + 'cliente.html#/entra/600000143/2468-1357'); await pg.wait_for_timeout(300)
+                es(await pg.locator('#fE').count() == 0 and 'Hola' not in await pg.locator('main').inner_text() and '2468' not in pg.url, 'copia: el enlace de la demo no abre nada y el código no se queda en la barra')
             es(not errs, f'copia: sin errores {errs[:2]}')
         else:
             await pg.goto(B + 'cliente.html'); await pg.wait_for_selector('#fE')

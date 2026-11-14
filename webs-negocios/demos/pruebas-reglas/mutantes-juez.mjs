@@ -48,6 +48,23 @@ const M = [
   ['un fallo del almacén sale hacia fuera', "catch (e) { try { aviso(e); } catch (x) { /* nada */ } return R('servidor'); }", 'catch (e) { throw e; }'],
   ['un fallo del almacén no queda apuntado', 'try { aviso(e); } catch (x) { /* nada */ }', ''],
   ['una petición que no existe se intenta atender', '|| !QUE.includes(p.que)) return R(\'peticion\');', ") return R('peticion');"],
+  // la zona del cliente
+  ['se da el código de un cliente sin el código de la oficina', "const w = await quien(neg, cfg, p); if (!w.ok) return w;\n      if (w.q.rol !== 'centralita')", "const w = { ok: true, q: { rol: 'centralita', id: 'oficina' } };\n      if (w.q.rol !== 'centralita')"],
+  ['un técnico puede dar el código de la zona de un cliente', "if (w.q.rol !== 'centralita') return R('permiso');", ''],
+  ['se da código a un teléfono sin ningún aviso', "if (!K.perfilCliente((await carga(neg)).S, cfg, tel)) return R('nadie');", ''],
+  ['el código se da para el teléfono tal cual está escrito', "const tel = K.tel9(p.tel); if (!tel) return R('tel');", "const tel = String(p.tel || ''); if (!tel) return R('tel');"],
+  ['«cambiar el código» no lo cambia', 'const ya = p.cambia === true ? null : await almacen.cliente(neg.id, tel);', 'const ya = await almacen.cliente(neg.id, tel);'],
+  ['cada vez que la oficina lo pide sale un código nuevo', 'const ya = p.cambia === true ? null : await almacen.cliente(neg.id, tel);', 'const ya = null;'],
+  ['se vuelve a mandar un código dado de baja', 'if (ya && ya.activo && limpiaCodigo(ya.codigo) === ya.codigo)', 'if (ya && limpiaCodigo(ya.codigo) === ya.codigo)'],
+  ['el código del cliente se queda corto', 'const s = llaveNueva(8);', 'const s = llaveNueva(6);'],
+  ['un código escrito con mayúsculas no vale', "const x = c.toLowerCase().replace(/[^a-z0-9]/g, '');", "const x = c.replace(/[^a-z0-9]/g, '');"],
+  ['vale un código con letras que no se usan', '[...x].every(ch => LETRAS.includes(ch))', 'true'],
+  ['la zona mira el teléfono tal cual está escrito', 'const tel = K.tel9(p.tel), codigo = limpiaCodigo(p.codigo);', 'const tel = String(p.tel || \'\'), codigo = limpiaCodigo(p.codigo);'],
+  ['la zona no le dice al almacén desde qué conexión llaman', "texto(p.red, 80) ? String(p.red) : ''", "''"],
+  ['un bloqueo de la zona se confunde con un código malo', "if (ok === 'bloqueo') return R('bloqueo');", ''],
+  ['cualquier código abre la zona de un cliente', "if (ok !== true) return R('clave');", ''],
+  ['la zona de un cliente lleva los avisos de todos', 'const { S, filas } = await carga(neg), Pf = K.perfilCliente(S, cfg, tel);', 'const { S, filas } = await carga(neg), Pf = Object.assign(K.perfilCliente(S, cfg, tel) || {}, { avisos: S.avisos.map(a => Object.assign({}, a)) });'],
+  ['la zona no lleva la llave de cada aviso', "a.llave = f && f.llave ? f.llave : '';", "a.llave = '';"],
 ];
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mutantes-juez-'));

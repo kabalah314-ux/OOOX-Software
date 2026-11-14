@@ -24,7 +24,8 @@ const ley = (c, nombre, detalle) => { comprobaciones++; if (!c) throw new Rota(n
 async function tanda(semilla) {
   const rnd = azar(semilla), uno = L => L[Math.floor(rnd() * L.length)], si = p => rnd() < p;
   const reloj = { t: Date.parse('2026-11-16T07:00:00+01:00') + Math.floor(rnd() * 7 * 86400000) };
-  let estorbo = null, pasos = 0, aceptadas = 0, rechazadas = 0, adelantos = 0, repetidas = 0;
+  let estorbo = null, pasos = 0, aceptadas = 0, rechazadas = 0, adelantos = 0, repetidas = 0, zonas = 0;
+  const CODS = {};   // negocio → teléfono → el código de su zona que dio la oficina
   const A = creaAlmacen({ ahora: () => reloj.t, estorbo: (...a) => estorbo && estorbo(...a) });
   const J = crea({ K, almacen: A, ahora: () => (reloj.t += 1000 + Math.floor(rnd() * 900000)) });
   const D = [];   // los aparatos: cada uno con su copia de lo que ha recibido
@@ -83,6 +84,7 @@ async function tanda(semilla) {
   async function manda(d, a, clave) {
     const r = await J.atiende({ que: 'hacer', negocio: d.neg, persona: d.persona, codigo: d.codigo, accion: a, desde: d.v, clave });
     ley(r && typeof r.ok === 'boolean', 'siempre-contesta'); ley(!(r.err === 'servidor'), 'sin-fallos-internos', JSON.stringify(a));
+    const txt = JSON.stringify(r); for (const c of Object.values(CODS[d.neg] || {})) ley(!txt.includes(c), 'la-casa-no-ve-los-codigos-de-los-clientes');
     if (r.cambios) recibe(d, r.cambios);
     return r;
   }
@@ -141,6 +143,28 @@ async function tanda(semilla) {
         if (g.id !== f.id) ley(igual(await J.atiende({ que: 'ver', negocio: neg, aviso: f.id, llave: g.llave }), { ok: false, err: 'enlace' }), 'la-llave-de-otro-aviso-no-abre');
         ley(igual(await J.atiende({ que: 'ver', negocio: otro, aviso: f.id, llave: f.llave }), { ok: false, err: 'enlace' }), 'la-llave-no-vale-en-otro-negocio'); }
     }
+    if (si(.1)) {   // la zona del cliente: la oficina da un código (o lo cambia) y el cliente entra con él
+      const neg = uno(Object.keys(NEG)), of = D.find(x => x.neg === neg && x.q.rol === 'centralita'), n = A.crudo(neg);
+      const tels = [...new Set([...n.avisos.values()].map(f => K.tel9(f.datos.cli && f.datos.cli.tel)).filter(Boolean))];
+      if (tels.length) {
+        const tel = uno(tels), cambia = si(.2), antes = (CODS[neg] || {})[tel], v1 = n.v;
+        const r = await J.atiende({ que: 'acceso', negocio: neg, persona: of.persona, codigo: of.codigo, tel, cambia });
+        ley(r.ok && r.tel === tel && /^[a-z2-9]{4}-[a-z2-9]{4}$/.test(r.codigo), 'la-oficina-recibe-el-codigo', JSON.stringify(r));
+        ley(cambia || !antes ? r.nuevo === true && r.codigo !== antes : r.nuevo === false && r.codigo === antes, 'el-codigo-se-mantiene-o-se-cambia', tel);
+        (CODS[neg] = CODS[neg] || {})[tel] = r.codigo;
+        const p = await J.atiende({ que: 'perfil', negocio: neg, tel, codigo: r.codigo, red: 'zona' });
+        const S = Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, JSON.parse(JSON.stringify(n.cab)), { v: n.v, avisos: [...n.avisos.values()].map(f => JSON.parse(JSON.stringify(f.datos))).sort((x, y) => (x.n || 0) - (y.n || 0)) });
+        const Pf = K.perfilCliente(S, cfgs[neg], tel), sin = L => L.map(x => { const y = Object.assign({}, x); delete y.llave; return y; });
+        ley(p.ok && igual(sin(p.perfil.avisos), Pf.avisos) && igual(p.perfil.cli, Pf.cli), 'la-zona-es-el-perfil-de-las-reglas', tel);
+        ley(p.perfil.avisos.every(x => K.tel9(x.cli.tel) === tel && x.llave === n.avisos.get(x.id).llave), 'la-zona-lleva-solo-lo-suyo-con-sus-llaves', tel);
+        if (antes && antes !== r.codigo) ley(igual(await J.atiende({ que: 'perfil', negocio: neg, tel, codigo: antes, red: 'zona' }), { ok: false, err: 'clave' }), 'el-codigo-cambiado-no-vale', tel);
+        const otro = uno(Object.keys(NEG).filter(x => x !== neg)), tec = uno(D.filter(x => x.neg === neg && x.q.rol === 'tecnico'));
+        ley(igual(await J.atiende({ que: 'perfil', negocio: otro, tel, codigo: r.codigo, red: 'zona' }), { ok: false, err: 'clave' }), 'el-codigo-no-vale-en-otro-negocio', tel);
+        ley(igual(await J.atiende({ que: 'acceso', negocio: neg, persona: tec.persona, codigo: tec.codigo, tel }), { ok: false, err: 'permiso' }), 'un-tecnico-no-da-codigos');
+        ley(n.v === v1, 'la-zona-no-cambia-los-avisos');
+        n.fallosCli = []; A.crudo(otro).fallosCli = []; zonas++;
+      }
+    }
     if (si(.1)) {   // códigos de otro: no entran
       const o = uno(D.filter(x => x.neg !== d.neg)), malo = await J.atiende({ que: 'hacer', negocio: d.neg, persona: d.persona, codigo: o.codigo, accion: a }), v1 = A.crudo(d.neg).v;
       ley(igual(malo, { ok: false, err: 'clave' }) && A.crudo(d.neg).v === v1, 'el-codigo-de-otro-negocio-no-entra'); A.crudo(d.neg).fallos = [];
@@ -150,16 +174,16 @@ async function tanda(semilla) {
   }
   for (const d of D) await leyAparato(d);
   const estados = {}; for (const id of Object.keys(NEG)) for (const f of A.crudo(id).avisos.values()) estados[f.datos.e] = (estados[f.datos.e] || 0) + 1;
-  return { pasos, aceptadas, rechazadas, adelantos, repetidas, estados };
+  return { pasos, aceptadas, rechazadas, adelantos, repetidas, zonas, estados };
 }
 
-const t0 = Date.now(); let tot = { pasos: 0, aceptadas: 0, rechazadas: 0, adelantos: 0, repetidas: 0 }; const est = {};
+const t0 = Date.now(); let tot = { pasos: 0, aceptadas: 0, rechazadas: 0, adelantos: 0, repetidas: 0, zonas: 0 }; const est = {};
 for (let i = 0; i < TANDAS; i++) {
   try { const r = await tanda(SEMILLA + i); for (const k of Object.keys(tot)) tot[k] += r[k]; for (const [k, n] of Object.entries(r.estados)) est[k] = (est[k] || 0) + n; }
   catch (e) { console.log(`ROTA en la tanda ${i} (semilla ${SEMILLA + i}): ${e instanceof Rota ? e.message : e.stack}`); console.log('Para repetirla: node azar-juez.mjs <sitio> --tandas 1 --semilla ' + (SEMILLA + i)); process.exit(1); }
 }
-console.log(`BIEN juez  ${tot.pasos} pasos con ${TANDAS * (Object.values(NEG).reduce((s, N) => s + N.tecnicos.length + 3, 0))} aparatos · ${tot.aceptadas} aceptadas, ${tot.rechazadas} rechazadas · ${tot.adelantos} veces se adelantó otro · ${tot.repetidas} repetidas · ${comprobaciones} comprobaciones · ${((Date.now() - t0) / 1000).toFixed(1)} s · semilla ${SEMILLA}`);
+console.log(`BIEN juez  ${tot.pasos} pasos con ${TANDAS * (Object.values(NEG).reduce((s, N) => s + N.tecnicos.length + 3, 0))} aparatos · ${tot.aceptadas} aceptadas, ${tot.rechazadas} rechazadas · ${tot.adelantos} veces se adelantó otro · ${tot.repetidas} repetidas · ${tot.zonas} veces en la zona del cliente · ${comprobaciones} comprobaciones · ${((Date.now() - t0) / 1000).toFixed(1)} s · semilla ${SEMILLA}`);
 console.log('          cómo acaban los avisos: ' + Object.entries(est).sort((a, b) => b[1] - a[1]).map(([k, n]) => k + ' ' + n).join(' · '));
 /* si los recorridos no llegan a todas partes, no prueban lo que dicen */
 const faltan = ['nuevo', 'asignado', 'camino', 'curso', 'hecho', 'cancelado', 'ausente'].filter(k => !est[k]);
-if (TANDAS >= 20 && (faltan.length || tot.adelantos < TANDAS || tot.repetidas < TANDAS)) { console.log('MAL: los recorridos no llegan a todo (faltan estados: ' + (faltan.join(', ') || 'ninguno') + '; adelantos ' + tot.adelantos + '; repetidas ' + tot.repetidas + ')'); process.exit(1); }
+if (TANDAS >= 20 && (faltan.length || tot.adelantos < TANDAS || tot.repetidas < TANDAS || tot.zonas < TANDAS)) { console.log('MAL: los recorridos no llegan a todo (faltan estados: ' + (faltan.join(', ') || 'ninguno') + '; adelantos ' + tot.adelantos + '; repetidas ' + tot.repetidas + '; zona del cliente ' + tot.zonas + ')'); process.exit(1); }

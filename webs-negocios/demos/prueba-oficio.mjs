@@ -570,6 +570,8 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(A(a1).tot.total > 0 && A(a1).cli.nombre === 'Montse' && A(a2).e === 'nuevo', 'es una copia: tocarla no cambia los avisos');
   es(K.perfilCliente(S, cfg, '699999999') === null && K.perfilCliente(S, cfg, 'hola') === null && K.perfilCliente(null, cfg, '600000143') === null, 'un teléfono sin avisos, uno mal escrito o sin datos: nada');
   es(K.perfilCliente(S, cfg, '0034600000143').avisos.length === 2, 'con el prefijo de España, el mismo perfil');
+  const a3 = ap({ tipo: 'pedir', av: 'fuga', origen: 'web', cli: { tel: '600000143' } }, CLI).id, P3 = K.perfilCliente(S, cfg, '600000143');
+  es(P3.avisos[0].id === a3 && P3.cli.nombre === 'Montse' && P3.cli.apellidos === 'Vila' && P3.cli.dir === 'C/ Verdi 30, 1.º', 'si el último aviso entró por WhatsApp con solo el teléfono, sus datos salen del último que los tiene');
   es(K.CLIENTE_DEMO === '2468-1357', 'el código de los clientes de muestra en la demo');
 }
 

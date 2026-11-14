@@ -131,10 +131,12 @@ function paso(W, a, q, t) {
     if (!P || P.tel !== t9 || P.avisos.length !== suyos.length) rota('perfil-todo-lo-suyo', A.id + ': ' + (P ? P.avisos.length : 'nada') + ' de ' + suyos.length);
     for (const x of P.avisos) { if (K.tel9(x.cli.tel) !== t9) rota('perfil-solo-lo-suyo', x.id); for (const k of Object.keys(x)) if (!PERFIL_OK.includes(k)) rota('perfil-sin-lo-interno', x.id + ' lleva «' + k + '»') }
     for (let i = 1; i < P.avisos.length; i++) if (P.avisos[i - 1].t < P.avisos[i].t) rota('perfil-lo-ultimo-primero', P.avisos[i].id);
+    { const con = suyos.filter(x => (x.cli.nombre || '').trim() && (x.cli.dir || '').trim()).sort((x, y) => y.t - x.t)[0];   // sus datos: los del último aviso que los tiene
+      if (con && (P.cli.nombre !== con.cli.nombre || P.cli.dir !== con.cli.dir)) rota('perfil-con-sus-datos', A.id + ': ' + JSON.stringify(P.cli)) }
     for (const x of P.avisos) { const Y = S.avisos.find(y => y.id === x.id);   // una copia: nada de lo que lleva es lo mismo que guarda el aviso
       for (const k of Object.keys(x)) if (x[k] && typeof x[k] === 'object' && Y[k] === x[k]) rota('perfil-es-una-copia', x.id + '.' + k);
       for (const k of ['tot', 'pres']) if (x[k] && x[k].lineas && Y[k].lineas === x[k].lineas) rota('perfil-es-una-copia', x.id + '.' + k + '.lineas') }
-    W.leyes += 5 }
+    W.leyes += 6 }
   try { K.diasDe(S, cfg, t, 6).forEach(d => d.franjas.forEach(f => { if (f.ok && !(f.libres > 0)) rota('franja-ofrecida-con-hueco', d.dia + ' ' + f.id) })) } catch (e) { if (e instanceof Rota) throw e; rota('citas-no-revientan', e.message) }
   W.leyes += 21; return r;
 }

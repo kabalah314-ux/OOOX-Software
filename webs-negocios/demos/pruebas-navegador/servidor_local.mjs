@@ -8,7 +8,7 @@
 //
 // Lo mismo que el servidor de verdad:      POST /functions/v1/oficio      GET /functions/v1/oficio
 //                                          POST /rest/v1/rpc/oficios_v    POST /rest/v1/rpc/oficios_vista
-// Solo para las pruebas, bajo /__prueba/:  negocio, codigos, estado, cuenta (GET) · reloj, persona, red, pierde (POST)
+// Solo para las pruebas, bajo /__prueba/:  negocio, codigos, estado, cuenta, clientes (GET) · reloj, persona, red, pierde (POST)
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
@@ -32,7 +32,7 @@ const CODIGOS = { oficina: 'ofic-ina0-prue-ba01' };
 N.tecnicos.forEach((t, i) => { CODIGOS[t.id] = 'tecn-ico' + String(i + 1) + '-prue-ba0' + String(i + 2); });
 A.alta(N.id, N, K.ESQ); A.persona(N.id, 'oficina', 'centralita', 'oficina', CODIGOS.oficina);
 N.tecnicos.forEach(t => A.persona(N.id, t.id, 'tecnico', t.id, CODIGOS[t.id]));
-const cuenta = { hacer: 0, leer: 0, entrar: 0, pedir: 0, huecos: 0, ver: 0, version: 0, oficios_v: 0, oficios_vista: 0, perdidas: 0, cortadas: 0 };
+const cuenta = { hacer: 0, leer: 0, entrar: 0, pedir: 0, huecos: 0, ver: 0, acceso: 0, perfil: 0, version: 0, oficios_v: 0, oficios_vista: 0, perdidas: 0, cortadas: 0 };
 
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.woff2': 'font/woff2', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.ico': 'image/x-icon' };
 const CAB = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type, apikey, authorization, x-client-info', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'cache-control': 'no-store' };
@@ -73,6 +73,7 @@ async function prueba(req, res, ruta) {
   if (que === 'negocio') return json(res, N);
   if (que === 'codigos') return json(res, CODIGOS);
   if (que === 'cuenta') return json(res, cuenta);
+  if (que === 'clientes') return json(res, Object.fromEntries([...crudo().clientes.entries()]));   // el código de la zona de cada teléfono
   if (que === 'estado') { const n = crudo(); return json(res, { v: n.v, cab: n.cab, avisos: [...n.avisos.values()].map(f => Object.assign({}, f.datos, { foto: f.datos.foto ? '(foto)' : '', fotos: (f.datos.fotos || []).map(() => '(foto)') })).sort((a, b) => a.n - b.n), llaves: Object.fromEntries([...n.avisos.values()].map(f => [f.id, f.llave])), diario: n.diario.map(x => ({ v: x.v, q: x.q, tipo: x.accion.tipo, id: x.accion.id || '', clave: x.clave })) }); }
   if (que === 'reloj') { desfase = Number(c.desfase) || 0; return json(res, { ok: true, ahora: ahora() }); }
   if (que === 'red') { red = c.modo === 'cae' ? 'cae' : 'va'; lento = Math.max(0, Number(c.lento) || 0); return json(res, { ok: true, red, lento }); }

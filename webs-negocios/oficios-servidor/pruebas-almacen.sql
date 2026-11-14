@@ -1,6 +1,6 @@
 -- Pruebas del almacén del servidor (almacen.sql), pasadas en la base de datos de verdad y deshechas al acabar:
 -- el bloque termina con un error a propósito, que lleva el resultado y no deja nada escrito.
--- Tiene que decir «ok» en las 22. Se pasan con el conector de Supabase de Claude o en el editor SQL del proyecto.
+-- Tiene que decir «ok» en las 31. Se pasan con el conector de Supabase de Claude o en el editor SQL del proyecto.
 do $$
 declare
   r text[] := '{}'; j jsonb; k jsonb; n int;
@@ -136,6 +136,52 @@ begin
   r := array_append(r, case when public.oficios_v('prueba-srv2', 'oficina', 'codigo-oficina-2') = '{"ok":false,"err":"clave"}'::jsonb
     and (public.oficios_srv('negocio', '{"negocio":"prueba-srv2"}') ->> 'activo')::boolean = false
     and (select s.v = 3 and s.avisos = 2 and s.personas = 2 and s.prueba from oficios.servidor s where s.negocio = 'prueba-srv') then '22:ok' else '22:MAL' end);
+
+  -- 11. la zona del cliente: el código de cada teléfono, que la oficina puede volver a mandar o cambiar
+  perform set_config('role', 'anon', true);
+  begin perform 1 from oficios.clientes limit 1; r := array_append(r, '23:MAL'); exception when insufficient_privilege then r := array_append(r, '23:ok'); end;
+  begin perform oficios.cliente_entra('prueba-srv', '612345678', 'abcd-efgh', ''); r := array_append(r, '24:MAL'); exception when insufficient_privilege then r := array_append(r, '24:ok'); end;
+  perform set_config('role', 'service_role', true);
+  r := array_append(r, case when public.oficios_srv('cliente', '{"negocio":"prueba-srv","tel":"612345678"}') is null
+    and public.oficios_srv('pon_cliente', '{"negocio":"prueba-srv","tel":"612345678","codigo":"abcd-efgh"}') = '{"ok":true}'::jsonb
+    and public.oficios_srv('cliente', '{"negocio":"prueba-srv","tel":"612345678"}') = '{"codigo":"abcd-efgh","activo":true}'::jsonb
+    and public.oficios_srv('pon_cliente', '{"negocio":"prueba-srv","tel":"612345678","codigo":"jkmn-pqrs"}') = '{"ok":true}'::jsonb
+    and public.oficios_srv('cliente', '{"negocio":"prueba-srv","tel":"612345678"}') = '{"codigo":"jkmn-pqrs","activo":true}'::jsonb
+    and public.oficios_srv('cliente', '{"negocio":"prueba-srv2","tel":"612345678"}') is null then '25:ok' else '25:MAL' end);
+  -- lo que no tiene forma de teléfono o de código, o es de un negocio que no existe, no se guarda ni toca el código de antes
+  r := array_append(r, case when public.oficios_srv('pon_cliente', '{"negocio":"prueba-srv","tel":"512345678","codigo":"abcd-efgh"}') = '{"ok":false}'::jsonb
+    and public.oficios_srv('pon_cliente', '{"negocio":"prueba-srv","tel":"612345678","codigo":"abcd-efgi"}') = '{"ok":false}'::jsonb
+    and public.oficios_srv('pon_cliente', '{"negocio":"prueba-srv","tel":"612345678","codigo":"ABCD-EFGH"}') = '{"ok":false}'::jsonb
+    and public.oficios_srv('pon_cliente', '{"negocio":"no-existe","tel":"612345678","codigo":"abcd-efgh"}') = '{"ok":false}'::jsonb
+    and public.oficios_srv('pon_cliente', '{"negocio":"prueba-srv","tel":"612345678"}') = '{"ok":false}'::jsonb
+    and public.oficios_srv('cliente', '{"negocio":"prueba-srv","tel":"612345678"}') = '{"codigo":"jkmn-pqrs","activo":true}'::jsonb then '26:ok' else '26:MAL' end);
+  -- entrar: el código bueno sí; cualquier otro, no
+  r := array_append(r, case when public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"612345678","codigo":"jkmn-pqrs","red":"c0"}') = 'true'::jsonb
+    and public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"612345678","codigo":"abcd-efgh","red":"c0"}') is null
+    and public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"699999999","codigo":"jkmn-pqrs","red":"c0"}') is null
+    and public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv2","tel":"612345678","codigo":"jkmn-pqrs","red":"c0"}') is null
+    and public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"612345678","red":"c0"}') is null
+    and public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"6123","codigo":"jkmn-pqrs","red":"c0"}') is null then '27:ok' else '27:MAL' end);
+  perform set_config('role', 'none', true);
+  select count(*) into n from oficios.intentos_persona where negocio like 'prueba-srv%' and persona like 'cliente:%';
+  -- cuentan el código malo y el teléfono que no es de nadie (así el freno no dice quién es cliente); lo que no tiene forma y el negocio de baja, no
+  r := array_append(r, case when n = 2 and exists (select 1 from oficios.intentos_persona where negocio = 'prueba-srv' and persona = 'cliente:699999999') then '28:ok' else '28:MAL' end);
+  perform set_config('role', 'service_role', true);
+  -- diez fallos desde una conexión bloquean ese teléfono a esa conexión; desde otra, y con otro teléfono, se sigue entrando
+  for i in 1..9 loop perform public.oficios_srv('cliente_entra', jsonb_build_object('negocio', 'prueba-srv', 'tel', '612345678', 'codigo', 'zzzz-zzz' || substr('abcdefghjk', i, 1), 'red', 'c0')); end loop;   -- con el de antes, diez
+  perform public.oficios_srv('pon_cliente', '{"negocio":"prueba-srv","tel":"622222222","codigo":"wxyz-2345"}');
+  r := array_append(r, case when public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"612345678","codigo":"jkmn-pqrs","red":"c0"}') = '"bloqueo"'::jsonb
+    and public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"612345678","codigo":"jkmn-pqrs","red":"c1"}') = 'true'::jsonb
+    and public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"622222222","codigo":"wxyz-2345","red":"c0"}') = 'true'::jsonb then '29:ok' else '29:MAL' end);
+  -- cincuenta fallos desde una conexión, con el teléfono que sea, bloquean esa conexión
+  for i in 1..50 loop perform public.oficios_srv('cliente_entra', jsonb_build_object('negocio', 'prueba-srv', 'tel', (630000000 + i)::text, 'codigo', 'zzzz-zzzz', 'red', 'c2')); end loop;
+  r := array_append(r, case when public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"622222222","codigo":"wxyz-2345","red":"c2"}') = '"bloqueo"'::jsonb
+    and public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"622222222","codigo":"wxyz-2345","red":"c3"}') = 'true'::jsonb then '30:ok' else '30:MAL' end);
+  -- un código dado de baja no entra; y la vista para Oscar cuenta los clientes con código
+  perform set_config('role', 'none', true);
+  update oficios.clientes set activo = false where negocio = 'prueba-srv' and tel = '622222222';
+  r := array_append(r, case when public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"622222222","codigo":"wxyz-2345","red":"c4"}') is null
+    and (select s.clientes = 1 from oficios.servidor s where s.negocio = 'prueba-srv') then '31:ok' else '31:MAL' end);
 
   raise exception 'RESULTADOS %', array_to_string(r, ' | ');
 end $$;

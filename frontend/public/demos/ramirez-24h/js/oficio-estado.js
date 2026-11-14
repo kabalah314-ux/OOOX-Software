@@ -125,6 +125,10 @@ const R=SV?(function(){
   if(!['red','lleno','servidor'].includes(r.err))olvida(a);
   return{ok:false,err:r.err||'red'}}
  const huecos=()=>juez({que:'huecos',negocio:N.id},15000);
+ /* la zona del cliente: entra con su teléfono y el código que le mandó la oficina, y el servidor le da solo lo suyo */
+ const perfil=(tel,codigo)=>juez({que:'perfil',negocio:N.id,tel,codigo},20000);
+ /* la oficina: el código de la zona de un cliente, el que ya tiene o uno nuevo si se pide cambiarlo */
+ const acceso=(tel,cambia)=>ses?juez(con({que:'acceso',tel,cambia:cambia===true}),20000):Promise.resolve({ok:false,err:'sesion'});
  /* lo que ve el cliente de su aviso: hace falta la llave de su enlace, que se guarda en su navegador */
  const llaveDe=id=>{const L=leeJ(K_LLA);return L&&typeof L[id]==='string'?L[id]:''};
  function ponLlave(id,llave){if(typeof id!=='string'||typeof llave!=='string'||llave.length<20||llave.length>80)return;const L=leeJ(K_LLA)||{};if(L[id]===llave)return;L[id]=llave;mem.set(K_LLA,JSON.stringify(L));delete vistas[id]}
@@ -145,7 +149,7 @@ const R=SV?(function(){
  {const s=leeJ(K_SES);if(s&&typeof s.persona==='string'&&typeof s.codigo==='string'&&(s.rol==='centralita'||(s.rol==='tecnico'&&cfg.tec[s.id]))){abre(s);programa(0);miraReglas()}else if(s)mem.del(K_SES)}
 
  return{estado:()=>E?E.estado():VACIO,hacer:hacerS,crear:(a,q)=>q&&q.rol==='cliente'?pedirWeb(a):crearS(a),
-  sesion:()=>ses?{rol:ses.rol,id:ses.id,persona:ses.persona}:null,ultima:()=>mem.get(K_ULT)||'',entrar,salir,huecos,vista,miraVista,llaveDe,ponLlave,
+  sesion:()=>ses?{rol:ses.rol,id:ses.id,persona:ses.persona}:null,ultima:()=>mem.get(K_ULT)||'',entrar,salir,huecos,vista,miraVista,llaveDe,ponLlave,perfil,acceso,
   alRechazar:f=>{rech.push(f)},
   red:()=>({cola:E?E.pendientes():0,sinRed,lleno,motivo,reglas:reglas&&reglas!==K.VERSION?reglas:''})}
 })():null;
@@ -176,7 +180,7 @@ const firmaSvg=d=>'<svg viewBox="0 0 300 110" fill="none" stroke="currentColor" 
 /* Lo que usan las pantallas. «crear» es para lo que tiene número propio (un aviso, una ausencia): devuelve una promesa,
    porque con servidor el número lo pone él. Sin servidor contesta al momento, igual que «hacer». */
 g.Oficio=R?{K,N,cfg,DEMO,SRV:true,estado:R.estado,hacer:R.hacer,crear:R.crear,reiniciar(){},suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
-  sesion:R.sesion,ultima:R.ultima,entrar:R.entrar,salir:R.salir,red:R.red,alRechazar:R.alRechazar,huecos:R.huecos,vista:R.vista,miraVista:R.miraVista,llaveDe:R.llaveDe,ponLlave:R.ponLlave}
+  sesion:R.sesion,ultima:R.ultima,entrar:R.entrar,salir:R.salir,red:R.red,alRechazar:R.alRechazar,huecos:R.huecos,vista:R.vista,miraVista:R.miraVista,llaveDe:R.llaveDe,ponLlave:R.ponLlave,perfil:R.perfil,acceso:R.acceso}
  :{K,N,cfg,DEMO,SRV:false,estado,hacer,crear:(a,q)=>Promise.resolve(hacer(a,q)),reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
   sesion:()=>null,red:()=>null,alRechazar(){}};
 /* Una copia de prueba (prueba:true en los datos del negocio) lo dice arriba en todas sus pantallas: así nadie la toma por un

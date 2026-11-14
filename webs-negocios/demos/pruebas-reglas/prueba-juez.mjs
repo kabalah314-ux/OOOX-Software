@@ -8,7 +8,7 @@ import { leeNucleo, leeNegocio } from './valida-negocio.mjs';
 const aqui = path.dirname(fileURLToPath(import.meta.url)), sitio = process.argv[2];
 if (!sitio) { console.log('Uso: node prueba-juez.mjs <carpeta del sitio>'); process.exit(2); }
 const DIR = path.resolve(process.env.OFICIOS_SERVIDOR || path.join(aqui, '../../oficios-servidor'));
-const { crea, paraQuien, TOPES, llaveNueva } = await import(pathToFileURL(path.join(DIR, 'juez.mjs')).href);
+const { crea, paraQuien, TOPES, llaveNueva, codigoCliente, limpiaCodigo } = await import(pathToFileURL(path.join(DIR, 'juez.mjs')).href);
 const { creaAlmacen } = await import(pathToFileURL(path.join(DIR, 'almacen-memoria.mjs')).href);
 const K = leeNucleo(sitio), NR = leeNegocio(path.join(sitio, 'js/oficio-datos.js')).N, NV = leeNegocio(path.join(aqui, 'negocios/voltio.js')).N;
 let ok = 0, mal = 0;
@@ -197,6 +197,75 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   let avisado = 0; const J3 = crea({ K, almacen: roto, aviso: () => { avisado++; } });
   es(igual(await J3.atiende(Object.assign({ que: 'entrar' }, OF)), { ok: false, err: 'servidor' }) && avisado === 1, 'si el almacén falla, el juez contesta «servidor», lo deja apuntado y no lanza nada');
   es(new Set(Array.from({ length: 200 }, () => llaveNueva())).size === 200 && /^[a-z2-9]{24}$/.test(llaveNueva()), 'las llaves salen distintas y con las letras que tocan'); }
+
+// 13. la zona del cliente: la oficina le da un código y el cliente entra con su teléfono y ese código
+{ reloj.t += 601000; crudo('ramirez').fallos = []; const v0 = crudo('ramirez').v, d0 = crudo('ramirez').diario.length;
+  const cfg = K.cfgDe(NR), PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'cli', 'vista', 'llave'];
+  /* el estado tal como lo carga el juez */
+  const est = () => { const n = crudo('ramirez'); return Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, JSON.parse(JSON.stringify(n.cab)), { v: n.v, avisos: [...n.avisos.values()].map(f => JSON.parse(JSON.stringify(f.datos))).sort((a, b) => (a.n || 0) - (b.n || 0)) }); };
+  const acceso = (quien, tel, mas) => J.atiende(Object.assign({ que: 'acceso', tel }, quien, mas));
+  const perfil = (tel, codigo, red) => J.atiende({ que: 'perfil', negocio: 'ramirez', tel, codigo, red: red || 'red-cli' });
+  const sinLlave = L => L.map(a => { const x = Object.assign({}, a); delete x.llave; return x; });
+  const TM = '612345678', TP = '698765432', TN = '611111111', malo = i => 'zzzz-z' + 'abcdefghjk'[i % 10] + 'abcdefghjk'[Math.floor(i / 10) % 10] + 'abcdefghjk'[Math.floor(i / 100) % 10];
+  // quién puede pedir un código, y para quién
+  const deTec = await acceso(T(tecR[0]), TM), sinCod = await J.atiende({ que: 'acceso', negocio: 'ramirez', persona: 'oficina', codigo: 'otro', tel: TM });
+  es(igual(deTec, { ok: false, err: 'permiso' }) && igual(sinCod, { ok: false, err: 'clave' }) && crudo('ramirez').clientes.size === 0, 'solo la centralita da el código de la zona del cliente: un técnico no, ni nadie sin el código de la oficina');
+  crudo('ramirez').fallos = [];
+  es(igual(await acceso(OF, '123'), { ok: false, err: 'tel' }) && igual(await acceso(OF, TN), { ok: false, err: 'nadie' }) && crudo('ramirez').clientes.size === 0, 'ni para un teléfono mal escrito ni para uno sin avisos: no se da código a quien no es cliente');
+  // el código se crea una vez y después se vuelve a dar el mismo
+  const a1 = await acceso(OF, '+34 612 34 56 78'), a2 = await acceso(OF, TM);
+  es(a1.ok && a1.tel === TM && /^[a-z2-9]{4}-[a-z2-9]{4}$/.test(a1.codigo) && a1.nuevo === true && igual(Object.keys(a1).sort(), ['codigo', 'nuevo', 'ok', 'tel']), 'la oficina pide el código de un cliente y recibe uno nuevo, de ocho letras');
+  es(a2.ok && a2.codigo === a1.codigo && a2.nuevo === false, 'si lo vuelve a pedir es el mismo: se lo puede mandar otra vez');
+  // el cliente entra con él y recibe lo suyo
+  const p1 = await perfil(TM, a1.codigo), Pf = K.perfilCliente(est(), cfg, TM);
+  es(p1.ok && igual(sinLlave(p1.perfil.avisos), Pf.avisos) && igual(p1.perfil.cli, Pf.cli) && p1.perfil.tel === TM && igual(Object.keys(p1).sort(), ['ok', 'perfil']), 'con su teléfono y su código, el cliente recibe su perfil tal como lo dan las reglas');
+  es(p1.perfil.avisos.length >= 1 && p1.perfil.avisos.every(a => K.tel9(a.cli.tel) === TM && a.llave === crudo('ramirez').avisos.get(a.id).llave && a.llave.length === 24), 'con todos sus avisos y la llave de cada uno, para seguirlos en directo');
+  es(!/Pere|Clara|698765432|655443322/.test(JSON.stringify(p1)) && p1.perfil.avisos.every(a => Object.keys(a).every(k => PERFIL_OK.includes(k))), 'y nada de otro cliente ni nada interno de los avisos');
+  es((await perfil('612 34 56 78', a1.codigo.toUpperCase().replace('-', ' '))).ok && (await perfil('0034612345678', ' ' + a1.codigo.replace('-', '') + ' ')).ok, 'el código vale con mayúsculas, con espacios o sin guion, y el teléfono con prefijo o con espacios');
+  // lo que no vale: todo contesta lo mismo
+  const a3 = await acceso(OF, TP);
+  const malos = [await perfil(TM, 'abcd-efgh'), await perfil(TM, a3.codigo), await perfil(TP, a1.codigo), await perfil(TN, a1.codigo), await perfil(TM, ''), await perfil(TM), await perfil(TM, a1.codigo + 'x'), await perfil('', a1.codigo), await perfil(TM, 7),
+    await J.atiende({ que: 'perfil', negocio: 'voltio', tel: TM, codigo: a1.codigo }), await J.atiende({ que: 'perfil', negocio: 'no-existe', tel: TM, codigo: a1.codigo })];
+  es(malos.every(x => igual(x, { ok: false, err: 'clave' })), 'un código inventado, el de otro cliente, un teléfono que no es el suyo, otro negocio o sin código: todos reciben la misma respuesta');
+  es(a3.ok && a3.nuevo && a3.codigo !== a1.codigo && (await perfil(TP, a3.codigo)).ok, 'cada cliente tiene su código');
+  // cambiar el código
+  const a4 = await acceso(OF, TM, { cambia: true });
+  es(a4.ok && a4.nuevo === true && a4.codigo !== a1.codigo && igual(await perfil(TM, a1.codigo), { ok: false, err: 'clave' }) && (await perfil(TM, a4.codigo)).ok && (await perfil(TP, a3.codigo)).ok, 'si la oficina lo cambia, el de antes deja de valer y vale el nuevo; el de los demás clientes sigue igual');
+  es((await acceso(OF, TM)).codigo === a4.codigo, 'y lo que se vuelve a mandar ya es el nuevo');
+  crudo('ramirez').clientes.get(TP).activo = false;
+  es(igual(await perfil(TP, a3.codigo), { ok: false, err: 'clave' }), 'un código dado de baja no entra');
+  const a5 = await acceso(OF, TP);
+  es(a5.ok && a5.nuevo === true && a5.codigo !== a3.codigo && (await perfil(TP, a5.codigo)).ok, 'y si la oficina lo vuelve a pedir, le da uno nuevo');
+  es(crudo('ramirez').v === v0 && crudo('ramirez').diario.length === d0, 'dar códigos y entrar en la zona no cambia los avisos: ni la versión ni el diario');
+  // el freno
+  crudo('ramirez').fallosCli = [];
+  for (let i = 0; i < 10; i++) await perfil(TM, malo(i));
+  es(igual(await perfil(TM, a4.codigo), { ok: false, err: 'bloqueo' }), 'tras diez códigos fallados, ni el bueno entra');
+  es((await perfil(TM, a4.codigo, 'otra-red')).ok && (await perfil(TP, a5.codigo)).ok, 'pero el bloqueo es de ese teléfono y esa conexión: desde otra entra, y los demás clientes también');
+  reloj.t += 601000; es((await perfil(TM, a4.codigo)).ok, 'a los diez minutos vuelve a entrar');
+  for (let i = 0; i < 10; i++) await perfil(TN, malo(i));
+  es(igual(await perfil(TN, malo(10)), { ok: false, err: 'bloqueo' }), 'un teléfono que no es de ningún cliente se bloquea igual: el freno no dice quién es cliente');
+  crudo('ramirez').fallosCli = [];
+  for (let i = 0; i < 50; i++) await perfil('6' + String(30000000 + i), malo(i), 'red-barrido');
+  es(igual(await perfil(TP, a5.codigo, 'red-barrido'), { ok: false, err: 'bloqueo' }) && (await perfil(TP, a5.codigo)).ok, 'quien prueba códigos con cincuenta teléfonos queda bloqueado en su conexión; los demás, no');
+  crudo('ramirez').fallosCli = [];
+  for (let r = 0; r < 20; r++) for (let i = 0; i < 10; i++) await perfil(TM, malo(r * 10 + i), 'red-' + r);
+  es(igual(await perfil(TM, a4.codigo, 'red-nueva'), { ok: false, err: 'bloqueo' }) && (await perfil(TP, a5.codigo, 'red-nueva')).ok, 'doscientos fallos con un teléfono, desde donde sea, lo bloquean un rato en todas partes; a los demás, no');
+  crudo('ramirez').fallosCli = [];
+  // nada lleva el código de un cliente, salvo lo que se le da a la oficina
+  crudo('ramirez').topes.clear();
+  const pw = await J.atiende({ que: 'pedir', negocio: 'ramirez', red: 'red-40', accion: { tipo: 'pedir', av: NR.averias[0].id, origen: 'web', cli: { tel: TM } } });
+  const todo = JSON.stringify([pw, await J.atiende({ que: 'huecos', negocio: 'ramirez' }), await leer(OF, 0), await leer(T(tecR[0]), 0), await leer(T(tecR[1]), 0), await J.atiende(Object.assign({ que: 'entrar' }, OF)), await perfil(TP, a5.codigo)]);
+  es(pw.ok && igual(Object.keys(pw).sort(), ['id', 'llave', 'ok']) && ![a4.codigo, a5.codigo].some(c => todo.includes(c)), 'pedir cita con el teléfono de un cliente, los huecos, lo que lee la oficina o un técnico y la zona de otro cliente no llevan nunca su código');
+  const p2 = await perfil(TM, a4.codigo);
+  es(p2.ok && p2.perfil.avisos[0].id === pw.id && p2.perfil.avisos[0].llave === pw.llave && p2.perfil.cli.nombre === 'Montse' && p2.perfil.cli.dir === cliDe(NR).dir, 'un aviso nuevo con su teléfono sale el primero en su zona, y sus datos siguen siendo los suyos');
+  // un negocio de baja, y peticiones raras
+  es(igual(await J.atiende({ que: 'acceso', negocio: 'voltio', persona: 'oficina', codigo: 'codigo-oficina-v', tel: TM }), { ok: false, err: 'clave' }), 'un negocio dado de baja no da códigos');
+  const raras = [{ que: 'perfil' }, { que: 'perfil', negocio: 'ramirez', tel: {}, codigo: [] }, { que: 'acceso', negocio: 'ramirez', tel: TM }, Object.assign({ que: 'acceso', tel: null, cambia: 'si' }, OF)], rr = [];
+  for (const x of raras) rr.push(await J.atiende(x));
+  es(rr.every(x => x && x.ok === false && typeof x.err === 'string'), 'lo que no es una petición de la zona del cliente recibe un «no», sin romper nada');
+  es(new Set(Array.from({ length: 200 }, () => codigoCliente())).size === 200 && Array.from({ length: 50 }, () => codigoCliente()).every(c => limpiaCodigo(c) === c) && limpiaCodigo('ABCD EFGH') === 'abcd-efgh'
+    && limpiaCodigo('abcd-efgi') === '' && limpiaCodigo('abc-defg') === '' && limpiaCodigo(12345678) === '', 'los códigos salen distintos y con su forma, y se leen escritos de cualquier manera, pero no con letras que no se usan'); }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

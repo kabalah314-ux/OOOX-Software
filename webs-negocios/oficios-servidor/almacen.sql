@@ -1,6 +1,6 @@
 -- EL ALMACÉN DEL SERVIDOR DE OFICIOS (fase 2) · Supabase, apartado «oficios», junto al buzón de mejoras.
 --
--- Cumple el contrato de ocho funciones que pide el juez (LEEME.md). Quién puede entrar:
+-- Cumple el contrato de once funciones que pide el juez (LEEME.md). Quién puede entrar:
 --   · El juez (la función «oficio» de Supabase), con la llave de servicio: public.oficios_srv(qué, datos).
 --   · Cualquiera, desde un navegador, solo estas dos lecturas:
 --       public.oficios_v(negocio, persona, código)  → el número de versión. Lo pregunta cada aparato cada dos segundos;
@@ -66,6 +66,17 @@ create table if not exists oficios.intentos_persona (   -- códigos fallados de 
   cuando  timestamptz not null default now()
 );
 create index if not exists intentos_persona_quien on oficios.intentos_persona (negocio, persona, cuando desc);
+create table if not exists oficios.clientes (       -- la zona del cliente: el código de cada teléfono
+  negocio  text not null references oficios.estados(negocio),
+  tel      text not null check (tel ~ '^[6789][0-9]{8}$'),
+  codigo   text not null check (codigo ~ '^[abcdefghjkmnpqrstuvwxyz23456789]{4}-[abcdefghjkmnpqrstuvwxyz23456789]{4}$'),
+                                                  -- tal cual y no su huella, para que la oficina se lo pueda volver a mandar:
+                                                  -- lo que abre (los avisos de ese cliente) está en esta misma base de datos
+  activo   boolean not null default true,
+  creado   timestamptz not null default now(),
+  cambiado timestamptz not null default now(),
+  primary key (negocio, tel)
+);
 
 alter table oficios.estados          enable row level security;
 alter table oficios.avisos           enable row level security;
@@ -73,6 +84,7 @@ alter table oficios.personas         enable row level security;
 alter table oficios.diario           enable row level security;
 alter table oficios.topes            enable row level security;
 alter table oficios.intentos_persona enable row level security;
+alter table oficios.clientes         enable row level security;
 
 -- Una huella de la conexión de quien llama, para frenar a quien prueba códigos sin dejar fuera a los demás.
 -- Sale de la cabecera que pone Supabase; si no la hay (una prueba hecha desde dentro), queda vacía.
@@ -106,6 +118,31 @@ begin
     return null;
   end if;
   return jsonb_build_object('rol', p.rol, 'id', p.quien);
+end $$;
+
+-- La zona del cliente: ¿vale ese código para ese teléfono? Devuelve true, la palabra "bloqueo", o nada.
+-- Cuentan todos los fallos, sea o no el teléfono de un cliente: así el freno no dice qué teléfonos lo son. En diez minutos,
+-- diez desde la misma conexión bloquean ese teléfono a esa conexión; doscientos, a todas; y cincuenta desde una conexión,
+-- con el teléfono que sea, bloquean esa conexión. Los fallos de más de un día se van borrando solos.
+create or replace function oficios.cliente_entra(p_negocio text, p_tel text, p_codigo text, p_red text) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare n oficios.negocios; c oficios.clientes; r text := left(coalesce(p_red, ''), 80); quien text; mios int; todos int; de_red int;
+begin
+  if p_negocio is null or p_tel is null or p_codigo is null or char_length(p_negocio) > 40 or p_tel !~ '^[6789][0-9]{8}$' or char_length(p_codigo) > 40 then return null; end if;
+  select * into n from oficios.negocios where id = p_negocio;
+  if not found or not n.activo then return null; end if;
+  quien := 'cliente:' || p_tel;
+  select count(*) filter (where persona = quien and red = r), count(*) filter (where persona = quien), count(*) filter (where red = r)
+    into mios, todos, de_red
+    from oficios.intentos_persona where negocio = p_negocio and persona like 'cliente:%' and cuando > now() - interval '10 minutes';
+  if mios >= 10 or todos >= 200 or de_red >= 50 then return '"bloqueo"'::jsonb; end if;
+  select * into c from oficios.clientes where negocio = p_negocio and tel = p_tel;
+  if not found or not c.activo or c.codigo <> p_codigo then
+    insert into oficios.intentos_persona(negocio, persona, red) values (p_negocio, quien, r);
+    if random() < 0.02 then delete from oficios.intentos_persona where persona like 'cliente:%' and cuando < now() - interval '1 day'; end if;
+    return null;
+  end if;
+  return 'true'::jsonb;
 end $$;
 
 -- La puerta del juez. Solo entra la llave de servicio (la función «oficio»).
@@ -155,6 +192,18 @@ begin
     if cuantos >= (p_a ->> 'max')::int then return 'false'::jsonb; end if;
     insert into oficios.topes(negocio, clave) values (neg, left(p_a ->> 'clave', 120));
     return 'true'::jsonb;
+  when 'cliente' then
+    return (select jsonb_build_object('codigo', k.codigo, 'activo', k.activo) from oficios.clientes k where k.negocio = neg and k.tel = p_a ->> 'tel');
+  when 'pon_cliente' then
+    begin   -- el código nuevo sustituye al de antes, que deja de valer
+      insert into oficios.clientes(negocio, tel, codigo) values (neg, p_a ->> 'tel', p_a ->> 'codigo')
+      on conflict (negocio, tel) do update set codigo = excluded.codigo, activo = true, cambiado = now();
+      return jsonb_build_object('ok', true);
+    exception when not_null_violation or check_violation or foreign_key_violation then
+      return jsonb_build_object('ok', false);
+    end;
+  when 'cliente_entra' then
+    return oficios.cliente_entra(neg, p_a ->> 'tel', p_a ->> 'codigo', p_a ->> 'red');
   else
     return null;
   end case;
@@ -184,6 +233,7 @@ end $$;
 
 revoke all on function oficios.red() from public;
 revoke all on function oficios.persona_entra(text, text, text, text) from public;
+revoke all on function oficios.cliente_entra(text, text, text, text) from public;
 revoke all on function public.oficios_srv(text, jsonb) from public, anon, authenticated;
 revoke all on function public.oficios_v(text, text, text) from public;
 revoke all on function public.oficios_vista(text, text, text) from public;
@@ -191,9 +241,11 @@ grant execute on function public.oficios_srv(text, jsonb) to service_role;
 grant execute on function public.oficios_v(text, text, text) to anon, authenticated;
 grant execute on function public.oficios_vista(text, text, text) to anon, authenticated;
 
--- Para Oscar y para Claude (no está en la API): cada negocio que usa el servidor, su versión y sus avisos.
+-- Para Oscar y para Claude (no está en la API): cada negocio que usa el servidor, su versión, sus avisos, sus personas y
+-- cuántos clientes tienen código para su zona.
 create or replace view oficios.servidor as
   select e.negocio, n.nombre, n.prueba, e.v, e.cambiado, (select count(*) from oficios.avisos a where a.negocio = e.negocio) as avisos,
-         (select count(*) from oficios.personas p where p.negocio = e.negocio and p.activo) as personas
+         (select count(*) from oficios.personas p where p.negocio = e.negocio and p.activo) as personas,
+         (select count(*) from oficios.clientes c where c.negocio = e.negocio and c.activo) as clientes
   from oficios.estados e join oficios.negocios n on n.id = e.negocio
   order by e.cambiado desc;

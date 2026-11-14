@@ -11,10 +11,11 @@
 //  - El orden lo pone él: guarda solo si nadie ha cambiado nada desde que leyó; si alguien se adelantó, vuelve a leer.
 //  - Lo guardado es siempre igual a repetir su diario desde cero.
 //  - Cada persona recibe solo lo suyo: la oficina, todo lo de su negocio; un técnico, sus avisos; el cliente, su aviso.
+//  - En su zona, el cliente entra con su teléfono y un código que le da la oficina, y recibe sus avisos y nada de nadie más.
 //  - Una acción repetida (la red se cortó y el móvil la manda otra vez) no se hace dos veces.
 //  - Nunca lanza un error hacia fuera: contesta siempre {ok:true,…} o {ok:false,err}.
 
-export const QUE = ['entrar', 'hacer', 'leer', 'pedir', 'huecos', 'ver'];
+export const QUE = ['entrar', 'hacer', 'leer', 'pedir', 'huecos', 'ver', 'acceso', 'perfil'];
 export const TOPES = {
   accion: 400000,     // letras que puede pesar una acción (cabe una foto reducida)
   intentos: 5,        // veces que vuelve a leer si alguien se le adelanta
@@ -29,6 +30,14 @@ export function llaveNueva(n = 24) {
   let s = '';
   while (s.length < n) { const a = new Uint8Array(n * 2); crypto.getRandomValues(a); for (const b of a) if (b < 248 && s.length < n) s += LETRAS[b % 31]; }   // 248 = 31 × 8: todas las letras salen igual de veces
   return s;
+}
+/** El código de la zona de un cliente: 8 letras en dos grupos («abcd-efgh»), con el mismo abecedario. */
+export function codigoCliente() { const s = llaveNueva(8); return s.slice(0, 4) + '-' + s.slice(4); }
+/** Un código de cliente tecleado con mayúsculas, espacios o sin guion vale igual: devuelve «abcd-efgh», o '' si no lo es. */
+export function limpiaCodigo(c) {
+  if (typeof c !== 'string' || c.length > 40) return '';
+  const x = c.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return x.length === 8 && [...x].every(ch => LETRAS.includes(ch)) ? x.slice(0, 4) + '-' + x.slice(4) : '';
 }
 
 const texto = (x, max) => typeof x === 'string' && x.length > 0 && x.length <= max;
@@ -131,6 +140,34 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       if (!texto(p.aviso, 40) || !texto(p.llave, 80)) return R('enlace');
       const v = await almacen.vista(neg.id, p.aviso, p.llave);
       return v ? { ok: true, vista: v } : R('enlace');
+    },
+
+    /* La oficina, para la zona de un cliente: el código de ese teléfono, el que ya tiene o uno nuevo si no lo tiene o se
+       pide cambiarlo (entonces el de antes deja de valer). Solo la centralita y solo para un teléfono con algún aviso. */
+    async acceso(neg, cfg, p) {
+      const w = await quien(neg, cfg, p); if (!w.ok) return w;
+      if (w.q.rol !== 'centralita') return R('permiso');
+      const tel = K.tel9(p.tel); if (!tel) return R('tel');
+      if (!K.perfilCliente((await carga(neg)).S, cfg, tel)) return R('nadie');
+      const ya = p.cambia === true ? null : await almacen.cliente(neg.id, tel);
+      if (ya && ya.activo && limpiaCodigo(ya.codigo) === ya.codigo) return { ok: true, tel, codigo: ya.codigo, nuevo: false };
+      const codigo = codigoCliente(), g = await almacen.ponCliente(neg.id, tel, codigo);
+      return g && g.ok ? { ok: true, tel, codigo, nuevo: true } : R('servidor');
+    },
+
+    /* El cliente, en su zona: con su teléfono y su código recibe sus avisos (K.perfilCliente) y nada de nadie más. Los
+       códigos fallados los cuenta el almacén por teléfono y por conexión, también los de un teléfono que no es de ningún
+       cliente: así el freno no deja averiguar qué teléfonos lo son. */
+    async perfil(neg, cfg, p) {
+      const tel = K.tel9(p.tel), codigo = limpiaCodigo(p.codigo);
+      if (!tel || !codigo) return R('clave');
+      const ok = await almacen.clienteEntra(neg.id, tel, codigo, texto(p.red, 80) ? String(p.red) : '');
+      if (ok === 'bloqueo') return R('bloqueo');
+      if (ok !== true) return R('clave');
+      const { S, filas } = await carga(neg), Pf = K.perfilCliente(S, cfg, tel);
+      if (!Pf) return R('nadie');
+      for (const a of Pf.avisos) { const f = filas.get(a.id); a.llave = f && f.llave ? f.llave : ''; }   // la de su enlace: para seguirlo en directo
+      return { ok: true, perfil: Pf };
     },
   };
 

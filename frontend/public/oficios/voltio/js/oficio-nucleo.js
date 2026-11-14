@@ -26,7 +26,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.14c';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.14d';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -343,7 +343,8 @@ const CLIENTE_DEMO='2468-1357';   /* en la demo, sin servidor, los clientes de m
 function perfilCliente(S,cfg,tel){const t9=tel9(tel);if(!t9||!S||!Array.isArray(S.avisos))return null;
  const mios=S.avisos.filter(a=>a&&a.cli&&tel9(a.cli.tel)===t9).sort((a,b)=>b.t-a.t);if(!mios.length)return null;
  const avisos=mios.map(A=>{const o={};PERFIL.forEach(k=>{if(A[k]!==undefined)o[k]=JSON.parse(JSON.stringify(A[k]))});o.vista=vistaCliente(S,cfg,A.id);return o});
- const c=mios[0].cli;
+ /* sus datos, del último aviso que los tenga: uno que entró por WhatsApp puede llevar solo el teléfono */
+ const c=(mios.find(a=>txt(a.cli.nombre).trim()&&txt(a.cli.dir).trim())||mios.find(a=>txt(a.cli.nombre).trim())||mios[0]).cli;
  return{tel:t9,cli:{nombre:txt(c.nombre),apellidos:txt(c.apellidos),dir:txt(c.dir),cp:txt(c.cp),dis:txt(c.dis)},avisos}}
 
 /* ---------- las cifras del día para la centralita ---------- */

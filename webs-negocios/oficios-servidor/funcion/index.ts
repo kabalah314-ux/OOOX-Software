@@ -17,7 +17,7 @@ async function srv(que: string, a: Record<string, unknown>) {
   if (error) throw new Error("almacén (" + que + "): " + error.message);
   return data;
 }
-// El contrato de ocho funciones que pide el juez (LEEME.md), sobre la base de datos.
+// El contrato de once funciones que pide el juez (LEEME.md), sobre la base de datos.
 const almacen = {
   async negocio(negocio: string) {
     const n = await srv("negocio", { negocio });
@@ -31,6 +31,9 @@ const almacen = {
   cambios: (negocio: string, desde: number) => srv("cambios", { negocio, desde }),
   vista: (negocio: string, aviso: string, llave: string) => srv("vista", { negocio, aviso, llave }),
   tope: (negocio: string, clave: string, max: number, ventana: number) => srv("tope", { negocio, clave, max, ventana }),
+  cliente: (negocio: string, tel: string) => srv("cliente", { negocio, tel }),
+  ponCliente: (negocio: string, tel: string, codigo: string) => srv("pon_cliente", { negocio, tel, codigo }),
+  clienteEntra: (negocio: string, tel: string, codigo: string, red: string) => srv("cliente_entra", { negocio, tel, codigo, red }),
 };
 const juez = crea({ K, almacen, aviso: (e: unknown) => console.error("juez:", e) });
 const VERSION = { reglas: K && K.VERSION, commit: "25ecae1ce51a" };   // para saber desde fuera qué versión corre
