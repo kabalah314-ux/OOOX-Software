@@ -210,7 +210,7 @@ async def main():
         await c.click('#m_texto'); await c.keyboard.type('Estoy escribiendo y'); c2 = await ctx.new_page(); vigila(c2, 'otra pestaña')
         await c2.goto(B + 'app.html'); await c2.wait_for_selector('#nav a')
         n_antes = await c.evaluate("+((document.querySelector('#nav a[href=\"#/bandeja\"] .n')||{}).textContent||0)")
-        hecho = await c2.evaluate("(()=>{const N=OFICIO_NEGOCIO;return Oficio.hacer({tipo:'pedir',av:N.averias[0].id,origen:'llamada',nota:'',cli:{nombre:'Prueba Foco',tel:'611 22 33 44',dir:'C/ de la Prueba 1',cp:Object.keys(N.zonas.cp)[0]},cita:null},{rol:'centralita',id:'oficina'})})()")
+        hecho = await c2.evaluate("(()=>{const N=OFICIO_NEGOCIO;return Oficio.hacer({tipo:'pedir',av:N.averias[0].id,origen:'llamada',nota:'',cli:{nombre:'Prueba Foco',apellidos:'Prueba',tel:'611 22 33 44',dir:'C/ de la Prueba 1',cp:Object.keys(N.zonas.cp)[0]},cita:null},{rol:'centralita',id:'oficina'})})()")
         llego = await hasta(c, f"+((document.querySelector('#nav a[href=\"#/bandeja\"] .n')||{{}}).textContent||0)==={n_antes + 1}")
         es(hecho.get('ok') and llego, f'escribir: un aviso que entra por otra pestaña sube el número de la bandeja aunque se esté escribiendo ({hecho})')
         await c.bring_to_front(); await c.keyboard.type(' sigo')

@@ -342,7 +342,7 @@ const barrio=A=>A.cli.dis?cfg.zonas.dis[A.cli.dis][0]:'';
 const ORIG={llamada:'por teléfono',web:'desde la web',cita:'cita en la web',whatsapp:'por WhatsApp',persona:'en persona',otro:'por otro canal'};
 const EST={nuevo:'Sin asignar',asignado:'Asignado',camino:'De camino',curso:'Trabajando',hecho:'Terminado',ausente:'No había nadie',cancelado:'Cancelado'};
 const PAGO={efectivo:'Efectivo',tarjeta:'Tarjeta',bizum:'Bizum',transferencia:'Transferencia',pendiente:'Lo paga después'};
-const ERR={nombre:'Escribe el nombre del cliente.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
+const ERR={nombre:'Escribe el nombre del cliente.',apellidos:'Escribe los apellidos del cliente.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
  datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
  horario:'Ese técnico no trabaja a esa hora. Elige a otro.',ausente_tec:'Ese técnico está ausente ese día.',lleno:'Ese técnico ya tiene esa franja ocupada.',
  red:'Sin conexión con el servidor. No se ha creado: mira si aparece antes de repetirlo.',lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.',sesion:'Tu sesión se ha cerrado. Entra otra vez.',espera:'Eso tiene que confirmarlo el servidor.',
@@ -372,7 +372,7 @@ const waHtml=(txt,a)=>'<div class="wa"><div class="wa-hd"><i>'+esc((a||'C')[0])+
 /* ===== piezas ===== */
 function pista(A){const p=[['Recibido',A.t],['Asignado',A.tec&&A.e!=='nuevo'?1:0],['De camino',A.sal],['En casa',A.ini],['Hecho',A.fin]],orden={nuevo:0,ausente:0,cancelado:0,asignado:1,camino:2,curso:3,hecho:4}[A.e];
  return'<ol class="pista" aria-label="Recorrido del aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]>1&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>'}
-function fila(A,sel){const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=A.cli.nombre||'Aún sin nombre';let f2,fd;
+function fila(A,sel){const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=K.nomCli(A.cli)||'Aún sin nombre';let f2,fd;
  const cita=A.cita?'cita '+diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'';
  const pc=A.cita&&A.cita.ok===false?' · por confirmar':'';
  if(A.e==='nuevo'||A.e==='ausente'){f2=cita?quien+' · '+cita+pc:hace(A.t).replace(/^h/,'H').replace(/^a/,'A')+' · '+quien+' · '+ORIG[A.origen];fd='<span class="pill '+(A.e==='ausente'?'ausente':'nuevo')+'">'+(A.e==='ausente'?'No había nadie':!A.cli.tel?'Faltan datos':A.reasignar?'Reasignar':'Sin asignar')+'</span>'}
@@ -400,7 +400,7 @@ function vElige(){const r=K.resumen(S,cfg,Date.now());
 /* ===== el aviso ===== */
 function bCliente(A,esT){const c=A.cli;let h='<section class="blq"><h2>Cliente</h2>';
  if(!c.tel)return h+'<p class="gr">Aviso desde la web'+(barrio(A)?', en '+esc(barrio(A)):'')+'</p><p class="ln">Ha abierto WhatsApp desde la web '+hace(A.t)+'. El teléfono y la dirección llegan con su mensaje.</p>'+(esT?'':'<div class="acts"><button class="btn pri" data-a="completar" data-id="'+A.id+'">Completar los datos</button></div>')+'</section>';
- h+=(esT?'<p class="dir">'+esc(c.dir)+'</p><p class="ln">'+esc(c.cp)+' '+esc(barrio(A))+' · '+esc(c.nombre)+'</p>':'<p class="gr">'+esc(c.nombre)+'</p><p class="ln">'+esc(c.dir)+' · '+esc(c.cp)+' '+esc(barrio(A))+'</p>');
+ h+=(esT?'<p class="dir">'+esc(c.dir)+'</p><p class="ln">'+esc(c.cp)+' '+esc(barrio(A))+' · '+esc(K.nomCli(c))+'</p>':'<p class="gr">'+esc(K.nomCli(c))+'</p><p class="ln">'+esc(c.dir)+' · '+esc(c.cp)+' '+esc(barrio(A))+'</p>');
  if(A.nota)h+='<p class="dice">'+esc(A.nota)+'</p>';
  if(A.foto)h+='<img class="fotoc" src="'+A.foto+'" alt="Foto que ha mandado el cliente">';
  h+='<div class="acts"><button class="btn peq" data-a="llamar" data-id="'+A.id+'">'+I.tel+K.telBonito(c.tel)+'</button><a class="btn peq" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.dir.split(',')[0]+', '+c.cp+' '+N.ciudad)+'">'+I.mapa+'Mapa</a></div>';
@@ -489,7 +489,7 @@ function vHoy(){const hoy=K.madrid().date,M=S.avisos.filter(a=>a.tec===Q.id&&['a
  const p=dia[0],t=cfg.tec[Q.id];
  let h='<div class="cab"><div><h1>Hoy</h1><p class="sub">'+(p?(dia.length===1?'1 aviso. ':dia.length+' avisos. ')+(p.e==='curso'?'Estás con '+cfg.av[p.av].n.toLowerCase()+' en '+barrio(p)+'.':p.e==='camino'?'Vas de camino a '+barrio(p)+'.':'El siguiente, '+cfg.av[p.av].n.toLowerCase()+' en '+barrio(p)+'.'):'No tienes avisos ahora, '+esc(t.n)+'.')+'</p></div></div>';
  if(p){const av=cfg.av[p.av];
-  h+='<section class="sig'+(p.urg?' urg':'')+'"><p class="k"><span>'+p.id+' · '+(p.cita?'cita '+frTxt(p.cita.fr):'urgente, '+hace(p.t))+'</span><span class="pill '+p.e+'">'+EST[p.e]+'</span></p><h2>'+esc(av.n)+'</h2><p class="dir">'+esc(p.cli.dir)+'</p><p class="ln" style="color:var(--suave)">'+esc(barrio(p))+' · '+esc(p.cli.nombre)+'</p>'+(p.nota?'<p class="dice" style="margin-top:0">'+esc(p.nota)+'</p>':'')+
+  h+='<section class="sig'+(p.urg?' urg':'')+'"><p class="k"><span>'+p.id+' · '+(p.cita?'cita '+frTxt(p.cita.fr):'urgente, '+hace(p.t))+'</span><span class="pill '+p.e+'">'+EST[p.e]+'</span></p><h2>'+esc(av.n)+'</h2><p class="dir">'+esc(p.cli.dir)+'</p><p class="ln" style="color:var(--suave)">'+esc(barrio(p))+' · '+esc(K.nomCli(p.cli))+'</p>'+(p.nota?'<p class="dice" style="margin-top:0">'+esc(p.nota)+'</p>':'')+
    (p.e==='asignado'?'<button class="btn pri ancho" data-a="voy" data-id="'+p.id+'">Voy</button><a class="txt" style="justify-self:center;display:inline-flex;align-items:center" href="#/aviso/'+p.id+'">Ver el aviso</a>':'<a class="btn pri ancho" href="#/aviso/'+p.id+'">'+(p.e==='camino'?'Abrir: he llegado':'Seguir con el trabajo')+'</a>')+'</section>'}
  else h+='<p class="hueco" style="margin-top:16px">Cuando la centralita te pase un aviso, aparece aquí al momento.</p>';
  if(dia.length>1)h+=sec('Después',dia.slice(1),'','');
@@ -515,7 +515,7 @@ function vAgenda(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
   return'<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(n?(n===1?'1 cita':n+' citas')+' en los próximos días.':'Sin citas en los próximos días.')+' '+CABEN+'; con cita, tarifa normal.</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+segAg('agenda',d)+bAlertas()+
    '<div class="sem" role="table" aria-label="Citas de los próximos días"><div class="semc" role="row"><span role="columnheader">Día</span>'+cfg.franjas.map(f=>'<span role="columnheader">'+K.franjaTxt(f).replace(/^d/,'D')+'</span>').join('')+'</div>'+
    dias.map(x=>'<div class="semf" role="row"><span class="semd" role="rowheader">'+(x===hoy?'hoy':D3[new Date(x+'T12:00:00Z').getUTCDay()])+'<b class="num">'+(+x.slice(8))+'</b></span>'+K.franjasDe(S,cfg,x,ahora).map(f=>{const C=todas.filter(a=>a.cita.dia===x&&a.cita.fr===f.id);
-    return'<div role="cell">'+C.map(a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+' · '+esc(barrio(a))+'</b><small>'+esc(a.cli.nombre)+' · '+(a.tec?esc(cfg.tec[a.tec].n):'sin asignar')+'</small></a>').join('')+huecoAg(f,false)+'</div>'}).join('')+'</div>').join('')+'</div>'}
+    return'<div role="cell">'+C.map(a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+' · '+esc(barrio(a))+'</b><small>'+esc(K.nomCli(a.cli))+' · '+(a.tec?esc(cfg.tec[a.tec].n):'sin asignar')+'</small></a>').join('')+huecoAg(f,false)+'</div>'}).join('')+'</div>').join('')+'</div>'}
  let h='<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(L.length?(L.length===1?'1 cita ':L.length+' citas ')+diaTxt(d)+'.':'Sin citas '+diaTxt(d)+'.'+(prox?' La próxima, '+diaTxt(prox.cita.dia)+'.':''))+' '+CABEN+'.</p></div></div>'+segAg('agenda',d)+bAlertas();
  h+=navDias('agenda',dias,d,x=>(n=>n?(n===1?'1 cita':n+' citas'):'libre')(todas.filter(a=>a.cita.dia===x).length))+'<div class="tabla">';
  fr.forEach(f=>{const C=L.filter(a=>a.cita.fr===f.id);h+='<section class="fr"><h3 class="num">'+K.franjaTxt(f).replace(/^d/,'D')+' <small>'+C.length+' de '+f.tope+'</small></h3>'+(C.length?'<ul class="lista" style="margin-bottom:8px">'+C.map(a=>fila(a,'')).join('')+'</ul>':'')+'<div style="display:grid;gap:6px">'+huecoAg(f,true)+'</div></section>'});
@@ -524,7 +524,7 @@ function vAgenda(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
 /* ===== centralita: el equipo, día a día. Quién trabaja, qué lleva cada uno y quién falta ===== */
 function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora);if(!dias.includes(d))d=dias[0];
  const fr=K.franjasDe(S,cfg,d,ahora),L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),sin=L.filter(a=>!a.tec),ds=new Date(d+'T12:00:00Z').getUTCDay();
- const chip=a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+(barrio(a)?' · '+esc(barrio(a)):'')+'</b><small>'+esc(a.cli.nombre||'Aún sin nombre')+(a.cita.ok===false?' · por confirmar':'')+'</small></a>';
+ const chip=a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+(barrio(a)?' · '+esc(barrio(a)):'')+'</b><small>'+esc(K.nomCli(a.cli)||'Aún sin nombre')+(a.cita.ok===false?' · por confirmar':'')+'</small></a>';
  const aus=(S.ausencias||[]).filter(u=>u.a>=hoy).sort((a,b)=>a.de<b.de?-1:a.de>b.de?1:0);
  let h='<div class="cab"><div><h1>Equipo</h1><p class="sub">Quién trabaja '+diaTxt(d)+' y qué lleva cada uno.</p></div><button class="btn pri peq" data-a="ausencia" data-dia="'+d+'">'+I.mas+'Ausencia</button></div>'+segAg('equipo',d)+bAlertas();
  h+=navDias('equipo',dias,d,x=>{const n=N.tecnicos.filter(t=>K.ausente(S,t.id,x)).length;return n?(n===1?'falta 1':'faltan '+n):'todos'})+'<div class="tecds">';
@@ -562,7 +562,7 @@ function vCobros(){const r=K.resumen(S,cfg,Date.now()),L=S.avisos.filter(a=>a.e=
  return h}
 
 /* ===== centralita: aviso nuevo, de una llamada ===== */
-const B={av:N.averias[0].id,or:'llamada',cuando:'urg',dia:'',fr:'',nombre:'',tel:'',dir:'',cp:'',nota:'',err:''};
+const B={av:N.averias[0].id,or:'llamada',cuando:'urg',dia:'',fr:'',nombre:'',apellidos:'',tel:'',dir:'',cp:'',nota:'',err:''};
 function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true);if(!dias.find(x=>x.dia===B.dia))B.dia=dias.length?dias[0].dia:'';const fr=(dias.find(x=>x.dia===B.dia)||{franjas:[]}).franjas;if(!fr.find(f=>f.id===B.fr&&f.okOf))B.fr='';
  const fS=fr.find(f=>f.id===B.fr);
  const c=(id,lb,v,o)=>'<div class="campo'+(B.err===id?' mal':'')+'"><label for="n_'+id+'">'+lb+'</label><input id="n_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(B.err===id?' aria-invalid="true" aria-describedby="e_'+id+'"':'')+'>'+(B.err===id?'<p class="err" id="e_'+id+'">'+ERR[id]+'</p>':'')+'</div>';
@@ -573,7 +573,7 @@ function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true);if(!dias.find(x=>
   '<div class="campo"><span class="lb" id="l_cu">¿Cuándo?</span><div><div class="seg" role="group" aria-labelledby="l_cu"><button type="button" data-b-cu="urg" aria-pressed="'+(B.cuando==='urg')+'">Urgente</button><button type="button" data-b-cu="cita" aria-pressed="'+(B.cuando==='cita')+'">Con cita</button></div></div></div>'+
   (B.cuando==='cita'?'<div class="campo'+(B.err==='franja'?' mal':'')+'"><span class="lb">Día y franja</span><div class="ops">'+dias.map(x=>'<button type="button" class="op" data-b-dia="'+x.dia+'" aria-pressed="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div><div class="ops">'+fr.map(f=>'<button type="button" class="op" data-b-fr="'+f.id+'" aria-pressed="'+(B.fr===f.id)+'"'+(f.okOf?'':' disabled')+'>'+f.txt+'<small>'+frOf(f)+'</small></button>').join('')+'</div>'+(fS&&fS.por?'<p class="ayuda" id="n_por">'+PORL[fS.por]+'</p>':'')+(B.err==='franja'?'<p class="err">'+(B.fr?ERR.franja:'Elige una franja.')+'</p>':'')+'</div>':'')+
   c('tel','Teléfono',B.tel,'type="tel" inputmode="tel" autocomplete="off"')+(con.length?'<p class="mnota" style="margin-top:-8px">Cliente conocido: '+(con.length===1?'1 aviso anterior':con.length+' avisos anteriores')+'. He rellenado sus datos.</p>':'')+
-  c('nombre','Nombre',B.nombre,'autocomplete="off"')+'<div class="duo">'+c('dir','Calle, número y piso',B.dir,'autocomplete="off"')+c('cp','Código postal',B.cp,'inputmode="numeric" maxlength="5" autocomplete="off"')+'</div>'+(B.err==='zona'?'<p class="err" style="color:var(--mal);margin-top:-8px">'+ERR.zona+'</p>':'')+
+  c('nombre','Nombre',B.nombre,'autocomplete="off"')+c('apellidos','Apellidos',B.apellidos,'autocomplete="off"')+'<div class="duo">'+c('dir','Calle, número y piso',B.dir,'autocomplete="off"')+c('cp','Código postal',B.cp,'inputmode="numeric" maxlength="5" autocomplete="off"')+'</div>'+(B.err==='zona'?'<p class="err" style="color:var(--mal);margin-top:-8px">'+ERR.zona+'</p>':'')+
   '<div class="campo"><label for="n_nota">Qué cuenta el cliente</label><textarea id="n_nota" data-b="nota" placeholder="Opcional">'+esc(B.nota)+'</textarea></div>'+
   '<button class="btn pri ancho" type="submit">Crear el aviso</button></form>'}
 
@@ -582,7 +582,7 @@ function vPapel(id,tipo){const A=el(id);if(!A||!A.tot)return'<div class="cab"><d
  const tipos=[A.pres&&['presupuesto','Presupuesto'],A.e==='hecho'&&['parte','Parte de trabajo'],A.gar&&['garantia','Garantía']].filter(Boolean);if(!tipos.find(x=>x[0]===tipo))tipo=tipos[tipos.length>1&&A.e==='hecho'?1:0][0];
  const c=A.cli,av=cfg.av[A.av],t=cfg.tec[A.tec],f=K.fechaCorta;
  const cab='<div class="dh"><span class="wm">'+MARCA+'</span><p>'+esc(N.razon)+' · NIF '+N.nif+'<br>'+esc(N.dir)+' · '+N.tel+'</p></div>';
- const cli='<div class="dos"><div><h2>Cliente</h2><p><b>'+esc(c.nombre)+'</b><br>'+esc(c.dir)+'<br>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(c.tel)+'</p></div><div><h2>Trabajo</h2><p>'+esc(av.n)+'<br>Técnico: '+esc(t.n+' '+t.ap)+'<br>'+(A.cita?'Con cita':'Aviso urgente')+' · '+(A.tot.urg?'tarifa de urgencia':'tarifa normal')+'</p></div></div>';
+ const cli='<div class="dos"><div><h2>Cliente</h2><p><b>'+esc(K.nomCli(c))+'</b><br>'+esc(c.dir)+'<br>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(c.tel)+'</p></div><div><h2>Trabajo</h2><p>'+esc(av.n)+'<br>Técnico: '+esc(t.n+' '+t.ap)+'<br>'+(A.cita?'Con cita':'Aviso urgente')+' · '+(A.tot.urg?'tarifa de urgencia':'tarifa normal')+'</p></div></div>';
  const lin=L=>L.map(l=>'<div class="lin"><span>'+esc(l.t)+'</span><b>'+K.eur(l.imp)+'</b>'+(lq(l)||l.u?'<small>'+[lq(l),l.u?'con el '+PCT+' % de urgencia':''].filter(Boolean).join(' · ')+'</small>':'')+'</div>').join('');
  const tot=T=>'<div class="tot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+(T.motivo==='material'?'. El material pasa del 40 % del trabajo.':T.motivo==='local'?'. Local o vivienda de menos de dos años.':'')+'</p>';
  const fir=(x,txt)=>x?'<div class="fir">'+Oficio.firmaSvg(x.firma)+'<small>'+txt+' el '+f(K.madrid(x.t).date)+' a las '+K.hora(x.t)+'</small></div>':'';
@@ -763,15 +763,15 @@ function hCita(A){let dia=A.cita?A.cita.dia:'',fr=A.cita?A.cita.fr:'',conf=!['ci
   else if(b.id==='cUr'){if(hacer({tipo:'mover',id:A.id,cita:null}).ok){d.close();toast('Pasa a urgente.')}}
   else{if(!fr)return toast('Elige una franja.');const hablado=leVa(dia,fr)||conf;if(hacer({tipo:'mover',id:A.id,cita:{dia,fr},confirmado:conf&&!leVa(dia,fr)}).ok){d.close();toast('Cita guardada: '+diaCorto(dia)+', '+frTxt(fr)+'.'+(hablado?'':' Queda pendiente de confirmar.'))}}})}
 function hCompletar(A){const c=A.cli;
- const d=hoja(hc('Datos del cliente')+'<form class="hb" id="kF" novalidate><p class="dn">Cópialos de su WhatsApp. Solo se escriben una vez.</p>'+[['tel','Teléfono',c.tel,'type="tel" inputmode="tel"'],['nombre','Nombre',c.nombre,''],['dir','Calle, número y piso',c.dir,''],['cp','Código postal',c.cp,'inputmode="numeric" maxlength="5"']].map(x=>'<div class="campo"><label for="k_'+x[0]+'">'+x[1]+'</label><input id="k_'+x[0]+'" name="'+x[0]+'" value="'+esc(x[2])+'" autocomplete="off" '+x[3]+'><p class="err" hidden></p></div>').join('')+'</form><div class="hp"><button class="btn pri ancho" form="kF">Guardar</button></div>');
- $('#kF',d).onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),r=Oficio.hacer({tipo:'completar',id:A.id,cli:{tel:f.get('tel'),nombre:f.get('nombre'),dir:f.get('dir'),cp:f.get('cp')}},Q);
+ const d=hoja(hc('Datos del cliente')+'<form class="hb" id="kF" novalidate><p class="dn">Cópialos de su WhatsApp. Solo se escriben una vez.</p>'+[['tel','Teléfono',c.tel,'type="tel" inputmode="tel"'],['nombre','Nombre',c.nombre,''],['apellidos','Apellidos',c.apellidos||'',''],['dir','Calle, número y piso',c.dir,''],['cp','Código postal',c.cp,'inputmode="numeric" maxlength="5"']].map(x=>'<div class="campo"><label for="k_'+x[0]+'">'+x[1]+'</label><input id="k_'+x[0]+'" name="'+x[0]+'" value="'+esc(x[2])+'" autocomplete="off" '+x[3]+'><p class="err" hidden></p></div>').join('')+'</form><div class="hp"><button class="btn pri ancho" form="kF">Guardar</button></div>');
+ $('#kF',d).onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),r=Oficio.hacer({tipo:'completar',id:A.id,cli:{tel:f.get('tel'),nombre:f.get('nombre'),apellidos:f.get('apellidos'),dir:f.get('dir'),cp:f.get('cp')}},Q);
   $$('.campo',d).forEach(x=>{x.classList.remove('mal');$('.err',x).hidden=true});
   if(r.ok){d.close();toast('Datos guardados. Ya se puede repartir.');return}
   const k=r.err==='zona'?'cp':r.err,i=$('#k_'+k,d);if(i){const x=i.closest('.campo');x.classList.add('mal');const m=$('.err',x);m.textContent=ERR[r.err];m.hidden=false;i.focus()}else toast(ERR[r.err]||'No se ha podido guardar.')}}
-function hCancelar(A){const d=hoja(hc('¿Cancelar el aviso?')+'<div class="hb"><p>'+A.id+', '+esc(cfg.av[A.av].n.toLowerCase())+(A.cli.nombre?' de '+esc(A.cli.nombre):'')+'. Sale de la bandeja y, si tenía cita, su hueco queda libre. No se puede deshacer.</p></div><div class="hp"><button class="btn ancho" id="xOk" style="border-color:var(--mal);color:var(--mal)">Cancelar el aviso</button><button class="btn ancho" data-x>Volver</button></div>');
+function hCancelar(A){const d=hoja(hc('¿Cancelar el aviso?')+'<div class="hb"><p>'+A.id+', '+esc(cfg.av[A.av].n.toLowerCase())+(K.nomCli(A.cli)?' de '+esc(K.nomCli(A.cli)):'')+'. Sale de la bandeja y, si tenía cita, su hueco queda libre. No se puede deshacer.</p></div><div class="hp"><button class="btn ancho" id="xOk" style="border-color:var(--mal);color:var(--mal)">Cancelar el aviso</button><button class="btn ancho" data-x>Volver</button></div>');
  $('#xOk',d).onclick=()=>{if(hacer({tipo:'cancelar',id:A.id}).ok){d.close();toast('Aviso cancelado.');location.hash='#/bandeja'}}}
 const modos=(L,sel)=>'<div class="ops" role="group" aria-label="Cómo paga">'+L.map(k=>'<button type="button" class="op" data-modo="'+k+'" aria-pressed="'+(sel===k)+'">'+PAGO[k]+'</button>').join('')+'</div>';
-function hCobrar(A){let modo='';const d=hoja(hc('Marcar como cobrado')+'<div class="hb"><p>'+A.id+' · '+esc(A.cli.nombre)+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div id="oM">'+modos(['transferencia','bizum','efectivo','tarjeta'],'')+'</div></div><div class="hp"><button class="btn pri ancho" id="oOk" disabled>Cobrado</button></div>');
+function hCobrar(A){let modo='';const d=hoja(hc('Marcar como cobrado')+'<div class="hb"><p>'+A.id+' · '+esc(K.nomCli(A.cli))+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div id="oM">'+modos(['transferencia','bizum','efectivo','tarjeta'],'')+'</div></div><div class="hp"><button class="btn pri ancho" id="oOk" disabled>Cobrado</button></div>');
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#oOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#oM',d).innerHTML=modos(['transferencia','bizum','efectivo','tarjeta'],modo);$('#oOk',d).disabled=false}
   else if(hacer({tipo:'cobrar',id:A.id,modo}).ok){d.close();toast('Cobrado: '+K.eur(A.tot.total)+'.')}})}
 
@@ -854,7 +854,7 @@ const ACC={
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b){e.preventDefault();S=Oficio.estado();const A=b.dataset.id?el(b.dataset.id):null;if(b.dataset.id&&!A)return toast(ERR.estado);ACC[b.dataset.a](A,b);return}
  const o=e.target.closest('#fNuevo [data-b-av],#fNuevo [data-b-or],#fNuevo [data-b-cu],#fNuevo [data-b-dia],#fNuevo [data-b-fr]');if(o){const x=o.dataset;if(x.bAv)B.av=x.bAv;if(x.bOr)B.or=x.bOr;if(x.bCu)B.cuando=x.bCu;if(x.bDia){B.dia=x.bDia;B.fr=''}if(x.bFr)B.fr=x.bFr;B.err='';pinta()}});
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.b){B[i.dataset.b]=i.value;
- if(i.dataset.b==='tel'){const t9=K.tel9(i.value),c=t9&&S.avisos.slice().reverse().find(a=>K.tel9(a.cli.tel)===t9);if(c&&!B.nombre&&!B.dir){B.nombre=c.cli.nombre;B.dir=c.cli.dir;B.cp=c.cli.cp;pinta();const n=$('#n_tel');n.focus();n.setSelectionRange(n.value.length,n.value.length)}}}});
+ if(i.dataset.b==='tel'){const t9=K.tel9(i.value),c=t9&&S.avisos.slice().reverse().find(a=>K.tel9(a.cli.tel)===t9);if(c&&!B.nombre&&!B.apellidos&&!B.dir){B.nombre=c.cli.nombre;B.apellidos=c.cli.apellidos||'';B.dir=c.cli.dir;B.cp=c.cli.cp;pinta();const n=$('#n_tel');n.focus();n.setSelectionRange(n.value.length,n.value.length)}}}});
 document.addEventListener('change',e=>{const i=e.target;
  if(i.dataset&&i.dataset.obs)Oficio.hacer({tipo:'anotar',id:i.dataset.obs,obs:i.value},Q);
  if(i.dataset&&i.dataset.foto&&i.files[0])Oficio.foto(i.files[0]).then(f=>{if(hacer({tipo:'anotar',id:i.dataset.foto,foto:f}).ok)toast('Foto guardada en el parte.')}).catch(()=>toast('No he podido leer esa foto.'))});
@@ -871,8 +871,8 @@ if(SOP){const mira=()=>{if(Q.rol!=='tecnico'&&SOP.codigo()&&(SOP.toca(18e5)||(SO
 document.addEventListener('submit',e=>{if(e.target.id!=='fNuevo')return;e.preventDefault();
  if(B.cuando==='cita'&&!B.fr){B.err='franja';pinta();return}
  if(B.va)return;B.va=true;const bt=$('#fNuevo [type=submit]');if(bt)bt.disabled=true;
- Oficio.crear({tipo:'pedir',av:B.av,origen:B.or,nota:B.nota,cli:{nombre:B.nombre,tel:B.tel,dir:B.dir,cp:B.cp},cita:B.cuando==='cita'?{dia:B.dia,fr:B.fr}:null},Q).then(r=>{B.va=false;
-  if(r.ok){Object.assign(B,{av:N.averias[0].id,or:'llamada',cuando:'urg',fr:'',nombre:'',tel:'',dir:'',cp:'',nota:'',err:''});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');S=Oficio.estado();if(location.hash==='#/aviso/'+r.id)pinta();else location.hash='#/aviso/'+r.id}
+ Oficio.crear({tipo:'pedir',av:B.av,origen:B.or,nota:B.nota,cli:{nombre:B.nombre,apellidos:B.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:B.cuando==='cita'?{dia:B.dia,fr:B.fr}:null},Q).then(r=>{B.va=false;
+  if(r.ok){Object.assign(B,{av:N.averias[0].id,or:'llamada',cuando:'urg',fr:'',nombre:'',apellidos:'',tel:'',dir:'',cp:'',nota:'',err:''});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');S=Oficio.estado();if(location.hash==='#/aviso/'+r.id)pinta();else location.hash='#/aviso/'+r.id}
   else{B.err=r.err;pinta();const i=$('#n_'+(r.err==='zona'?'cp':r.err));if(i)i.focus();else toast(ERR[r.err]||'Revisa los datos.')}})});
 pinta();
 })();

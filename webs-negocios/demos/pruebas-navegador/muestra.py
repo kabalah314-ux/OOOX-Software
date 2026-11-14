@@ -18,7 +18,7 @@ async def main():
         await pg.goto(B+'app.html'); await pg.wait_for_selector('.fila')
         s=await pg.evaluate("JSON.parse(localStorage.getItem('oficio:ramirez'))")
         es(s.get('t0') and abs(s['t0']-await pg.evaluate('Date.now()'))<60000,'la muestra nueva lleva su hora')
-        idp=await pg.evaluate("Oficio.hacer({tipo:'pedir',av:'fuga',cli:{nombre:'Hoy Mismo',tel:'655000111',dir:'C/ Aragó 10, 1.º',cp:'08015'}},{rol:'cliente'}).id")
+        idp=await pg.evaluate("Oficio.hacer({tipo:'pedir',av:'fuga',cli:{nombre:'Hoy Mismo',apellidos:'Prueba',tel:'655000111',dir:'C/ Aragó 10, 1.º',cp:'08015'}},{rol:'cliente'}).id")
         await pg.reload(); await pg.wait_for_selector('.fila')
         es('Hoy Mismo' in await pg.locator('main').inner_text(),'lo probado hoy sigue ahí al recargar')
         await pg.evaluate("(()=>{const s=JSON.parse(localStorage.getItem('oficio:ramirez'));s.t0=Date.now()-9*3600*1000;localStorage.setItem('oficio:ramirez',JSON.stringify(s))})()")

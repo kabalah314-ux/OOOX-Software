@@ -26,7 +26,7 @@ A.alta('ramirez', NR, K.ESQ); A.persona('ramirez', 'oficina', 'centralita', 'ofi
 A.alta('voltio', NV, K.ESQ); A.persona('voltio', 'oficina', 'centralita', 'oficina', 'codigo-oficina-v'); tecV.forEach(t => A.persona('voltio', t, 'tecnico', t, 'codigo-v-' + t));
 A.persona('ramirez', 'fantasma', 'tecnico', 'no-existe', 'codigo-fantasma');
 const OF = { negocio: 'ramirez', persona: 'oficina', codigo: 'codigo-oficina-r' }, T = t => ({ negocio: 'ramirez', persona: t, codigo: 'codigo-' + t });
-const cliDe = N => ({ nombre: 'Montse Vila', tel: '612345678', dir: 'Calle de la Prueba 12, 3.º 2.ª', cp: Object.keys(N.zonas.cp)[0] });
+const cliDe = N => ({ nombre: 'Montse', apellidos: 'Vila', tel: '612345678', dir: 'Calle de la Prueba 12, 3.º 2.ª', cp: Object.keys(N.zonas.cp)[0] });
 const hacer = (quien, accion, mas) => J.atiende(Object.assign({ que: 'hacer', accion }, quien, mas));
 const leer = (quien, desde) => J.atiende(Object.assign({ que: 'leer', desde }, quien));
 const crudo = id => A.crudo(id);

@@ -35,7 +35,7 @@ async function tanda(semilla) {
     N.tecnicos.forEach((t, i) => { for (let k = 0; k < (i === 0 ? 2 : 1); k++) D.push({ neg: id, N, persona: t.id, codigo: 'tec-' + id + '-' + t.id, q: { rol: 'tecnico', id: t.id }, v: 0, avisos: new Map(), cab: null }); });
   }
   const cfgs = Object.fromEntries(Object.entries(NEG).map(([id, N]) => [id, K.cfgDe(N)]));
-  const cli = N => ({ nombre: uno(['Montse Vila', 'Pere Soler', 'Aitana Roig', 'Li Wei']), tel: '6' + String(10000000 + Math.floor(rnd() * 89999999)), dir: 'Calle ' + uno(['Mayor', 'Nueva', 'del Mar']) + ' ' + (1 + Math.floor(rnd() * 90)), cp: uno(Object.keys(N.zonas.cp)) });
+  const cli = N => ({ nombre: uno(['Montse Vila', 'Pere Soler', 'Aitana Roig', 'Li Wei']), apellidos: uno(['Vila', 'Soler i Puig', 'Roig', 'Wei']), tel: '6' + String(10000000 + Math.floor(rnd() * 89999999)), dir: 'Calle ' + uno(['Mayor', 'Nueva', 'del Mar']) + ' ' + (1 + Math.floor(rnd() * 90)), cp: uno(Object.keys(N.zonas.cp)) });
 
   /* una acción al azar para ese aparato, con lo que él conoce */
   function accion(d) {

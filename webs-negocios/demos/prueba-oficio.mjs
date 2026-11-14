@@ -20,7 +20,7 @@ const M = 60000, H = 60 * M, D = 24 * H;
 const MAR = Date.parse('2026-11-10T09:00:00Z');        // martes 10-11-2026, 10:00 en Madrid: tarifa normal
 const C = { rol: 'centralita', id: 'marta' }, CLI = { rol: 'cliente' }, T = id => ({ rol: 'tecnico', id });
 const F = 'M10 10L60 40L110 12L160 44';                  // una firma cualquiera
-const montse = { nombre: 'Montse Vila', tel: '600 00 01 43', dir: 'C/ Verdi 28, 2.º 1.ª', cp: '08012' };
+const montse = { nombre: 'Montse', apellidos: 'Vila', tel: '600 00 01 43', dir: 'C/ Verdi 28, 2.º 1.ª', cp: '08012' };
 let S, t;
 const ap = (a, q) => K.aplicar(S, cfg, a, q, t += M);
 const empieza = (pack) => { S = K.nuevo(); S.pack = pack || 'pro'; t = MAR };
@@ -101,7 +101,7 @@ es(ap({ tipo: 'terminar', id: 'R-0001', modo: 'efectivo' }, T('omar')).err === '
 r = ap({ tipo: 'voy', id: 'R-0001' }, T('omar'));
 es(r.ok && A('R-0001').e === 'camino' && A('R-0001').eta - t === 35 * M, 'Voy: de camino, y a Gràcia se llega en 35 minutos');
 es(K.mensaje(cfg, A('R-0001'), 'camino').includes(K.hora(A('R-0001').eta)) && K.mensaje(cfg, A('R-0001'), 'camino').includes('Omar'), 'el mensaje «va de camino» lleva el nombre y la hora');
-r = ap({ tipo: 'pedir', av: 'atasco', cli: { nombre: 'Pau Roig', tel: '600000144', dir: 'C/ Balmes 100, 1.º', cp: '08008' } }, CLI);
+r = ap({ tipo: 'pedir', av: 'atasco', cli: { nombre: 'Pau', apellidos: 'Roig', tel: '600000144', dir: 'C/ Balmes 100, 1.º', cp: '08008' } }, CLI);
 ap({ tipo: 'asignar', id: r.id, tec: 'omar' }, C);
 es(ap({ tipo: 'voy', id: r.id }, T('omar')).err === 'ocupado', 'un técnico no puede ir a dos sitios a la vez');
 
@@ -153,12 +153,12 @@ es(ap({ tipo: 'cobrar', id: 'R-0002', modo: 'pendiente' }, C).err === 'modo', 'c
 es(ap({ tipo: 'cobrar', id: 'R-0002', modo: 'transferencia' }, C).ok && K.resumen(S, cfg, t).pend.n === 0 && !A('R-0002').msgs.some(m => m.k === 'cobro'), 'al cobrarlo sale de pendientes y se quita el recordatorio');
 
 // 12. no acepta el precio: solo el desplazamiento, sin garantía
-r = ap({ tipo: 'pedir', av: 'termo', cli: { nombre: 'Rosa Gil', tel: '600000145', dir: 'C/ Marina 80, 2.º', cp: '08005' } }, CLI);
+r = ap({ tipo: 'pedir', av: 'termo', cli: { nombre: 'Rosa', apellidos: 'Gil', tel: '600000145', dir: 'C/ Marina 80, 2.º', cp: '08005' } }, CLI);
 ap({ tipo: 'asignar', id: r.id, tec: 'laia' }, C); ap({ tipo: 'voy', id: r.id }, T('laia'));
 es(ap({ tipo: 'noacepta', id: r.id, modo: 'efectivo' }, T('laia')).ok && A(r.id).tot.total === 3000 && A(r.id).sinTrabajo && !A(r.id).gar, 'si no acepta, se cobran 30,00 € de desplazamiento y no hay garantía');
 
 // 13. no había nadie: vuelve a la bandeja
-r = ap({ tipo: 'pedir', av: 'grifo', cli: { nombre: 'Joan Mas', tel: '600000146', dir: 'C/ Marina 82, 1.º', cp: '08005' } }, CLI);
+r = ap({ tipo: 'pedir', av: 'grifo', cli: { nombre: 'Joan', apellidos: 'Mas', tel: '600000146', dir: 'C/ Marina 82, 1.º', cp: '08005' } }, CLI);
 const j = r.id;
 ap({ tipo: 'asignar', id: j, tec: 'laia' }, C); ap({ tipo: 'voy', id: j }, T('laia'));
 es(ap({ tipo: 'ausente', id: j }, T('laia')).ok && A(j).e === 'ausente' && A(j).msgs.some(m => m.k === 'ausente') && !A(j).msgs.some(m => m.k === 'camino' && !m.env), 'no había nadie: vuelve a la bandeja con su mensaje');
@@ -172,9 +172,9 @@ es(dias[0].hoy && dias[0].franjas.find(f => f.id === 'f1').ok === false && dias[
 es(!K.franjasDe(S, cfg, '2026-12-08', t).some(f => f.ok), 'un festivo no tiene citas');
 const dia = dias[2].dia;                               // pasado mañana: así cabe el recordatorio de la víspera
 es(ap({ tipo: 'mover', id: j, cita: { dia, fr: 'f2' } }, C).ok && A(j).e === 'asignado' && !A(j).urg && A(j).msgs.some(m => m.k === 'cita'), 'la centralita le da cita y vuelve a estar asignado');
-r = ap({ tipo: 'pedir', av: 'cisterna', cli: { nombre: 'Ana Pons', tel: '600000147', dir: 'C/ Sardenya 300, 5.º', cp: '08025' }, cita: { dia, fr: 'f2' } }, CLI);
+r = ap({ tipo: 'pedir', av: 'cisterna', cli: { nombre: 'Ana', apellidos: 'Pons', tel: '600000147', dir: 'C/ Sardenya 300, 5.º', cp: '08025' }, cita: { dia, fr: 'f2' } }, CLI);
 es(r.ok && !A(r.id).urg && K.franjasDe(S, cfg, dia, t).find(f => f.id === 'f2').libres === 0, 'la segunda cita llena la franja');
-es(ap({ tipo: 'pedir', av: 'cisterna', cli: { nombre: 'Luis Vera', tel: '600000148', dir: 'C/ Sardenya 302, 1.º', cp: '08025' }, cita: { dia, fr: 'f2' } }, CLI).err === 'franja', 'la tercera ya no cabe');
+es(ap({ tipo: 'pedir', av: 'cisterna', cli: { nombre: 'Luis', apellidos: 'Vera', tel: '600000148', dir: 'C/ Sardenya 302, 1.º', cp: '08025' }, cita: { dia, fr: 'f2' } }, CLI).err === 'franja', 'la tercera ya no cabe');
 es(ap({ tipo: 'cancelar', id: r.id, motivo: 'Lo ha arreglado un vecino' }, C).ok && K.franjasDe(S, cfg, dia, t).find(f => f.id === 'f2').libres === 1, 'cancelar una cita deja libre su hueco');
 es(K.tarifaDe(cfg, A(j)) === false, 'con cita, la tarifa es siempre la normal');
 es(ap({ tipo: 'asignar', id: j, tec: 'omar' }, C).ok && A(j).msgs.filter(m => m.k === 'cita').length === 1, 'al cambiar de técnico no se duplica el mensaje de la cita');
@@ -184,11 +184,11 @@ es(!A(j).msgs.some(m => m.k === 'vispera') && A(j).msgs.filter(m => m.k === 'cit
 
 // 15. la garantía se cruza por teléfono o por dirección
 t = MAR + 90 * D;
-r = ap({ tipo: 'pedir', av: 'fuga', cli: { nombre: 'Montserrat V.', tel: '600 000 143', dir: 'Otra calle 1', cp: '08012' } }, CLI);
+r = ap({ tipo: 'pedir', av: 'fuga', cli: { nombre: 'Montserrat', apellidos: 'V.', tel: '600 000 143', dir: 'Otra calle 1', cp: '08012' } }, CLI);
 es(A(r.id).gar0 === 'R-0001', 'el mismo teléfono tres meses después: puede ser garantía');
-r = ap({ tipo: 'pedir', av: 'fuga', cli: { nombre: 'Un vecino', tel: '600000199', dir: 'Carrer de Verdi, 28 2-1', cp: '08012' } }, CLI);
+r = ap({ tipo: 'pedir', av: 'fuga', cli: { nombre: 'Un', apellidos: 'vecino', tel: '600000199', dir: 'Carrer de Verdi, 28 2-1', cp: '08012' } }, CLI);
 es(A(r.id).gar0 === 'R-0001', 'la misma dirección escrita de otra forma: puede ser garantía');
-r = ap({ tipo: 'pedir', av: 'fuga', cli: { nombre: 'Otro vecino', tel: '600000198', dir: 'C/ Verdi 28, 3.º 1.ª', cp: '08012' } }, CLI);
+r = ap({ tipo: 'pedir', av: 'fuga', cli: { nombre: 'Otro', apellidos: 'vecino', tel: '600000198', dir: 'C/ Verdi 28, 3.º 1.ª', cp: '08012' } }, CLI);
 es(!A(r.id).gar0, 'otro piso del mismo portal no es garantía');
 t = MAR + 400 * D;
 r = ap({ tipo: 'pedir', av: 'fuga', cli: montse }, CLI);
@@ -200,7 +200,7 @@ empieza();
 r = ap({ tipo: 'pedir', av: 'fuga', origen: 'web', cli: { dis: 'gra' } }, CLI);
 es(r.ok && !A(r.id).cli.tel && A(r.id).msgs.length === 0, 'entra sin teléfono y sin mensajes');
 es(ap({ tipo: 'asignar', id: r.id, tec: 'omar' }, C).err === 'datos', 'no se puede repartir hasta tener el teléfono y la dirección');
-es(ap({ tipo: 'completar', id: r.id, cli: { nombre: 'Montse Vila', tel: '600000143' } }, C).err === 'dir', 'completar pide lo que falta');
+es(ap({ tipo: 'completar', id: r.id, cli: { nombre: 'Montse', apellidos: 'Vila', tel: '600000143' } }, C).err === 'dir', 'completar pide lo que falta');
 es(ap({ tipo: 'completar', id: r.id, cli: montse }, C).ok && ap({ tipo: 'asignar', id: r.id, tec: 'omar' }, C).ok, 'con los datos, ya se reparte');
 es(K.resumen(S, cfg, t).marcha === 1, 'y cuenta como aviso en marcha');
 
@@ -248,7 +248,7 @@ es(p.tipo === 21 && p.total > 11700, 'urgencia en un local: recargo y además IV
 // 21. ningún mensaje sale con huecos («undefined», «NaN», «null»)
 empieza();
 { const rr = []; rr.push(ap({ tipo: 'pedir', av: 'fuga', cli: montse }, CLI));
-  rr.push(ap({ tipo: 'pedir', av: 'cisterna', cli: { nombre: 'Ana Pons', tel: '600000147', dir: 'C/ Sardenya 300, 5.º', cp: '08025' }, cita: { dia: K.diasDe(S, cfg, t, 6)[2].dia, fr: 'f3' } }, CLI));
+  rr.push(ap({ tipo: 'pedir', av: 'cisterna', cli: { nombre: 'Ana', apellidos: 'Pons', tel: '600000147', dir: 'C/ Sardenya 300, 5.º', cp: '08025' }, cita: { dia: K.diasDe(S, cfg, t, 6)[2].dia, fr: 'f3' } }, CLI));
   ap({ tipo: 'asignar', id: rr[0].id, tec: 'omar' }, C); ap({ tipo: 'asignar', id: rr[1].id, tec: 'laia' }, C);
   ap({ tipo: 'voy', id: rr[0].id }, T('omar')); ap({ tipo: 'empezar', id: rr[0].id, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], firma: F } }, T('omar'));
   ap({ tipo: 'terminar', id: rr[0].id, modo: 'pendiente', firma: F }, T('omar'));
@@ -275,7 +275,7 @@ es(r.id === 'R-0002', 'los números siguen en orden aunque se cancele un aviso')
 const c2 = r.id; ap({ tipo: 'asignar', id: c2, tec: 'omar' }, C);
 es(ap({ tipo: 'pausa', id: c2 }, T('omar')).err === 'estado', 'no se pausa lo que no ha empezado');
 ap({ tipo: 'voy', id: c2 }, T('omar'));
-r = ap({ tipo: 'pedir', av: 'atasco', cli: { nombre: 'Pau Roig', tel: '600000144', dir: 'C/ Balmes 100, 1.º', cp: '08008' } }, CLI); const c3 = r.id;
+r = ap({ tipo: 'pedir', av: 'atasco', cli: { nombre: 'Pau', apellidos: 'Roig', tel: '600000144', dir: 'C/ Balmes 100, 1.º', cp: '08008' } }, CLI); const c3 = r.id;
 ap({ tipo: 'asignar', id: c3, tec: 'omar' }, C);
 es(ap({ tipo: 'empezar', id: c3, pres: { lineas: [{ k: 'desatasco' }], firma: F } }, T('omar')).err === 'ocupado', 'con un aviso de camino no se empieza otro');
 ap({ tipo: 'empezar', id: c2, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'grifon' }], firma: F } }, T('omar'));
@@ -308,7 +308,7 @@ es(ap({ tipo: 'asignar', id: c4, tec: 'omar' }, C).err === 'estado', 'de camino 
 ap({ tipo: 'empezar', id: c4, pres: { lineas: [{ k: 'cisterna' }], firma: F } }, T('laia')); vistas.push(K.vistaCliente(S, cfg, c4));
 ap({ tipo: 'terminar', id: c4, modo: 'efectivo' }, T('laia')); vistas.push(K.vistaCliente(S, cfg, c4));
 es(vistas.map(v => v.e).join(',') === 'asignado,camino,curso,hecho', 'el cliente ve los cuatro pasos');
-es(vistas.every(v => v.tec === 'Laia' && !/600000143|Verdi|Montse|Ferrer/.test(JSON.stringify(v))), 'y en ninguno ve teléfono, dirección, nombre ni apellido de nadie');
+es(vistas.every(v => v.tec === 'Laia' && !/600000143|Verdi|Montse|Vila|Ferrer/.test(JSON.stringify(v))), 'y en ninguno ve teléfono, dirección, nombre ni apellido de nadie');
 es(vistas[1].eta > t - 60 * M && vistas[2].eta === 0, 'la hora de llegada solo mientras va de camino');
 
 // 25. citas: viernes por la tarde y víspera de festivo
@@ -526,6 +526,30 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   const im = hm({ tipo: 'pedir', av: 'fuga', cli: montse, origen: 'llamada' }, C).id; hm({ tipo: 'asignar', id: im, tec: 'omar' }, C); hm({ tipo: 'voy', id: im }, T('omar'));
   es(cm.mapa === null && hm(Object.assign({ tipo: 'posicion', id: im }, BCN), T('omar')).err === 'mapa' && hm({ tipo: 'sinPosicion', id: im }, T('omar')).err === 'mapa' && SM.avisos[0].pos === undefined && SM.avisos[0].posNo === undefined && K.vistaCliente(SM, cm, im).pos === null,
     'un negocio sin el mapa activado no guarda posiciones de nadie, ni apunta que se dejan de compartir') }
+
+// los apellidos (14-11-2026): se piden con el nombre siempre que los datos tienen que estar completos
+{ empieza();
+  let r = ap({ tipo: 'pedir', av: 'fuga', cli: montse }, CLI);
+  es(r.ok && A(r.id).cli.nombre === 'Montse' && A(r.id).cli.apellidos === 'Vila' && K.nomCli(A(r.id).cli) === 'Montse Vila', 'el aviso guarda el nombre y los apellidos, y se enseñan juntos');
+  es(K.mensaje(cfg, A(r.id), 'recibido').startsWith('Hola, Montse. '), 'el mensaje al cliente le saluda solo por el nombre');
+  const sinAp = { ...montse, apellidos: '' };
+  es(ap({ tipo: 'pedir', av: 'fuga', cli: sinAp }, CLI).err === 'apellidos' && ap({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: sinAp }, C).err === 'apellidos', 'sin apellidos no entra: ni desde la web ni desde la oficina');
+  es(ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, apellidos: ' V ' } }, CLI).err === 'apellidos' && ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, apellidos: 7 } }, CLI).err === 'apellidos' && ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, apellidos: ['Vila'] } }, CLI).err === 'apellidos', 'ni con una letra, ni con algo que no es texto');
+  r = ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, apellidos: '  Vila   i \n Puig  ' } }, CLI);
+  es(r.ok && A(r.id).cli.apellidos === 'Vila i Puig', 'los espacios de sobra se quitan');
+  r = ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, apellidos: 'x'.repeat(300) } }, CLI);
+  es(r.ok && A(r.id).cli.apellidos.length === 80, 'y unos apellidos larguísimos se cortan a 80 letras');
+  // el aviso que deja la web al abrir WhatsApp entra sin apellidos; al completarlo, se piden
+  r = ap({ tipo: 'pedir', av: 'fuga', origen: 'web', cli: { dis: 'gra' } }, CLI);
+  es(r.ok && A(r.id).cli.apellidos === '', 'el aviso de WhatsApp entra sin apellidos, igual que sin teléfono');
+  es(ap({ tipo: 'completar', id: r.id, cli: sinAp }, C).err === 'apellidos', 'al completar sus datos se piden los apellidos');
+  es(ap({ tipo: 'completar', id: r.id, cli: montse }, C).ok && A(r.id).cli.apellidos === 'Vila', 'y con ellos, se guardan');
+  // un aviso de antes de los apellidos: se sigue viendo con su nombre y, si se cambian sus datos, se piden
+  const viejo = ap({ tipo: 'pedir', av: 'grifo', cli: montse }, CLI).id; delete A(viejo).cli.apellidos;
+  es(K.nomCli(A(viejo).cli) === 'Montse', 'un aviso de antes de los apellidos se sigue viendo con su nombre');
+  es(ap({ tipo: 'completar', id: viejo, cli: { tel: '600000143' } }, C).err === 'apellidos', 'y si se cambian sus datos, se piden los apellidos');
+  es(K.nomCli(null) === '' && K.nomCli('hola') === '' && K.nomCli({ nombre: ' Ana ', apellidos: ' Pons ' }) === 'Ana Pons' && K.nomCli({ apellidos: 'Pons' }) === 'Pons' && K.nomCli({ nombre: 5 }) === '5', 'nombre y apellidos juntos, sin espacios de sobra, y nada si no hay cliente');
+}
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

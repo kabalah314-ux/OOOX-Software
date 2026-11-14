@@ -46,7 +46,7 @@ async function tanda(semilla) {
     d.E = ESP.crea({ K, cfg, quien: q, ahora: () => reloj.t, marca: d.marca }); D.push(d); return d; };
   for (let i = 0; i < 2; i++) nuevo('oficina', { rol: 'centralita', id: 'oficina' }, 'of');
   N.tecnicos.forEach((t, i) => { for (let k = 0; k < (i === 0 ? 2 : 1); k++) nuevo(t.id, { rol: 'tecnico', id: t.id }, 'tec-' + t.id); });
-  const cli = () => ({ nombre: uno(['Montse Vila', 'Pere Soler', 'Aitana Roig', 'Li Wei']), tel: '6' + String(10000000 + Math.floor(rnd() * 89999999)), dir: 'Calle ' + uno(['Mayor', 'Nueva', 'del Mar']) + ' ' + (1 + Math.floor(rnd() * 90)), cp: uno(Object.keys(N.zonas.cp)) });
+  const cli = () => ({ nombre: uno(['Montse Vila', 'Pere Soler', 'Aitana Roig', 'Li Wei']), apellidos: uno(['Vila', 'Soler i Puig', 'Roig', 'Wei']), tel: '6' + String(10000000 + Math.floor(rnd() * 89999999)), dir: 'Calle ' + uno(['Mayor', 'Nueva', 'del Mar']) + ' ' + (1 + Math.floor(rnd() * 90)), cp: uno(Object.keys(N.zonas.cp)) });
   const firma = 'M1 1L20 20L40 10L60 30L80 12L100 40';
 
   function accion(d) {

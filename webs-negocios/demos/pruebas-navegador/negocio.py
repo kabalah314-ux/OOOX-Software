@@ -68,7 +68,7 @@ async def main():
         await k.locator('input[name=av]').first.check(force=True)
         await k.locator('[data-dia]').nth(1).click(); await k.locator('[data-fr]:not([disabled])').first.click()
         cp = list(N['zonas']['cp'].keys())[0]; fuera = '99999'
-        await k.fill('#c_nombre', 'Clara Prueba'); await k.fill('#c_tel', '611 22 33 44'); await k.fill('#c_dir', 'C/ de la Prueba 12, 3.º'); await k.fill('#c_cp', fuera); await k.wait_for_timeout(200)
+        await k.fill('#c_nombre', 'Clara Prueba'); await k.fill('#c_apellidos', 'Prueba'); await k.fill('#c_tel', '611 22 33 44'); await k.fill('#c_dir', 'C/ de la Prueba 12, 3.º'); await k.fill('#c_cp', fuera); await k.wait_for_timeout(200)
         t = await guarda(k, 'cita fuera de zona')
         es(N['ciudad'] in t, 'cita: fuera de zona, el aviso nombra la ciudad del negocio')
         await k.fill('#c_cp', cp); await k.click('button[type=submit]'); await k.wait_for_selector('.doc'); await k.wait_for_timeout(200)
@@ -91,7 +91,7 @@ async def main():
         # un aviso que entra por WhatsApp y se apunta a mano
         await c.goto(B + 'app.html#/nuevo'); await c.wait_for_selector('#fNuevo')
         es(await c.locator('[data-b-av][aria-pressed=true]').count() == 1, 'nuevo aviso: ya viene elegida una avería del negocio')
-        await c.click('[data-b-or=whatsapp]'); await c.fill('#n_tel', '622 33 44 55'); await c.fill('#n_nombre', 'Wences Canal'); await c.fill('#n_dir', 'Av. de la Prueba 3, bajo'); await c.fill('#n_cp', cp)
+        await c.click('[data-b-or=whatsapp]'); await c.fill('#n_tel', '622 33 44 55'); await c.fill('#n_nombre', 'Wences Canal'); await c.fill('#n_apellidos', 'Prueba'); await c.fill('#n_dir', 'Av. de la Prueba 3, bajo'); await c.fill('#n_cp', cp)
         await guarda(c, 'nuevo aviso'); await c.click('#fNuevo button[type=submit]'); await c.wait_for_timeout(400)
         S = await c.evaluate(f"JSON.parse(localStorage.getItem('{clave}'))"); W = next((a for a in S['avisos'] if a['cli']['nombre'] == 'Wences Canal'), None)
         es(W and W['origen'] == 'whatsapp' and W['urg'], 'nuevo aviso: queda apuntado que entró por WhatsApp')
@@ -135,7 +135,7 @@ async def main():
 
         # ---------- 4. una urgencia: el recargo que se lee es el del negocio ----------
         await pon_hora(ctx, '2026-11-15T11:00:00+01:00')      # domingo
-        u = await tl.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'{N['averias'][0]['id']}',origen:'llamada',cli:{{nombre:'Urge Domingo',tel:'633445566',dir:'C/ de la Prisa 1',cp:'{cp}'}}}},{{rol:'centralita'}}).id")
+        u = await tl.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'{N['averias'][0]['id']}',origen:'llamada',cli:{{nombre:'Urge Domingo',apellidos:'Prueba',tel:'633445566',dir:'C/ de la Prisa 1',cp:'{cp}'}}}},{{rol:'centralita'}}).id")
         tu = await tl.evaluate(f"(()=>{{const S=Oficio.estado(),A=S.avisos.find(a=>a.id==='{u}');return Object.keys(Oficio.cfg.tec).find(x=>!OficioNucleo.puedeIr(S,Oficio.cfg,A,x,Date.now()))}})()")
         es(bool(tu), 'urgencia en domingo: hay alguien a quien se le puede asignar')
         no = [x['id'] for x in N['tecnicos'] if x['id'] != tu and not x.get('guardia')] if any(x.get('guardia') for x in N['tecnicos']) else []

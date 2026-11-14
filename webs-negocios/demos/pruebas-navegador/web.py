@@ -174,7 +174,7 @@ async def main():
         es(len(fr) >= 3, f'prueba: carga los tres móviles y los papeles ({len(fr)} marcos)')
         cli = next(f for f in fr if 'cita.html' in f.url); cen = next(f for f in fr if 'app.html' in f.url and 'papel=tecnico' not in f.url and 'solo' not in f.url)
         tec = next(f for f in fr if 'papel=tecnico' in f.url)
-        idp = await cli.evaluate("Oficio.hacer({tipo:'pedir',av:'atasco',cli:{nombre:'Prueba Tres',tel:'644555666',dir:'C/ Consell de Cent 300, 2.º',cp:'08007'}},{rol:'cliente'}).id")
+        idp = await cli.evaluate("Oficio.hacer({tipo:'pedir',av:'atasco',cli:{nombre:'Prueba Tres',apellidos:'Prueba',tel:'644555666',dir:'C/ Consell de Cent 300, 2.º',cp:'08007'}},{rol:'cliente'}).id")
         await pg.wait_for_timeout(500)
         es('Prueba Tres' in await cen.locator('main').inner_text(), f'prueba: lo que pide el cliente ({idp}) aparece en la centralita sin recargar')
         await cen.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{idp}',tec:'omar'}},{{rol:'centralita'}})"); await pg.wait_for_timeout(500)

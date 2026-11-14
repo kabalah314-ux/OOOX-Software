@@ -71,24 +71,24 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora){
   haz({tipo:'asignar',id,tec},C,t+4*M);haz({tipo:'voy',id},T(tec),t+9*M);
   haz({tipo:'empezar',id,pres:{lineas,firma:FIRMA}},T(tec),t+38*M);haz({tipo:'terminar',id,modo,firma:FIRMA},T(tec),t+(38+min)*M);
   S.avisos.find(a=>a.id===id).msgs.forEach(m=>{if(m.k==='hecho'||m.k==='recibido'||m.k==='camino'||(m.k==='resena'&&m.t<ahora))m.env=m.t});return id};
- const elvira={nombre:'Elvira Casas',tel:'600 00 01 12',dir:'C/ Aragó 214, 4.º 2.ª',cp:'08011'};
+ const elvira={nombre:'Elvira',apellidos:'Casas',tel:'600 00 01 12',dir:'C/ Aragó 214, 4.º 2.ª',cp:'08011'};
 
  /* hace siete meses: la cisterna de Elvira. Sigue en garantía */
  S.n=97;
  completo(ahora-212*D,'cisterna',elvira,'jordi',[{k:'cisterna'},{k:'mecanismo'}],'tarjeta',35,'Pierde agua sin parar.');
  /* ayer: un termo, por transferencia. Queda por cobrar */
  S.n=138;
- completo(ahora-26*H,'termo',{nombre:'Andreu Soler',tel:'600 00 01 39',dir:'C/ de Sants 131, 1.º 3.ª',cp:'08014'},'jordi',[{k:'desp'},{k:'mo',q:1.5},{k:'termostato'}],'pendiente',85,'El termo no calienta desde ayer.');
+ completo(ahora-26*H,'termo',{nombre:'Andreu',apellidos:'Soler',tel:'600 00 01 39',dir:'C/ de Sants 131, 1.º 3.ª',cp:'08014'},'jordi',[{k:'desp'},{k:'mo',q:1.5},{k:'termostato'}],'pendiente',85,'El termo no calienta desde ayer.');
  /* hoy: un atasco ya hecho y cobrado con tarjeta */
- completo(ahora-190*M,'atasco',{nombre:'Carmen Ortiz',tel:'600 00 01 40',dir:'C/ Mallorca 310, 3.º 1.ª',cp:'08037'},'omar',[{k:'desatasco'}],'tarjeta',40,'El fregadero no traga.');
+ completo(ahora-190*M,'atasco',{nombre:'Carmen',apellidos:'Ortiz',tel:'600 00 01 40',dir:'C/ Mallorca 310, 3.º 1.ª',cp:'08037'},'omar',[{k:'desatasco'}],'tarjeta',40,'El fregadero no traga.');
  /* ahora mismo: Laia está con un grifo */
- {const t=ahora-52*M,id=pide(t,'grifo',{nombre:'Núria Puig',tel:'600 00 01 41',dir:'Rambla del Poblenou 62, 3.º 2.ª',cp:'08005'},{origen:'llamada',nota:'Gotea el grifo de la cocina.'});
+ {const t=ahora-52*M,id=pide(t,'grifo',{nombre:'Núria',apellidos:'Puig',tel:'600 00 01 41',dir:'Rambla del Poblenou 62, 3.º 2.ª',cp:'08005'},{origen:'llamada',nota:'Gotea el grifo de la cocina.'});
   haz({tipo:'asignar',id,tec:'laia'},C,t+3*M);haz({tipo:'voy',id},T('laia'),t+6*M);haz({tipo:'empezar',id,pres:{lineas:[{k:'grifo'},{k:'latig'}],firma:FIRMA}},T('laia'),t+34*M);
   S.avisos.find(a=>a.id===id).msgs.forEach(m=>{m.env=m.t})}
  /* una cita para el próximo día laborable: la cisterna de Elvira otra vez */
  {const dias=K.diasDe(S,cfg,ahora-3*H,3),d=dias.find(x=>!x.hoy)||dias[0],fr=d.franjas.find(f=>f.ok&&f.id==='f2')||d.franjas.find(f=>f.ok);
   pide(ahora-3*H,'cisterna',elvira,{origen:'cita',cita:{dia:d.dia,fr:fr.id},nota:'Vuelve a perder un poco de agua.'})}
  /* y la urgencia que acaba de entrar: una fuga en Gràcia */
- pide(ahora-6*M,'fuga',{nombre:'Montse Vila',tel:'600 00 01 43',dir:'C/ Verdi 28, 2.º 1.ª',cp:'08012'},{origen:'llamada',nota:'Sale agua por debajo del fregadero. He cerrado la llave de paso.'});
+ pide(ahora-6*M,'fuga',{nombre:'Montse',apellidos:'Vila',tel:'600 00 01 43',dir:'C/ Verdi 28, 2.º 1.ª',cp:'08012'},{origen:'llamada',nota:'Sale agua por debajo del fregadero. He cerrado la llave de paso.'});
  S.v=1;return S};
 })(typeof globalThis!=='undefined'?globalThis:this);

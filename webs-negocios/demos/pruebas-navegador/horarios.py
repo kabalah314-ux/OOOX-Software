@@ -54,7 +54,7 @@ async def nuevo_con_cita(c, dia, fr, n, av=None):
     b = c.locator(f'[data-b-fr="{fr}"]')
     if await b.is_disabled(): return ''
     await b.click()
-    await c.fill('#n_tel', f'6112244{n:02d}'); await c.fill('#n_nombre', f'Prueba Horarios {n}'); await c.fill('#n_dir', f'C/ de la Prueba {n}, 1.º'); await c.fill('#n_cp', CP)
+    await c.fill('#n_tel', f'6112244{n:02d}'); await c.fill('#n_nombre', f'Prueba Horarios {n}'); await c.fill('#n_apellidos', 'Prueba'); await c.fill('#n_dir', f'C/ de la Prueba {n}, 1.º'); await c.fill('#n_cp', CP)
     await c.click('#fNuevo button[type=submit], #fNuevo .btn.pri'); await c.wait_for_function("location.hash.startsWith('#/aviso/')"); await c.wait_for_selector('[data-a=cita]')
     return (await c.evaluate("location.hash")).split('/')[-1]
 
@@ -89,7 +89,7 @@ async def main():
         es(len(marc) == min(4, len(alts)) and (len(alts) < 5 or await toast(k, 'Con cuatro')), f'cliente: puede marcar hasta cuatro; a la quinta se le dice que basta ({len(marc)})')
         await k.click(f'[data-alt="{marc[-1]}"]'); marc = marc[:-1]
         es(await k.locator('[data-alt][aria-pressed=true]').count() == len(marc), 'cliente: y desmarcar una')
-        await k.fill('#c_nombre', 'Clara Franjas'); await k.fill('#c_tel', '611 22 44 90'); await k.fill('#c_dir', 'C/ de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
+        await k.fill('#c_nombre', 'Clara Franjas'); await k.fill('#c_apellidos', 'Prueba'); await k.fill('#c_tel', '611 22 44 90'); await k.fill('#c_dir', 'C/ de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
         await k.click('button[type=submit]'); await k.wait_for_selector('.doc'); idk = (await k.evaluate("location.hash")).split('/')[-1]
         A = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idk}')")
         es(A and A['cita']['dia'] == D1 and A['cita']['ok'] is True and [f"{v['dia']}|{v['fr']}" for v in A['vale']] == [f"{D1}|{libre[0]['id']}"] + marc, f"cliente: la cita entra con la franja pedida y las otras que marcó ({len(A['vale']) if A else 0})")
@@ -114,9 +114,9 @@ async def main():
         # mañana: se llena lo que ve el cliente en la última franja y la oficina usa el hueco de urgencias
         fD = await c.evaluate(FR + f"('{D1}')"); ult = [f for f in fD if f['tope'] > 0][-1]; U = ult['id']
         for i in range(ult['libres']):
-            r = await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:OFICIO_NEGOCIO.averias[0].id,cli:{{nombre:'Cliente Web {i}',tel:'61133550{i}',dir:'C/ Web {i + 1}, 1.º',cp:'{CP}'}},cita:{{dia:'{D1}',fr:'{U}'}}}},{{rol:'cliente'}})")
+            r = await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:OFICIO_NEGOCIO.averias[0].id,cli:{{nombre:'Cliente Web {i}',apellidos:'Prueba',tel:'61133550{i}',dir:'C/ Web {i + 1}, 1.º',cp:'{CP}'}},cita:{{dia:'{D1}',fr:'{U}'}}}},{{rol:'cliente'}})")
             es(r['ok'], f'preparación: el cliente pide la franja {U} ({i + 1})')
-        r = await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:OFICIO_NEGOCIO.averias[0].id,cli:{{nombre:'Cliente De Más',tel:'611335599',dir:'C/ Web 9, 1.º',cp:'{CP}'}},cita:{{dia:'{D1}',fr:'{U}'}}}},{{rol:'cliente'}})")
+        r = await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:OFICIO_NEGOCIO.averias[0].id,cli:{{nombre:'Cliente De Más',apellidos:'Prueba',tel:'611335599',dir:'C/ Web 9, 1.º',cp:'{CP}'}},cita:{{dia:'{D1}',fr:'{U}'}}}},{{rol:'cliente'}})")
         es(r['ok'] is False and r['err'] == 'franja', 'reglas: con la franja llena para el cliente, otro cliente ya no entra')
         await k.goto(B + 'cita.html'); await k.wait_for_selector('#f'); await k.click(f'[data-dia="{D1}"]')
         es(await k.locator(f'[data-fr="{U}"]').is_disabled() and 'completa' in await texto(k, f'[data-fr="{U}"]'), 'cliente: esa franja le sale «completa», aunque quede el hueco de urgencias')
@@ -135,7 +135,7 @@ async def main():
         es('en el hueco que se guarda para urgencias' in await texto(c, 'details.hist'), 'oficina: y también en el historial del aviso')
         fD = await c.evaluate(FR + f"('{D1}')"); fu = next(f for f in fD if f['id'] == U)
         es(fu['libresOf'] == 0 and not fu['okOf'] and await nuevo_con_cita(c, D1, U, 3) == '' and 'llena' in await texto(c, f'[data-b-fr="{U}"]'), 'oficina: una más ya no: la franja sale «llena» y el botón no deja. No se puede forzar')
-        r = await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:OFICIO_NEGOCIO.averias[0].id,origen:'llamada',cli:{{nombre:'Forzada',tel:'611335598',dir:'C/ Web 8, 1.º',cp:'{CP}'}},cita:{{dia:'{D1}',fr:'{U}'}}}},{{rol:'centralita',id:'oficina'}})")
+        r = await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:OFICIO_NEGOCIO.averias[0].id,origen:'llamada',cli:{{nombre:'Forzada',apellidos:'Prueba',tel:'611335598',dir:'C/ Web 8, 1.º',cp:'{CP}'}},cita:{{dia:'{D1}',fr:'{U}'}}}},{{rol:'centralita',id:'oficina'}})")
         es(r['ok'] is False and r['err'] == 'franja', 'reglas: ni saltándose la pantalla entra')
         es(await c.evaluate(K + ".sobran(Oficio.estado(),Oficio.cfg,Date.now()).length") == 0, 'reglas: usar el hueco de urgencias no cuenta como que sobran citas')
 
@@ -269,7 +269,7 @@ async def main():
         await s.route('**/js/oficio-datos.js', sin_horarios)
         ps = await s.new_page(); vigila(ps, 'sin horarios'); await ps.goto(B + f'app.html#/equipo/{D1}'); await ps.wait_for_selector('.tecd[data-tec]')
         es(await ps.evaluate('Oficio.cfg.conHorario') is False and await ps.locator('.tecd .ln', has_text='Sin horario puesto').count() == len(tecs) and 'no tiene horarios puestos' in await texto(ps, '#v'), 'sin horarios: «Equipo» lo dice en cada ficha y explica que los huecos no cambian')
-        ra = await ps.evaluate(f"Oficio.hacer({{tipo:'pedir',av:OFICIO_NEGOCIO.averias[0].id,origen:'llamada',cli:{{nombre:'Sin Horario',tel:'611335597',dir:'C/ Web 7, 1.º',cp:'{CP}'}},cita:{{dia:'{D1}',fr:Oficio.cfg.franjas[0].id}}}},{{rol:'centralita',id:'oficina'}})")
+        ra = await ps.evaluate(f"Oficio.hacer({{tipo:'pedir',av:OFICIO_NEGOCIO.averias[0].id,origen:'llamada',cli:{{nombre:'Sin Horario',apellidos:'Prueba',tel:'611335597',dir:'C/ Web 7, 1.º',cp:'{CP}'}},cita:{{dia:'{D1}',fr:Oficio.cfg.franjas[0].id}}}},{{rol:'centralita',id:'oficina'}})")
         await ps.click(f'.tecd[data-tec="{tecs[0]}"] [data-a="ausencia"]'); await ps.wait_for_selector('#uF'); await ps.click('button[form="uF"]'); await toast(ps, 'Apuntado')
         await ir(ps, f"#/aviso/{ra['id']}", '.tec')
         await ps.click(f'.tec[data-tec="{tecs[0]}"]'); no0 = await toast(ps, 'ausente')

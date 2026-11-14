@@ -22,6 +22,7 @@ function dado(semilla) { let a = semilla >>> 0; return () => { a |= 0; a = a + 0
 const M = 60000, H = 60 * M, D = 24 * H;
 const FIRMA = 'M14 78C30 70 44 34 50 14 54 44 44 86 26 96';
 const NOMBRES = ['Montse Vila', 'Pere Roca', 'Aitana Gil', 'Íñigo Sáez', 'Zoé D’Arc', 'Li Wei', 'Mª José Núñez-Ortega', 'Bo'];
+const APELLIDOS = ['Vila', 'Roca i Puig', 'Gil', 'Sáez', 'D’Arc', 'Wei', 'Núñez-Ortega', 'Bo'];
 const RAROS = ['__proto__', 'constructor', 'toString', 'hasOwnProperty', 'valueOf', '', ' ', 'x'.repeat(300), '<img src=x onerror=alert(1)>', '😀🔧', null, 0, -1, 1e9, 0.1, {}, [], true, ['a'], { k: 'v' }];
 const TRAMPAS = ['2026-10-24T20:30:00Z', '2027-03-27T21:00:00Z', '2026-12-31T21:30:00Z', '2027-12-23T08:00:00Z', '2026-11-13T15:30:00Z', '2028-02-28T10:00:00Z', '2026-12-07T07:00:00Z', '2027-08-13T05:55:00Z'].map(Date.parse);
 const clon = o => JSON.parse(JSON.stringify(o));
@@ -189,7 +190,7 @@ function unAviso(W, A, t) {
   if (A.urg === !!A.cita) rota('urgente-o-con-cita', A.id);
   if (!K.ORIGEN.includes(A.origen)) rota('canal-conocido', A.id + ': «' + A.origen + '»');
   for (const k of ['nota', 'obs']) if (A[k] != null && typeof A[k] !== 'string') rota('textos-que-son-texto', A.id + '.' + k);
-  for (const k of ['nombre', 'tel', 'dir', 'cp', 'dis']) if (typeof A.cli[k] !== 'string') rota('textos-que-son-texto', A.id + '.cli.' + k);
+  for (const k of ['nombre', 'apellidos', 'tel', 'dir', 'cp', 'dis']) if (typeof A.cli[k] !== 'string') rota('textos-que-son-texto', A.id + '.cli.' + k);
   // dinero
   if (A.tot) {
     const T = A.tot; entero(T.total, A.id + '.total'); entero(T.base, A.id + '.base'); entero(T.iva, A.id + '.iva');
@@ -242,7 +243,7 @@ function generador(G) {
   const { r, cfg, N } = G, tecs = Object.keys(cfg.tec), cps = Object.keys(N.zonas.cp), avs = Object.keys(cfg.av), cat = Object.keys(cfg.cat);
   const pick = L => L[Math.floor(r() * L.length)], C = { rol: 'centralita', id: 'c1' }, T = id => ({ rol: 'tecnico', id });
   let nCli = 0;
-  const cliente = () => { const i = Math.floor(r() * 9); nCli++; return { nombre: NOMBRES[i % NOMBRES.length], tel: '6' + String(11000000 + i * 7919).padStart(8, '0'), dir: 'C/ de la Prueba ' + (1 + i * 3) + ', ' + (1 + i % 5) + '.º', cp: cps[(i * 5) % cps.length] } };
+  const cliente = () => { const i = Math.floor(r() * 9); nCli++; return { nombre: NOMBRES[i % NOMBRES.length], apellidos: APELLIDOS[i % APELLIDOS.length], tel: '6' + String(11000000 + i * 7919).padStart(8, '0'), dir: 'C/ de la Prueba ' + (1 + i * 3) + ', ' + (1 + i % 5) + '.º', cp: cps[(i * 5) % cps.length] } };
   const lineas = (A, n) => { const av = cfg.av[A.av] || cfg.av[avs[0]], L = n ? [] : (av.ini || []).map(l => Object.assign({}, l));
     (av.chips || []).forEach(k => { if (r() < (n ? .5 : .3)) L.push(r() < .25 ? { k, q: 1 + Math.floor(r() * 3) } : { k }) });
     if (n && r() < .5) { const h = cat.find(k => cfg.cat[k].un === 'h'); if (h) L.push({ k: h, q: cfg.cat[h].paso * (1 + Math.floor(r() * 4)) }) }
@@ -257,7 +258,7 @@ function generador(G) {
   function pedir(S, t) {
     const a = { tipo: 'pedir', av: r() < .04 ? pick(RAROS) : pick(avs), cli: cliente(), origen: r() < .05 ? pick(RAROS) : pick(K.ORIGEN), nota: pick(['', 'Gotea desde ayer.', 'x'.repeat(900), '<script>1</script>']) };
     if (r() < .5) { a.cita = cita(S, t); if (r() < .35) a.alt = [cita(S, t), cita(S, t), r() < .2 ? pick(RAROS) : cita(S, t)] }
-    if (r() < .12) { const c = a.cli, que = pick(['tel', 'dir', 'cp', 'nombre', 'zona', 'todo']); if (que === 'zona') c.cp = '99999'; else if (que === 'todo') a.cli = pick([null, 'hola', {}, []]); else if (que === 'tel') c.tel = pick(['', '12345', '+34 600 00 01 02', '0034600000102', '5551234']); else c[que] = '' }
+    if (r() < .12) { const c = a.cli, que = pick(['tel', 'dir', 'cp', 'nombre', 'apellidos', 'zona', 'todo']); if (que === 'zona') c.cp = '99999'; else if (que === 'todo') a.cli = pick([null, 'hola', {}, []]); else if (que === 'tel') c.tel = pick(['', '12345', '+34 600 00 01 02', '0034600000102', '5551234']); else c[que] = '' }
     if (a.origen === 'web' && r() < .6) a.cli = { nombre: '', tel: '', dir: '', cp: r() < .5 ? pick(cps) : '' };
     if (r() < .2) a.foto = 'data:image/jpeg;base64,' + 'A'.repeat(r() < .1 ? 150000 : 400);
     return [a, r() < .7 ? { rol: 'cliente' } : C];
@@ -295,7 +296,7 @@ function generador(G) {
     return pick([[null, null], [{}, {}], [{ tipo: pick(RAROS) }, C], [{ tipo: 'pedir', av: pick(RAROS), cli: pick(RAROS) }, { rol: 'cliente' }], [{ tipo: 'asignar', id: pick(RAROS), tec: pick(RAROS) }, C],
       [{ tipo: 'asignar', id: A.id, tec: pick(['__proto__', 'constructor', 'toString']) }, C], [{ tipo: 'empezar', id: A.id, pres: pick(RAROS) }, T(pick(tecs))], [{ tipo: 'empezar', id: A.id, pres: { lineas: pick(RAROS), firma: FIRMA } }, T(A.tec || pick(tecs))],
       [{ tipo: 'pack', pack: pick(RAROS) }, C], [{ tipo: 'enviado', id: A.id, k: pick(RAROS) }, C], [{ tipo: 'mover', id: A.id, cita: pick(RAROS) }, C], [{ tipo: 'cobrar', id: A.id, modo: pick(RAROS) }, C],
-      [{ tipo: 'pedir', av: pick(avs), cli: { nombre: 'Ana Prueba', tel: '600000199', dir: 'C/ Mayor 1', cp: pick(RAROS), dis: pick(['__proto__', 'constructor', 'zz']) } }, { rol: 'cliente' }],
+      [{ tipo: 'pedir', av: pick(avs), cli: { nombre: 'Ana', apellidos: 'Prueba', tel: '600000199', dir: 'C/ Mayor 1', cp: pick(RAROS), dis: pick(['__proto__', 'constructor', 'zz']) } }, { rol: 'cliente' }],
       [{ tipo: 'anotar', id: A.id, obs: pick(RAROS), foto: pick(RAROS) }, C], [{ tipo: 'terminar', id: A.id, modo: pick(RAROS), firma: pick(RAROS) }, T(A.tec || pick(tecs))], [{ tipo: 'ampliar', id: A.id, lineas: pick(RAROS), firma: FIRMA }, T(A.tec || pick(tecs))]]);
   }
   return function siguiente(S, t) {

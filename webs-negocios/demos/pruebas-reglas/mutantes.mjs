@@ -16,6 +16,10 @@ const NUCLEO = fs.readFileSync(path.join(sitio, 'js/oficio-nucleo.js'), 'utf8'),
 // [qué regla se estropea, texto que hay, texto que se pone]
 const M = [
   ['la urgencia empieza un minuto tarde', 'n.min>=cfg.dia[1]', 'n.min>cfg.dia[1]'],
+  ['se puede pedir sin apellidos', "if(apellidos.length<2)return{err:'apellidos'};", ''],
+  ['los apellidos se guardan con los espacios de sobra', "apellidos=txt(c1.apellidos).trim().replace(/\\s+/g,' ').slice(0,80)", "apellidos=txt(c1.apellidos).slice(0,80)"],
+  ['los apellidos no se cortan', "apellidos=txt(c1.apellidos).trim().replace(/\\s+/g,' ').slice(0,80)", "apellidos=txt(c1.apellidos).trim().replace(/\\s+/g,' ')"],
+  ['el nombre que se enseña pierde los apellidos', "[txt(c.nombre),txt(c.apellidos)]", "[txt(c.nombre)]"],
   ['el sábado deja de ser urgencia', 'n.day===0||n.day===6', 'n.day===0'],
   ['un festivo deja de ser urgencia', 'cfg.festivos.includes(n.date)||n.min<cfg.dia[0]', 'n.min<cfg.dia[0]'],
   ['el recargo de urgencia se queda en la mitad', 'const f=o.urg&&it.u?1+cfg.recargo:1', 'const f=o.urg&&it.u?1+cfg.recargo/2:1'],

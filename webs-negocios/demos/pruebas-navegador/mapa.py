@@ -45,7 +45,7 @@ def tile(lat, lon, z=15):
     return int(x), int(y), (x - int(x)) * 256, (y - int(y)) * 256
 A1 = {'latitude': 41.3879, 'longitude': 2.1699}; A2 = {'latitude': 41.4036, 'longitude': 2.1744}
 C = "{rol:'centralita',id:'oficina'}"
-def crea(tec, n): return f"""(()=>{{const N=OFICIO_NEGOCIO,r=Oficio.hacer({{tipo:'pedir',av:N.averias[0].id,origen:'llamada',cli:{{nombre:'Cliente Mapa {n}',tel:'61144770{n}',dir:'C/ del Mapa {n}, 1.º',cp:Object.keys(N.zonas.cp)[0]}}}},{C});
+def crea(tec, n): return f"""(()=>{{const N=OFICIO_NEGOCIO,r=Oficio.hacer({{tipo:'pedir',av:N.averias[0].id,origen:'llamada',cli:{{nombre:'Cliente Mapa {n}',apellidos:'Prueba',tel:'61144770{n}',dir:'C/ del Mapa {n}, 1.º',cp:Object.keys(N.zonas.cp)[0]}}}},{C});
   const a=Oficio.hacer({{tipo:'asignar',id:r.id,tec:'{tec}'}},{C});return a.ok?r.id:a.err}})()"""
 POS = "(id=>{const a=Oficio.estado().avisos.find(x=>x.id===id);return a?{e:a.e,pos:a.pos||null,no:!!a.posNo}:null})"
 

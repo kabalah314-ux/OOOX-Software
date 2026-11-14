@@ -17,10 +17,10 @@ python3 ../../../../webs-negocios/demos/pruebas-navegador/entrada.py
 node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, sin navegador
 ```
 
-| Archivo | Qué prueba | Resultado el 13-11-2026 |
+| Archivo | Qué prueba | Último resultado |
 |---|---|---|
-| `prueba-oficio.mjs` (una carpeta más arriba) | Las reglas: tarifa, festivos, IVA, precio (con 1.000 presupuestos al azar), permisos, pasos, citas, horarios y ausencias, lo que puede la oficina y lo que no (hueco de urgencias, margen de dos horas), canales, garantía, mensajes, y el mapa (quién manda la posición, cuándo, que solo quede la última y que se borre) | 261 bien |
-| `app.py` | Cliente, centralita y técnico: cada pantalla y botón, errores, texto raro que no se ejecuta, fotos, dos pestañas, teclado, anchos de 320 a 1440 px, etiquetas y nombres, datos estropeados, modo privado, sin conexión | 220 bien |
+| `prueba-oficio.mjs` (una carpeta más arriba) | Las reglas: tarifa, festivos, IVA, precio (con 1.000 presupuestos al azar), permisos, pasos, citas, horarios y ausencias, lo que puede la oficina y lo que no (hueco de urgencias, margen de dos horas), canales, garantía, mensajes, el mapa (quién manda la posición, cuándo, que solo quede la última y que se borre) y los apellidos | 273 bien |
+| `app.py` | Cliente, centralita y técnico: cada pantalla y botón, errores, texto raro que no se ejecuta, fotos, dos pestañas, teclado, anchos de 320 a 1440 px, etiquetas y nombres, datos estropeados, modo privado, sin conexión, y los apellidos (que se piden y que se rellenan con el teléfono) | 222 bien |
 | `web.py` | La web: archivos, idiomas, la hora de Barcelona en 12 momentos (web y app dicen lo mismo), desglose de cada avería, barrio, menú, metadatos, 9 tamaños de pantalla, y la página de los tres móviles | 60 bien |
 | `entrada.py` | El vídeo de entrada con y sin trozos, en ordenador y en móvil (con el dedo y con la rueda), lento y sin vídeo. Sin esperas fijas | 42 bien |
 | `muestra.py` | La muestra se rehace sola a las 8 horas, y «Reiniciar» | 7 bien |

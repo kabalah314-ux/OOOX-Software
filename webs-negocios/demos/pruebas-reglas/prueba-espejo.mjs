@@ -41,7 +41,7 @@ async function envia(d, fallo) {
 }
 const lee = async d => { const r = await J.atiende(con(d, { que: 'leer', desde: d.E.v() })); return r.ok ? d.E.llega(r.cambios) : false; };
 const diario = () => A.crudo('voltio').diario, enDiario = tipo => diario().filter(x => x.accion.tipo === tipo).length;
-const cli = (n) => ({ nombre: 'Cliente ' + n, tel: '61234567' + n, dir: 'Calle de la Prueba ' + n, cp: Object.keys(NV.zonas.cp)[0] });
+const cli = (n) => ({ nombre: 'Cliente ' + n, apellidos: 'Prueba ' + n, tel: '61234567' + n, dir: 'Calle de la Prueba ' + n, cp: Object.keys(NV.zonas.cp)[0] });
 const av = NV.averias[0].id, de = (d, id) => d.E.estado().avisos.find(a => a.id === id);
 
 const OF = aparato('oficina', 'centralita'), P1 = aparato(T1, 'tecnico'), P2 = aparato(T2, 'tecnico');

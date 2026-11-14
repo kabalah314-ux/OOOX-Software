@@ -103,12 +103,12 @@ async def main():
 
         # ---------- 2. la oficina crea un aviso: el número lo pone el servidor ----------
         await o.goto(B + 'app.html#/nuevo'); await o.wait_for_selector('#fNuevo')
-        await o.fill('#n_nombre', 'Marta Prueba'); await o.fill('#n_tel', '612345678'); await o.fill('#n_dir', 'Calle de la Prueba 1'); await o.fill('#n_cp', CP)
+        await o.fill('#n_nombre', 'Marta Prueba'); await o.fill('#n_apellidos', 'Prueba'); await o.fill('#n_tel', '612345678'); await o.fill('#n_dir', 'Calle de la Prueba 1'); await o.fill('#n_cp', CP)
         await o.click('#fNuevo [type=submit]'); await pasa(o, "location.hash.startsWith('#/aviso/')")
         A1 = (await o.evaluate('location.hash')).split('/')[-1]
         es(A1 == SER + '-0001' and aviso(A1) is not None and aviso(A1)['cli']['nombre'] == 'Marta Prueba', f'la oficina crea un aviso y el servidor le pone el número ({A1})')
         es(await o.evaluate(tiene(A1, 'nuevo')) and await o.locator('.tec[data-tec]').count() == len(N['tecnicos']), 'el aviso se abre recién creado, listo para asignar')
-        await o.goto(B + 'app.html#/nuevo'); await o.wait_for_selector('#fNuevo'); await o.fill('#n_nombre', 'Sin Teléfono'); await o.fill('#n_tel', '12'); await o.fill('#n_dir', 'Calle 2'); await o.fill('#n_cp', CP)
+        await o.goto(B + 'app.html#/nuevo'); await o.wait_for_selector('#fNuevo'); await o.fill('#n_nombre', 'Sin Teléfono'); await o.fill('#n_apellidos', 'Prueba'); await o.fill('#n_tel', '12'); await o.fill('#n_dir', 'Calle 2'); await o.fill('#n_cp', CP)
         h0 = cuenta()['hacer']; await o.click('#fNuevo [type=submit]'); await pasa(o, "!!document.querySelector('#e_tel')")
         es(await o.locator('#e_tel').count() == 1 and cuenta()['hacer'] == h0 and len(estado()['avisos']) == 1, 'un aviso mal rellenado se corrige en la pantalla: no llega al servidor')
 
@@ -169,7 +169,7 @@ async def main():
         foto = tempfile.NamedTemporaryFile(suffix='.png', delete=False); foto.write(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==')); foto.close()
         await k.locator('.avc').nth(1).click(); await k.set_input_files('#c_foto', foto.name); await k.wait_for_selector('.fotoz img')
         await k.locator('[data-fr]:not([disabled])').first.click(); DIA = await k.get_attribute('[data-dia][aria-pressed=true]', 'data-dia'); FR = await k.get_attribute('[data-fr][aria-pressed=true]', 'data-fr')
-        await k.fill('#c_nombre', 'Lucía Cliente'); await k.fill('#c_tel', '698765432'); await k.fill('#c_dir', 'Avenida de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
+        await k.fill('#c_nombre', 'Lucía Cliente'); await k.fill('#c_apellidos', 'Prueba'); await k.fill('#c_tel', '698765432'); await k.fill('#c_dir', 'Avenida de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
         await k.click('#f [type=submit]'); await pasa(k, "location.hash.startsWith('#/aviso/')", 9000)
         A2 = (await k.evaluate('location.hash')).split('/')[-1]
         es(A2 == SER + '-0002' and aviso(A2) and aviso(A2)['origen'] == 'cita' and aviso(A2)['cita'] == {'dia': DIA, 'fr': FR, 'ok': True} and aviso(A2)['tec'] == '', f'la cita llega al servidor como cita de la web, sin asignar ({A2})')

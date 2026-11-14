@@ -90,6 +90,9 @@ async def main():
         XSS_N = '<img src=x onerror="window.__x=1">Pau'
         await k.fill('#c_nombre', XSS_N); await k.fill('#c_tel', '12345'); await k.fill('#c_dir', 'C/ <i>Balmes</i> 100, 1.º'); await k.fill('#c_cp', '08008')
         await k.click('button[type=submit]'); await k.wait_for_timeout(200)
+        es(len((await estado(k))['avisos']) == n0 and await k.locator('.campo.mal #c_apellidos').count() == 1 and 'Escribe tus apellidos.' in await k.locator('#f').inner_text(), 'cita: sin apellidos no deja enviar y lo dice en su campo')
+        await k.fill('#c_apellidos', 'Ferrer <i>Puig</i>')
+        await k.click('button[type=submit]'); await k.wait_for_timeout(200)
         es(len((await estado(k))['avisos']) == n0 and await k.locator('.campo.mal #c_tel').count() == 1, 'cita: un teléfono mal escrito no deja enviar y marca el campo')
         await k.fill('#c_tel', '611 22 33 44'); await k.fill('#c_cp', '28001'); await k.wait_for_timeout(150)
         es(await k.locator('#zmal').count() == 1, 'cita: un código postal de Madrid avisa de que no llegamos')
@@ -110,7 +113,7 @@ async def main():
         # cupo lleno: dos citas en la misma franja y la tercera ya no puede
         dia = await k.evaluate("(()=>{const K=OficioNucleo,c=K.cfgDe(OFICIO_NEGOCIO);return K.diasDe(Oficio.estado(),c,Date.now(),6)[4].dia})()")
         for i in range(2):
-            r = await k.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'grifo',cli:{{nombre:'Lleno {i}',tel:'61000000{i}',dir:'C/ Mallorca 1{i}, 1.º',cp:'08036'}},cita:{{dia:'{dia}',fr:'f2'}}}},{{rol:'cliente'}})")
+            r = await k.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'grifo',cli:{{nombre:'Lleno {i}',apellidos:'Prueba',tel:'61000000{i}',dir:'C/ Mallorca 1{i}, 1.º',cp:'08036'}},cita:{{dia:'{dia}',fr:'f2'}}}},{{rol:'cliente'}})")
         await k.goto(B + 'cita.html'); await k.wait_for_selector('#f')
         await k.locator(f'[data-dia="{dia}"]').click(); await k.wait_for_timeout(150)
         es(await k.locator('[data-fr="f2"]').is_disabled(), 'cita: con dos citas, la franja queda cerrada para el siguiente')
@@ -152,13 +155,14 @@ async def main():
         tel_e = await c.evaluate("Oficio.estado().avisos.find(a=>a.id==='R-0098').cli")
         await c.fill('#n_tel', tel_e['tel']); await c.wait_for_timeout(300)
         es((await c.input_value('#n_nombre')) == tel_e['nombre'], f"nuevo: con el teléfono de una clienta conocida se rellena su nombre ({tel_e['nombre']})")
+        es((await c.input_value('#n_apellidos')) == tel_e['apellidos'] and len(tel_e['apellidos']) > 1, f"nuevo: y sus apellidos ({tel_e['apellidos']})")
         es(tel_e['dir'][:8] in await c.input_value('#n_dir'), 'nuevo: y su dirección')
         await c.click('#fNuevo button[type=submit]'); await c.wait_for_url('**#/aviso/*')
         idn = c.url.split('/')[-1]
         An = await aviso(c, idn)
         es(An and An['origen'] == 'llamada' and An.get('gar0') == 'R-0098', f'nuevo: {idn} entra como llamada y marca «puede ser garantía» del R-0098')
         await c.goto(B + 'app.html#/nuevo'); await c.wait_for_selector('#fNuevo')
-        await c.fill('#n_nombre', 'Nadie'); await c.fill('#n_tel', '123'); await c.fill('#n_dir', 'C/ Falsa 1'); await c.fill('#n_cp', '08001')
+        await c.fill('#n_nombre', 'Nadie'); await c.fill('#n_apellidos', 'Prueba'); await c.fill('#n_tel', '123'); await c.fill('#n_dir', 'C/ Falsa 1'); await c.fill('#n_cp', '08001')
         await c.click('#fNuevo button[type=submit]'); await c.wait_for_timeout(250)
         es('#/nuevo' in c.url and await c.evaluate("document.activeElement && document.activeElement.id") == 'n_tel', 'nuevo: con un teléfono mal, no crea nada y lleva al campo')
         # cancelar el aviso nuevo
@@ -171,9 +175,9 @@ async def main():
         await c.goto(B + f'app.html#/aviso/{idw}'); await c.wait_for_selector('[data-a=completar]')
         es(await c.locator('.tec').count() == 0 or await c.locator('.tec[disabled]').count() > 0 or 'Faltan' in await c.locator('main').inner_text() or True, 'web: el aviso sin datos se ve en la centralita')
         await c.click('[data-a=completar]'); await c.wait_for_selector('#kF')
-        await c.fill('#k_tel', '622 33 44 55'); await c.fill('#k_nombre', 'Marc Font'); await c.fill('#k_dir', 'C/ Verdi 90, 3.º'); await c.fill('#k_cp', '08012')
+        await c.fill('#k_tel', '622 33 44 55'); await c.fill('#k_nombre', 'Marc Font'); await c.fill('#k_apellidos', 'Prueba'); await c.fill('#k_dir', 'C/ Verdi 90, 3.º'); await c.fill('#k_cp', '08012')
         await c.click('dialog[open] button.pri'); await c.wait_for_timeout(300)
-        es((await aviso(c, idw))['cli']['tel'] == '622334455', 'web: completados los datos')
+        es((await aviso(c, idw))['cli']['tel'] == '622334455' and (await aviso(c, idw))['cli']['apellidos'] == 'Prueba', 'web: completados los datos, con los apellidos')
         await c.click('.tec[data-tec=jordi]'); await c.wait_for_timeout(300)
         es((await aviso(c, idw))['tec'] == 'jordi', 'web: y ya se reparte (a Jordi)')
         # agenda
@@ -286,7 +290,7 @@ async def main():
         c2 = await oye(await ctx.new_page(), 'centralita 2')
         await c2.goto(B + 'app.html'); await c2.wait_for_selector('.fila')
         ids = await c.evaluate("Oficio.estado().avisos.filter(a=>a.e==='nuevo'&&a.cli.tel).map(a=>a.id)")
-        nuevos = [await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'grifo',cli:{{nombre:'Doble {i}',tel:'62000000{i}',dir:'C/ Pere IV 1{i}, 1.º',cp:'08005'}}}},{{rol:'cliente'}}).id") for i in range(2)]
+        nuevos = [await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'grifo',cli:{{nombre:'Doble {i}',apellidos:'Prueba',tel:'62000000{i}',dir:'C/ Pere IV 1{i}, 1.º',cp:'08005'}}}},{{rol:'cliente'}}).id") for i in range(2)]
         # Una pestaña asigna; la otra lo ve sola, sin recargar, y entonces asigna ella: no se pierde nada.
         # (Antes se medía con 20 ms de diferencia entre las dos. Dependía de lo cargada que fuera la máquina y fallaba a ratos:
         #  si dos pestañas actúan casi a la vez, una puede pisar a la otra. Es un límite conocido de guardar en el navegador;
@@ -301,7 +305,7 @@ async def main():
         # el límite conocido, medido: dos pestañas con 20 ms de diferencia, cinco veces. No cuenta como fallo.
         pisadas = 0
         for i in range(5):
-            par = [await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'grifo',cli:{{nombre:'Carrera {i}{j}',tel:'6210000{i}{j}',dir:'C/ Llull 2{i}{j}, 1.º',cp:'08005'}}}},{{rol:'cliente'}}).id") for j in range(2)]
+            par = [await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'grifo',cli:{{nombre:'Carrera {i}{j}',apellidos:'Prueba',tel:'6210000{i}{j}',dir:'C/ Llull 2{i}{j}, 1.º',cp:'08005'}}}},{{rol:'cliente'}}).id") for j in range(2)]
             await c.wait_for_timeout(150)
             async def tarde():
                 await asyncio.sleep(0.02); return await c2.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{par[1]}',tec:'jordi'}},{{rol:'centralita'}})")
@@ -361,7 +365,7 @@ async def main():
         await y.add_init_script("Storage.prototype.setItem=function(){throw new DOMException('lleno','QuotaExceededError')};Storage.prototype.getItem=function(){return null}")
         y1 = await oye(await y.new_page(), 'sin guardar 1'); y2 = await oye(await y.new_page(), 'sin guardar 2')
         await y1.goto(B + 'app.html'); await y1.wait_for_selector('.fila'); await y2.goto(B + 'app.html'); await y2.wait_for_selector('.fila')
-        idy = await y1.evaluate("Oficio.hacer({tipo:'pedir',av:'fuga',cli:{nombre:'Sin Memoria',tel:'633000111',dir:'C/ Pau Claris 1',cp:'08010'}},{rol:'cliente'}).id")
+        idy = await y1.evaluate("Oficio.hacer({tipo:'pedir',av:'fuga',cli:{nombre:'Sin Memoria',apellidos:'Prueba',tel:'633000111',dir:'C/ Pau Claris 1',cp:'08010'}},{rol:'cliente'}).id")
         await y2.wait_for_timeout(500)
         es(idy and 'Sin Memoria' in await y2.locator('main').inner_text(), 'sin poder guardar (modo privado): la app sigue y las pestañas se hablan igual')
         await y.close()
