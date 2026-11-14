@@ -192,12 +192,16 @@ Con navegador:
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
 GitHub las pasa en cada cambio: reglas y datos en una máquina, y las pantallas en Chromium, Firefox y WebKit. En verde
-el 14-11-2026 con el commit `acb9626`.
+el 14-11-2026 con el commit `a3a3b9e` (la zona del cliente con servidor).
 
 En vivo (14-11-2026), contra la función desplegada y sin navegador: entrar bien y mal, crear, asignar, leer como cada
 técnico, enlace del cliente bueno y malo, cita desde la web con el origen y el técnico forzados, acción repetida,
 permisos y cancelar. Y desde la vista previa, en un navegador de verdad: los huecos libres y el enlace del cliente, con
-su llave y con una inventada. Entrar con código desde una página publicada queda para Oscar. Quedan en el servidor dos avisos de prueba de Voltio (`VS-0001` y `VS-0002`, con «Prueba de
+su llave y con una inventada. Entrar con código desde una página publicada queda para Oscar. La noche del 14-11, ya con
+la función en la versión 5, la zona del cliente desde la base de datos (con `pg_net`, sin navegador): un técnico no da
+códigos, un teléfono sin avisos tampoco, la oficina recibe uno y al pedirlo otra vez el mismo, el cliente entra con él
+(escrito en mayúsculas y con espacios) y recibe solo su aviso con su llave, con otro teléfono no vale, y al cambiarlo el
+viejo deja de valer y el nuevo entra. El código de prueba (del aviso `VS-0001`) quedó dado de baja. Quedan en el servidor dos avisos de prueba de Voltio (`VS-0001` y `VS-0002`, con «Prueba de
 Claude» por nombre).
 
 ## Lo que falta
