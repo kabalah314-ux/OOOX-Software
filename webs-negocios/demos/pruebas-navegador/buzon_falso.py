@@ -1,5 +1,7 @@
 # El buzón de mejoras (js/oficio-soporte.js) habla con el servidor de OOOX. En las pruebas no sale nada a internet:
 # todo navegador que abren las baterías nace con un servidor de mentira que contesta «no hay nada». Lo cargan todas.
+# Lo mismo con el servidor de los avisos (fase 2): ninguna batería llega al de verdad. La del modo servidor (servidor.py)
+# usa uno local, con el mismo juez.
 #
 # Cómo: no se intercepta la red (en Firefox eso frena todas las cargas de la página y, al cambiar de pantalla deprisa,
 # deja fuentes a medio bajar que salen como errores de consola; visto el 13-11-2026). Se cambia, dentro de cada página,
@@ -16,7 +18,10 @@ CORS = {'access-control-allow-origin': '*', 'access-control-allow-headers': '*',
 VACIO = {'ok': True, 'peticiones': [], 'novedades': [], 'sin_ofertas': False, 'demo': True}
 
 _JS = """(()=>{if(window.__buzonFalso)return;const f=window.fetch;window.__buzonFalso=[];
-window.fetch=function(u,o){const s=String(u&&u.url||u);if(s.indexOf('/rest/v1/rpc/')<0)return f.apply(this,arguments);
+window.fetch=function(u,o){const s=String(u&&u.url||u);
+ /* tampoco sale nada hacia el servidor de los avisos (fase 2): si una copia lo lleva en sus datos, aquí es como si no hubiera red */
+ if(s.indexOf('/functions/v1/')>=0){window.__buzonFalso.push('juez');return Promise.resolve(new Response(JSON.stringify({ok:false,err:'red'}),{status:200,headers:{'content-type':'application/json'}}))}
+ if(s.indexOf('/rest/v1/rpc/')<0)return f.apply(this,arguments);
  const fn=s.split('/').pop().split('?')[0];window.__buzonFalso.push(fn);
  return Promise.resolve(new Response(JSON.stringify(fn==='oficios_buzon'?%s:{ok:false,err:'servidor'}),{status:200,headers:{'content-type':'application/json'}}))}})()""" % json.dumps(VACIO)
 

@@ -8,7 +8,7 @@ import { leeNegocio } from './valida-negocio.mjs';
 
 const sitio = process.argv[2];
 if (!sitio) { console.log('Uso: node restos.mjs <carpeta del sitio>'); process.exit(2) }
-const COMUNES = ['app.html', 'cita.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js'];
+const COMUNES = ['app.html', 'cita.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-espejo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js'];
 const { N } = leeNegocio(path.join(sitio, 'js/oficio-datos.js'));
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const palabra = t => new RegExp('(?<![\\p{L}\\p{N}])' + esc(t) + '(?![\\p{L}\\p{N}])', 'iu');

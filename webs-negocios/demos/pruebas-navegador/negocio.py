@@ -34,7 +34,9 @@ async def pagina(ctx, nombre, propio):
     pg.on('console', lambda m: errores.append(f'{nombre}: {m.text}') if m.type == 'error' and 'Failed to load resource' not in m.text else None)
     pg.on('response', lambda r: errores.append(f'{nombre}: 404 {r.url}') if r.status >= 400 and '/assets/img/av-' not in r.url else None)
     pg.on('pageerror', lambda e: errores.append(f'{nombre}! {e}'))
-    if not propio: await pg.route('**/js/oficio-datos.js', lambda r: r.fulfill(status=200, content_type='text/javascript; charset=utf-8', body=DATOS))
+    # Esta batería recorre la app sin servidor. Si los datos del negocio lo traen, aquí se le quita (sin tocar el archivo):
+    # así nunca se llama al servidor de verdad. El modo servidor tiene su batería, servidor.py, contra uno local.
+    if not propio or 'servidor' in DATOS: await pg.route('**/js/oficio-datos.js', lambda r: r.fulfill(status=200, content_type='text/javascript; charset=utf-8', body=DATOS + '\n;delete window.OFICIO_NEGOCIO.servidor;\n'))
     return pg
 
 async def guarda(pg, donde):

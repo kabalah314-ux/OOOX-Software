@@ -30,7 +30,9 @@ node ../../../../webs-negocios/demos/prueba-oficio.mjs .        # las reglas, si
 | `horarios.py` | Horarios, turnos y ausencias en pantalla: el cliente ve solo huecos reales y marca otras franjas que le van bien; la oficina pone citas en el hueco de urgencias y con menos de dos horas, y no puede forzarlas donde no cabe; «Equipo» (quién trabaja, qué lleva, «No viene»), los avisos de arriba (sobran, por reasignar, por confirmar) y un negocio sin horarios. Cada cosa en pantalla se compara con lo que dicen las reglas | 76 bien |
 | `mapa.py <datos-de-un-negocio-sin-mapa.js>` | El mapa: el técnico comparte su posición desde «Voy» hasta que llega y el cliente la ve en su página. Las nueve teselas de alrededor y ninguna otra, la firma del mapa, de cuándo es la posición, que solo se guarde la última, «Dejar de compartir», lo que ve la oficina, el móvil que no da permiso, un negocio sin mapa de fondo y un negocio sin mapa. El móvil y las teselas son de mentira: no sale nada a internet | 40 bien |
 | `soporte.py <datos-de-otro-negocio.js>` | La sección «Mejoras» de la oficina: pedir algo a OOOX, ver el estado y la respuesta, novedades y baja de ofertas, sin conexión (se guarda y sale sola), lo que viaja y lo que no (ningún dato de los clientes), texto raro que no se ejecuta, teclado, y la copia de un negocio de verdad con su código de soporte. El servidor es de mentira y sigue las reglas del de verdad | 69 bien |
-| `buzon_falso.py` | No es una batería: hace que ningún navegador de las pruebas salga a internet cuando la app llama al buzón de OOOX | — |
+| `buzon_falso.py` | No es una batería: hace que ningún navegador de las pruebas salga a internet, ni al buzón de OOOX ni al servidor de los avisos | — |
+| `servidor_local.mjs <carpeta> <puerto> [--datos <otro.js>]` | No es una batería: un servidor local con el MISMO juez que el de verdad y un almacén en memoria. Sirve la carpeta y le pone «servidor» apuntando a sí mismo. Tiene puertas solo para pruebas (`/__prueba/…`): poner la hora, mirar lo guardado, retirar un código, cortar la red, perder una respuesta | — |
+| `servidor.py [puerto]` | El modo servidor con la oficina, dos técnicos y un cliente, cada uno en su navegador: entrar con código (malo, de otro, con mayúsculas), crear, asignar y que le llegue al técnico, sin cobertura con un rechazo, el servidor caído y la app recargada, una respuesta perdida, la cita del cliente con foto, su enlace con y sin llave, dos pestañas, segundo plano, código retirado y cerrar sesión | 74 bien. Se pasa con la plantilla y con cada copia que lleve servidor |
 
 ## Motores
 
@@ -82,3 +84,16 @@ En la fase 2 el orden lo pone el servidor.
 - **`mapa.py`** (13-11, noche): el mapa del cliente. El navegador de la prueba hace de móvil del técnico (dice dónde está y si da permiso) y las teselas las contesta la propia prueba, así que no depende de internet ni gasta el servidor de mapas de nadie.
 - **Las copias pasan sus propias pruebas** (13-11, noche): `../pruebas.sh` mira `frontend/public/oficios/`. Cada copia tiene que ir al día con lo común (`copias.mjs comprueba`), pasa sus recorridos al azar y hace el recorrido de `negocio.py` **servida desde su propia carpeta**, no desde la demo: así se ve también si le falta algún archivo.
 - **Dos cambios de dirección seguidos** (13-11, noche): WebKit falló una vez en GitHub en «Mejoras». La prueba salía de la pantalla y volvía a entrar con dos órdenes seguidas, y esperaba un formulario que ya estaba pintado de antes. Si el navegador avisa de los dos cambios cuando la dirección ya es la última, la app no ve ninguna entrada nueva y, con razón, no vuelve a pedir el buzón. No era un fallo de la app: a mano no se puede tocar dos veces tan deprisa. Ahora `soporte.py` espera a que la otra pantalla esté pintada antes de volver, y `horarios.py` no sigue hasta que la app ha pintado la pantalla nueva. Regla para las pruebas que vengan: después de cambiar de pantalla, esperar algo que **no** estuviera ya en la anterior.
+
+## Añadido el 14-11-2026: el modo servidor
+
+- `pruebas.sh` arranca `servidor_local.mjs` en el puerto 8768 y pasa `servidor.py`: una vez con los archivos de la
+  plantilla y los datos de Voltio, y otra con cada copia que tenga `servidor` en sus datos, servida desde su carpeta.
+- Una copia con servidor pasa además `negocio.py` como antes: la batería le quita `servidor` al vuelo (sin tocar el
+  archivo) para recorrer la app entera sin él. Así se prueban sus datos y nunca se llama al servidor de verdad.
+- Cada página cuenta sus llamadas (`__n`): con eso se comprueba que en segundo plano no pregunta, que si no cambia
+  nada solo pide la versión, y que nada ha intentado salir hacia `supabase.co`.
+- Para repetir a mano: `node servidor_local.mjs <carpeta> 8768 --datos ../pruebas-reglas/negocios/voltio.js` y, en otra
+  terminal, `python3 servidor.py 8768`. Los códigos de prueba están en `http://127.0.0.1:8768/__prueba/codigos`.
+- Lo que encontró la primera pasada: al echar a alguien (código retirado), la pantalla de entrar volvía con
+  «Centralita» elegida y había que acordarse de cambiarla. Ahora recuerda quién usó ese aparato la última vez.

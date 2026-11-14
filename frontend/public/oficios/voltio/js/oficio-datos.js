@@ -17,6 +17,9 @@ g.OFICIO_NEGOCIO={
  resenas:'g.page/r/voltio-sur-prueba/review',
  /* prueba:true hace que la app diga arriba, en todas sus pantallas, que este negocio aún no está en marcha */
  pack:'pro',prueba:true,garantiaMeses:6,sinTrabajo:'visita',
+ /* servidor: con él, los avisos viven en el servidor y cada persona entra con su código (oficio-estado.js).
+    La llave es la PÚBLICA del proyecto; la de servicio no sale nunca del servidor. Sin esta línea, la app guarda todo en el navegador. */
+ servidor:{url:'https://glsmahzpvzabeeucyqif.supabase.co',llave:'sb_publishable_SmbXr1nXApZ8HRF1ezbXcg_lqtr2yaZ'},
  /* tarifa normal de 9 a 19 h en días laborables; el resto, urgencia con un 50 % más */
  tarifa:{dia:[540,1140],recargo:.5},
  festivos:['2026-01-01','2026-01-06','2026-01-22','2026-03-19','2026-04-03','2026-04-06','2026-05-01','2026-06-24','2026-08-15','2026-10-09','2026-10-12','2026-12-08','2026-12-25',

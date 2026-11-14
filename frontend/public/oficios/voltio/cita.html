@@ -84,6 +84,7 @@ form>.btn{margin-top:16px}
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="js/oficio-nucleo.js"></script>
 <script src="js/oficio-datos.js"></script>
+<script src="js/oficio-espejo.js"></script>
 <script src="js/oficio-estado.js"></script>
 <script>
 (function(){
@@ -99,18 +100,28 @@ let S=Oficio.estado();
 const P=new URLSearchParams(location.search),av0=P.get('av')||mem.get('ramirez:av');
 const B={av:cfg.av[av0]?av0:'',nota:'',foto:'',dia:'',fr:'',alt:[],nombre:'',tel:'',dir:'',cp:'',err:''};
 const ERR={av:'Elige qué te pasa.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nombre:'Escribe tu nombre.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en '+N.ciudad+'.'};
+/* con servidor: los huecos los da él (días y franjas libres, sin cifras) y el aviso se sigue con la llave del enlace */
+const SRV=Oficio.SRV,H={dias:null,err:'',t:0,va:false};
+Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al '+N.tel+'.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al '+N.tel+' y te damos cita.',red:'No hay conexión. Tu cita no se ha enviado: prueba otra vez.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',grande:'Esa foto pesa demasiado. Quítala y prueba otra vez.'});
+function traeHuecos(){if(!SRV||H.va)return;H.va=true;Oficio.huecos().then(r=>{H.va=false;H.t=Date.now();
+ if(r.ok&&Array.isArray(r.dias)){H.err='';H.dias=r.dias.map(d=>({dia:d.dia,hoy:!!d.hoy,franjas:cfg.franjas.map(f=>{const x=(d.franjas||[]).find(y=>y.id===f.id);return{id:f.id,txt:K.franjaTxt(f),ok:!!(x&&x.ok),libres:null}})}))}else H.err=r.err||'red';
+ const a=document.activeElement;if(ruta().v!=='aviso'&&!(a&&a.closest&&a.closest('#f input,#f textarea')))pinta()})}
 const D3=['dom','lun','mar','mié','jue','vie','sáb'];
 const diaCorto=f=>{const h=K.madrid().date;return f===h?'hoy':f===K.masDias(h,1)?'mañana':D3[new Date(f+'T12:00:00Z').getUTCDay()]+' '+(+f.slice(8))};
 const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?K.franjaTxt(f):''};
 const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
 const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cfg.zonas.dis[d][0]:''};
 
-function vPedir(){const dias=K.diasDe(S,cfg,Date.now(),5);if(!dias.find(x=>x.dia===B.dia))B.dia=(dias.find(x=>!x.hoy)||dias[0]).dia;
+function vPedir(){
+ if(SRV&&!H.dias)return'<h1>Pide cita sin prisa.</h1><p class="lead" id="hEsp" role="status">'+(H.err?'No he podido mirar los huecos libres. <button class="txt" type="button" id="hOtra">Probar otra vez</button> o llama al '+esc(N.tel)+'.':'Mirando los huecos libres…')+'</p>';
+ const dias=SRV?H.dias:K.diasDe(S,cfg,Date.now(),5);
+ if(!dias.length)return'<h1>Pide cita sin prisa.</h1><p class="lead">Ahora mismo no quedan huecos en los próximos días. Llama al '+esc(N.tel)+' y lo miramos.</p>';
+ if(!dias.find(x=>x.dia===B.dia))B.dia=(dias.find(x=>!x.hoy)||dias[0]).dia;
  const fr=dias.find(x=>x.dia===B.dia).franjas;if(!fr.find(f=>f.id===B.fr&&f.ok))B.fr='';
  /* otras franjas que también le van bien: las libres de ese día y de los dos siguientes, hasta ocho para elegir y cuatro marcadas */
  const i0=dias.findIndex(x=>x.dia===B.dia),cand=[];if(B.fr)dias.slice(i0,i0+3).forEach(x=>x.franjas.forEach(f=>{if(f.ok&&!(x.dia===B.dia&&f.id===B.fr)&&cand.length<8)cand.push({k:x.dia+'|'+f.id,txt:diaCorto(x.dia)+', '+f.txt})}));
  B.alt=B.alt.filter(k=>cand.some(c=>c.k===k));
- const R=B.av&&K.rango(cfg,B.av,false),ult=mem.get('oficio:'+N.id+':mio'),U=ult&&K.vistaCliente(S,cfg,ult);
+ const R=B.av&&K.rango(cfg,B.av,false),ult=mem.get('oficio:'+N.id+':mio'),U=ult&&(SRV?(Oficio.vista(ult)||{}).v:K.vistaCliente(S,cfg,ult));
  const c=(id,lb,v,o)=>'<div class="campo'+(B.err===id||(id==='cp'&&B.err==='zona')?' mal':'')+'"><label for="c_'+id+'">'+lb+'</label><input id="c_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(B.err===id?' aria-invalid="true" aria-describedby="e_'+id+'"':'')+'>'+(B.err===id?'<p class="err" id="e_'+id+'">'+ERR[id]+'</p>':'')+'</div>';
  return'<h1>Pide cita sin prisa.</h1><p class="lead">Con cita, la tarifa es siempre la normal. ¿No puede esperar? <a href="./">Llama o manda una foto</a>: llegamos en 25–40 min.</p>'+
   (U&&U.e!=='cancelado'?'<p class="ult">Ya tienes un aviso: '+U.id+', '+esc(cfg.av[U.av].n.toLowerCase())+'. <a href="#/aviso/'+U.id+'">Ver cómo va</a></p>':'')+
@@ -121,14 +132,15 @@ function vPedir(){const dias=K.diasDe(S,cfg,Date.now(),5);if(!dias.find(x=>x.dia
    '<div class="campo"><label for="c_nota">Cuéntanos algo más</label><textarea id="c_nota" data-b="nota" placeholder="Opcional. Qué ves y desde cuándo pasa.">'+esc(B.nota)+'</textarea></div>'+
    '<div class="fotoz">'+(B.foto?'<img src="'+B.foto+'" alt="La foto que has añadido">':'')+'<label class="btn peq">'+(B.foto?'Cambiar la foto':'Añadir una foto')+'<input class="vh" type="file" accept="image/*" id="c_foto"></label></div></fieldset>'+
   '<fieldset><legend><b>2</b>¿Cuándo te va bien?</legend><div class="ops" role="group" aria-label="Día">'+dias.map(x=>'<button type="button" class="op" data-dia="'+x.dia+'" aria-pressed="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div>'+
-   '<div class="ops" role="group" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-fr="'+f.id+'" aria-pressed="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'>'+f.txt+'<small>'+(f.ok?(f.libres===1?'queda 1':'quedan '+f.libres):f.libres?'ya no da tiempo':'completa')+'</small></button>').join('')+'</div>'+
+   '<div class="ops" role="group" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-fr="'+f.id+'" aria-pressed="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'>'+f.txt+'<small>'+(f.libres==null?(f.ok?'libre':'no disponible'):f.ok?(f.libres===1?'queda 1':'quedan '+f.libres):f.libres?'ya no da tiempo':'completa')+'</small></button>').join('')+'</div>'+
    (B.err==='franja'||B.err==='llena'?'<p class="fallo">'+ERR[B.err]+'</p>':'')+
    (cand.length?'<div class="campo otras"><span class="lb" id="l_alt">¿Te va bien también otra franja? <small>Opcional</small></span><p class="ayuda">Si hay que mover la cita, la pasamos a una de estas sin tener que llamarte.</p><div class="ops" role="group" aria-labelledby="l_alt">'+cand.map(c=>'<button type="button" class="op" data-alt="'+c.k+'" aria-pressed="'+B.alt.includes(c.k)+'">'+c.txt+'</button>').join('')+'</div></div>':'')+'</fieldset>'+
   '<fieldset><legend><b>3</b>¿Dónde vamos?</legend>'+c('nombre','Tu nombre',B.nombre,'autocomplete="name"')+c('tel','Teléfono, para avisarte por WhatsApp',B.tel,'type="tel" inputmode="tel" autocomplete="tel"')+
    '<div class="duo">'+c('dir','Calle, número y piso',B.dir,'autocomplete="street-address"')+c('cp','Código postal',B.cp,'inputmode="numeric" maxlength="5" autocomplete="postal-code"')+'</div>'+
    (B.err==='zona'?'<p class="fallo" id="zmal">'+ERR.zona+'</p>':zonaDe(B.cp)?'<p class="zona">'+esc(zonaDe(B.cp))+': llegamos.</p>':'')+'</fieldset>'+
-  '<p class="legal">Usamos estos datos solo para atender tu aviso. Esto es una web de muestra: lo que escribas se queda en tu navegador y no llega a nadie.</p>'+
-  '<button class="btn pri ancho" type="submit">Pedir la cita</button></form>'}
+  (B.err&&!['av','franja','llena','nombre','tel','dir','cp','zona'].includes(B.err)?'<p class="fallo" role="alert">'+(ERR[B.err]||ERR.servidor)+'</p>':'')+
+  '<p class="legal">Usamos estos datos solo para atender tu aviso. '+(SRV?(N.prueba===true?'Esto es una copia de prueba: lo que escribas se guarda en el servidor de pruebas de OOOX y no llega a ningún negocio.':'Responsable: '+esc(N.razon)+', NIF '+esc(N.nif)+'.'):'Esto es una web de muestra: lo que escribas se queda en tu navegador y no llega a nadie.')+'</p>'+
+  '<button class="btn pri ancho" type="submit"'+(B.va?' disabled':'')+'>'+(B.va?'Enviando…':'Pedir la cita')+'</button></form>'}
 
 /* un mapa sencillo, sin librerías: las nueve teselas de alrededor de un punto, con el punto en el centro */
 function mapaHtml(M,pos,quien){const z=15,n=2**z,x=(pos.lon+180)/360*n,la=pos.lat*Math.PI/180,y=(1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n;
@@ -142,7 +154,8 @@ function bMapa(v,T){const M=cfg.mapa;if(!M||v.e!=='camino'||!v.pos)return'';cons
   '<p class="mapa-l"><b>Última posición de '+esc(T)+'</b>: '+haceMin(v.pos.t)+'.'+(viejo?' Puede que tenga la app cerrada mientras conduce.':'')+
   (ok?'':' <a href="https://www.openstreetmap.org/?mlat='+v.pos.lat+'&amp;mlon='+v.pos.lon+'#map=16/'+v.pos.lat+'/'+v.pos.lon+'" target="_blank" rel="noopener noreferrer">Abrirla en un mapa</a>')+'</p>'+
   (ok&&M.firma?'<p class="mapa-f">'+(typeof M.firmaUrl==='string'&&/^https:\/\//.test(M.firmaUrl)?'<a href="'+esc(M.firmaUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(M.firma)+'</a>':esc(M.firma))+'</p>':'')+'</section>'}
-function vAviso(id){const v=K.vistaCliente(S,cfg,id);
+function vAviso(id){const X=SRV?Oficio.vista(id):null,v=SRV?(X&&X.v):K.vistaCliente(S,cfg,id);
+ if(SRV&&!v&&(!X||X.err==='red'))return'<h1>Tu aviso '+esc(id)+'</h1><p class="lead" role="status">'+(X?'No hay conexión. Lo vuelvo a intentar solo en unos segundos.':'Buscando tu aviso…')+'</p>';
  if(!v)return'<h1>No encuentro ese aviso.</h1><p class="lead">'+(Oficio.DEMO?'Puede que la demo se haya reiniciado. ':'')+'<a href="#/">Pedir una cita</a></p>';
  const av=cfg.av[v.av],cu=v.cita?K.fechaLarga(v.cita.dia)+', '+frTxt(v.cita.fr):'',T=v.tec||'El técnico';
  const orden={nuevo:0,ausente:0,cancelado:0,asignado:1,camino:2,curso:3,hecho:4}[v.e];
@@ -158,11 +171,20 @@ function vAviso(id){const v=K.vistaCliente(S,cfg,id);
   '<p class="pie">'+(v.e==='hecho'?'El parte y la garantía te llegan por WhatsApp.':'Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga.')+' ¿Algo no cuadra? Llama al '+N.tel+'.</p></article>'+
   '<div class="tras">'+(Oficio.DEMO?'<a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">Ver cómo le llega a '+esc(N.marca[0])+'</a>':'')+'<a class="txt" href="#/">Pedir otra cita</a></div>'}
 
-function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeURIComponent);return{v:h[0]||'',a:h[1]||''}}
-function pinta(){S=Oficio.estado();const r=ruta();$('#v').innerHTML=r.v==='aviso'?vAviso(r.a):vPedir();document.title=(r.v==='aviso'?'Tu aviso '+r.a:'Pide cita')+' · '+N.nombre}
+function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeURIComponent);return{v:h[0]||'',a:h[1]||'',b:h[2]||''}}
+/* con servidor: se pregunta por el aviso al abrirlo y cada pocos segundos mientras se mira; los huecos, al abrir y cada minuto */
+let VT=0;
+function alDia(){if(!SRV)return;const r=ruta();
+ if(r.v==='aviso'&&r.a&&r.b)Oficio.ponLlave(r.a,r.b);
+ if(document.hidden)return;   /* con la página en segundo plano no se pregunta nada */
+ if(r.v==='aviso'&&r.a){if(Date.now()-VT>4000){VT=Date.now();Oficio.miraVista(r.a)}}
+ else{if((!H.dias&&!H.err)||Date.now()-H.t>60000)traeHuecos();const u=mem.get('oficio:'+N.id+':mio');if(u&&!Oficio.vista(u))Oficio.miraVista(u)}}
+function pinta(){S=Oficio.estado();alDia();const r=ruta();$('#v').innerHTML=r.v==='aviso'?vAviso(r.a):vPedir();document.title=(r.v==='aviso'?'Tu aviso '+r.a:'Pide cita')+' · '+N.nombre}
 addEventListener('hashchange',()=>{pinta();scrollTo(0,0);const t=$('#tit')||$('#v');t.focus({preventScroll:true})});
 Oficio.suscribir(()=>{const a=document.activeElement;if(ruta().v!=='aviso'&&a&&a.closest&&a.closest('#f'))return;pinta()});
 setInterval(()=>{if(ruta().v==='aviso')pinta()},60000);
+if(SRV){setInterval(alDia,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){VT=0;alDia()}});
+ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#hOtra')){H.err='';pinta();traeHuecos()}})}
 
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.b){B[i.dataset.b]=i.value;
  if(i.dataset.b==='cp'&&i.value.replace(/\D/g,'').length===5){B.err=zonaDe(i.value)?'':'zona';pinta();const n=$('#c_cp');n.focus();n.setSelectionRange(5,5)}}});
@@ -178,9 +200,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dia],[data
 document.addEventListener('submit',e=>{if(e.target.id!=='f')return;e.preventDefault();
  const falla=k=>{B.err=k;pinta();const i=$('#c_'+(k==='zona'?'cp':k))||$('.fallo');if(i){i.scrollIntoView({block:'center'});i.focus&&i.focus({preventScroll:true})}};
  if(!B.av)return falla('av');if(!B.fr)return falla('franja');
- const r=Oficio.hacer({tipo:'pedir',av:B.av,origen:'cita',nota:B.nota,foto:B.foto,cli:{nombre:B.nombre,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},{rol:'cliente'});
- if(!r.ok)return falla(r.err==='franja'?'llena':r.err);
- mem.set('oficio:'+N.id+':mio',r.id);Object.assign(B,{nota:'',foto:'',fr:'',alt:[],err:''});location.hash='#/aviso/'+r.id});
+ if(B.va)return;B.va=true;const bt=$('#f [type=submit]');if(bt){bt.disabled=true;if(SRV)bt.textContent='Enviando…'}
+ Oficio.crear({tipo:'pedir',av:B.av,origen:'cita',nota:B.nota,foto:B.foto,cli:{nombre:B.nombre,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},{rol:'cliente'}).then(r=>{B.va=false;
+  if(!r.ok){if(SRV&&r.err==='franja'){H.t=0;traeHuecos()}return falla(r.err==='franja'?'llena':r.err)}
+  mem.set('oficio:'+N.id+':mio',r.id);Object.assign(B,{nota:'',foto:'',fr:'',alt:[],err:''});location.hash='#/aviso/'+r.id})});
 pinta();
 })();
 </script>

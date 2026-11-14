@@ -18,6 +18,8 @@ QUE="${1:-todo}"; mal=0; R="$AQUI/pruebas-reglas"; OTRO="$R/negocios/voltio.js"
 # las copias de la app hechas para cada negocio (ver copias.mjs): en el repositorio o, en la copia del PC, en la carpeta de al lado (../oficios)
 if [ -z "${COPIAS:-}" ]; then if [ -d "$AQUI/../../frontend/public" ]; then COPIAS="$AQUI/../../frontend/public/oficios"; else COPIAS="$AQUI/../oficios"; fi; fi
 paso(){ echo; echo "── $1"; shift; "$@" || { mal=$((mal+1)); echo "   ✗ FALLA este bloque"; }; }
+# el servidor de la fase 2 (el «juez»): está en el repositorio, en webs-negocios/oficios-servidor; en la copia del PC, al lado (../servidor)
+JUEZ=""; for d in "$AQUI/../oficios-servidor" "$AQUI/../servidor"; do [ -f "$d/juez.mjs" ] && { JUEZ="$(cd "$d" && pwd)"; break; }; done
 if [ "$QUE" != navegador ]; then
   paso "Datos de cada negocio" node "$R/valida-negocio.mjs" "$SITIO" "$SITIO/js/oficio-datos.js" "$OTRO"
   paso "El validador caza los archivos mal hechos" node "$R/prueba-valida.mjs" "$SITIO"
@@ -30,14 +32,16 @@ if [ "$QUE" != navegador ]; then
     paso "Copias: todas al día y con datos que valen" node "$AQUI/copias.mjs" comprueba --plantilla "$SITIO" --destino "$COPIAS"
     for d in "$COPIAS"/*/js/oficio-datos.js; do [ -f "$d" ] && paso "Copia $(basename "$(dirname "$(dirname "$d")")"): recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$d" --tandas "${TANDAS_COPIA:-20}" --semilla "${SEMILLA:-20261113}"; done
   fi
-  # el servidor de la fase 2 (el «juez»): está en el repositorio, en webs-negocios/oficios-servidor; en la copia del PC, al lado (../servidor)
-  JUEZ=""; for d in "$AQUI/../oficios-servidor" "$AQUI/../servidor"; do [ -f "$d/juez.mjs" ] && { JUEZ="$(cd "$d" && pwd)"; break; }; done
   if [ -n "$JUEZ" ]; then
     paso "El juez (servidor), con ejemplos" env OFICIOS_SERVIDOR="$JUEZ" node "$R/prueba-juez.mjs" "$SITIO"
     paso "El juez, con varios aparatos a la vez y al azar" env OFICIOS_SERVIDOR="$JUEZ" node "$R/azar-juez.mjs" "$SITIO" --tandas "${TANDAS_JUEZ:-60}" --semilla "${SEMILLA:-20261114}"
+    # el «espejo»: la parte de la app que habla con el servidor (js/oficio-espejo.js), contra ese mismo juez
+    paso "El espejo (la app con servidor), con ejemplos" env OFICIOS_SERVIDOR="$JUEZ" node "$R/prueba-espejo.mjs" "$SITIO"
+    paso "El espejo, con varios aparatos, red que falla y al azar" env OFICIOS_SERVIDOR="$JUEZ" node "$R/azar-espejo.mjs" "$SITIO" --tandas "${TANDAS_ESPEJO:-150}" --semilla "${SEMILLA:-20261114}"
   fi
   [ "${MUTANTES:-0}" = 1 ] && paso "Reglas estropeadas adrede" node "$R/mutantes.mjs" "$SITIO"
   [ "${MUTANTES:-0}" = 1 ] && [ -n "$JUEZ" ] && paso "Protecciones del juez quitadas adrede" env OFICIOS_SERVIDOR_ORIGEN="$JUEZ" node "$R/mutantes-juez.mjs" "$SITIO"
+  [ "${MUTANTES:-0}" = 1 ] && [ -n "$JUEZ" ] && paso "Protecciones del espejo quitadas adrede" env OFICIOS_SERVIDOR="$JUEZ" node "$R/mutantes-espejo.mjs" "$SITIO"
 fi
 if [ "$QUE" != reglas ]; then
   ( cd "$SITIO" && exec python3 -m http.server 8765 >/dev/null 2>&1 ) & S1=$!
@@ -58,7 +62,19 @@ if [ "$QUE" != reglas ]; then
     ( cd "$c" && exec python3 -m http.server 8767 >/dev/null 2>&1 ) & S3=$!; sleep 1
     paso "Copia $(basename "$c"), de principio a fin y servida desde su carpeta" python3 negocio.py "$d" 8767
     kill $S3 2>/dev/null; wait $S3 2>/dev/null
+    # si la copia va con servidor, además se prueba así: desde su carpeta, contra un servidor local (nunca contra el de verdad)
+    if [ -n "$JUEZ" ] && grep -q "servidor" "$d"; then
+      OFICIOS_SERVIDOR="$JUEZ" node "$AQUI/pruebas-navegador/servidor_local.mjs" "$c" 8768 >/dev/null 2>&1 & S4=$!; sleep 1.5
+      paso "Copia $(basename "$c") con servidor: oficina, técnicos y cliente, cada uno en su navegador" python3 servidor.py 8768
+      kill $S4 2>/dev/null; wait $S4 2>/dev/null
+    fi
   done; fi
+  # el modo servidor con los archivos de la plantilla y los datos del otro negocio, contra un servidor local con el mismo juez
+  if [ -n "$JUEZ" ]; then
+    OFICIOS_SERVIDOR="$JUEZ" node "$AQUI/pruebas-navegador/servidor_local.mjs" "$SITIO" 8768 --datos "$OTRO" >/dev/null 2>&1 & S4=$!; sleep 1.5
+    paso "Modo servidor: oficina, técnicos y cliente, cada uno en su navegador" python3 servidor.py 8768
+    kill $S4 2>/dev/null; wait $S4 2>/dev/null
+  fi
   paso "Horarios, turnos y ausencias en pantalla" python3 horarios.py
   paso "Mapa: la posición del técnico de camino" python3 mapa.py "$OTRO"
   paso "Mejoras: pedir, ver la respuesta y quedarse sin conexión" python3 soporte.py "$OTRO"

@@ -30,7 +30,7 @@ async def main():
         br = await getattr(p, NAV).launch()
         # ---------- 1. archivos: todo lo que se pide existe ----------
         textos = {}
-        for f in ('index.html', 'cita.html', 'app.html', 'prueba.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-datos.js', 'js/oficio-estado.js'):
+        for f in ('index.html', 'cita.html', 'app.html', 'prueba.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-datos.js', 'js/oficio-espejo.js', 'js/oficio-estado.js'):
             textos[f] = urllib.request.urlopen(B + f).read().decode('utf-8')
         refs = set()
         for f, s in textos.items():

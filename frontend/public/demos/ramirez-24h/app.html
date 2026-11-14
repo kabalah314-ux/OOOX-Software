@@ -267,6 +267,20 @@ main.papelv{max-width:760px}
  main.det.tecnico:not(.papelv){min-height:100svh}
  .tabla{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+/* con servidor: el aviso de conexión y la pantalla de entrar */
+#red{position:absolute;left:0;right:0;top:100%;margin:0;padding:7px 16px;background:var(--aviso-f);color:var(--senal-2);border-bottom:1px solid var(--linea);font-size:.8125rem;line-height:1.35;text-align:center}
+body.conred main,body.conred main.dos>.col{padding-top:52px}
+body.conred main.dos{padding-top:0}
+.entra{max-width:420px;margin:0 auto}
+.entra form{display:grid;gap:16px;margin-top:20px}
+.entra .ver{justify-self:start;margin-top:6px}
+.entra .ojo{margin-top:16px}
+@media (min-width:960px){
+ #red{position:static;padding:9px 10px;border:0;border-radius:10px;text-align:left}
+ body.conred main,body.conred main.dos>.col{padding-top:30px}
+ body.conred main.dos{padding-top:0}
+ .entra{margin-top:6vh}
+}
 .solo body{padding:0}
 .solo .lado,.solo .noimp,.solo #toast{display:none}
 .solo main{max-width:none;margin:0;padding:0}
@@ -280,6 +294,7 @@ main.papelv{max-width:760px}
  <header class="lado">
   <a class="wm" href="#/" id="marca"></a>
   <div id="quien"></div>
+  <p id="red" role="status" hidden></p>
   <nav id="nav" aria-label="Secciones"></nav>
   <p class="demo">Demo de OOOX Oficios. Todo es de ejemplo y se queda en este navegador.</p>
  </header>
@@ -288,6 +303,7 @@ main.papelv{max-width:760px}
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="js/oficio-nucleo.js"></script>
 <script src="js/oficio-datos.js"></script>
+<script src="js/oficio-espejo.js"></script>
 <script src="js/oficio-estado.js"></script>
 <script src="js/oficio-soporte.js"></script>
 <script>
@@ -300,6 +316,9 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const P=new URLSearchParams(location.search),FIJO=P.has('fijo');
 if(P.has('solo'))document.documentElement.classList.add('solo');
 let Q=P.get('papel')==='tecnico'?{rol:'tecnico',id:cfg.tec[P.get('tec')]?P.get('tec'):N.tecnicos[0].id}:{rol:'centralita',id:'oficina'};
+/* con servidor no se elige papel: cada uno entra con su código y la app es la suya */
+const SRV=Oficio.SRV,quienEntra=()=>{const s=SRV?Oficio.sesion():null;if(s)Q={rol:s.rol,id:s.id};return!SRV||!!s};
+quienEntra();
 let S=Oficio.estado();
 const pro=()=>true;   /* desde el 13-11-2026 todos los negocios llevan papeles y cobros */
 const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
@@ -326,6 +345,7 @@ const PAGO={efectivo:'Efectivo',tarjeta:'Tarjeta',bizum:'Bizum',transferencia:'T
 const ERR={nombre:'Escribe el nombre del cliente.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
  datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
  horario:'Ese técnico no trabaja a esa hora. Elige a otro.',ausente_tec:'Ese técnico está ausente ese día.',lleno:'Ese técnico ya tiene esa franja ocupada.',
+ red:'Sin conexión con el servidor. No se ha creado: mira si aparece antes de repetirlo.',lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.',sesion:'Tu sesión se ha cerrado. Entra otra vez.',espera:'Eso tiene que confirmarlo el servidor.',
  fechas:'Revisa las fechas de la ausencia.',mapa:'Este negocio no tiene activado el mapa.',posicion:'Esa posición no vale.',ausencia:'Esa ausencia ya no está apuntada.',aviso:'Ese aviso ya no existe.'};
 /* por qué no puede ir un técnico a un aviso; sale de las reglas (K.puedeIr), aquí solo se dice con palabras */
 /* la oficina puede poner una cita donde el cliente no: en el hueco que se guarda para urgencias y con menos de dos horas */
@@ -528,9 +548,10 @@ function hAusencia(tec,dia){const hoy=K.madrid().date,de=dia&&dia>=hoy?dia:hoy;
  $('#u_de',d).addEventListener('change',e=>{const x=$('#u_a',d);if(x.value<e.target.value)x.value=e.target.value});
  $('#uF',d).onsubmit=e=>{e.preventDefault();const m=$('#u_err',d),di=k=>{m.textContent=k;m.hidden=false};
   if(!tec)return di('Elige quién falta.');
-  const r=Oficio.hacer({tipo:'ausencia',tec,de:$('#u_de',d).value,a:$('#u_a',d).value,motivo:$('#u_mo',d).value},Q);
-  if(!r.ok)return di(ERR[r.err]||'No se ha podido apuntar.');
-  d.close();toast('Apuntado.'+(r.sueltos.length?(r.sueltos.length===1?' 1 aviso vuelve':' '+r.sueltos.length+' avisos vuelven')+' a «sin asignar».':''))}}
+  const bt=$('button[form=uF]',d);if(bt.disabled)return;bt.disabled=true;
+  Oficio.crear({tipo:'ausencia',tec,de:$('#u_de',d).value,a:$('#u_a',d).value,motivo:$('#u_mo',d).value},Q).then(r=>{bt.disabled=false;
+   if(!r.ok)return di(ERR[r.err]||'No se ha podido apuntar.');
+   const n=(r.sueltos||[]).length;d.close();toast('Apuntado.'+(n?(n===1?' 1 aviso vuelve':' '+n+' avisos vuelven')+' a «sin asignar».':''))})}}
 
 /* ===== centralita: cobros ===== */
 function vCobros(){const r=K.resumen(S,cfg,Date.now()),L=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&!a.pago.cobrado).sort((a,b)=>a.fin-b.fin);
@@ -646,7 +667,8 @@ function pNav(){const esT=Q.rol==='tecnico',res=K.resumen(S,cfg,Date.now()),mios
  const L=esT?[['hoy','Hoy',I.hoy,mios],['hechos','Hechos',I.hecho,0]]:[['bandeja','Bandeja',I.bandeja,res.nuevos],['agenda','Agenda',I.agenda,0]].concat(pro()?[['cobros','Cobros',I.euro,res.pend.n]]:[],SOP?[['mejoras','Mejoras',I.mejoras,SOP.sinLeer(),' sin leer']]:[]);
  const h=L.map(x=>'<a href="#/'+x[0]+'"'+(cur===x[0]||(esT&&x[0]==='hoy'&&cur==='aviso')?' aria-current="page"':'')+'>'+x[2]+'<span>'+x[1]+'</span>'+(x[3]?'<span class="n" aria-label="'+x[3]+(x[4]||' por atender')+'">'+x[3]+'</span>':'')+'</a>').join('');
  if(h!==NAVH){$('#nav').innerHTML=h;NAVH=h}}
-function pinta(){S=Oficio.estado();const r=ruta(),esT=Q.rol==='tecnico';let h,dos=false,det=false,papel=false;
+function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
+ const r=ruta(),esT=Q.rol==='tecnico';let h,dos=false,det=false,papel=false;
  const mej=!esT&&SOP&&r.v==='mejoras';
  if(mej){if(CUR!=='mejoras'){M.nov=[];M.pet=[];mVisto();mTrae(false)}}
  else if(!esT){const x=PANT.includes(r.v)?r.v:'bandeja';if(RASTRO[RASTRO.length-1]!==x){RASTRO.push(x);if(RASTRO.length>3)RASTRO.shift()}}
@@ -663,13 +685,15 @@ function pinta(){S=Oficio.estado();const r=ruta(),esT=Q.rol==='tecnico';let h,do
  const v=$('#v');v.className=(dos?'dos ':'')+(det?'det ':'')+(papel?'papelv ':'')+(!esT&&(r.v==='cobros'||r.v==='nuevo'||(r.v==='mejoras'&&SOP))?'estrecha ':'')+Q.rol;v.innerHTML=h;document.body.classList.toggle('det',det);
  CUR=dos||r.v==='nuevo'?'bandeja':r.v==='equipo'&&!esT?'agenda':r.v;pNav();geoSync();
  const t=cfg.tec[Q.id],quien=(esT?ava(Q.id):'<i class="av c" aria-hidden="true">C</i>')+'<span>'+(esT?esc(t.n):'Centralita')+'</span>';
- $('#quien').innerHTML=FIJO?'<span class="quien" style="border-color:transparent">'+quien+'</span>':'<button class="quien" data-a="menu" aria-haspopup="dialog" aria-label="Cambiar de papel o de pack. Ahora: '+(esT?t.n:'centralita')+'">'+quien+I.baja+'</button>';
+ $('#quien').innerHTML=FIJO?'<span class="quien" style="border-color:transparent">'+quien+'</span>':'<button class="quien" data-a="menu" aria-haspopup="dialog" aria-label="'+(SRV?'Tu sesión':'Cambiar de papel o de pack')+'. Ahora: '+(esT?t.n:'centralita')+'">'+quien+I.baja+'</button>';
  document.title=(esT?t.n:'Centralita')+' · '+N.nombre+' por dentro'}
 addEventListener('hashchange',()=>{pinta();scrollTo(0,0);$('#v').focus({preventScroll:true})});
 /* Si llega un cambio mientras alguien escribe, la pantalla no se toca (perdería el foco), pero los números del menú sí se ponen al día. */
-Oficio.suscribir(()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,[data-obs]')){S=Oficio.estado();pNav();return}pinta()});
+Oficio.suscribir(()=>{const a=document.activeElement;pRed();if(a&&a.closest&&a.closest('#fEntra'))return;if(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,[data-obs]')&&quienEntra()){S=Oficio.estado();pNav();return}pinta()});
+/* con servidor: lo que el servidor no acepta se deshace solo en pantalla, y aquí se dice */
+Oficio.alRechazar(x=>toast('No se ha guardado: '+(ERR[x.err]||'el aviso había cambiado.').replace(/^./,c=>c.toLowerCase())));
 setInterval(()=>{$$('[data-reloj]').forEach(e=>{const A=el(e.dataset.reloj);if(A)e.textContent=dur(K.minutos(A,Date.now()))})},15000);
-setInterval(()=>{const a=document.activeElement;if(document.querySelector('dialog[open]')||(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,[data-obs]')))return;pinta()},60000);
+setInterval(()=>{const a=document.activeElement;if(document.querySelector('dialog[open]')||(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,#fEntra,[data-obs]')))return;pinta()},60000);
 
 /* ===== las hojas de cada paso ===== */
 function hMsg(A,k){const txt=K.mensaje(cfg,A,k),m=A.msgs.find(x=>x.k===k&&!x.env);
@@ -677,7 +701,42 @@ function hMsg(A,k){const txt=K.mensaje(cfg,A,k),m=A.msgs.find(x=>x.k===k&&!x.env
   :'<p class="dn">Se abre WhatsApp con el mensaje ya escrito. Revísalo y envíalo desde allí.</p></div><div class="hp"><a class="btn pri ancho" id="mOk" target="_blank" rel="noopener" href="https://wa.me/34'+K.tel9(A.cli.tel)+'?text='+encodeURIComponent(txt)+'">Abrir WhatsApp</a></div>'));
  $('#mOk',d).onclick=()=>{if(m&&hacer({tipo:'enviado',id:A.id,k}).ok)toast(Oficio.DEMO?'Mensaje enviado (en la demo, solo se apunta).':'Apuntado como enviado.');d.close()}}
 function hLlamar(A){hoja(hc('Llamar al cliente')+'<div class="hb"><p class="gordo num">'+K.telBonito(A.cli.tel)+'</p>'+(Oficio.DEMO?'<p class="dn">En la app real, este botón llama con un toque. En la demo no llamamos a nadie: el teléfono es inventado.</p></div><div class="hp"><button class="btn ancho" data-x>Cerrar</button></div>':'</div><div class="hp"><a class="btn pri ancho" href="tel:+34'+K.tel9(A.cli.tel)+'">Llamar</a></div>'))}
-function hMenu(){const esT=Q.rol==='tecnico';
+/* ===== con servidor: entrar con el código de cada uno, el aviso de conexión y la sesión ===== */
+const EN={quien:(SRV&&Oficio.ultima())||'oficina',err:'',va:false,ver:false};
+const ENERR={clave:'Ese código no es el de esa persona. Son 16 letras y números; da igual si pones los guiones.',corto:'Escribe tu código.',bloqueo:'Demasiados intentos seguidos. Espera diez minutos y prueba otra vez.',red:'No hay conexión con el servidor. Comprueba internet y prueba otra vez.',datos:'Esa persona ya no está en los datos de este negocio. Avisa a OOOX.',servidor:'El servidor ha fallado. Prueba otra vez en un momento.',lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.'};
+function pEntra(){const m=Oficio.red().motivo,L=[['oficina','Centralita']].concat(N.tecnicos.map(t=>[t.id,t.n+' '+t.ap]));
+ if(!L.some(x=>x[0]===EN.quien))EN.quien='oficina';
+ const h='<div class="entra"><div class="cab"><div><h1>Entrar</h1><p class="sub">'+esc(N.nombre)+' por dentro. Cada persona entra con su código.</p></div></div>'+
+  (m==='clave'&&!EN.err?'<p class="ojo">Tu código ha dejado de valer en este aparato. Pide uno nuevo a quien lleva la app. Lo que tenías sin enviar sigue guardado aquí y saldrá cuando entres.</p>':'')+
+  '<form id="fEntra" novalidate><div class="campo"><label for="e_quien">Quién eres</label><select id="e_quien">'+L.map(x=>'<option value="'+esc(x[0])+'"'+(EN.quien===x[0]?' selected':'')+'>'+esc(x[1])+'</option>').join('')+'</select></div>'+
+  '<div class="campo'+(EN.err?' mal':'')+'"><label for="e_cod">Tu código</label><input id="e_cod" type="'+(EN.ver?'text':'password')+'" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false"'+(EN.err?' aria-invalid="true" aria-describedby="e_ecod"':' aria-describedby="a_ecod"')+'>'+
+   (EN.err?'<p class="err" id="e_ecod">'+(ENERR[EN.err]||ENERR.servidor)+'</p>':'<p class="ayuda" id="a_ecod">Te lo da quien lleva la app en el negocio. Se queda guardado en este aparato hasta que cierres la sesión.</p>')+
+   '<button class="txt ver" type="button" id="eVer" aria-pressed="'+EN.ver+'">'+(EN.ver?'Ocultar el código':'Ver el código')+'</button></div>'+
+  '<button class="btn pri ancho" type="submit"'+(EN.va?' disabled':'')+'>'+(EN.va?'Entrando…':'Entrar')+'</button></form></div>';
+ const v=$('#v');v.className='estrecha';v.innerHTML=h;document.body.classList.remove('det');geoPara();
+ if(NAVH!==''){$('#nav').innerHTML='';NAVH=''}$('#quien').innerHTML='';CUR='entrar';document.title='Entrar · '+N.nombre+' por dentro'}
+function entra(){if(EN.va)return;const c=$('#e_cod').value;EN.quien=$('#e_quien').value;
+ if(c.trim().length<8){EN.err='corto';pEntra();$('#e_cod').focus();return}
+ EN.va=true;EN.err='';const guarda=c;pEntra();$('#e_cod').value=guarda;
+ Oficio.entrar(EN.quien,c).then(r=>{EN.va=false;
+  if(r.ok){EN.err='';EN.ver=false;location.hash='#/';pinta();scrollTo(0,0);$('#v').focus({preventScroll:true});return}
+  EN.err=r.err;pEntra();const i=$('#e_cod');i.value=guarda;i.focus()})}
+function pRed(){const e=$('#red');if(!e||!SRV)return;const r=Oficio.red();let t='';
+ if(Oficio.sesion()){
+  if(r.motivo==='bloqueo')t='Hay demasiados intentos fallidos con tu código. La app vuelve a probar sola en unos minutos.';
+  else if(r.sinRed)t='Sin conexión. '+(r.cola?(r.cola===1?'1 cambio por enviar: saldrá solo.':r.cola+' cambios por enviar: saldrán solos.'):'Ves lo último que llegó.');
+  else if(r.lleno)t='Este aparato se ha quedado sin sitio para guardar. No cierres la app hasta que vuelva la conexión.'}
+ if(e.textContent!==t)e.textContent=t;e.hidden=!t;document.body.classList.toggle('conred',!!t)}
+function hSesion(){const esT=Q.rol==='tecnico',t=cfg.tec[Q.id],r=Oficio.red();
+ const d=hoja(hc('Tu sesión')+'<div class="hb"><div class="mrol"><div class="tec">'+(esT?ava(Q.id):'<i class="av c" aria-hidden="true">C</i>')+'<span><b>'+(esT?esc(t.n+' '+t.ap):'Centralita')+'</b><small>'+(esT?'Técnico'+(t.jefe?' y dueño':''):'Quien coge el teléfono y reparte')+'</small></span></div></div>'+
+  '<p class="mnota" id="mCola" style="margin-top:14px">'+(r.cola?(r.cola===1?'Queda 1 cambio por enviar.':'Quedan '+r.cola+' cambios por enviar.')+' Saldrán solos en cuanto haya conexión.':'Todo lo que has hecho está guardado en el servidor.')+'</p>'+
+  (r.reglas?'<p class="ojo">La app lleva las reglas '+esc(K.VERSION)+' y el servidor, las '+esc(r.reglas)+'. Avisa a OOOX.</p>':'')+
+  '</div><div class="hp"><button class="btn ancho" id="mSal">Cerrar la sesión</button></div>');
+ let seguro=false;
+ $('#mSal',d).onclick=()=>{const n=Oficio.red().cola;
+  if(n&&!seguro){seguro=true;$('#mSal',d).textContent=n===1?'Salir y perder ese cambio':'Salir y perder esos '+n+' cambios';$('#mCola',d).textContent='Hay '+(n===1?'1 cambio':n+' cambios')+' sin enviar. Si sales ahora, se pierden.';return}
+  d.close();Oficio.salir();location.hash='#/';pinta();toast('Sesión cerrada.')}}
+function hMenu(){if(SRV)return hSesion();const esT=Q.rol==='tecnico';
  const d=hoja(hc(Oficio.DEMO?'Estás viendo la demo':'Quién usa la app')+'<div class="hb"><div class="campo"><span class="lb">Como</span><div class="mrol"><button class="tec" data-rol="centralita" aria-pressed="'+(!esT)+'"><i class="av c" aria-hidden="true">C</i><span><b>Centralita</b><small>Quien coge el teléfono y reparte</small></span></button>'+
   N.tecnicos.map(t=>'<button class="tec" data-rol="'+t.id+'" aria-pressed="'+(esT&&Q.id===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n+' '+t.ap)+'</b><small>Técnico'+(t.jefe?' y dueño':'')+'</small></span></button>').join('')+'</div></div>'+
   (Oficio.DEMO?'<p class="mnota">Todo es de ejemplo y se queda en este navegador. <a href="prueba.html" target="_top">Ver cliente, centralita y técnico a la vez</a> · <a href="./" target="_top">Volver a la web</a></p></div><div class="hp"><button class="btn ancho" id="mRe">Reiniciar la demo</button></div>':'</div>'));
@@ -797,15 +856,17 @@ document.addEventListener('change',e=>{const i=e.target;
 document.addEventListener('click',e=>{const t=e.target.closest('#fMejora [data-m-tipo]');if(!t)return;M.tipo=t.dataset.mTipo;if(M.err==='tipo')M.err='';
  $$('#fMejora [data-m-tipo]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mTipo===M.tipo)));const x=$('#e_mtipo');if(x){x.hidden=true;x.closest('.campo').classList.remove('mal')}});
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.m&&Object.prototype.hasOwnProperty.call(M,i.dataset.m))M[i.dataset.m]=i.value});
-document.addEventListener('submit',e=>{const f=e.target.id;if(f==='fMejora'){e.preventDefault();mEnvia()}else if(f==='fCodigo'){e.preventDefault();mCodigo()}});
+document.addEventListener('submit',e=>{const f=e.target.id;if(f==='fMejora'){e.preventDefault();mEnvia()}else if(f==='fCodigo'){e.preventDefault();mCodigo()}else if(f==='fEntra'){e.preventDefault();entra()}});
+document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#eVer'))return;const i=$('#e_cod'),c=i.value;EN.ver=!EN.ver;EN.quien=$('#e_quien').value;pEntra();const n=$('#e_cod');n.value=c;n.focus()});
 addEventListener('online',()=>{if(SOP&&Q.rol!=='tecnico'&&SOP.cola().length)mTrae(true)});
 /* De vez en cuando la centralita mira si OOOX ha contestado algo: como mucho cada media hora, y enseguida si hay algo sin enviar. */
 if(SOP){const mira=()=>{if(Q.rol!=='tecnico'&&SOP.codigo()&&(SOP.toca(18e5)||(SOP.cola().length&&navigator.onLine!==false)))mTrae(true)};setTimeout(mira,1500);setInterval(mira,3e5)}
 document.addEventListener('submit',e=>{if(e.target.id!=='fNuevo')return;e.preventDefault();
  if(B.cuando==='cita'&&!B.fr){B.err='franja';pinta();return}
- const r=Oficio.hacer({tipo:'pedir',av:B.av,origen:B.or,nota:B.nota,cli:{nombre:B.nombre,tel:B.tel,dir:B.dir,cp:B.cp},cita:B.cuando==='cita'?{dia:B.dia,fr:B.fr}:null},Q);
- if(r.ok){Object.assign(B,{av:N.averias[0].id,or:'llamada',cuando:'urg',fr:'',nombre:'',tel:'',dir:'',cp:'',nota:'',err:''});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');location.hash='#/aviso/'+r.id}
- else{B.err=r.err;pinta();const i=$('#n_'+(r.err==='zona'?'cp':r.err));if(i)i.focus();else toast(ERR[r.err]||'Revisa los datos.')}});
+ if(B.va)return;B.va=true;const bt=$('#fNuevo [type=submit]');if(bt)bt.disabled=true;
+ Oficio.crear({tipo:'pedir',av:B.av,origen:B.or,nota:B.nota,cli:{nombre:B.nombre,tel:B.tel,dir:B.dir,cp:B.cp},cita:B.cuando==='cita'?{dia:B.dia,fr:B.fr}:null},Q).then(r=>{B.va=false;
+  if(r.ok){Object.assign(B,{av:N.averias[0].id,or:'llamada',cuando:'urg',fr:'',nombre:'',tel:'',dir:'',cp:'',nota:'',err:''});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');S=Oficio.estado();if(location.hash==='#/aviso/'+r.id)pinta();else location.hash='#/aviso/'+r.id}
+  else{B.err=r.err;pinta();const i=$('#n_'+(r.err==='zona'?'cp':r.err));if(i)i.focus();else toast(ERR[r.err]||'Revisa los datos.')}})});
 pinta();
 })();
 </script>

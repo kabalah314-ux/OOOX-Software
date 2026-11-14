@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba'];
+const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor'];
 const esTexto = (x, min = 1, max = 200) => typeof x === 'string' && x.trim().length >= min && x.length <= max;
 const esNum = x => typeof x === 'number' && Number.isFinite(x);
 const esEntero = x => Number.isInteger(x);
@@ -162,6 +162,19 @@ export function valida(N, K, hoy) {
   }
   // ---- copia de prueba (opcional): la app avisa en pantalla de que el negocio aún no está en marcha
   if (N.prueba != null && typeof N.prueba !== 'boolean') E('prueba: tiene que ser true o false.');
+  // ---- servidor (opcional): con él, los avisos viven en el servidor del negocio y cada persona entra con su código
+  if (N.servidor != null) {
+    const v = N.servidor;
+    if (!v || typeof v !== 'object' || Array.isArray(v)) E('servidor: tiene que ser un objeto con «url» y «llave», o no estar.');
+    else {
+      Object.keys(v).forEach(k => { if (!['url', 'llave', 'funcion', 'cada'].includes(k)) E('servidor: «' + k + '» no es un dato que la app use.') });
+      if (typeof v.url !== 'string' || !/^https:\/\/[a-z0-9.-]+(:\d+)?\/?$/.test(v.url)) E('servidor.url: tiene que ser la dirección https del servidor, sin nada detrás (por ejemplo https://abc.supabase.co).');
+      if (typeof v.llave !== 'string' || v.llave.length < 10 || /\s/.test(v.llave)) E('servidor.llave: falta la llave pública del servidor.');
+      else if (/service_role|^sb_secret_|^eyJ[\w-]+\.[\w-]+\.[\w-]+$/.test(v.llave) && !/^sb_publishable_/.test(v.llave)) A('servidor.llave: comprueba que es la llave PÚBLICA (la que empieza por sb_publishable_). La de servicio no puede ir nunca en la app.');
+      if (v.funcion != null && (typeof v.funcion !== 'string' || !/^[a-z0-9-]{1,40}$/.test(v.funcion))) E('servidor.funcion: solo letras minúsculas, números y guiones.');
+      if (v.cada != null && (!Number.isInteger(v.cada) || v.cada < 1000 || v.cada > 60000)) E('servidor.cada: cada cuántos milisegundos pregunta la app si hay algo nuevo; entre 1000 y 60000.');
+    }
+  }
 
   // ---- catálogo
   const cat = N.catalogo || {}, claves = Object.keys(cat);

@@ -61,6 +61,13 @@ const ROTOS = [
   ['un mapa de fondo sin la firma de quien lo da', N => { N.mapa = { teselas: 'https://ejemplo.es/{z}/{x}/{y}.png' } }],
   ['un dato de mapa que la app no usa', N => { N.mapa = { clave: 'abc' } }],
   ['la firma del mapa con un enlace que no es https', N => { N.mapa.firmaUrl = 'javascript:alert(1)' }],
+  ['un servidor que no es un objeto', N => { N.servidor = 'https://abc.supabase.co' }],
+  ['un servidor sin https', N => { N.servidor = { url: 'http://abc.supabase.co', llave: 'sb_publishable_abcdefghij' } }],
+  ['un servidor con algo detrás de la dirección', N => { N.servidor = { url: 'https://abc.supabase.co/functions/v1/oficio', llave: 'sb_publishable_abcdefghij' } }],
+  ['un servidor sin llave', N => { N.servidor = { url: 'https://abc.supabase.co' } }],
+  ['un dato de servidor que la app no usa', N => { N.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', clave: 'x' } }],
+  ['un servidor con otra función mal escrita', N => { N.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', funcion: 'Oficio 2' } }],
+  ['un servidor al que se pregunta demasiado a menudo', N => { N.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', cada: 200 } }],
   ['«prueba» con un texto', N => { N.prueba = 'sí' }],
 ];
 for (const [que, rompe, base] of ROTOS) {
@@ -73,6 +80,9 @@ for (const [que, rompe, base] of ROTOS) {
 { const M1 = clon(R); M1.mapa = {}; const M2 = clon(V); M2.prueba = true;
   es(valida(M1, K, HOY).errores.length === 0 && valida(M1, K, HOY).avisos.some(t => /mapa/.test(t)) && valida(M2, K, HOY).errores.length === 0 && valida(R, K, HOY).avisos.some(t => /OpenStreetMap/.test(t)),
     'un mapa vacío vale (sin mapa de fondo), una copia de prueba vale, y con el servidor gratuito de OpenStreetMap se avisa de que es solo para una demo') }
+{ const M3 = clon(V); M3.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', cada: 2000 }; const M4 = clon(V); M4.servidor = { url: 'https://abc.supabase.co', llave: 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.abcdefghijkl' };
+  es(valida(M3, K, HOY).errores.length === 0 && !valida(M3, K, HOY).avisos.some(t => /servidor/.test(t)) && valida(M4, K, HOY).avisos.some(t => /PÚBLICA/.test(t)),
+    'un servidor bien puesto vale sin avisos, y con una llave que no parece la pública se avisa') }
 // las caducidades: lo mismo que hoy pasa, dentro de un año tiene que fallar
 es(valida(R, K, '2027-08-01').errores.some(t => /festivos/.test(t)), 'con la fecha de dentro de nueve meses, avisa de que hay que renovar los festivos');
 es(valida(R, K, '2026-12-28').avisos.some(t => /festivos/.test(t)) && valida(R, K, '2026-12-28').errores.length === 0, 'cuando queda menos de un año, lo dice como aviso, sin parar nada');

@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { valida, leeNucleo, leeNegocio } from './pruebas-reglas/valida-negocio.mjs';
 
 const aqui = path.dirname(fileURLToPath(import.meta.url));
-export const COMUNES = ['app.html', 'cita.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js',
+export const COMUNES = ['app.html', 'cita.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-espejo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js',
   'assets/fuentes/barlow-400.woff2', 'assets/fuentes/barlow-500.woff2', 'assets/fuentes/barlow-600.woff2', 'assets/fuentes/barlow-condensed-600.woff2', 'assets/fuentes/barlow-condensed-700.woff2', 'assets/fuentes/barlow-condensed-800.woff2'];
 const DATOS = 'js/oficio-datos.js', FICHA = 'copia.json';
 // la portada de una copia: lleva a pedir cita. La web del negocio, si la tiene, es otra cosa y va aparte.

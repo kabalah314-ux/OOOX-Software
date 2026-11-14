@@ -14,6 +14,12 @@ Todo lo de esta carpeta corre en Node, sin navegador, en segundos. Para pasarlo 
 | `prueba-soporte.mjs` | El buzón de mejoras (`js/oficio-soporte.js`) sin navegador y sin red: qué se da por bueno, qué viaja, el código de soporte, la cola sin conexión, lo que está sin leer, la demo y los aparatos que no dejan guardar. 60 comprobaciones. | La app manda algo que no debe, pierde una petición sin conexión o se rompe con datos guardados estropeados. |
 | `prueba-copias.mjs` | Prueba la herramienta de copias (`../copias.mjs`) en carpetas temporales: crear, no pisar, poner al día sin tocar los datos, dejar como estaba la que no pasa. 32 comprobaciones. | La herramienta pisa una copia, toca sus datos o da por buena una que no lo es. |
 | `mutantes.mjs` | Estropea adrede una regla cada vez y pasa las pruebas. Mide si las pruebas valen. El 13-11-2026: 76 de 76 cazadas. | Una regla estropeada no la caza ninguna prueba: falta una prueba. |
+| `prueba-juez.mjs` | El juez del servidor (`../../oficios-servidor/juez.mjs`) con ejemplos escritos a mano y un almacén de mentira. 56. | El servidor deja entrar a quien no debe, da a un técnico avisos de otro, hace dos veces lo mismo o guarda algo distinto de lo que dicen las reglas. |
+| `azar-juez.mjs` | El juez con dos negocios y once aparatos a la vez, acciones al azar, otros que se adelantan y acciones repetidas. 9.000 pasos, 1,29 millones de comprobaciones. | Lo guardado deja de ser igual a repetir el diario, o un aparato al día no tiene justo lo suyo. |
+| `mutantes-juez.mjs` | Quita adrede cada protección del juez y pasa las dos anteriores. El 14-11-2026: 35 de 35 cazadas. | Una protección del servidor puede desaparecer sin que ninguna prueba lo note. |
+| `prueba-espejo.mjs` | El espejo (`js/oficio-espejo.js`: lo que cada aparato sabe del servidor y lo que le falta por enviar) contra el juez de verdad, con ejemplos. 71. | Con servidor, la app pierde algo hecho sin cobertura, lo manda dos veces, no deshace lo que el servidor rechaza o guarda fotos en el aparato. |
+| `azar-espejo.mjs` | Varios aparatos con su espejo, red que falla, la app que se cierra y se abre, códigos que se retiran. 45.000 pasos, 256.000 comprobaciones. | Lo que se ve deja de ser «lo último del servidor más lo pendiente», o al calmarse todo un aparato no ve lo mismo que el servidor. |
+| `mutantes-espejo.mjs` | Quita adrede cada protección del espejo y pasa las dos anteriores. El 14-11-2026: 29 de 29 cazadas. | Una protección de la app con servidor puede desaparecer sin que ninguna prueba lo note. |
 | `negocios/voltio.js` | Un segundo negocio inventado, hecho distinto a propósito (otro oficio, otra ciudad, horarios por técnico). | — |
 
 ## Cuando `azar.mjs` encuentra algo
@@ -58,3 +64,13 @@ con el dato metido a mano: la posición de un trabajador no puede depender de qu
 ## Lo que encontró la primera pasada (13-11-2026)
 
 Catorce fallos, todos arreglados y con su comprobación fija: claves como «constructor» o «toString» que colaban como técnico, avería, zona o concepto; un presupuesto que no era una lista rompía la app; una acción rechazada dejaba la nota cambiada; las franjas a y media se leían «de 8.5 a 11»; la ciudad, el teléfono, el rótulo, el recargo y la mano de obra del negocio de muestra estaban escritos en las pantallas comunes; un negocio de verdad habría visto borrados sus datos a las 8 horas; y dos comprobaciones de pantallas dependían de la suerte.
+
+## Lo que encontraron las pruebas del espejo (14-11-2026)
+
+- **Una posición sustituida dejaba rastro.** Si el técnico mandaba dos posiciones seguidas sin cobertura, en la cola
+  quedaba solo la última (bien), pero en pantalla se habían aplicado las dos: el aviso llevaba un cambio de más respecto
+  a lo que haría el servidor. No se veía, pero era una diferencia. Lo cazó una ley nueva: «lo que se ve es siempre lo
+  último del servidor con la cola encima, en su orden». Ahora, al sustituir, la pantalla se rehace desde la base.
+- **Esa ley no existía.** La pidió una regla estropeada adrede que sobrevivía: repetir lo pendiente en otro orden.
+  Los ejemplos miraban el principio y el final, no lo que se ve mientras hay cosas por enviar.
+- Si una prueba se queda esperando una respuesta que no llega, se corta a los 20 segundos y cuenta como fallo.
