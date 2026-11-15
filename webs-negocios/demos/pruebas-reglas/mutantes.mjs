@@ -155,7 +155,7 @@ const M = [
   // los tiempos y la urgencia como extra (15-11-2026)
   ["no se mira lo que tarda cada trabajo según el dueño", "if(Array.isArray(a.dur)&&a.dur.length===2&&a.dur[0]>0&&a.dur[1]>=a.dur[0])return[a.dur[0],a.dur[1]];", ""],
   ["sin el tiempo de ver la avería y recoger", "Math.max(30,Math.round(h*60)+20)", "Math.max(30,Math.round(h*60))"],
-  ["las horas del presupuesto no cuentan en lo que dura", "return h?Math.max(m,Math.round(h*60)+10):m}", "return m}"],
+  ["las horas del presupuesto no cuentan en lo que dura", "else if(it.un==='h'){m+=q*60;hay=true}});return hay?Math.round(m)+10:0}", "});return hay?Math.round(m)+10:0}"],
   ["las urgencias en cola no cuentan", "else if(A.e==='asignado'&&!A.cita)m+=etaMin(cfg,A.cli.dis)+durEst(cfg,A)});", "});"],
   ["lo ya hecho del trabajo de ahora no se descuenta", "m+=Math.max(5,durEst(cfg,A)-minutos(A,t));", "m+=durEst(cfg,A);"],
   ["quien no puede ir sale para urgencias", "if(puedeIr(S,cfg,{urg:true,cli:{dis}},tec,t))return;", ""],
@@ -163,6 +163,9 @@ const M = [
   ["no se mira si acabaría fuera de su horario", "fuera=ft==null||!laborable(cfg,n.date)||n.min+llega+nueva>ft", "fuera=ft==null||!laborable(cfg,n.date)"],
   ["quien llegaría tarde a su cita no va al final", "((a.choca||a.fuera)?1:0)-((b.choca||b.fuera)?1:0)||", ""],
   ["al cliente se le promete un tiempo que deja tirada una cita", ".filter(x=>!x.choca&&!x.fuera)", ""],
+  ["los servicios no cuentan en lo que dura un presupuesto", "if(Array.isArray(it.dur)){m+=it.dur[0]*q;hay=true}else if(it.un==='h')", "if(it.un==='h')"],
+  ["lo que tarda el presupuesto de partida no mira sus servicios", "if(sv){let lo=0,hi=0;", "if(false){let lo=0,hi=0;"],
+  ["el catálogo pierde lo que tarda cada servicio", "if(Array.isArray(i.dur)&&i.dur.length===2&&i.dur[0]>0&&i.dur[1]>=i.dur[0])cat[k].dur=[i.dur[0],i.dur[1]];", ""],
   ["a igual tiempo no se reparte", "a.llega-b.llega||a.hoy-b.hoy||", "a.llega-b.llega||"],
   ["el tiempo que se dice no se redondea", "Math.ceil(Math.max(L[0].llega,10)/5)*5", "L[0].llega"],
   ["el suplemento va también en las citas", "if(cfg.urge&&!A.cita&&A.av!==REV&&", "if(cfg.urge&&A.av!==REV&&"],

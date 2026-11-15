@@ -6,6 +6,7 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { TODOS as BASE } from '../../oficios-base/servicios.mjs';   // la base de servicios de OOOX: para «base» del catálogo
 
 const require = createRequire(import.meta.url);
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
@@ -209,6 +210,16 @@ export function valida(N, K, hoy) {
       if (it.mat) E(cual + ': algo que se cuenta por horas no puede ser material.');
     }
     if (it.mat && it.u) A(cual + ': es material y además lleva recargo de urgencia. ¿Seguro?');
+    // lo que tarda el servicio y a cuál de la base corresponde (15-11-2026)
+    if (it.dur !== undefined && !(Array.isArray(it.dur) && it.dur.length === 2 && it.dur.every(esEntero) && it.dur[0] >= 1 && it.dur[0] <= it.dur[1] && it.dur[1] <= 600)) E(cual + '.dur: lo que tarda, [normal, máximo] en minutos por unidad (entre 1 y 600), por ejemplo [30, 60].');
+    if (it.base !== undefined) {
+      const b = typeof it.base === 'string' ? BASE[it.base] : null;
+      if (!b) E(cual + '.base: «' + it.base + '» no está en la base de servicios de OOOX (webs-negocios/oficios-base/servicios.mjs).');
+      else {
+        if (it.dur === undefined) A(cual + ': es el servicio «' + b.n + '» de la base y no dice lo que tarda; la base propone de ' + b.dur[0] + ' a ' + b.dur[1] + ' minutos.');
+        if (b.ref && esNum(p) && (p < b.ref[0] / 2 || p > b.ref[1] * 2)) A(cual + ': ' + p + ' € queda muy lejos de lo que se suele cobrar por «' + b.n + '» (de ' + b.ref[0] + ' a ' + b.ref[1] + ' €). ¿Seguro?');
+      }
+    }
   });
   if (!propio(cat, N.sinTrabajo || '')) E('sinTrabajo: tiene que ser la clave del catálogo que se cobra cuando el cliente no acepta el precio (ejemplo: «desp»).');
   else if (cat[N.sinTrabajo].mat || cat[N.sinTrabajo].un === 'h') E('sinTrabajo: tiene que ser un precio fijo de visita o desplazamiento, no material ni horas.');

@@ -23,6 +23,7 @@ JUEZ=""; for d in "$AQUI/../oficios-servidor" "$AQUI/../servidor"; do [ -f "$d/j
 if [ "$QUE" != navegador ]; then
   paso "Datos de cada negocio" node "$R/valida-negocio.mjs" "$SITIO" "$SITIO/js/oficio-datos.js" "$OTRO"
   paso "El validador caza los archivos mal hechos" node "$R/prueba-valida.mjs" "$SITIO"
+  paso "La base de servicios y la hoja de cada negocio" node "$R/prueba-servicios.mjs" "$SITIO"
   paso "Reglas, con ejemplos" node "$AQUI/prueba-oficio.mjs" "$SITIO"
   paso "Reglas, con recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$SITIO/js/oficio-datos.js" --negocio "$OTRO" --tandas "${TANDAS:-100}" --semilla "${SEMILLA:-20261113}"
   paso "Restos del negocio de muestra en los archivos comunes" node "$R/restos.mjs" "$SITIO"

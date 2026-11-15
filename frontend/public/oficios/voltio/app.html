@@ -188,6 +188,9 @@ main>*:has(+ .accion){margin-bottom:18px}
 .duo{display:grid;grid-template-columns:1fr 120px;gap:12px}
 .lb{font-size:.9375rem;font-weight:600}
 .hoja .ops .op{border-color:var(--control)}
+/* lo elegido se tiene que ver de un vistazo, también dentro de una hoja (la forma de pago, el plan, cómo dice que sí) */
+.hoja .ops .op[aria-pressed=true]{border-color:var(--senal);box-shadow:inset 0 0 0 1px var(--senal)}
+.hoja.papel .ops .op[aria-pressed=true]{border-color:var(--tinta);box-shadow:inset 0 0 0 1px var(--tinta)}
 .hoja.papel .op{border-color:#aeb4ba}
 .hoja.papel .op small{color:var(--tinta-2)}
 .hoja.papel .op[aria-pressed=true]{border-color:var(--tinta);background:var(--papel-2)}

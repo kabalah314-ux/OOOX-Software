@@ -76,6 +76,13 @@ const ROTOS = [
   ['la foto del técnico fuera de assets', N => { N.tecnicos[0].foto = 'https://ejemplo.es/jordi.jpg'; N.tecnicos[0].fotoOk = 1 }],
   ['la foto del técnico subiendo de carpeta', N => { N.tecnicos[0].foto = 'assets/../app.html.jpg'; N.tecnicos[0].fotoOk = 1 }],
   ['el permiso de la foto con un sí escrito', N => { N.tecnicos[0].foto = 'assets/tec/jordi.jpg'; N.tecnicos[0].fotoOk = 'sí' }],
+  // lo que tarda cada servicio y su servicio de la base (15-11-2026)
+  ['lo que tarda un servicio al revés', N => { N.catalogo.grifo.dur = [60, 30] }],
+  ['lo que tarda un servicio en horas y no en minutos', N => { N.catalogo.grifo.dur = [0.5, 1] }],
+  ['un servicio de la base que no existe', N => { N.catalogo.grifo.base = 'fon-no-existe' }],
+  ['lo que tarda una avería con un solo número', N => { N.averias[0].dur = [45] }],
+  ['un suplemento de urgencia que no está en el catálogo', N => { N.tarifa.urgente = 'nada' }],
+  ['un suplemento de urgencia por horas', N => { N.tarifa.urgente = 'mo' }],
 ];
 for (const [que, rompe, base] of ROTOS) {
   const N = clon(base || R); let r;
@@ -94,6 +101,10 @@ for (const [que, rompe, base] of ROTOS) {
 { const C = clon(R); C.email = 'avisos@ramirez.example'; C.dir = 'Carrer de Sants 100, 08014 Barcelona';
   es(valida(R, K, HOY).avisos.some(t => /^email:/.test(t)) && valida(R, K, HOY).avisos.some(t => /^dir:/.test(t)) && valida(C, K, HOY).errores.length === 0 && !valida(C, K, HOY).avisos.some(t => /^(email|dir):/.test(t)),
     'sin correo y con una dirección sin número se avisa, sin parar nada; con los dos bien, ni error ni aviso') }
+// un servicio de la base: sin lo que tarda, o con un precio muy lejos de lo que se suele cobrar, vale pero se avisa
+{ const S1 = clon(R); delete S1.catalogo.grifo.dur; const S2 = clon(R); S2.catalogo.grifo.p10 = 900;
+  es(valida(S1, K, HOY).errores.length === 0 && valida(S1, K, HOY).avisos.some(t => /no dice lo que tarda/.test(t)) && valida(S2, K, HOY).errores.length === 0 && valida(S2, K, HOY).avisos.some(t => /muy lejos/.test(t)) && !valida(R, K, HOY).avisos.some(t => /muy lejos|no dice lo que tarda/.test(t)),
+    'un servicio de la base sin lo que tarda, o con un precio muy lejos del de mercado, vale pero se avisa; la demo, sin avisos de eso') }
 // la foto del técnico: sin su permiso no se enseña, y se avisa
 { const F = clon(R); F.tecnicos[0].foto = 'assets/tec/jordi.jpg'; const G = clon(F); G.tecnicos[0].fotoOk = 1;
   es(valida(F, K, HOY).errores.length === 0 && valida(F, K, HOY).avisos.some(t => /permiso/.test(t)) && valida(G, K, HOY).errores.length === 0 && !valida(G, K, HOY).avisos.some(t => /permiso/.test(t)),

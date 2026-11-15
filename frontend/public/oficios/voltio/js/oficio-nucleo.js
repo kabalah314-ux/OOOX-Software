@@ -32,7 +32,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.15f';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.15g';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -64,7 +64,9 @@ const eur=cs=>new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFrac
 const REV='revision';   /* la avería de la revisión del contrato: la crea la oficina, nunca la web */
 function cfgDe(N){const vacio=()=>Object.create(null),limpio=o=>Object.assign(vacio(),o||{}),cat=vacio();
  Object.entries(N.catalogo).forEach(([k,i])=>{const p10=i.p10!=null?cts(i.p10):red(cts(i.p21)/1.1),p21=i.p21!=null?cts(i.p21):red(cts(i.p10)*1.1);
-  cat[k]={k,t:i.t,p10,p21,u:!!i.u,mat:!!i.mat,extra:!!i.extra,un:i.un||'',min:i.min||1,paso:i.paso||1}});
+  cat[k]={k,t:i.t,p10,p21,u:!!i.u,mat:!!i.mat,extra:!!i.extra,un:i.un||'',min:i.min||1,paso:i.paso||1};
+  /* lo que tarda ese servicio, por unidad, y a qué servicio de la base de OOOX corresponde */
+  if(Array.isArray(i.dur)&&i.dur.length===2&&i.dur[0]>0&&i.dur[1]>=i.dur[0])cat[k].dur=[i.dur[0],i.dur[1]];if(typeof i.base==='string')cat[k].base=i.base});
  const av=vacio(),tec=vacio(),planes=vacio();N.averias.forEach(a=>{av[a.id]=a});N.tecnicos.forEach(x=>{tec[x.id]=x});
  /* el mantenimiento: sus planes y la revisión, que es un aviso más pero no se pide desde la web */
  const MT=N.mantenimiento;if(MT&&Array.isArray(MT.planes)&&MT.revision){av[REV]=Object.assign({},MT.revision,{id:REV,min:MT.revision.ini,max:null,interna:true});
@@ -189,12 +191,18 @@ const etaMin=(cfg,dis)=>{const z=typeof dis==='string'?cfg.zonas.dis[dis]:null;r
    las horas de mano de obra de su presupuesto de partida, con 20 minutos más para ver la avería y recoger. */
 function durDe(cfg,av){const a=typeof av==='string'?cfg.av[av]:null;if(!a)return[45,120];
  if(Array.isArray(a.dur)&&a.dur.length===2&&a.dur[0]>0&&a.dur[1]>=a.dur[0])return[a.dur[0],a.dur[1]];
+ /* si su presupuesto de partida lleva servicios con lo que tardan («dur» en el catálogo), la suma de eso */
+ const sv=(a.ini||[]).some(l=>{const it=cfg.cat[l.k];return it&&Array.isArray(it.dur)});
+ if(sv){let lo=0,hi=0;(a.ini||[]).forEach(l=>{const it=cfg.cat[l.k];if(!it)return;const q=+l.q||it.min||1;if(Array.isArray(it.dur)){lo+=it.dur[0]*q;hi+=it.dur[1]*q}else if(it.un==='h'){lo+=q*60;hi+=q*60}});
+  return[Math.round(lo)+10,Math.round(hi)+10]}
  const h=(a.ini||[]).reduce((x,l)=>{const it=cfg.cat[l.k];return x+(it&&it.un==='h'?(+l.q||it.min||1):0)},0),m=Math.max(30,Math.round(h*60)+20);
  return[Math.max(15,m-15),m+30]}
-/* lo que se espera que dure un aviso: lo normal de su avería o, si ya tiene precio, sus horas de mano de obra */
-function durEst(cfg,A){const d=durDe(cfg,A&&A.av),m=Math.round((d[0]+d[1])/2);
- const h=(A&&Array.isArray(A.lin)?A.lin:[]).reduce((x,l)=>{const it=l&&cfg.cat[l.k];return x+(it&&it.un==='h'?+l.q||0:0)},0);
- return h?Math.max(m,Math.round(h*60)+10):m}
+/* lo que tardan unas líneas de presupuesto: cada servicio, lo normal de su «dur» por unidad; las horas, sus horas; el
+   material, nada. Con algo de trabajo, 10 minutos más para preparar y recoger; 0 si no hay nada que medir */
+function durLineas(cfg,L){let m=0,hay=false;(Array.isArray(L)?L:[]).forEach(l=>{const it=l&&cfg.cat[l.k];if(!it)return;const q=+l.q||it.min||1;
+ if(Array.isArray(it.dur)){m+=it.dur[0]*q;hay=true}else if(it.un==='h'){m+=q*60;hay=true}});return hay?Math.round(m)+10:0}
+/* lo que se espera que dure un aviso: lo normal de su avería o, si ya tiene precio, lo que tardan sus líneas */
+function durEst(cfg,A){const d=durDe(cfg,A&&A.av),m=Math.round((d[0]+d[1])/2),x=durLineas(cfg,A&&A.lin);return x?Math.max(m,x):m}
 /* cuánto le falta a un técnico para quedar libre, en minutos: lo que le queda del trabajo de ahora (o del camino y el
    trabajo) y las urgencias que ya tiene en cola, cada una con su camino */
 function ocupacion(S,cfg,tec,t){let m=0;
@@ -591,5 +599,5 @@ function material(S,cfg,dia){const out=Object.create(null);
 function textoMaterial(cfg,g,dia){if(!g||!g.cosas||!g.cosas.length)return'';
  return'Material '+(dia?'para el '+fechaLarga(dia):'de los avisos sin día')+(g.n?', '+g.n:', sin técnico')+':\n'+g.cosas.map(c=>'- '+c.q+' × '+c.t+' ('+c.av.join(', ')+')').join('\n')+'\n'+cfg.N.nombre}
 
-g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,REV,CONT,durDe,durEst,ocupacion,proximaCita,llegadas,urgenciaAhora,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,urgenciaAhora,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

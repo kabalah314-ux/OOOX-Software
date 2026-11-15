@@ -879,8 +879,11 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
 {
   empieza(); const dis = Object.keys(cfg.zonas.dis)[0], viaje = cfg.zonas.banda[cfg.zonas.dis[dis][1]];
   const sinDur = JSON.parse(JSON.stringify(N)); sinDur.averias.forEach(a => { delete a.dur }); const c2 = K.cfgDe(sinDur);
-  es(K.durDe(cfg, 'fuga').join() === N.averias.find(a => a.id === 'fuga').dur.join() && K.durDe(c2, 'fuga').join() === '65,110' && K.durDe(c2, 'atasco').join() === '15,60' && K.durDe(cfg, 'nada').join() === '45,120',
-    'lo que tarda cada trabajo: lo que dice el dueño o, si no lo ha dicho, las horas de su presupuesto de partida y 20 minutos más');
+  const dS = cfg.cat.desatasco.dur;
+  es(K.durDe(cfg, 'fuga').join() === N.averias.find(a => a.id === 'fuga').dur.join() && K.durDe(c2, 'fuga').join() === '65,110' && K.durDe(c2, 'atasco').join() === [dS[0] + 10, dS[1] + 10].join() && K.durDe(cfg, 'nada').join() === '45,120',
+    'lo que tarda cada trabajo: lo que dice el dueño; si no lo ha dicho, lo que tardan los servicios de su presupuesto de partida o, si no tienen tiempo, sus horas y 20 minutos más');
+  es(K.durLineas(cfg, [{ k: 'grifo' }, { k: 'mo', q: 2 }, { k: 'juntas' }]) === cfg.cat.grifo.dur[0] + 120 + 10 && K.durLineas(cfg, [{ k: 'grifo', q: 2 }]) === cfg.cat.grifo.dur[0] * 2 + 10 && K.durLineas(cfg, [{ k: 'juntas' }]) === 0 && K.durLineas(cfg, null) === 0 && cfg.cat.grifo.base === 'fon-grifo-cambiar',
+    'lo que tardan las líneas de un presupuesto: cada servicio lo suyo por unidad, las horas sus horas, el material nada');
   const cli = n => ({ nombre: 'Urge', apellidos: 'Prueba', tel: '6000003' + String(n).padStart(2, '0'), dir: 'C/ Prueba ' + n, cp: Object.keys(cfg.zonas.cp).find(c => cfg.zonas.cp[c] === dis) });
   const u1 = ap({ tipo: 'pedir', av: 'fuga', cli: cli(1) }, CLI).id; ap({ tipo: 'asignar', id: u1, tec: 'omar' }, C);
   const L0 = K.llegadas(S, cfg, dis, t, 'fuga'), media = Math.round((K.durDe(cfg, 'fuga')[0] + K.durDe(cfg, 'fuga')[1]) / 2);
