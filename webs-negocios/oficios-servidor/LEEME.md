@@ -195,7 +195,7 @@ Con navegador:
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
 GitHub las pasa en cada cambio: reglas y datos en una máquina, y las pantallas en Chromium, Firefox y WebKit. En verde
-el 15-11-2026 con el commit `e6761f3` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
+el 15-11-2026 con el commit `cf2290f` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
 rentabilidad, el material que falta y los contratos de mantenimiento, también los que da de alta el técnico, y la urgencia como extra con sus tiempos de llegada).
 
 En vivo (14-11-2026), contra la función desplegada y sin navegador: entrar bien y mal, crear, asignar, leer como cada
@@ -239,7 +239,9 @@ por letra al archivo. Y la versión 13, con las reglas `2026.11.15h` del commit 
 (a qué hora llega a cada trabajo) y la urgencia a quien aún llega dentro de la franja de sus citas; así el tiempo de
 llegada que da el servidor a quien pide una urgencia cuenta también con eso. Y la versión 14, con las reglas `2026.11.15i` del commit `e6761f3`:
 las citas por lo que tarda cada trabajo; los huecos que da el servidor miran la avería y el barrio que manda la página, y
-los datos de Voltio en el servidor ya llevan `citas.porTiempo` (iguales letra por letra al archivo).
+los datos de Voltio en el servidor ya llevan `citas.porTiempo` (iguales letra por letra al archivo). Y la versión 15, con las reglas `2026.11.15j` del
+commit `cf2290f`: con citas por tiempo, una cita que ya existe va en su sitio al mirar si cabe, y al cambiarla de franja
+se compara con su día sin ella (lo encontró la demo «en uso»).
 
 ## Lo que falta
 
