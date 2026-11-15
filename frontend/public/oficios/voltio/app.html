@@ -52,6 +52,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .tira li{display:flex;align-items:center;gap:8px;flex:none;min-height:46px;padding:5px 14px 5px 6px;border-radius:999px;border:1px solid var(--linea);font-size:.9375rem;white-space:nowrap}
 .tira small{display:block;font-size:.8125rem;color:var(--suave)}
 .tira .on small{color:var(--agua)}
+.tira .off{border-style:dashed}
 
 /* ===== listas de avisos ===== */
 .sec{margin-top:22px}
@@ -422,10 +423,12 @@ function fila(A,sel){const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=K.nomCli(A.cli
  else{f2=(t?t.n+' · ':'')+(A.e==='camino'?'llega sobre las '+K.hora(A.eta):A.e==='curso'?'lleva '+dur(K.minutos(A,Date.now())):cita?cita+pc:'urgente, '+hace(A.t));fd='<span class="pill '+A.e+'">'+EST[A.e]+'</span>'}
  return'<li><a class="fila'+(A.urg&&(A.e==='nuevo'||A.e==='ausente')?' urg':'')+'" href="#/aviso/'+A.id+'"'+(sel===A.id?' aria-current="true"':'')+'><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(f2)+(A.con&&A.e!=='hecho'&&A.e!=='cancelado'?' · con contrato':'')+'</span>'+(f3?'<span class="f3">'+esc(f3)+'</span>':'')+'<span class="fd">'+fd+'</span></a></li>'}
 const sec=(tit,L,sel,vacio)=>'<section class="sec"><h2>'+tit+' <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(a=>fila(a,sel)).join('')+'</ul>':'<p class="hueco">'+vacio+'</p>')+'</section>';
-function tira(){const r=K.resumen(S,cfg,Date.now());
+function tira(){const r=K.resumen(S,cfg,Date.now()),U={urg:true,cli:{dis:''}};
  return'<ul class="tira" aria-label="Dónde está cada técnico">'+N.tecnicos.map(t=>{const x=r.tec[t.id],A=x.aviso&&el(x.aviso);
   const lib=K.ocupacion(S,cfg,t.id,Date.now()),fin=lib?' · libre ~'+K.hora(Date.now()+lib*60000):'';
-  return'<li class="'+(x.e!=='libre'?'on':'')+'">'+ava(t.id)+'<span>'+esc(t.n)+'<small>'+(x.e==='curso'?'trabajando en '+esc(barrio(A))+fin:x.e==='camino'?'de camino a '+esc(barrio(A))+fin:lib?'con urgencias en cola'+fin:'libre')+'</small></span></li>'}).join('')+'</ul>'+bUrgAhora()}
+  /* quien falta hoy, o ahora no trabaja y no hace guardias, no sale «libre»: para una urgencia no se puede contar con él */
+  const no=x.e==='libre'?K.puedeIr(S,cfg,U,t.id,Date.now()):'';
+  return'<li class="'+(x.e!=='libre'?'on':no?'off':'')+'">'+ava(t.id)+'<span>'+esc(t.n)+'<small>'+(x.e==='curso'?'trabajando en '+esc(barrio(A))+fin:x.e==='camino'?'de camino a '+esc(barrio(A))+fin:no==='ausente_tec'?'hoy no está':lib?'con urgencias en cola'+fin:no==='horario'?'fuera de horario':'libre')+'</small></span></li>'}).join('')+'</ul>'+bUrgAhora()}
 /* para una urgencia que entre ahora: quién llega antes y en cuánto, o que no hay nadie sin dejar tirada una cita */
 function bUrgAhora(){const L=K.llegadas(S,cfg,null,Date.now(),'').filter(x=>!x.choca&&!x.fuera);
  return'<p class="ojo" id="urgAhora">'+(L.length?'Para una urgencia ahora: '+esc(cfg.tec[L[0].tec].n)+(L[0].libre?', libre hacia las '+K.hora(Date.now()+L[0].libre*60000):', libre ya')+'. Llega en '+(L[0].libre?'unos '+L[0].llega+' min':'lo que se tarde hasta el barrio (de '+Math.min.apply(null,Object.values(cfg.zonas.banda))+' a '+cfg.etaMax+' min)')+'.':'Para una urgencia ahora no hay nadie libre sin llegar tarde a una cita o salirse de su horario.')+'</p>'}

@@ -75,7 +75,7 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | U20 | F6 | La ampliación | Si el total pasa de lo firmado, pide una firma nueva | Antes | Bien |
 | U21 | F7 | El desistimiento | Con cita y algo «extra», sin «Quiero que lo hagáis ya» no se empieza | Antes | Bien |
 | U22 | F5 | El presupuesto no aceptado | Se cobra solo el desplazamiento | R | Bien |
-| U23 | F4 | No había nadie | Se apunta, el mensaje para el cliente sale escrito y la cita se puede mover | R | Bien (arreglada la prueba, 8) |
+| U23 | F4 | No había nadie | Se apunta, el mensaje para el cliente sale escrito y la cita se puede mover | R | Bien (arreglada la prueba, 9) |
 | U24 | F8 | El material que falta | Sale en el material del día de ese técnico | R, P | Bien |
 | U25 | F13 | La ausencia | Sus citas se quedan sin técnico | R, Antes | Bien |
 | U26 | F14 | Las citas por tiempo | En tres horas caben tres grifos o dos termos por técnico | Antes | Bien |
@@ -92,11 +92,11 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | U37 | F12 | Contratos | Salen los de renovar, los de revisión y las cuotas | P | Bien (arreglado el fallo 5) |
 | U38 | F1 | El parte de un trabajo | Abre y su total es el del trabajo | P | Bien (arreglado el fallo 3) |
 | U39 | F1 | El técnico | En «Hoy» salen sus trabajos; terminar el de ahora funciona y pasa a «Hechos» | P | Bien |
-| U40 | F14 | El cliente pide cita | En los próximos días hay franjas para su avería; elige, deja sus datos y la cita sale en la agenda de la oficina | P | Bien (arreglada la prueba, 9) |
+| U40 | F14 | El cliente pide cita | En los próximos días hay franjas para su avería; elige, deja sus datos y la cita sale en la agenda de la oficina | P | Bien (arreglada la prueba, 10) |
 | U41 | F1 | La zona del cliente | Enseña el estado de su aviso y sus papeles | P | Bien |
 | U42 | Todos | Volver a abrir | Los datos siguen ahí y no se rehacen | P | Bien |
 | U43 | Todos | Móvil y ordenador | En 390 y en 1280 píxeles de ancho, ninguna pantalla se sale por los lados | P | Bien |
-| U44 | Todos | Firefox y Safari | Todo igual que en Chrome | Antes (en GitHub) | Bien: las 25 pantallas en Chromium, Firefox y WebKit (el motor de Safari), en GitHub |
+| U44 | Todos | Firefox y Safari | Todo igual que en Chrome | Antes (en GitHub) | Bien: todas las pruebas de pantallas, también en Firefox y en WebKit (el motor de Safari), en GitHub |
 | U45 | Todos | Las reglas, caso a caso | Los 457 ejemplos pasan | Antes | Bien: 458 |
 | U46 | Todos | Las reglas estropeadas a propósito | Las pruebas cazan las 230 | Antes | Bien: 232 de 232 |
 | U47 | Todos | Los recorridos al azar | 140 000 pasos sin romper ninguna ley | Antes | Bien: 140 000 pasos, y 14 000 más con el negocio en uso |
@@ -109,6 +109,7 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | U54 | F1 | Firmar con el dedo | La firma sale en el presupuesto y en el parte | A mano | Por probar (Oscar) |
 | U55 | F1 | El WhatsApp ya escrito | Se abre con el texto y el número del cliente | A mano | Por probar (Oscar) |
 | U56 | F17 | Voltio con códigos | Entra con su código y ve lo mismo en dos móviles | A mano | Por probar (Oscar) |
+| U57 | F2 | Quién está libre, arriba de la bandeja | Quien falta hoy sale «hoy no está»; de noche, quien no hace guardias sale «fuera de horario»; ninguno de los dos sale «libre» | P | Bien (arreglado el fallo 6) |
 
 ## Lo que se ha visto y las mejoras
 
@@ -128,26 +129,31 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
    corta. Ahora va en una línea aparte, en amarillo.
 5. **Avisos repetidos.** El de contratos y el de facturas salían en la bandeja, en la agenda y en el equipo. Ahora
    salen en la bandeja; en la agenda y en el equipo, solo lo que toca al reparto.
+6. **Quién está libre, arriba de la bandeja.** Al abrir la demo publicada un domingo por la tarde, la tira de
+   técnicos decía «libre» de los tres. Ahí es verdad, porque los tres hacen guardias, pero con un técnico de baja pasa
+   lo mismo: decía «Laia, libre» mientras la línea de la urgencia, bien, no la proponía. Ahora quien falta hoy sale
+   «hoy no está» y quien no trabaja a esa hora y no hace guardias, «fuera de horario», con el borde de puntos. Con una
+   prueba nueva (U57), que falla con la tira de antes.
 
 ### Fallos de las pruebas, ya arreglados
 
-6. Dos leyes de los recorridos al azar daban por hecho que la reserva para urgencias cuenta citas. Con citas por
+7. Dos leyes de los recorridos al azar daban por hecho que la reserva para urgencias cuenta citas. Con citas por
    tiempo se guardan técnicos enteros. Ahora cada ley mira lo suyo.
-7. La prueba de la zona del cliente en las copias daba por hecho que una copia sin servidor no tiene zona. La copia
+8. La prueba de la zona del cliente en las copias daba por hecho que una copia sin servidor no tiene zona. La copia
    «en uso» trae su muestra y funciona como la demo: ahora se prueba como la demo.
-8. El generador del negocio dejaba el mensaje «No había nadie» sin mandar, y al dar otra cita la app lo quitaba (a
+9. El generador del negocio dejaba el mensaje «No había nadie» sin mandar, y al dar otra cita la app lo quitaba (a
    propósito: lo sustituye el de la cita nueva). Ahora se manda al momento, como haría la oficina.
-9. La prueba de pedir cita daba por hecho que mañana siempre hay hueco para el cliente. Mañana falta Laia y se guarda
-   un técnico para urgencias, así que el cliente no ve ninguna franja (la oficina sí). Ahora busca el primer día con
-   hueco. Ver la mejora M8.
+10. La prueba de pedir cita daba por hecho que mañana siempre hay hueco para el cliente. Mañana falta Laia y se guarda
+    un técnico para urgencias, así que el cliente no ve ninguna franja (la oficina sí). Ahora busca el primer día con
+    hueco. Ver la mejora M8.
 
 ### Mejoras apuntadas, para decidir
 
-- **M1. La bandeja, más corta.** Enseña también las citas sin técnico de los próximos días (16 «por atender» en la
-  demo), y la oficina las reparte la tarde antes. Propuesta: en la bandeja, las urgencias y las citas de hoy y mañana;
+- **M1. La bandeja, más corta.** Enseña también las citas sin técnico de los próximos días (unas 16 «por atender»
+  en la demo), y la oficina las reparte la tarde antes. Propuesta: en la bandeja, las urgencias y las citas de hoy y mañana;
   el resto, en la agenda.
 - **M2. La revisión del contrato, a su tiempo.** Un contrato recién vendido ya pide «revisión sin cita» el primer día
-  (15 en la demo). Propuesta: pedirla a partir de un mes antes de la fecha que toque, por ejemplo a los once meses del
+  (en la demo, entre 15 y 26 según el día). Propuesta: pedirla a partir de un mes antes de la fecha que toque, por ejemplo a los once meses del
   alta, o la que diga el negocio. Lo decide Oscar.
 - **M3. Las visitas sin nadie, en el tablero.** No se pintan, y ese rato no se ve. Propuesta: pintarlas en gris, como
   lo hecho.
