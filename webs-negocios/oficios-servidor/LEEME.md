@@ -194,8 +194,8 @@ Con navegador:
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
 GitHub las pasa en cada cambio: reglas y datos en una máquina, y las pantallas en Chromium, Firefox y WebKit. En verde
-el 15-11-2026 con el commit `7afa18f` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
-rentabilidad, el material que falta y los contratos de mantenimiento).
+el 15-11-2026 con el commit `9e08a26` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
+rentabilidad, el material que falta y los contratos de mantenimiento, también los que da de alta el técnico).
 
 En vivo (14-11-2026), contra la función desplegada y sin navegador: entrar bien y mal, crear, asignar, leer como cada
 técnico, enlace del cliente bueno y malo, cita desde la web con el origen y el técnico forzados, acción repetida,
@@ -217,8 +217,13 @@ Comprobado igual, desde la base de datos: responde con esa versión.
 Y esa madrugada, la versión 8, con las reglas `2026.11.15c` del commit `7afa18f`: los contratos de mantenimiento. El
 juez los guarda en la cabecera del negocio (`contratos` y su contador `nc`), así que la base de datos no cambia, y solo
 la oficina los recibe; el técnico sigue recibiendo solo `esq`. Comprobado desde la base de datos con `pg_net`: responde
-con esa versión y da los huecos de Voltio leyendo sus avisos de verdad. Voltio aún no tiene ningún plan en sus datos,
-así que los contratos todavía no se han probado contra el servidor de verdad.
+con esa versión y da los huecos de Voltio leyendo sus avisos de verdad. Esa misma mañana, la versión 9, con las reglas
+`2026.11.15d` del commit `9e08a26`: el técnico puede dar de alta un contrato desde su aviso en casa del cliente, y los
+contratos solo viajan a la oficina cuando cambian (`vc` en la cabecera). Voltio ya lleva un plan en sus datos, en el
+archivo y en `oficios.estados.datos` (comprobado que son el mismo texto, letra por letra). Desde la base de datos con
+`pg_net`: la función responde con esa versión, da los huecos, y una cita pedida como cliente (`VS-0005`, «Prueba de
+Claude») se guardó bien. Dar de alta un contrato con el servidor de verdad necesita entrar con un código: queda para la
+prueba de Oscar.
 
 ## Lo que falta
 
