@@ -32,7 +32,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.15g';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.15h';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -218,20 +218,60 @@ function proximaCita(S,cfg,tec,t){const n=madrid(t);let p=null;
 /* hasta qué hora trabaja ahora (minutos del día); null si no tiene horario o ahora no le toca */
 function finTurno(cfg,tec,n){const h=horarioDe(cfg,tec);if(!h)return null;const b=(h[diaSem(n.date)]||[]).find(x=>x[0]<=n.min&&x[1]>n.min);return b?b[1]:null}
 /* Para una urgencia en un barrio («dis»): quién puede ir y cuándo llegaría, del que antes llega al que más tarda.
-   «choca»: llegaría tarde a su siguiente cita de hoy. «fuera»: acabaría después de su hora de salir, o ahora no le toca
-   trabajar y no hace guardias. Los que tienen una de las dos van al final. */
+   «choca»: con la urgencia, ya no llegaría a tiempo a alguna de sus citas de hoy (el cliente sabe su franja: llegar
+   dentro de ella vale). «fuera»: acabaría después de su hora de salir, o ahora no le toca trabajar y no hace guardias.
+   Los que tienen una de las dos van al final. */
 function llegadas(S,cfg,dis,t,av){const n=madrid(t),d=durDe(cfg,av),nueva=Math.round((d[0]+d[1])/2),viaje=etaMin(cfg,dis),out=[];
  Object.keys(cfg.tec).forEach(tec=>{if(puedeIr(S,cfg,{urg:true,cli:{dis}},tec,t))return;
-  const libre=ocupacion(S,cfg,tec,t),llega=libre+viaje,pc=proximaCita(S,cfg,tec,t),gu=!!cfg.tec[tec].guardia;
+  const libre=ocupacion(S,cfg,tec,t),llega=libre+viaje,gu=!!cfg.tec[tec].guardia;
   let fuera=false;if(cfg.conHorario&&horarioDe(cfg,tec)&&!gu){const ft=finTurno(cfg,tec,n);fuera=ft==null||!laborable(cfg,n.date)||n.min+llega+nueva>ft}
   const hoy=S.avisos.filter(A=>A.tec===tec&&A.e!=='cancelado'&&((A.cita&&A.cita.dia===n.date)||madrid(A.fin||A.ini||A.t).date===n.date)).length;
-  out.push({tec,libre,viaje,llega,choca:pc&&n.min+llega+nueva>pc.de?pc.id:'',fuera,hoy})});
+  out.push({tec,libre,viaje,llega,choca:chocaUrg(S,cfg,tec,t,dis,av),fuera,hoy})});
  /* a igual tiempo, el que menos trabajos lleva hoy: así se reparte */
  return out.sort((a,b)=>((a.choca||a.fuera)?1:0)-((b.choca||b.fuera)?1:0)||a.llega-b.llega||a.hoy-b.hoy||(a.tec<b.tec?-1:1))}
+/* ¿le haría llegar tarde una urgencia más (la última de su cola) a alguna de sus citas de hoy? La primera a la que
+   llegaría tarde, o '' si llega a todas dentro de su franja. Las que ya iban tarde sin la urgencia no cuentan */
+function chocaUrg(S,cfg,tec,t,dis,av){const dia=madrid(t).date,antes=new Set(agendaDe(S,cfg,tec,dia,t).filter(x=>x.tarde).map(x=>x.id));
+ const U={id:'_urgencia',av,cli:{dis},e:'asignado',tec,t:t+1},x=agendaDe(Object.assign({},S,{avisos:S.avisos.concat([U])}),cfg,tec,dia,t).find(y=>y.tarde&&!antes.has(y.id));
+ return x?x.id:''}
 /* lo que se le puede decir a quien pide una urgencia: llegamos en unos «de» a «a» minutos (de cinco en cinco), con
    el que antes llega sin dejar tirada una cita ni salirse de su horario; null si ahora no hay nadie así */
 function urgenciaAhora(S,cfg,dis,t,av){const L=llegadas(S,cfg,dis,t,av).filter(x=>!x.choca&&!x.fuera);if(!L.length)return null;
  const m=Math.ceil(Math.max(L[0].llega,10)/5)*5;return{tec:L[0].tec,de:m,a:m+15}}
+
+/* ---------- el día de un técnico: a qué hora llega a cada trabajo y a qué hora acaba ----------
+   Sus citas del día van en el orden de las franjas y, dentro de una franja, en el orden en que se pidieron. A cada una
+   llega cuando acaba la anterior y hace el camino hasta el barrio, pero no antes de que empiece su franja; y tarda lo que
+   se espera que dure (durEst). «tarde»: llegaría cuando su franja ya ha acabado.
+   Con «t», si el día es hoy, se mira desde ahora: lo ya hecho va a la hora en que pasó; el trabajo de ahora sigue hasta
+   que se espera que acabe, y detrás van las urgencias que tiene en cola y las citas que le quedan.
+   «extra»: un aviso de más (una cita que se está pidiendo, por ejemplo), el último de su franja: para saber si cabría.
+   Cada trabajo: {id, av, urg, fr, viaje, llega, acaba, tarde, hecho}, en minutos del día. */
+function agendaDe(S,cfg,tec,dia,t,extra){const n=t==null?null:madrid(t),hoy=!!n&&n.date===dia,out=[];let cur=-1440;
+ const fi=A=>cfg.franjas.findIndex(x=>x.id===A.cita.fr),mi=x=>{const m=madrid(x);return m.date===dia?m.min:null};
+ const pon=(A,l,a,v,o)=>{out.push(Object.assign({id:A.id,av:A.av,urg:!A.cita,fr:A.cita?A.cita.fr:'',viaje:v,llega:Math.round(l),acaba:Math.round(a),tarde:false,hecho:false},o||{}))};
+ const mio=S.avisos.filter(A=>A.tec===tec&&A.e!=='cancelado'&&(!extra||A.id!==extra.id));
+ if(hoy){cur=n.min;
+  mio.forEach(A=>{if((A.e!=='hecho'&&A.e!=='ausente')||!A.fin)return;const a=mi(A.fin);if(a==null)return;const d=A.ini?mi(A.ini):null;pon(A,d==null?a:d,a,0,{hecho:true})});
+  mio.filter(A=>A.e==='curso').forEach(A=>{const a=n.min+Math.max(5,durEst(cfg,A)-minutos(A,t)),d=A.ini?mi(A.ini):null;pon(A,d==null?n.min:d,a,0);cur=Math.max(cur,a)});
+  mio.filter(A=>A.e==='camino').forEach(A=>{const v=Math.max(0,Math.round(((A.eta||t)-t)/MIN)),l=Math.max(cur,n.min+v),d=durEst(cfg,A);pon(A,l,l+d,v);cur=l+d});
+  mio.filter(A=>A.e==='asignado'&&!A.cita).sort((a,b)=>a.t-b.t).forEach(A=>{const v=etaMin(cfg,A.cli&&A.cli.dis),l=cur+v,d=durEst(cfg,A);pon(A,l,l+d,v);cur=l+d})}
+ const C=mio.filter(A=>A.cita&&A.cita.dia===dia&&fi(A)>=0&&(!hoy||A.e==='nuevo'||A.e==='asignado'));
+ if(extra&&extra.cita&&extra.cita.dia===dia&&fi(extra)>=0)C.push(extra);
+ C.sort((a,b)=>fi(a)-fi(b)||(a===extra)-(b===extra)||a.t-b.t||(a.id<b.id?-1:1));
+ C.forEach(A=>{const f=cfg.franjas[fi(A)],v=etaMin(cfg,A.cli&&A.cli.dis),l=Math.max(f.de,cur+v),d=durEst(cfg,A);pon(A,l,l+d,v,{tarde:l>f.a});cur=l+d});
+ return out.sort((a,b)=>a.llega-b.llega||a.acaba-b.acaba)}
+/* las horas en que trabaja ese día, en tramos [de, a]: las de su horario; sin horarios, de la primera franja a la última */
+function turnosDe(cfg,tec,dia){const h=horarioDe(cfg,tec);if(h)return(h[diaSem(dia)]||[]).map(x=>[x[0],x[1]]);
+ if(cfg.conHorario||!cfg.franjas.length)return[];return[[Math.min.apply(null,cfg.franjas.map(f=>f.de)),Math.max.apply(null,cfg.franjas.map(f=>f.a))]]}
+/* los ratos libres de su día, desde «desde» (minutos del día): sus horas de trabajo menos lo que ocupan sus trabajos,
+   camino incluido. Solo los de 15 minutos o más. «sale»: si algún trabajo acabaría después de que termine su tramo de
+   trabajo (a la hora de comer o al final del día), la hora más tardía a la que acabaría; 0 si no */
+function libresDe(cfg,tec,dia,L,desde){const T=turnosDe(cfg,tec,dia),occ=(L||[]).map(x=>[x.llega-(x.viaje||0),x.acaba]).sort((a,b)=>a[0]-b[0]),out=[];
+ T.forEach(([de,a])=>{let c=Math.max(de,desde||0);occ.forEach(([x,y])=>{if(y<=c||x>=a)return;if(x-c>=15)out.push({de:c,a:x});c=Math.max(c,y)});if(a-c>=15)out.push({de:c,a})});
+ const tope=m=>{const b=T.find(x=>x[0]<=m&&m<x[1])||T.filter(x=>x[1]<=m).pop()||T[0];return b[1]};
+ const sale=T.length?(L||[]).reduce((s,x)=>!x.hecho&&x.acaba>tope(x.llega)?Math.max(s,x.acaba):s,0):0;
+ return{libres:out,sale}}
 
 /* ---------- la urgencia como extra: el suplemento ----------
    «tarifa.urgente» en los datos: la línea del catálogo del suplemento. Va en el presupuesto de partida de un aviso
@@ -599,5 +639,5 @@ function material(S,cfg,dia){const out=Object.create(null);
 function textoMaterial(cfg,g,dia){if(!g||!g.cosas||!g.cosas.length)return'';
  return'Material '+(dia?'para el '+fechaLarga(dia):'de los avisos sin día')+(g.n?', '+g.n:', sin técnico')+':\n'+g.cosas.map(c=>'- '+c.q+' × '+c.t+' ('+c.av.join(', ')+')').join('\n')+'\n'+cfg.N.nombre}
 
-g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,urgenciaAhora,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

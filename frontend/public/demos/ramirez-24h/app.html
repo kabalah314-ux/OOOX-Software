@@ -152,6 +152,33 @@ main>*:has(+ .accion){margin-bottom:18px}
 .tecd>h2{display:flex;align-items:center;gap:10px;font:700 1.25rem/1.1 var(--fd)}
 .tecd>.ln{margin-top:6px;color:var(--suave);font-size:.9375rem}
 .tecd.aus>.ln{color:var(--mal)}
+/* el día de cada técnico en una barra */
+.dia{position:relative;height:34px;border-radius:8px;background:repeating-linear-gradient(-45deg,var(--asfalto) 0 5px,var(--asfalto-2) 5px 10px);border:1px solid var(--linea)}
+.dia .dt{position:absolute;top:0;bottom:0;background:var(--asfalto-3)}
+.dia .dv{position:absolute;top:17px;height:4px;border-radius:2px;background:var(--tenue)}
+.dia .dj{position:absolute;top:4px;bottom:4px;min-width:4px;border-radius:5px;background:var(--agua);color:var(--negro);font:600 .8125rem/26px var(--fb);padding:0 6px;overflow:hidden;white-space:nowrap;text-decoration:none;container-type:inline-size}
+@container (max-width:50px){.dia .dj span{visibility:hidden}}
+.dia .dg{position:absolute;top:0;bottom:0;width:1px;background:var(--linea);opacity:.7}
+.dia .dj.u{background:var(--senal)}
+.dia .dj.h{background:var(--control);color:var(--texto)}
+.dia .dj.t{box-shadow:inset 0 0 0 2px var(--mal);background:var(--mal-f);color:var(--mal)}
+.dia .dj:focus-visible{outline:2px solid var(--texto);outline-offset:2px;z-index:2}
+.dia .dn{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--texto);border-radius:1px}
+.tab{margin-top:14px;padding:14px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2)}
+.tabf{display:grid;grid-template-columns:96px 1fr;align-items:center;gap:10px;margin-top:8px}
+.tabf.tabh{margin-top:0}
+.tabe{position:relative;height:18px}
+.tabe span{position:absolute;transform:translateX(-50%);font-size:.8125rem;color:var(--tenue);font-variant-numeric:tabular-nums}
+.tabn{display:flex;align-items:center;gap:8px;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabx{color:var(--tenue);font-size:.9375rem}
+.tabl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:12px;font-size:.8125rem;color:var(--suave)}
+.tabl i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:-8px}
+.tabl .lc{background:var(--agua)}.tabl .lu{background:var(--senal)}.tabl .lh{background:var(--control)}
+.tabl .lr{background:repeating-linear-gradient(-45deg,var(--asfalto) 0 3px,var(--control) 3px 5px)}
+.tab .ojo{margin-top:12px}
+@media (max-width:520px){.tabf{grid-template-columns:64px 1fr;gap:8px}.tabn .av{display:none}}
+.dtx{margin-top:6px;font-size:.9375rem;color:var(--suave)}
+.dno{margin-top:6px;font-size:.9375rem;color:var(--mal)}
 .tfr{display:grid;gap:6px;margin-top:10px}
 .tfr li{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;align-items:start}
 .tfr li>.num{padding-top:10px;font-size:.9375rem;color:var(--suave)}
@@ -385,7 +412,8 @@ function pista(A){const p=[['Recibido',A.t],['Asignado',A.tec&&A.e!=='nuevo'?1:0
 function fila(A,sel){const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=K.nomCli(A.cli)||'Aún sin nombre';let f2,fd;
  const cita=A.cita?'cita '+diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'';
  const pc=A.cita&&A.cita.ok===false?' · por confirmar':'';
- if(A.e==='nuevo'||A.e==='ausente'){f2=cita?quien+' · '+cita+pc:hace(A.t).replace(/^h/,'H').replace(/^a/,'A')+' · '+quien+' · '+ORIG[A.origen];fd='<span class="pill '+(A.e==='ausente'?'ausente':'nuevo')+'">'+(A.e==='ausente'?'No había nadie':!A.cli.tel?'Faltan datos':A.reasignar?'Reasignar':'Sin asignar')+'</span>'}
+ if(A.e==='nuevo'||A.e==='ausente'){const ua=!cita&&A.e==='nuevo'&&A.cli.tel?K.urgenciaAhora(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):null;
+  f2=cita?quien+' · '+cita+pc:hace(A.t).replace(/^h/,'H').replace(/^a/,'A')+' · '+quien+' · '+ORIG[A.origen]+(ua?' · antes llega '+cfg.tec[ua.tec].n+', en ~'+ua.de+' min':'');fd='<span class="pill '+(A.e==='ausente'?'ausente':'nuevo')+'">'+(A.e==='ausente'?'No había nadie':!A.cli.tel?'Faltan datos':A.reasignar?'Reasignar':'Sin asignar')+'</span>'}
  else if(A.e==='hecho'){f2=(t?t.n+' · ':'')+quien;fd=A.tot&&A.pago&&pro()?'<span class="num">'+K.eur(A.tot.total)+'</span>'+(A.pago.cobrado?'<span class="mini">'+(A.tot.total?PAGO[A.pago.modo]:'En su contrato')+'</span>':'<span class="pill cobro">Por cobrar</span>'):'<span class="pill hecho">Terminado</span>'}
  else if(A.e==='cancelado'){f2=quien;fd='<span class="pill">Cancelado</span>'}
  else{f2=(t?t.n+' · ':'')+(A.e==='camino'?'llega sobre las '+K.hora(A.eta):A.e==='curso'?'lleva '+dur(K.minutos(A,Date.now())):cita?cita+pc:'urgente, '+hace(A.t));fd='<span class="pill '+A.e+'">'+EST[A.e]+'</span>'}
@@ -423,9 +451,11 @@ function bGar(A){const G=A.gar0&&el(A.gar0);if(!G)return'';return'<p class="ojo"
 function bReparto(A){const r=K.resumen(S,cfg,Date.now()),rep=['nuevo','asignado','ausente'].includes(A.e);
  /* en una urgencia por repartir: en cuánto llegaría cada uno, y si llegaría tarde a su cita o se saldría de su horario */
  const LL=rep&&!A.cita&&!A.tec?K.llegadas(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):[],ll=id=>LL.find(x=>x.tec===id),pri=LL.find(x=>!x.choca&&!x.fuera);
+ /* en una cita por repartir: a qué hora llegaría cada uno, con lo que ya lleva ese día */
+ const enCita=id=>{if(!rep||!A.cita)return'';const x=K.agendaDe(S,cfg,id,A.cita.dia,A.cita.dia===K.madrid().date?Date.now():null,Object.assign({},A,{tec:id})).find(y=>y.id===A.id);return x?(x.tarde?' · no le da tiempo en esa franja':' · llegaría hacia las '+K.hhmm(x.llega)):''};
  const eta=id=>{const x=ll(id);if(!x)return'';return' · llega en ~'+x.llega+' min'+(x.choca?' (y llegaría tarde a su cita)':x.fuera?' (acabaría fuera de su horario)':pri&&pri.tec===id?' · el que antes llega':'')};
  return'<section class="blq"><h2>'+(A.tec?'Lo lleva':'¿Quién va?')+'</h2>'+(A.reasignar&&!A.tec?'<p class="ojo" style="margin:0 0 10px">Quien lo llevaba ya no puede ir. Elige a otra persona.</p>':'')+'<div class="tecs">'+N.tecnicos.map(t=>{const x=r.tec[t.id],B=x.aviso&&el(x.aviso),no=rep&&A.tec!==t.id?K.puedeIr(S,cfg,A,t.id,Date.now()):'';
-  return'<button class="tec'+(no?' no':'')+'" data-a="asignar" data-id="'+A.id+'" data-tec="'+t.id+'" aria-pressed="'+(A.tec===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n)+' '+esc(t.ap)+'</b><small>'+(no&&NOVA[no]?NOVA[no](A):x.e==='curso'?'Trabajando en '+esc(barrio(B))+', lleva '+dur(K.minutos(B,Date.now())):x.e==='camino'?'De camino a '+esc(barrio(B)):'Libre ahora')+' · '+(x.hoy+x.hechos)+' hoy'+(no?'':eta(t.id))+'</small></span>'+(A.tec===t.id?'<span class="va">Asignado</span>':'')+'</button>'}).join('')+'</div></section>'}
+  return'<button class="tec'+(no?' no':'')+'" data-a="asignar" data-id="'+A.id+'" data-tec="'+t.id+'" aria-pressed="'+(A.tec===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n)+' '+esc(t.ap)+'</b><small>'+(no&&NOVA[no]?NOVA[no](A):x.e==='curso'?'Trabajando en '+esc(barrio(B))+', lleva '+dur(K.minutos(B,Date.now())):x.e==='camino'?'De camino a '+esc(barrio(B)):'Libre ahora')+' · '+(x.hoy+x.hechos)+' hoy'+(no?'':eta(t.id)+enCita(t.id))+'</small></span>'+(A.tec===t.id?'<span class="va">Asignado</span>':'')+'</button>'}).join('')+'</div></section>'}
 function bCita(A){const c=A.cita,hoy=K.madrid().date,otras=c&&A.vale?A.vale.filter(v=>!(v.dia===c.dia&&v.fr===c.fr)&&v.dia>=hoy):[];
  return'<section class="blq"><h2>Cuándo</h2><div class="cita"><p>'+(c?'Cita '+diaTxt(c.dia)+', '+frTxt(c.fr)+'. Tarifa normal.':'Urgente: cuanto antes.'+(K.tarifaDe(cfg,A)?' Tarifa de urgencia.':' Tarifa normal.')+(cfg.urge&&A.av!==K.REV?(K.gratisDe(A).includes(cfg.urge)?' Sin suplemento de urgencia: va en su contrato.':' Suplemento de urgencia de '+K.eur(cfg.cat[cfg.urge].p10)+', en el presupuesto.'):''))+'</p><button class="btn peq" data-a="cita" data-id="'+A.id+'">'+(c?'Cambiar':'Dar cita')+'</button></div>'+
   (c&&c.ok===false?'<p class="ojo" id="porConf">Pendiente de confirmar con el cliente: esta franja no la eligió él. <button class="txt" data-a="confirma" data-id="'+A.id+'">Ya está hablado</button></p>':'')+
@@ -566,17 +596,45 @@ function vAgenda(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
  fr.forEach(f=>{const C=L.filter(a=>a.cita.fr===f.id);h+='<section class="fr"><h3 class="num">'+K.franjaTxt(f).replace(/^d/,'D')+' <small>'+C.length+' de '+f.tope+'</small></h3>'+(C.length?'<ul class="lista" style="margin-bottom:8px">'+C.map(a=>fila(a,'')).join('')+'</ul>':'')+'<div style="display:grid;gap:6px">'+huecoAg(f,true)+'</div></section>'});
  return h+'</div>'}
 
+/* ===== el tablero del día: todo el equipo en el mismo eje de horas ===== */
+/* lo de un técnico ese día: sus horas, sus trabajos (desde ahora, si es hoy) y sus ratos libres */
+function diaTec(tec,d){const hoy=K.madrid().date,ahora=Date.now(),n=K.madrid(ahora),T=K.turnosDe(cfg,tec,d),L=K.agendaDe(S,cfg,tec,d,d===hoy?ahora:null),ya=d===hoy?n.min:0;
+ return{T,L,R:K.libresDe(cfg,tec,d,L,ya),ya,hoy:d===hoy,n}}
+const hh0=m=>K.hhmm(m).replace(/^0/,'');
+/* la barra de un técnico entre a0 y a1 (minutos del día): lo rayado es cuando no trabaja; cada trabajo, de lo que se
+   espera que dure, con el camino antes; hoy, la hora de ahora */
+function barraDia(X,a0,a1){const W=a1-a0||1,pc=m=>((m-a0)/W*100).toFixed(2)+'%',an=m=>(m/W*100).toFixed(2)+'%';
+ let h='<div class="dia">'+X.T.map(x=>'<i class="dt" aria-hidden="true" style="left:'+pc(x[0])+';width:'+an(x[1]-x[0])+'"></i>').join('');
+ for(let m=Math.ceil(a0/60)*60+60;m<a1;m+=60)h+='<i class="dg" aria-hidden="true" style="left:'+pc(m)+'"></i>';
+ X.L.forEach(x=>{const A=el(x.id),av=A&&cfg.av[A.av],q=(av?av.c:'Trabajo')+(A&&barrio(A)?' en '+barrio(A):'')+', de '+hh0(x.llega)+' a '+hh0(x.acaba)+(x.hecho?', hecho':x.urg?', urgente':'')+(x.tarde?', llegaría tarde':'');
+  if(x.viaje&&!x.hecho)h+='<i class="dv" aria-hidden="true" style="left:'+pc(x.llega-x.viaje)+';width:'+an(x.viaje)+'"></i>';
+  h+='<a class="dj'+(x.urg?' u':'')+(x.hecho?' h':'')+(x.tarde?' t':'')+'" href="#/aviso/'+x.id+'" style="left:'+pc(x.llega)+';width:'+an(Math.max(x.acaba-x.llega,4))+'" aria-label="'+esc(q)+'" title="'+esc(q)+'"><span aria-hidden="true">'+esc(av?av.c:'')+'</span></a>'});
+ if(X.hoy&&X.n.min>a0&&X.n.min<a1)h+='<i class="dn" aria-hidden="true" style="left:'+pc(X.n.min)+'"></i>';
+ return h+'</div>'}
+/* en palabras: cuántos trabajos, sus ratos libres y lo que no cuadra */
+function textoDia(X){const pend=X.L.filter(x=>!x.hecho),tar=X.L.find(x=>x.tarde),lib=X.R.libres.slice(0,3).map(x=>(x.de===X.ya?'ya':'de '+hh0(x.de))+' a '+hh0(x.a));
+ const ln=(pend.length?(pend.length===1?'1 trabajo':pend.length+' trabajos')+(X.hoy?' por hacer':'')+'. ':'Sin trabajos'+(X.hoy&&X.L.length?' por hacer':'')+'. ')+(lib.length?'Libre '+lib.join(', ').replace(/, ([^,]*)$/,' y $1')+(X.R.libres.length>3?' y otros ratos':'')+'.':'Sin ratos libres.');
+ return'<p class="dtx">'+ln+'</p>'+(tar?'<p class="dno">No le da tiempo a llegar a la cita '+frTxt(tar.fr)+': llegaría hacia las '+hh0(tar.llega)+'. Pásala a otra persona o a otra franja.</p>':'')+
+  (X.R.sale?'<p class="dno">Acabaría hacia las '+hh0(X.R.sale)+', después de su hora.</p>':'')}
+/* todo el equipo ese día, una fila por técnico, y hoy quién cubriría una urgencia */
+function bTablero(d){const F=N.tecnicos.map(t=>({t,u:K.ausente(S,t.id,d),X:diaTec(t.id,d)})),M=[];
+ F.forEach(f=>{f.X.T.forEach(x=>M.push(x[0],x[1]));f.X.L.forEach(x=>M.push(x.llega-(x.viaje||0),x.acaba))});if(!M.length)return'';
+ const a0=Math.floor(Math.min.apply(null,M)/60)*60,a1=Math.ceil(Math.max.apply(null,M)/60)*60,W=a1-a0,pc=m=>((m-a0)/W*100).toFixed(2)+'%';
+ let h='<section class="tab" aria-label="El día de un vistazo"><div class="tabf tabh" aria-hidden="true"><span></span><div class="tabe">';
+ for(let m=a0;m<=a1;m+=120)h+='<span style="left:'+pc(m)+(m===a0?';transform:none':m===a1?';transform:translateX(-100%)':'')+'">'+(m/60)+'</span>';
+ h+='</div></div>'+F.map(f=>'<div class="tabf"><span class="tabn">'+ava(f.t.id)+esc(f.t.n)+'</span>'+(f.u?'<p class="tabx">Ausente</p>':!f.X.T.length&&!f.X.L.length?'<p class="tabx">No trabaja</p>':barraDia(f.X,a0,a1))+'</div>').join('');
+ return h+'<p class="tabl" aria-hidden="true"><i class="lc"></i>Cita<i class="lu"></i>Urgencia<i class="lh"></i>Hecho<i class="lr"></i>No trabaja</p>'+(d===K.madrid().date?bUrgAhora():'')+'</section>'}
 /* ===== centralita: el equipo, día a día. Quién trabaja, qué lleva cada uno y quién falta ===== */
 function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora);if(!dias.includes(d))d=dias[0];
  const fr=K.franjasDe(S,cfg,d,ahora),L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),sin=L.filter(a=>!a.tec),ds=new Date(d+'T12:00:00Z').getUTCDay();
  const chip=a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+(barrio(a)?' · '+esc(barrio(a)):'')+'</b><small>'+esc(K.nomCli(a.cli)||'Aún sin nombre')+(a.cita.ok===false?' · por confirmar':'')+'</small></a>';
  const aus=(S.ausencias||[]).filter(u=>u.a>=hoy).sort((a,b)=>a.de<b.de?-1:a.de>b.de?1:0),MAT=K.material(S,cfg,d);
  let h='<div class="cab"><div><h1>Equipo</h1><p class="sub">Quién trabaja '+diaTxt(d)+' y qué lleva cada uno.</p></div><button class="btn pri peq" data-a="ausencia" data-dia="'+d+'">'+I.mas+'Ausencia</button></div>'+segAg('equipo',d)+bAlertas();
- h+=navDias('equipo',dias,d,x=>{const n=N.tecnicos.filter(t=>K.ausente(S,t.id,x)).length;return n?(n===1?'falta 1':'faltan '+n):'todos'})+'<div class="tecds">';
+ h+=navDias('equipo',dias,d,x=>{const n=N.tecnicos.filter(t=>K.ausente(S,t.id,x)).length;return n?(n===1?'falta 1':'faltan '+n):'todos'})+bTablero(d)+'<div class="tecds">';
  if(sin.length)h+='<section class="tecd"><h2>Sin asignar</h2><p class="ln">'+(sin.length===1?'1 cita espera técnico.':sin.length+' citas esperan técnico.')+'</p><ul class="tfr">'+fr.filter(f=>sin.some(a=>a.cita.fr===f.id)).map(f=>'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+sin.filter(a=>a.cita.fr===f.id).map(chip).join('')+'</div></li>').join('')+'</ul>'+bMat(MAT.find(g=>!g.tec),d)+'</section>';
  N.tecnicos.forEach(t=>{const u=(S.ausencias||[]).find(x=>x.tec===t.id&&x.de<=d&&x.a>=d),hor=t.horario||N.horario||null,tr=hor?(hor[ds]||[]):null;
   const linea=u?'Ausente'+(u.motivo?': '+esc(u.motivo.toLowerCase()):'')+(u.a>d?'. Hasta '+diaTxt(u.a):'')+'.':!tr?'Sin horario puesto: cuenta para todas las franjas.':tr.length?tr.map(x=>K.franjaTxt({de:x[0],a:x[1]})).join(' y ').replace(/^d/,'D')+'.':'No trabaja este día.';
-  h+='<section class="tecd'+(u?' aus':'')+'" data-tec="'+t.id+'"><h2>'+ava(t.id)+esc(t.n)+' '+esc(t.ap)+'</h2><p class="ln">'+linea+'</p><ul class="tfr">'+fr.map(f=>{const C=L.filter(a=>a.tec===t.id&&a.cita.fr===f.id),si=!u&&K.trabaja(cfg,t.id,d,f.de,f.a);
+  h+='<section class="tecd'+(u?' aus':'')+'" data-tec="'+t.id+'"><h2>'+ava(t.id)+esc(t.n)+' '+esc(t.ap)+'</h2><p class="ln">'+linea+'</p>'+(u?'':textoDia(diaTec(t.id,d)))+'<ul class="tfr">'+fr.map(f=>{const C=L.filter(a=>a.tec===t.id&&a.cita.fr===f.id),si=!u&&K.trabaja(cfg,t.id,d,f.de,f.a);
    return'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+C.map(chip).join('')+(u?'<p class="eqn">Ausente</p>':!si?'<p class="eqn">No trabaja</p>':C.length<cfg.porFranja||!cfg.conHorario&&!C.length?'<p class="hueco">Libre</p>':'')+'</div></li>'}).join('')+'</ul>'+bMat(MAT.find(g=>g.tec===t.id),d)+
    '<div class="acts">'+(u?'<button class="btn peq" data-a="quitaAus" data-aus="'+u.id+'">Quitar la ausencia</button>':'<button class="btn peq" data-a="ausencia" data-tec="'+t.id+'" data-dia="'+d+'">No viene</button>')+'</div></section>'});
  h+='</div><section class="sec"><h2>Ausencias apuntadas <span class="n">'+aus.length+'</span></h2>'+(aus.length?'<ul class="lista">'+aus.map(u=>'<li class="filau"><span><b>'+esc(cfg.tec[u.tec]?cfg.tec[u.tec].n:u.tec)+'</b><small>'+(u.de===u.a?diaTxt(u.de).replace(/^e/,'E').replace(/^h/,'H').replace(/^m/,'M'):'Del '+K.fechaLarga(u.de)+' al '+K.fechaLarga(u.a))+(u.motivo?' · '+esc(u.motivo):'')+'</small></span><button class="btn peq" data-a="quitaAus" data-aus="'+u.id+'">Quitar</button></li>').join('')+'</ul>':'<p class="hueco">Nadie tiene bajas ni vacaciones apuntadas.</p>')+

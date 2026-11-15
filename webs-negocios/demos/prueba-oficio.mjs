@@ -904,7 +904,9 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   const hq = (a, q) => K.aplicar(SQ, cq, a, q, tz += M), fr = cq.franjas.find(f => f.de === 900), cc = hq({ tipo: 'pedir', av: 'grifo', cli: cli(2), cita: { dia: K.madrid(tz).date, fr: fr.id } }, C).id;
   hq({ tipo: 'asignar', id: cc, tec: 'omar' }, C); const uj = hq({ tipo: 'pedir', av: 'fuga', cli: cli(5) }, C).id; hq({ tipo: 'asignar', id: uj, tec: 'jordi' }, C);
   const tq = Date.parse('2026-11-10T00:00:00+01:00') + (fr.de - 70) * M, Lq = K.llegadas(SQ, cq, dP, tq, 'termo'), lo = Lq.find(x => x.tec === 'omar'), lj = Lq.find(x => x.tec === 'jordi');
-  es(lo.choca === cc && lo.llega < lj.llega && Lq[Lq.length - 1].tec === 'omar' && !Lq[0].choca && !lj.fuera, 'Omar tiene una cita dentro de un rato: aunque llegaría antes que Jordi, con una urgencia de por medio llegaría tarde a la cita, así que va al final y se avisa');
+  es(!lo.choca && Lq.indexOf(lo) < Lq.indexOf(lj) && !lj.fuera, 'Omar tiene una cita esta tarde, pero con la urgencia aún llegaría dentro de su franja (el cliente la sabe): puede ir, y antes que Jordi, que tiene otra en cola');
+  const tq2 = Date.parse('2026-11-10T00:00:00+01:00') + (fr.a - 60) * M, Lq2 = K.llegadas(SQ, cq, dP, tq2, 'termo'), lo2 = Lq2.find(x => x.tec === 'omar');
+  es(lo2.choca === cc && Lq2[0].tec === 'laia' && !Lq2[0].choca && Lq2.indexOf(lo2) > 0, 'a una hora de que acabe la franja de su cita, con la urgencia ya no llegaría a tiempo: va detrás de quien sí puede');
   const tf = Date.parse('2026-11-10T00:00:00+01:00') + (NP.tecnicos.find(x => x.id === 'jordi').horario['2'][1][1] - 30) * M, Lf = K.llegadas(SP, cp, dP, tf, 'fuga');
   es(Lf.find(x => x.tec === 'jordi').fuera === true && Lf.find(x => x.tec === 'omar').fuera === false, 'a media hora de salir, Jordi acabaría fuera de su horario; Omar, que sale más tarde, no');
   const noche = Date.parse('2026-11-10T22:30:00+01:00');
@@ -944,6 +946,61 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
     hb({ tipo: 'empezar', id: x, pres: { lineas: [{ k: 'grifo' }], firma: F } }, T('jordi')); hb({ tipo: 'terminar', id: x, modo: 'efectivo', firma: F }, T('jordi'));
     const L = K.llegadas(SB, cfg, dis, tb, 'fuga');
     es(L[0].llega === L[1].llega && L[0].tec === 'laia' && L.find(y => y.tec === 'jordi').hoy === 1, 'a igual tiempo, va antes quien menos trabajos lleva hoy: así se reparte') }
+}
+
+// 44. el día de cada técnico (15-11-2026): a qué hora llega a cada trabajo y a qué hora acaba, sus ratos libres y si
+//     se saldría de su hora. Es lo que pinta el tablero del día de la centralita
+{
+  const NA = JSON.parse(JSON.stringify(PUB)); NA.citas = { porFranja: 5, reserva: 0 }; const ca = K.cfgDe(NA);
+  const SA = K.nuevo(); let ta = Date.parse('2026-11-09T09:00:00Z');   // el lunes se piden citas para el martes
+  const ha = (a, q) => K.aplicar(SA, ca, a, q, ta += M), dia = '2026-11-10', d0 = Object.keys(ca.zonas.dis)[0], v = K.etaMin(ca, d0);
+  const cl = n => ({ nombre: 'Día', apellidos: 'Prueba', tel: '6000004' + String(n).padStart(2, '0'), dir: 'C/ Día ' + n, cp: Object.keys(ca.zonas.cp).find(c => ca.zonas.cp[c] === d0) });
+  const f = id => ca.franjas.find(x => x.id === id), g = id => SA.avisos.find(a => a.id === id), de = id => K.durEst(ca, g(id));
+  const cita = (n, av, fr, tec) => { const r = ha({ tipo: 'pedir', av, cli: cl(n), cita: { dia, fr } }, C); if (tec) ha({ tipo: 'asignar', id: r.id, tec }, C); return r.id };
+  const a1 = cita(1, 'grifo', 'f1', 'omar'), a2 = cita(2, 'fuga', 'f1', 'omar'), a3 = cita(3, 'termo', 'f2', 'omar'), x1 = cita(4, 'grifo', 'f1', 'laia');
+  let L = K.agendaDe(SA, ca, 'omar', dia);
+  const i1 = L.find(x => x.id === a1), i2 = L.find(x => x.id === a2), i3 = L.find(x => x.id === a3);
+  es(L.length === 3 && i1.llega === f('f1').de && i1.acaba === f('f1').de + de(a1) && i2.llega === i1.acaba + v && i2.acaba === i2.llega + de(a2) && i2.viaje === v
+    && i3.llega === Math.max(f('f2').de, i2.acaba + v) && !L.some(x => x.tarde || x.hecho || x.urg) && L.every(x => x.fr === g(x.id).cita.fr),
+    'las citas de un técnico, en el orden de sus franjas y de lo que se pidió antes: a la primera llega al empezar la franja; a cada una, cuando acaba la anterior y hace el camino');
+  const a4 = cita(5, 'termo', 'f1', 'omar'), a5 = cita(6, 'fuga', 'f1', 'omar'); L = K.agendaDe(SA, ca, 'omar', dia);
+  const i4 = L.find(x => x.id === a4), i5 = L.find(x => x.id === a5), j3 = L.find(x => x.id === a3);
+  es(i4.llega === i2.acaba + v && i5.llega === i4.acaba + v && i5.tarde === true && j3.llega === Math.max(f('f2').de, i5.acaba + v) && j3.llega > i3.llega,
+    'una cita más en la misma franja va detrás de las que ya tenía y empuja las de la franja siguiente; si ya no le da tiempo a llegar dentro de su franja, sale «tarde»');
+  const ex = { id: 'nueva', av: 'grifo', cli: { dis: d0 }, cita: { dia, fr: 'f2' } }, Lx = K.agendaDe(SA, ca, 'omar', dia, null, ex), ix = Lx.find(x => x.id === 'nueva');
+  es(Lx.length === L.length + 1 && ix.llega === Lx.find(x => x.id === a3).acaba + v && L.every(y => Lx.find(x => x.id === y.id).llega === y.llega),
+    'una cita que se está pidiendo va la última de su franja: no mueve las que ya había');
+  const Lm = K.agendaDe(SA, ca, 'omar', dia, null, Object.assign({}, g(a2), { cita: { dia, fr: 'f2' } }));
+  es(Lm.filter(x => x.id === a2).length === 1 && Lm.find(x => x.id === a2).fr === 'f2' && Lm.find(x => x.id === a4).llega === i1.acaba + v && Lm.find(x => x.id === a2).llega === Lm.find(x => x.id === a3).acaba + v,
+    'para cambiar una cita de franja se mira como si ya estuviera en la nueva: deja su sitio en la de antes');
+  es(ha({ tipo: 'cancelar', id: a5, motivo: 'Ya no hace falta' }, C).ok && !K.agendaDe(SA, ca, 'omar', dia).some(x => x.id === a5) && K.agendaDe(SA, ca, 'omar', '2026-11-11').length === 0
+    && K.agendaDe(SA, ca, 'laia', dia).map(x => x.id).join() === x1, 'no cuentan las citas canceladas, las de otro día ni las de otro técnico');
+  // hoy, desde ahora: lo hecho va donde pasó; el trabajo de ahora sigue hasta que se espera que acabe; detrás, la cola y las citas
+  ta = Date.parse('2026-11-10T08:00:00Z');   // martes, 9:00 en Madrid
+  const u0 = ha({ tipo: 'pedir', av: 'grifo', cli: cl(10) }, C).id; ha({ tipo: 'asignar', id: u0, tec: 'jordi' }, C); ha({ tipo: 'voy', id: u0 }, T('jordi'));
+  ha({ tipo: 'empezar', id: u0, pres: { lineas: [{ k: 'grifo' }], firma: F } }, T('jordi')); ta += 40 * M; ha({ tipo: 'terminar', id: u0, modo: 'efectivo', firma: F }, T('jordi'));
+  const u1 = ha({ tipo: 'pedir', av: 'fuga', cli: cl(11) }, C).id; ha({ tipo: 'asignar', id: u1, tec: 'jordi' }, C); ha({ tipo: 'voy', id: u1 }, T('jordi'));
+  ta += 20 * M; ha({ tipo: 'empezar', id: u1, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], firma: F } }, T('jordi'));
+  const u2 = ha({ tipo: 'pedir', av: 'grifo', cli: cl(12) }, C).id; ha({ tipo: 'asignar', id: u2, tec: 'jordi' }, C); const c9 = cita(13, 'grifo', 'f3', 'jordi');
+  const tN = ta + 15 * M, n = K.madrid(tN), LJ = K.agendaDe(SA, ca, 'jordi', dia, tN), h = id => LJ.find(x => x.id === id);
+  es(h(u0).hecho && h(u0).llega === K.madrid(g(u0).ini).min && h(u0).acaba === K.madrid(g(u0).fin).min, 'hoy, lo ya hecho va a la hora en que pasó');
+  es(!h(u1).hecho && h(u1).urg && h(u1).acaba === n.min + Math.max(5, K.durEst(ca, g(u1)) - K.minutos(g(u1), tN)), 'el trabajo de ahora sigue hasta que se espera que acabe');
+  es(h(u2).llega === h(u1).acaba + v && h(u2).acaba === h(u2).llega + K.durEst(ca, g(u2)) && h(c9).llega === Math.max(f('f3').de, h(u2).acaba + v) && !h(c9).tarde && LJ.length === 4,
+    'detrás, la urgencia que tiene en cola con su camino, y después sus citas de hoy');
+  es(K.agendaDe(SA, ca, 'jordi', dia).map(x => x.id).join() === c9, 'sin la hora de ahora, solo el plan de sus citas');
+  { const tX = Date.parse('2026-11-10T00:00:00+01:00') + 650 * M;   // a las 10:50, Omar ya no llega a sus citas de la mañana: eso no es por la urgencia
+    es(K.agendaDe(SA, ca, 'omar', dia, tX).some(x => x.tarde) && K.chocaUrg(SA, ca, 'omar', tX, d0, 'grifo') === '', 'si una cita ya iba tarde sin la urgencia, la urgencia no es lo que la deja tirada') }
+  // sus horas de trabajo y sus ratos libres
+  es(JSON.stringify(K.turnosDe(ca, 'omar', dia)) === JSON.stringify(NA.tecnicos.find(x => x.id === 'omar').horario['2']) && K.turnosDe(ca, 'omar', '2026-11-15').length === 0,
+    'sus horas de trabajo de ese día salen de su horario; un domingo, ninguna');
+  const NS = JSON.parse(JSON.stringify(PUB)); NS.tecnicos.forEach(x => { delete x.horario }); delete NS.horario; const cs = K.cfgDe(NS);
+  es(JSON.stringify(K.turnosDe(cs, 'omar', dia)) === JSON.stringify([[Math.min(...cs.franjas.map(x => x.de)), Math.max(...cs.franjas.map(x => x.a))]]), 'sin horarios, de la primera franja a la última');
+  const Lz = [{ llega: 500, acaba: 560, viaje: 20 }, { llega: 570, acaba: 600, viaje: 5 }, { llega: 800, acaba: 870, viaje: 20 }], Z = K.libresDe(ca, 'laia', dia, Lz);
+  es(JSON.stringify(Z.libres) === JSON.stringify([{ de: 600, a: 780 }, { de: 900, a: 1200 }]) && Z.sale === 870,
+    'sus ratos libres: sus horas menos sus trabajos, con el camino; los de menos de un cuarto de hora no cuentan; y si un trabajo acaba después de su hora (aquí, la de comer), a qué hora');
+  es(K.libresDe(ca, 'laia', dia, Lz, 700).libres[0].de === 700 && K.libresDe(ca, 'laia', dia, [{ llega: 820, acaba: 860, viaje: 0, hecho: true }, { llega: 1100, acaba: 1190, viaje: 10 }]).sale === 0
+    && K.libresDe(ca, 'laia', dia, [{ llega: 1150, acaba: 1230, viaje: 10 }]).sale === 1230, 'desde la hora de ahora; lo ya hecho no cuenta para salirse de la hora; acabar después de la hora de salir, sí');
+  es(JSON.stringify(K.libresDe(ca, 'laia', dia, K.agendaDe(SA, ca, 'laia', dia)).libres) === JSON.stringify([{ de: f('f1').de + de(x1), a: 840 }, { de: 900, a: 1200 }]), 'con una cita a primera hora, libre desde que acaba hasta la hora de comer, y toda la tarde');
 }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
