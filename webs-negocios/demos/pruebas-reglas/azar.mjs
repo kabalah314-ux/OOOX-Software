@@ -50,7 +50,11 @@ const trabI = (N, tec, dia, de, a) => { const x = N.tecnicos.find(z => z.id === 
 const ausI = (S, tec, dia) => (S.ausencias || []).some(u => u.tec === tec && u.de <= dia && u.a >= dia);
 // lo que cabe de verdad en una franja (el tope de la oficina) y lo que se ofrece al cliente (eso menos lo guardado para urgencias)
 const topeI = (N, S, dia, f) => conH(N) ? N.tecnicos.filter(x => trabI(N, x.id, dia, f.de, f.a) && !ausI(S, x.id, dia)).length * ((N.citas && N.citas.porFranja) || 1) : N.cupo;
-const capI = (N, S, dia, f) => conH(N) ? Math.max(0, topeI(N, S, dia, f) - ((N.citas && N.citas.reserva) || 0)) : N.cupo;
+// lo que se guarda para urgencias ese día: la reserva; si el dueño ha dicho que no los días que falta alguien, esos días nada
+const trabDiaI = (N, tec, dia) => { const x = N.tecnicos.find(z => z.id === tec), h = x ? (x.horario || N.horario || null) : null; return h ? (h[diaSemI(dia)] || []).length > 0 : !conH(N) };
+const resI = (N, S, dia) => { const r = (N.citas && N.citas.reserva) || 0; if (!r || !(N.citas && N.citas.reservaSiFalta === false)) return r;
+  return N.tecnicos.some(x => ausI(S, x.id, dia) && trabDiaI(N, x.id, dia)) ? 0 : r };
+const capI = (N, S, dia, f) => conH(N) ? Math.max(0, topeI(N, S, dia, f) - resI(N, S, dia)) : N.cupo;
 const cap0 = (N, S, A, f) => capI(N, S, A.cita.dia, f) - (enFr(S, A.cita.dia, A.cita.fr) - 1) > 0;
 const enFr = (S, dia, fr) => S.avisos.filter(a => a.cita && a.cita.dia === dia && a.cita.fr === fr && a.e !== 'cancelado').length;
 const laborI = (N, f) => { const w = diaSemI(f); return w >= 1 && w <= 5 && !(N.festivos || []).includes(f) };
@@ -227,7 +231,7 @@ function horarios(W, tipo, A, a, q, t) {
     if (f.por.includes('margen') && !(d.dia === hoy && f.de < min + 120)) rota('margen-bien-dicho', d.dia + ' ' + f.id);
     // la reserva para urgencias: por número, solo cuando ya no quedan huecos para el cliente; por tiempo, solo cuando los
     // técnicos de esa franja sin ninguna cita no pasan de los que se guardan (si hubiera más, el cliente cabría en uno libre)
-    if (f.por.includes('reserva') && (cfg.porTiempo ? sinCitaEn(d.dia, f) > cfg.reserva : capI(N, S, d.dia, frDe(f.id)) - n > 0)) rota('reserva-bien-dicha', d.dia + ' ' + f.id + ' · libres ' + f.libres + '/' + f.libresOf + ', sin cita ' + (cfg.porTiempo ? sinCitaEn(d.dia, f) : '-'))}) });
+    if (f.por.includes('reserva') && (cfg.porTiempo ? sinCitaEn(d.dia, f) > resI(N, S, d.dia) : capI(N, S, d.dia, frDe(f.id)) - n > 0)) rota('reserva-bien-dicha', d.dia + ' ' + f.id + ' · libres ' + f.libres + '/' + f.libresOf + ', sin cita ' + (cfg.porTiempo ? sinCitaEn(d.dia, f) : '-'))}) });
   // 2. una cita nueva o cambiada nunca pasa de lo que cabe en ese momento: para el cliente, lo que se le ofrece; para la oficina, el tope
   if ((tipo === 'pedir' || tipo === 'mover') && A && A.cita) { const esOf = !!q && q.rol === 'centralita', f = frDe(A.cita.fr), cap = esOf ? topeI(N, S, A.cita.dia, f) : capI(N, S, A.cita.dia, f), n = enFr(S, A.cita.dia, A.cita.fr);
     if (n > cap) rota('cita-nueva-cabe', A.cita.dia + ' ' + A.cita.fr + ': ' + n + ' citas y caben ' + cap + (esOf ? ' (oficina)' : ''));
@@ -496,7 +500,7 @@ function variantes(N) {
   const todo = { 1: [[0, 1440]], 2: [[0, 1440]], 3: [[0, 1440]], 4: [[0, 1440]], 5: [[0, 1440]] };
   const sinH = X => { X.tecnicos.forEach(x => { delete x.horario; delete x.guardia }); delete X.horario; delete X.citas; return X };
   // el mismo negocio con otros turnos: uno a jornada entera, otro solo mañanas de lunes a jueves, otro entero y de guardia
-  const tur = sinH(clon(N)); tur.id += '-turnos'; delete tur.cupo; tur.citas = { porFranja: 1, reserva: tur.tecnicos.length > 2 ? 1 : 0 };
+  const tur = sinH(clon(N)); tur.id += '-turnos'; delete tur.cupo; tur.citas = { porFranja: 1, reserva: tur.tecnicos.length > 2 ? 1 : 0, reservaSiFalta: false };   // y aquí el dueño no guarda a nadie los días que falta alguien
   const de = Math.min(...N.franjas.map(f => f.de)), a = Math.max(...N.franjas.map(f => f.a)), mitad = N.franjas[Math.floor((N.franjas.length - 1) / 2)].a;
   const LV = t => ({ 1: t, 2: t, 3: t, 4: t, 5: t });
   tur.tecnicos.forEach((x, i) => { if (i % 3 === 1) x.horario = { 1: [[de, mitad]], 2: [[de, mitad]], 3: [[de, mitad]], 4: [[de, mitad]] }; else { x.horario = LV([[de, a]]); if (i % 3 === 2) x.guardia = 1 } });

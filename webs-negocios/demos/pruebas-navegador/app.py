@@ -123,9 +123,17 @@ async def main():
         c = await oye(await ctx.new_page(), 'centralita')
         await c.set_viewport_size({'width': 1280, 'height': 860})
         await c.goto(B + 'app.html'); await c.wait_for_selector('.fila')
-        es(await c.locator(f'a.fila[href="#/aviso/{idc}"]').count() == 1, 'centralita: la cita con foto está en la bandeja')
+        # la bandeja enseña las citas sin técnico de hoy y del próximo día de trabajo; las de más adelante, la agenda de su día
+        dc = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idc}').cita.dia")
+        cerca = await c.evaluate(f"(()=>{{const K=Oficio.K,cfg=Oficio.cfg;let d=K.masDias(K.madrid(Date.now()).date,1);for(let i=0;i<7&&!K.laborable(cfg,d);i++)d=K.masDias(d,1);return '{dc}'<=d}})()")
+        if not cerca:
+            es(await c.locator(f'a.mas[href^="#/agenda/"]').count() == 1, 'centralita: en la bandeja, «más adelante» lleva a la agenda')
+            await c.goto(B + f'app.html#/agenda/{dc}'); await c.wait_for_selector(f'a[href="#/aviso/{idc}"]')
+        es(await c.locator(f'a[href="#/aviso/{idc}"]').count() == 1, 'centralita: la cita con foto está en la bandeja' + ('' if cerca else ' (en la agenda de su día, que va después de mañana)'))
         # en pantalla ancha la bandeja ya enseña un aviso abierto: hay que esperar a que el abierto sea ESTE
-        await c.click(f'a.fila[href="#/aviso/{idc}"]'); await c.wait_for_function("id=>location.hash.endsWith(id)&&document.querySelector('main').innerText.includes(id+' ·')", arg=idc)
+        if cerca: await c.click(f'a[href="#/aviso/{idc}"]')
+        else: await c.goto(B + f'app.html#/aviso/{idc}')
+        await c.wait_for_function("id=>location.hash.endsWith(id)&&document.querySelector('main').innerText.includes(id+' ·')", arg=idc)
         txt = await c.locator('main').inner_text()
         es('<img src=x' in txt and '<b>hola</b>' in txt, 'centralita: lo raro que escribe el cliente se ve como texto')
         es(await c.evaluate('window.__x') is None, 'centralita: y no se ejecuta')
@@ -140,9 +148,10 @@ async def main():
         despues = (await aviso(c, idc))['cita']
         es(despues and despues != antes, f'centralita: cambia la cita ({antes} → {despues})')
         es(await c.locator('dialog[open]').count() == 0, 'centralita: la hoja de la cita se cierra al guardar')
-        n_msg = await c.locator('[data-a=msg]').count()
+        es(await c.locator('#msgPend [data-a=msg]').count() == 1, 'centralita: arriba del aviso sale el mensaje que falta mandar')
+        n_msg = await c.locator('.msgs [data-a=msg]').count()   # la lista de mensajes del aviso (el de arriba es el primero de ella)
         for i in range(n_msg):
-            await c.locator('[data-a=msg]').first.click(); await c.wait_for_selector('.wa-b')
+            await c.locator('.msgs [data-a=msg]').first.click(); await c.wait_for_selector('.wa-b')
             w = await c.locator('.wa-b').inner_text()
             es(not re.search(r'undefined|NaN|null', w) and len(w) > 30, f'centralita: el mensaje {i + 1} está completo')
             await c.click('#mOk'); await c.wait_for_timeout(250)

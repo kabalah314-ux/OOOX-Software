@@ -47,12 +47,13 @@ main>*:has(+ .accion){margin-bottom:18px}
 .cab .btn{flex:none}
 
 /* ===== quién está dónde ===== */
-.tira{display:flex;gap:8px;margin-top:14px;overflow-x:auto;scrollbar-width:none}
-.tira::-webkit-scrollbar{display:none}
-.tira li{display:flex;align-items:center;gap:8px;flex:none;min-height:46px;padding:5px 14px 5px 6px;border-radius:999px;border:1px solid var(--linea);font-size:.9375rem;white-space:nowrap}
+.tira{margin-top:10px;border:1px solid var(--linea);border-radius:12px;background:var(--asfalto-2);overflow:hidden}
+.tira li{display:flex;align-items:center;gap:10px;min-height:54px;padding:8px 14px;font-size:.9375rem}
+.tira li+li{border-top:1px solid var(--linea)}
+.tira li>span{min-width:0}
 .tira small{display:block;font-size:.8125rem;color:var(--suave)}
 .tira .on small{color:var(--agua)}
-.tira .off{border-style:dashed}
+.tira .off small{color:var(--tenue)}
 
 /* ===== listas de avisos ===== */
 .sec{margin-top:22px}
@@ -146,9 +147,34 @@ main>*:has(+ .accion){margin-bottom:18px}
 .seg a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:9px;font-weight:600;color:var(--suave);text-decoration:none}
 .seg a[aria-current]{background:var(--asfalto-3);color:var(--texto)}
 .segv{margin-top:14px}
-.alertas{display:grid;gap:8px;margin-top:12px}
-.alertas li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px 10px 14px;border-radius:12px;background:var(--aviso-f);color:var(--senal-2)}
-.alertas .btn{flex:none;border-color:currentColor;color:inherit}
+.porhacer{margin-top:10px;border:1px solid var(--linea);border-radius:12px;background:var(--asfalto-2);overflow:hidden}
+.porhacer li{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:9px 12px 9px 16px}
+.porhacer li+li{border-top:1px solid var(--linea)}
+.porhacer li>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.porhacer small{font-size:.875rem;color:var(--suave)}
+.porhacer small a{color:inherit;font-weight:600}
+.porhacer .btn{flex:none}
+.porhacer li.atn{box-shadow:inset 4px 0 0 var(--senal)}
+button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.alertas{margin-top:10px;border:1px solid var(--linea);border-radius:12px;background:var(--asfalto-2);overflow:hidden}
+.alertas li+li{border-top:1px solid var(--linea)}
+.alertas a,.alertas button{position:relative;display:flex;flex-direction:column;justify-content:center;gap:2px;width:100%;min-height:54px;padding:9px 40px 9px 16px;border:0;background:none;color:inherit;font:inherit;text-align:left;text-decoration:none;cursor:pointer}
+.alertas a::after,.alertas button::after{content:'›';position:absolute;right:16px;top:50%;transform:translateY(-52%);font-size:1.375rem;color:var(--suave)}
+.alertas a:hover,.alertas button:hover{background:var(--asfalto-3)}
+.alertas b{font-weight:600}
+.alertas small{font-size:.875rem;color:var(--suave)}
+.alertas li.atn a,.alertas li.atn button{box-shadow:inset 4px 0 0 var(--senal)}
+.alertas li.atn b{color:var(--senal-2)}
+.busca{position:relative;margin-top:14px}
+.busca svg{position:absolute;left:13px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:var(--suave);pointer-events:none}
+.busca input{width:100%;min-height:48px;padding:0 14px 0 42px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2);color:var(--texto);font:inherit}
+.busca input::placeholder{color:var(--tenue)}
+.mas{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin-top:8px;padding:0 16px;border-radius:12px;border:1px dashed var(--control);color:var(--suave);text-decoration:none}
+.mas:hover{color:var(--texto);border-color:var(--suave)}
+.cdar{position:relative}
+.cdar .fila{padding-bottom:62px}
+.cdar .dar{position:absolute;left:24px;bottom:12px}
+.urgah{margin-top:10px;color:var(--suave);font-size:.9375rem}
 .tecds{display:grid;gap:12px;margin-top:14px}
 .tecd{padding:14px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2)}
 .tecd>h2{display:flex;align-items:center;gap:10px;font:700 1.25rem/1.1 var(--fd)}
@@ -163,6 +189,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .dia .dg{position:absolute;top:0;bottom:0;width:1px;background:var(--linea);opacity:.7}
 .dia .dj.u{background:var(--senal)}
 .dia .dj.h{background:var(--control);color:var(--texto)}
+.dj.n{background:repeating-linear-gradient(-45deg,var(--control) 0 4px,var(--asfalto) 4px 7px)}
 .dia .dj.t{box-shadow:inset 0 0 0 2px var(--mal);background:var(--mal-f);color:var(--mal)}
 .dia .dj:focus-visible{outline:2px solid var(--texto);outline-offset:2px;z-index:2}
 .dia .dn{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--texto);border-radius:1px}
@@ -176,6 +203,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .tabl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:12px;font-size:.8125rem;color:var(--suave)}
 .tabl i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:-8px}
 .tabl .lc{background:var(--agua)}.tabl .lu{background:var(--senal)}.tabl .lh{background:var(--control)}
+.tabl .ln{background:repeating-linear-gradient(-45deg,var(--control) 0 3px,var(--asfalto) 3px 5px)}
 .tabl .lr{background:repeating-linear-gradient(-45deg,var(--asfalto) 0 3px,var(--control) 3px 5px)}
 .tab .ojo{margin-top:12px}
 @media (max-width:520px){.tabf{grid-template-columns:64px 1fr;gap:8px}.tabn .av{display:none}}
@@ -319,8 +347,11 @@ body.conred main.dos{padding-top:0}
 .solo .doc{max-width:none;border-radius:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .des{display:grid;gap:8px;padding:12px 14px;border:1px solid var(--linea);border-radius:12px}
-.cont{padding:12px 14px;border:1px solid var(--linea);border-radius:12px;margin-bottom:10px;display:grid;gap:4px}.cont h3{margin:0;font-size:1.05rem}.cont h3 small{font-weight:500;color:var(--suave)}.cont.baja{opacity:.7}
+.cont.baja{opacity:.7}
 .ojo.con a{color:inherit}
+#msgPend{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#msgPend .btn{flex:none;border-color:currentColor;color:inherit}
+#conOf{margin-top:10px}
 .mfal{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px}.mfal li{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .mq{display:flex;align-items:center;gap:14px}.mq .num{font-size:1.25rem;min-width:2ch}
 .mat{margin-top:10px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}.mat ul{list-style:none;margin:4px 0 8px;padding:0;display:grid;gap:4px}.mat small a{color:inherit}
@@ -363,7 +394,7 @@ const pro=()=>true;   /* desde el 13-11-2026 todos los negocios llevan papeles y
 const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
 {const m=$('#marca');m.innerHTML=MARCA;m.setAttribute('aria-label',N.nombre+': inicio de la app');if(!Oficio.DEMO)$$('.demo').forEach(e=>e.remove())}
 const sv=(d,x)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'+(x||'')+'>'+d+'</svg>';
-const I={mas:sv('<path d="M12 5v14M5 12h14"/>'),atras:sv('<path d="M15 5l-7 7 7 7"/>'),x:sv('<path d="M6 6l12 12M18 6L6 18"/>'),baja:sv('<path d="M6 9l6 6 6-6"/>'),
+const I={mas:sv('<path d="M12 5v14M5 12h14"/>'),lupa:sv('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'),atras:sv('<path d="M15 5l-7 7 7 7"/>'),x:sv('<path d="M6 6l12 12M18 6L6 18"/>'),baja:sv('<path d="M6 9l6 6 6-6"/>'),
  tel:sv('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>'),mapa:sv('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.800-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'),
  bandeja:sv('<path d="M4 13l2-8h12l2 8v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 13h5l1 2h4l1-2h5"/>'),agenda:sv('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>'),
  euro:sv('<path d="M17 7a6 6 0 1 0 0 10M5 10h8M5 14h8"/>'),hoy:sv('<path d="M5 6h14M5 12h14M5 18h9"/>'),hecho:sv('<path d="M5 12.5l4.500 4.500L19 7"/>'),
@@ -413,16 +444,23 @@ function pista(A){const p=[['Recibido',A.t],['Asignado',A.tec&&A.e!=='nuevo'?1:0
  /* la hora de cada paso; si un paso fue otro día que el último (una cita pedida días antes), también el día */
  const ult=p.reduce((m,x,i)=>x[1]>1&&i<=orden?x[1]:m,0),ref=ult?K.madrid(ult).date:'',cuando=t=>{const d=K.madrid(t).date;return(d!==ref?diaCorto(d)+', ':'')+K.hora(t)};
  return'<ol class="pista" aria-label="Recorrido del aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]>1&&i<=orden?'<time>'+cuando(x[1])+'</time>':'')+'</li>').join('')+'</ol>'}
-function fila(A,sel){const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=K.nomCli(A.cli)||'Aún sin nombre';let f2,fd,f3='';
- const cita=A.cita?'cita '+diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'';
+function fila(A,sel,o){o=o||{};if(o.tec)return filaTec(A,o);const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=K.nomCli(A.cli)||'Aún sin nombre';let f2,fd,f3='',ua=null;
+ const cita=A.cita?diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'';
  const pc=A.cita&&A.cita.ok===false?' · por confirmar':'';
- if(A.e==='nuevo'||A.e==='ausente'){const ua=!cita&&A.e==='nuevo'&&A.cli.tel?K.urgenciaAhora(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):null;
-  f2=cita?quien+' · '+cita+pc:hace(A.t).replace(/^h/,'H').replace(/^a/,'A')+' · '+quien+' · '+ORIG[A.origen];if(ua)f3='Antes llega '+cfg.tec[ua.tec].n+', en ~'+ua.de+' min';fd='<span class="pill '+(A.e==='ausente'?'ausente':'nuevo')+'">'+(A.e==='ausente'?'No había nadie':!A.cli.tel?'Faltan datos':A.reasignar?'Reasignar':'Sin asignar')+'</span>'}
- else if(A.e==='hecho'){f2=(t?t.n+' · ':'')+quien;fd=A.tot&&A.pago&&pro()?'<span class="num">'+K.eur(A.tot.total)+'</span>'+(A.pago.cobrado?'<span class="mini">'+(A.tot.total?PAGO[A.pago.modo]:'En su contrato')+'</span>':'<span class="pill cobro">Por cobrar</span>'):'<span class="pill hecho">Terminado</span>'}
+ if(A.e==='nuevo'||A.e==='ausente'){ua=!cita&&A.e==='nuevo'&&A.cli.tel?K.urgenciaAhora(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):null;
+  const et=A.e==='ausente'?'No había nadie':!A.cli.tel?'Faltan datos':A.reasignar?'Reasignar':'';
+  f2=cita?cita+pc+' · '+quien:hace(A.t).replace(/^h/,'H').replace(/^a/,'A')+' · '+quien+' · '+ORIG[A.origen];if(ua)f3='Antes llega '+cfg.tec[ua.tec].n+', en ~'+ua.de+' min';
+  fd=et||!o.sinPill?'<span class="pill '+(A.e==='ausente'?'ausente':'nuevo')+'">'+(et||'Sin asignar')+'</span>':''}
+ else if(A.e==='hecho'){f2=o.cobro?'terminado '+hace(A.fin)+' · '+quien:(t?t.n+' · ':'')+quien;fd=o.cobro&&A.tot?'<span class="num">'+K.eur(A.tot.total)+'</span>':A.tot&&A.pago&&pro()?'<span class="num">'+K.eur(A.tot.total)+'</span>'+(A.pago.cobrado?'<span class="mini">'+(A.tot.total?PAGO[A.pago.modo]:'En su contrato')+'</span>':'<span class="pill cobro">Por cobrar</span>'):'<span class="pill hecho">Terminado</span>'}
  else if(A.e==='cancelado'){f2=quien;fd='<span class="pill">Cancelado</span>'}
- else{f2=(t?t.n+' · ':'')+(A.e==='camino'?'llega sobre las '+K.hora(A.eta):A.e==='curso'?'lleva '+dur(K.minutos(A,Date.now())):cita?cita+pc:'urgente, '+hace(A.t));fd='<span class="pill '+A.e+'">'+EST[A.e]+'</span>'}
- return'<li><a class="fila'+(A.urg&&(A.e==='nuevo'||A.e==='ausente')?' urg':'')+'" href="#/aviso/'+A.id+'"'+(sel===A.id?' aria-current="true"':'')+'><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(f2)+(A.con&&A.e!=='hecho'&&A.e!=='cancelado'?' · con contrato':'')+'</span>'+(f3?'<span class="f3">'+esc(f3)+'</span>':'')+'<span class="fd">'+fd+'</span></a></li>'}
-const sec=(tit,L,sel,vacio)=>'<section class="sec"><h2>'+tit+' <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(a=>fila(a,sel)).join('')+'</ul>':'<p class="hueco">'+vacio+'</p>')+'</section>';
+ else{f2=(A.e==='camino'?'llega sobre las '+K.hora(A.eta):A.e==='curso'?'lleva '+dur(K.minutos(A,Date.now())):cita?cita+pc:'urgente, '+hace(A.t))+(t?' · '+t.n:'');fd='<span class="pill '+A.e+'">'+EST[A.e]+'</span>'}
+ const dar=o.dar&&ua?'<button class="btn peq dar" data-a="asignar" data-id="'+A.id+'" data-tec="'+ua.tec+'">Dar a '+esc(cfg.tec[ua.tec].n)+'</button>':'';
+ return'<li'+(dar?' class="cdar"':'')+'><a class="fila'+(A.urg&&(A.e==='nuevo'||A.e==='ausente')?' urg':'')+'" href="#/aviso/'+A.id+'"'+(sel===A.id?' aria-current="true"':'')+'><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(f2)+(A.con&&A.e!=='hecho'&&A.e!=='cancelado'?' · con contrato':'')+'</span>'+(f3?'<span class="f3">'+esc(f3)+'</span>':'')+(fd?'<span class="fd">'+fd+'</span>':'')+'</a>'+dar+'</li>'}
+/* la fila en «Hoy» del técnico: qué y dónde; a qué hora llegaría (o el día y la franja) y la calle */
+function filaTec(A,o){const av=cfg.av[A.av],ll=o.llega&&o.llega[A.id];
+ const cuando=A.e==='camino'?'llegas sobre las '+K.hora(A.eta):A.e==='curso'?'trabajando':ll!=null?'hacia las '+K.hhmm(ll)+(A.cita?' ('+frTxt(A.cita.fr)+')':''):A.cita?diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente, '+hace(A.t);
+ return'<li><a class="fila'+(A.urg?' urg':'')+'" href="#/aviso/'+A.id+'"><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(cuando)+' · '+esc(A.cli.dir||'Aún sin dirección')+'</span>'+(A.e!=='asignado'?'<span class="fd"><span class="pill '+A.e+'">'+EST[A.e]+'</span></span>':'')+'</a></li>'}
+const sec=(tit,L,sel,vacio,o)=>'<section class="sec"><h2>'+tit+' <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(a=>fila(a,sel,o)).join('')+'</ul>':'<p class="hueco">'+vacio+'</p>')+'</section>';
 function tira(){const r=K.resumen(S,cfg,Date.now()),U={urg:true,cli:{dis:''}};
  return'<ul class="tira" aria-label="Dónde está cada técnico">'+N.tecnicos.map(t=>{const x=r.tec[t.id],A=x.aviso&&el(x.aviso);
   const lib=K.ocupacion(S,cfg,t.id,Date.now()),fin=lib?' · libre ~'+K.hora(Date.now()+lib*60000):'';
@@ -431,17 +469,40 @@ function tira(){const r=K.resumen(S,cfg,Date.now()),U={urg:true,cli:{dis:''}};
   return'<li class="'+(x.e!=='libre'?'on':no?'off':'')+'">'+ava(t.id)+'<span>'+esc(t.n)+'<small>'+(x.e==='curso'?'trabajando en '+esc(barrio(A))+fin:x.e==='camino'?'de camino a '+esc(barrio(A))+fin:no==='ausente_tec'?'hoy no está':lib?'con urgencias en cola'+fin:no==='horario'?'fuera de horario':'libre')+'</small></span></li>'}).join('')+'</ul>'+bUrgAhora()}
 /* para una urgencia que entre ahora: quién llega antes y en cuánto, o que no hay nadie sin dejar tirada una cita */
 function bUrgAhora(){const L=K.llegadas(S,cfg,null,Date.now(),'').filter(x=>!x.choca&&!x.fuera);
- return'<p class="ojo" id="urgAhora">'+(L.length?'Para una urgencia ahora: '+esc(cfg.tec[L[0].tec].n)+(L[0].libre?', libre hacia las '+K.hora(Date.now()+L[0].libre*60000):', libre ya')+'. Llega en '+(L[0].libre?'unos '+L[0].llega+' min':'lo que se tarde hasta el barrio (de '+Math.min.apply(null,Object.values(cfg.zonas.banda))+' a '+cfg.etaMax+' min)')+'.':'Para una urgencia ahora no hay nadie libre sin llegar tarde a una cita o salirse de su horario.')+'</p>'}
+ return'<p class="urgah" id="urgAhora">'+(L.length?'Para una urgencia ahora: '+esc(cfg.tec[L[0].tec].n)+(L[0].libre?', libre hacia las '+K.hora(Date.now()+L[0].libre*60000):', libre ya')+'. Llega en '+(L[0].libre?'unos '+L[0].llega+' min':'lo que se tarde hasta el barrio (de '+Math.min.apply(null,Object.values(cfg.zonas.banda))+' a '+cfg.etaMax+' min)')+'.':'Para una urgencia ahora no hay nadie libre sin llegar tarde a una cita o salirse de su horario.')+'</p>'}
 
-/* ===== centralita: la bandeja ===== */
-function vBandeja(sel){const r=K.resumen(S,cfg,Date.now()),hoy=K.madrid().date,H=sel?'p class="h1"':'h1',Hc=sel?'p':'h1';
- const pri=a=>a.con&&a.con.pri?1:0,pend=S.avisos.filter(a=>a.e==='nuevo'||a.e==='ausente').sort((a,b)=>(b.urg-a.urg)||(pri(b)-pri(a))||(a.t-b.t));
+/* ===== centralita: la bandeja =====
+   De arriba abajo, por orden de lo que corre más prisa (guía, pestaña «Usabilidad», 15-11-2026): buscar; lo urgente sin
+   repartir, con un botón para dárselo al que antes llega; lo que hay que hacer, en una lista corta; el equipo ahora; las citas
+   sin técnico de hoy y del próximo día de trabajo (las de más adelante, en la agenda); lo que está en marcha y lo hecho hoy. */
+const proxLab=()=>{let d=K.masDias(K.madrid().date,1);for(let i=0;i<7&&!K.laborable(cfg,d);i++)d=K.masDias(d,1);return d};
+const bandejaN=()=>{const p=proxLab();return S.avisos.filter(a=>(a.e==='nuevo'||a.e==='ausente')&&(!a.cita||a.cita.dia<=p)).length};
+/* buscar un aviso cuando llama un cliente: por su teléfono o el número del aviso (solo cifras), o por nombre, calle o barrio */
+let BQ='';
+const normB=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+function busca(q){q=String(q||'');const t=normB(q).trim(),dig=q.replace(/\D/g,''),soloDig=/^[\d\s+().-]+$/.test(q.trim());
+ if(soloDig?dig.length<3:t.length<2)return null;
+ return S.avisos.filter(a=>{const c=a.cli||{};return soloDig?(K.tel9(c.tel)||'').includes(dig)||a.id.replace(/\D/g,'').includes(dig):normB([K.nomCli(c),c.dir,a.id,barrio(a),cfg.av[a.av]?cfg.av[a.av].n:''].join(' ')).includes(t)}).sort((a,b)=>b.t-a.t).slice(0,30)}
+const resB=(R,sel)=>!R?'':'<section class="sec"><h2>Encontrados <span class="n">'+R.length+'</span></h2>'+(R.length?'<ul class="lista">'+R.map(a=>fila(a,sel)).join('')+'</ul>':'<p class="hueco">Ningún aviso con «'+esc(BQ.trim())+'». Prueba con el teléfono, la calle o el número del aviso.</p>')+'</section>';
+function pintaBusca(){const d=$('#bRes'),resto=$('#bResto');if(!d)return;const r=ruta(),R=busca(BQ);d.innerHTML=resB(R,r.v==='aviso'?r.a:'');if(resto)resto.hidden=!!R}
+function vBandeja(sel){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),hoy=K.madrid().date,p=proxLab(),H=sel?'p class="h1"':'h1',Hc=sel?'p':'h1';
+ const pri=a=>a.con&&a.con.pri?1:0,pend=S.avisos.filter(a=>a.e==='nuevo'||a.e==='ausente'),fi=a=>{const i=cfg.franjas.findIndex(f=>f.id===a.cita.fr);return i<0?99:i};
+ const urg=pend.filter(a=>!a.cita).sort((a,b)=>(pri(b)-pri(a))||(a.t-b.t));
+ const citas=pend.filter(a=>a.cita&&a.cita.dia<=p).sort((a,b)=>(a.cita.dia<b.cita.dia?-1:a.cita.dia>b.cita.dia?1:0)||fi(a)-fi(b)||(pri(b)-pri(a))||(a.t-b.t));
+ const luego=pend.filter(a=>a.cita&&a.cita.dia>p),d1=luego.map(a=>a.cita.dia).sort()[0];
  const marcha=S.avisos.filter(a=>['asignado','camino','curso'].includes(a.e)).sort((a,b)=>({curso:0,camino:1,asignado:2}[a.e]-{curso:0,camino:1,asignado:2}[b.e])||(a.t-b.t));
  const hechos=S.avisos.filter(a=>a.e==='hecho'&&K.madrid(a.fin).date===hoy).sort((a,b)=>b.fin-a.fin);
- const u=pend.find(a=>a.urg);
- const sub=u?(r.urgentes===1?'1 urgente sin asignar, ':r.urgentes+' urgentes sin asignar, el primero ')+hace(u.t)+'.':pend.length?(pend.length===1?'1 cita por asignar':pend.length+' avisos por asignar')+', ninguno urgente.':'Todo repartido.';
- return'<div class="cab"><div><'+H+'>Bandeja</'+Hc+'><p class="sub">'+sub+'</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+bAlertas()+tira()+
-  sec('Por atender',pend,sel,'No queda ningún aviso por atender.')+sec('En marcha',marcha,sel,'Ahora no hay ningún aviso en marcha.')+sec('Hechos hoy',hechos,sel,'Hoy todavía no se ha terminado ninguno.')}
+ const n=x=>x===1?'1 cita':x+' citas',R=busca(BQ);
+ const sub=urg.length?(urg.length===1?'1 urgencia sin repartir, ':urg.length+' urgencias sin repartir, la primera ')+hace(urg[0].t)+'.':citas.length?n(citas.length)+' sin técnico entre hoy y '+diaCorto(p)+'.':'Nada urgente ni por repartir.';
+ return'<div class="cab"><div><'+H+'>Bandeja</'+Hc+'><p class="sub">'+sub+'</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+
+  '<form class="busca" id="fBusca" role="search"><label class="vh" for="busca">Buscar un aviso</label>'+I.lupa+'<input id="busca" type="search" value="'+esc(BQ)+'" placeholder="Nombre, teléfono, calle o nº de aviso" autocomplete="off" enterkeyhint="search"></form>'+
+  '<div id="bRes">'+resB(R,sel)+'</div><div id="bResto"'+(R?' hidden':'')+'>'+
+  (urg.length?sec('Urgente',urg,sel,'',{dar:1,sinPill:1}):'')+
+  '<section class="sec"><h2>Por hacer</h2>'+(bAlertas()||'<p class="hueco">Todo al día.</p>')+'</section>'+
+  '<section class="sec"><h2>El equipo ahora</h2>'+tira()+'</section>'+
+  sec('Sin técnico · hoy y '+diaCorto(p),citas,sel,'Las citas de hoy y de '+diaCorto(p)+' ya tienen técnico.',{sinPill:1})+
+  (luego.length?'<a class="mas" href="#/agenda/'+d1+'"><span>Más adelante: '+n(luego.length)+' sin técnico</span><span aria-hidden="true">›</span></a>':'')+
+  sec('En marcha',marcha,sel,'Ahora no hay ningún aviso en marcha.')+sec('Hechos hoy',hechos,sel,'Hoy todavía no se ha terminado ninguno.')+'</div>'}
 function vElige(){const r=K.resumen(S,cfg,Date.now());
  return'<p class="hueco">Elige un aviso de la lista para verlo. Hoy: '+r.hechos+(r.hechos===1?' hecho':' hechos')+', '+r.marcha+' en marcha'+(pro()&&r.pend.n?' y '+r.pend.n+' por cobrar ('+K.eur(r.pend.total)+')':'')+'.</p>'}
 
@@ -468,16 +529,24 @@ function bCita(A){const c=A.cita,hoy=K.madrid().date,otras=c&&A.vale?A.vale.filt
   (c&&c.of&&PORA[c.of]?'<p class="mnota" style="margin-top:8px">'+PORA[c.of]+'</p>':'')+
   (otras.length?'<p class="mnota" style="margin-top:8px">Al cliente también le va bien: '+otras.map(v=>diaCorto(v.dia)+', '+frTxt(v.fr)).join(' · ')+'.</p>':'')+'</section>'}
 /* lo que hay que atender antes que nada: citas que no caben, avisos sin técnico porque el suyo falta y citas sin confirmar */
-function bAlertas(ag){const r=K.resumen(S,cfg,Date.now()),rea=S.avisos.filter(a=>a.reasignar&&a.e==='nuevo'),conf=S.avisos.filter(a=>a.cita&&a.cita.ok===false&&abiertos.includes(a.e));
- const L=r.sobran.map(x=>'<li><span><b>'+(x.sobran===1?'Sobra 1 cita':'Sobran '+x.sobran+' citas')+'</b> '+diaTxt(x.dia)+', '+frTxt(x.fr)+': no hay técnicos para todas.</span><a class="btn peq" href="#/equipo/'+x.dia+'">Ver el día</a></li>');
- if(rea.length)L.push('<li><span><b>'+(rea.length===1?'1 aviso por reasignar':rea.length+' avisos por reasignar')+'</b>: quien lo llevaba ya no puede ir.</span><a class="btn peq" href="#/aviso/'+rea[0].id+'">'+(rea.length===1?'Abrirlo':'Abrir el primero')+'</a></li>');
- if(conf.length)L.push('<li><span><b>'+(conf.length===1?'1 cita pendiente de confirmar':conf.length+' citas pendientes de confirmar')+'</b> con el cliente.</span><a class="btn peq" href="#/aviso/'+conf[0].id+'">'+(conf.length===1?'Abrirla':'Abrir la primera')+'</a></li>');
- {const hoy=K.madrid().date;let dm=K.masDias(hoy,1);for(let i=0;i<7&&!K.laborable(cfg,dm);i++)dm=K.masDias(dm,1);const n=new Set([].concat(...K.material(S,cfg,dm).map(g=>[].concat(...g.cosas.map(c=>c.av))))).size;
-  if(n)L.push('<li><span><b>'+(n===1?'1 aviso':n+' avisos')+' de '+diaTxt(dm)+' con material por preparar</b>: mándalo o cárgalo antes.</span><a class="btn peq" href="#/equipo/'+dm+'">Ver el día</a></li>')}
+/* los mensajes al cliente que ya tocaba mandar y no se han mandado */
+const porMandar=ahora=>[].concat(...S.avisos.filter(a=>a.e!=='cancelado'&&Array.isArray(a.msgs)).map(a=>a.msgs.filter(m=>!m.env&&m.t<=ahora).map(m=>({a,m})))).sort((x,y)=>x.m.t-y.m.t);
+function bAlertas(ag){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),rea=S.avisos.filter(a=>a.reasignar&&a.e==='nuevo'),conf=S.avisos.filter(a=>a.cita&&a.cita.ok===false&&abiertos.includes(a.e));
+ const it=(b,sm,href,atn,da)=>'<li'+(atn?' class="atn"':'')+'>'+(da?'<button type="button" data-a="'+da+'">':'<a href="'+href+'">')+'<b>'+b+'</b>'+(sm?'<small>'+sm+'</small>':'')+(da?'</button>':'</a>')+'</li>';
+ const L=r.sobran.map(x=>it(x.sobran===1?'Sobra 1 cita':'Sobran '+x.sobran+' citas',diaTxt(x.dia)+', '+frTxt(x.fr)+': no hay técnicos para todas','#/equipo/'+x.dia,1));
+ if(rea.length)L.push(it(rea.length===1?'1 aviso por reasignar':rea.length+' avisos por reasignar','quien lo llevaba ya no puede ir','#/aviso/'+rea[0].id,1));
+ if(!ag){const M=porMandar(ahora);if(M.length)L.push(it(M.length===1?'1 mensaje por mandar':M.length+' mensajes por mandar','«'+K.MSG[M[0].m.k]+'» a '+esc(K.nomCli(M[0].a.cli)||'un cliente')+(M.length>1?' y '+(M.length-1)+(M.length===2?' más':' más'):''),'',0,'mensajes'))}
+ if(conf.length)L.push(it(conf.length===1?'1 cita pendiente de confirmar':conf.length+' citas pendientes de confirmar','con el cliente','#/aviso/'+conf[0].id));
+ {const dm=proxLab(),n=new Set([].concat(...K.material(S,cfg,dm).map(g=>[].concat(...g.cosas.map(c=>c.av))))).size;
+  if(n)L.push(it((n===1?'1 aviso':n+' avisos')+' de '+diaTxt(dm)+' con material por preparar','mándalo o cárgalo antes','#/equipo/'+dm))}
  /* contratos y facturas son cosa de la oficina: en la agenda y en el equipo solo sale lo del reparto («ag») */
- if(!ag&&HAY_CON()){const pc=K.pendientesContratos(S,cfg,Date.now()),n=pc.renovar.length+pc.revision.length;if(n)L.push('<li><span><b>'+(n===1?'1 contrato pide algo':n+' contratos piden algo')+'</b>: '+[pc.renovar.length?(pc.renovar.length===1?'una renovación':pc.renovar.length+' renovaciones'):'',pc.revision.length?(pc.revision.length===1?'una revisión sin cita':pc.revision.length+' revisiones sin cita'):''].filter(Boolean).join(' y ')+'.</span><a class="btn peq" href="#/contratos">Verlos</a></li>')}
- if(!ag&&pro()&&r.porFac.viejos)L.push('<li><span><b>'+(r.porFac.viejos===1?'1 trabajo lleva':r.porFac.viejos+' trabajos llevan')+' más de una semana sin facturar</b>.</span><a class="btn peq" href="#/cobros">Verlos</a></li>');
- return L.length?'<ul class="alertas" aria-label="Lo primero que hay que atender">'+L.join('')+'</ul>':''}
+ if(!ag&&HAY_CON()){const pc=K.pendientesContratos(S,cfg,ahora),n=pc.renovar.length+pc.revision.length;if(n)L.push(it(n===1?'1 contrato pide algo':n+' contratos piden algo',[pc.renovar.length?(pc.renovar.length===1?'una renovación':pc.renovar.length+' renovaciones'):'',pc.revision.length?(pc.revision.length===1?'una revisión sin cita':pc.revision.length+' revisiones sin cita'):''].filter(Boolean).join(' y '),'#/contratos'))}
+ if(!ag&&pro()&&r.porFac.viejos)L.push(it((r.porFac.viejos===1?'1 trabajo lleva':r.porFac.viejos+' trabajos llevan')+' más de una semana sin facturar','','#/cobros'));
+ return L.length?'<ul class="alertas" aria-label="Lo que hay que hacer">'+L.join('')+'</ul>':''}
+/* todos los mensajes por mandar, para mandarlos uno detrás de otro */
+function hMensajes(){const M=porMandar(Date.now());
+ const d=hoja(hc(M.length===1?'1 mensaje por mandar':M.length+' mensajes por mandar')+'<div class="hb">'+(M.length?'<ul class="msgs">'+M.map(x=>'<li><span>'+K.MSG[x.m.k]+'<small>'+esc(K.nomCli(x.a.cli)||'Aún sin nombre')+' · '+x.a.id+' · '+cuandoT(x.m.t)+'</small></span><button class="btn peq" data-a="msg" data-id="'+x.a.id+'" data-k="'+x.m.k+'">Ver</button></li>').join('')+'</ul>':'<p class="hueco">No queda ningún mensaje por mandar.</p>')+'</div>');
+ d.addEventListener('click',e=>{if(e.target.closest('[data-a="msg"]'))d.close()})}
 function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
  let h='<section class="blq"><h2>'+(A.e==='hecho'?(A.sinTrabajo?'Solo el desplazamiento':'Total del trabajo'):'Presupuesto firmado')+'</h2><p class="gordo num">'+K.eur(T.total)+'</p><p class="ln">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+(p?' · '+(p.cobrado?(T.total?'cobrado, '+PAGO[p.modo].toLowerCase():'nada que cobrar: va en su contrato'):'pendiente de pago'):'')+'</p>';
  h+='<ul class="lins">'+T.lineas.map(l=>'<li><span>'+esc(l.t)+(lq(l)?', '+lq(l):'')+(l.con?', en su contrato':'')+'</span><span class="num">'+(l.con?'Incluido':K.eur(l.imp))+'</span></li>').join('')+'</ul>';
@@ -496,7 +565,7 @@ function bTrabajo(A){const p=K.enPausa(A);
 /* ===== el material que falta: lo apuntan su técnico o la oficina; en «Equipo» se junta por día para mandarlo por WhatsApp ===== */
 function bFalta(A){const L=A.falta||[],puede=!['hecho','cancelado'].includes(A.e)&&(Q.rol==='centralita'||A.tec===Q.id);if(!L.length&&!puede)return'';
  return'<section class="blq" id="falta"><h2>Material que falta</h2>'+(L.length?'<ul class="mfal">'+L.map(x=>'<li><span><b class="num">'+x.q+' ×</b> '+esc(x.t)+'</span>'+(puede?'<button class="txt" data-a="quitaFalta" data-id="'+A.id+'" data-k="'+esc(x.k||'')+'" data-t="'+esc(x.t)+'">Quitar</button>':'')+'</li>').join('')+'</ul>'
-  :'<p class="ln">Si hace falta una pieza que no hay en la furgoneta, apúntala: sale en la lista del día, para comprarla o cargarla antes de ir.</p>')+
+  :'<p class="ln">Nada apuntado. Lo que se apunte sale en la lista del día.</p>')+
   (puede?'<div class="acts"><button class="btn peq" data-a="falta" data-id="'+A.id+'">'+I.mas+'Apuntar material</button>'+(L.length?'<button class="btn peq" data-a="faltaListo" data-id="'+A.id+'">Ya está todo</button>':'')+'</div>':'')+'</section>'}
 function hFalta(A){const mats=Object.keys(cfg.cat).filter(x=>cfg.cat[x].mat);let k='',q=1;
  const d=hoja(hc('Apuntar material')+'<form class="hb" id="faF" novalidate>'+(mats.length?'<div class="campo"><span class="lb" id="fa_l">¿Qué falta?</span><div class="ops" role="group" aria-labelledby="fa_l">'+mats.map(x=>'<button type="button" class="op" data-fk="'+x+'" aria-pressed="false">'+esc(cfg.cat[x].t)+'</button>').join('')+'</div></div>':'')+
@@ -529,9 +598,12 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
   else if(A.e==='asignado')h+='<div class="accion"><button class="btn pri ancho" data-a="voy" data-id="'+A.id+'">Voy</button></div>';
   else if(A.e==='camino')h+='<div class="accion"><button class="btn pri ancho" data-a="empezar" data-id="'+A.id+'">Empezar</button><button class="txt" data-a="ausente" data-id="'+A.id+'">No había nadie</button></div>';
   else if(A.e==='curso')h+='<div class="accion"><button class="btn pri ancho" data-a="terminar" data-id="'+A.id+'">Terminado</button></div>';
- }else{h+=bCliente(A,false)+bContrato(A);
-  if(A.e==='camino'&&A.pos&&t)h+='<p class="mnota" id="posOf" style="margin-top:12px">'+esc(t.n)+' compartió su posición '+hace(A.pos.t)+'. El cliente la ve en su página.</p>';
+ }else{const M=A.msgs.filter(m=>!m.env&&m.t<=Date.now()&&(pro()||m.k!=='resena'));
+  if(M.length)h+='<p class="ojo" id="msgPend"><span>Falta mandar «'+K.MSG[M[0].k]+'»'+(M.length>1?' y '+(M.length-1)+' más':'')+'.</span><button class="btn peq" data-a="msg" data-id="'+A.id+'" data-k="'+M[0].k+'">Mandar</button></p>';
+  /* lo principal según el estado: sin técnico, quién va y cuándo; con él en marcha o hecho, la ficha del cliente primero */
   if(abierto&&A.cli.tel)h+=bReparto(A)+bCita(A);
+  h+=bCliente(A,false)+bContrato(A);
+  if(A.e==='camino'&&A.pos&&t)h+='<p class="mnota" id="posOf" style="margin-top:12px">'+esc(t.n)+' compartió su posición '+hace(A.pos.t)+'. El cliente la ve en su página.</p>';
   h+=bDinero(A)+bFalta(A);
   h+=bMensajes(A)+bHist(A);
   if(abierto)h+='<p class="fin"><button class="txt mal" data-a="cancelar" data-id="'+A.id+'">Cancelar el aviso</button></p>'}
@@ -572,8 +644,9 @@ function vHoy(){const hoy=K.madrid().date,M=S.avisos.filter(a=>a.tec===Q.id&&['a
   h+='<section class="sig'+(p.urg?' urg':'')+'"><p class="k"><span>'+p.id+' · '+(p.cita?'cita '+frTxt(p.cita.fr):'urgente, '+hace(p.t))+'</span><span class="pill '+p.e+'">'+EST[p.e]+'</span></p><h2>'+esc(av.n)+'</h2><p class="dir">'+esc(p.cli.dir)+'</p><p class="ln" style="color:var(--suave)">'+esc(barrio(p))+' · '+esc(K.nomCli(p.cli))+'</p>'+(p.nota?'<p class="dice" style="margin-top:0">'+esc(p.nota)+'</p>':'')+
    (p.e==='asignado'?'<button class="btn pri ancho" data-a="voy" data-id="'+p.id+'">Voy</button><a class="txt" style="justify-self:center;display:inline-flex;align-items:center" href="#/aviso/'+p.id+'">Ver el aviso</a>':'<a class="btn pri ancho" href="#/aviso/'+p.id+'">'+(p.e==='camino'?'Abrir: he llegado':'Seguir con el trabajo')+'</a>')+'</section>'}
  else h+='<p class="hueco" style="margin-top:16px">Cuando la centralita te pase un aviso, aparece aquí al momento.</p>';
- if(dia.length>1)h+=sec('Después',dia.slice(1),'','');
- if(lue.length)h+=sec('Próximos días',lue,'','');
+ {const ll={};K.agendaDe(S,cfg,Q.id,hoy,Date.now()).forEach(x=>{ll[x.id]=x.llega});
+  if(dia.length>1)h+=sec('Después',dia.slice(1),'','',{tec:1,llega:ll});
+  if(lue.length)h+=sec('Próximos días',lue,'','',{tec:1})}
  const ds=[...new Set(M.filter(a=>a.falta&&a.falta.length).map(a=>a.cita?a.cita.dia:''))].sort((a,b)=>a===''?1:b===''?-1:a<b?-1:a>b?1:0);
  if(ds.length)h+='<section class="sec" id="mHoy"><h2>Material que te falta</h2>'+ds.map(x=>bMat(K.material(S,cfg,x).find(g=>g.tec===Q.id),x,x?diaTxt(x).replace(/^./,c=>c.toUpperCase()):'Sin día')).join('')+'</section>';
  return h}
@@ -613,9 +686,9 @@ const hh0=m=>K.hhmm(m).replace(/^0/,'');
 function barraDia(X,a0,a1){const W=a1-a0||1,pc=m=>((m-a0)/W*100).toFixed(2)+'%',an=m=>(m/W*100).toFixed(2)+'%';
  let h='<div class="dia">'+X.T.map(x=>'<i class="dt" aria-hidden="true" style="left:'+pc(x[0])+';width:'+an(x[1]-x[0])+'"></i>').join('');
  for(let m=Math.ceil(a0/60)*60+60;m<a1;m+=60)h+='<i class="dg" aria-hidden="true" style="left:'+pc(m)+'"></i>';
- X.L.forEach(x=>{const A=el(x.id),av=A&&cfg.av[A.av],q=(av?av.c:'Trabajo')+(A&&barrio(A)?' en '+barrio(A):'')+', de '+hh0(x.llega)+' a '+hh0(x.acaba)+(x.hecho?', hecho':x.urg?', urgente':'')+(x.tarde?', llegaría tarde':'');
+ X.L.forEach(x=>{const A=el(x.id),av=A&&cfg.av[A.av],q=(av?av.c:'Trabajo')+(A&&barrio(A)?' en '+barrio(A):'')+', de '+hh0(x.llega)+' a '+hh0(x.acaba)+(x.nadie?', fue y no había nadie':x.hecho?', hecho':x.urg?', urgente':'')+(x.tarde?', llegaría tarde':'');
   if(x.viaje&&!x.hecho)h+='<i class="dv" aria-hidden="true" style="left:'+pc(x.llega-x.viaje)+';width:'+an(x.viaje)+'"></i>';
-  h+='<a class="dj'+(x.urg?' u':'')+(x.hecho?' h':'')+(x.tarde?' t':'')+'" href="#/aviso/'+x.id+'" style="left:'+pc(x.llega)+';width:'+an(Math.max(x.acaba-x.llega,4))+'" aria-label="'+esc(q)+'" title="'+esc(q)+'"><span aria-hidden="true">'+esc(av?av.c:'')+'</span></a>'});
+  h+='<a class="dj'+(x.urg?' u':'')+(x.hecho?' h':'')+(x.nadie?' n':'')+(x.tarde?' t':'')+'" href="#/aviso/'+x.id+'" style="left:'+pc(x.llega)+';width:'+an(Math.max(x.acaba-x.llega,4))+'" aria-label="'+esc(q)+'" title="'+esc(q)+'"><span aria-hidden="true">'+esc(av?av.c:'')+'</span></a>'});
  if(X.hoy&&X.n.min>a0&&X.n.min<a1)h+='<i class="dn" aria-hidden="true" style="left:'+pc(X.n.min)+'"></i>';
  return h+'</div>'}
 /* en palabras: cuántos trabajos, sus ratos libres y lo que no cuadra */
@@ -630,7 +703,7 @@ function bTablero(d){const F=N.tecnicos.map(t=>({t,u:K.ausente(S,t.id,d),X:diaTe
  let h='<section class="tab" aria-label="El día de un vistazo"><div class="tabf tabh" aria-hidden="true"><span></span><div class="tabe">';
  for(let m=a0;m<=a1;m+=120)h+='<span style="left:'+pc(m)+(m===a0?';transform:none':m===a1?';transform:translateX(-100%)':'')+'">'+(m/60)+'</span>';
  h+='</div></div>'+F.map(f=>'<div class="tabf"><span class="tabn">'+ava(f.t.id)+esc(f.t.n)+'</span>'+(f.u?'<p class="tabx">Ausente</p>':!f.X.T.length&&!f.X.L.length?'<p class="tabx">No trabaja</p>':barraDia(f.X,a0,a1))+'</div>').join('');
- return h+'<p class="tabl" aria-hidden="true"><i class="lc"></i>Cita<i class="lu"></i>Urgencia<i class="lh"></i>Hecho<i class="lr"></i>No trabaja</p>'+(d===K.madrid().date?bUrgAhora():'')+'</section>'}
+ return h+'<p class="tabl" aria-hidden="true"><i class="lc"></i>Cita<i class="lu"></i>Urgencia<i class="lh"></i>Hecho<i class="ln"></i>No había nadie<i class="lr"></i>No trabaja</p>'+(d===K.madrid().date?bUrgAhora():'')+'</section>'}
 /* ===== centralita: el equipo, día a día. Quién trabaja, qué lleva cada uno y quién falta ===== */
 function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora);if(!dias.includes(d))d=dias[0];
  const fr=K.franjasDe(S,cfg,d,ahora),L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),sin=L.filter(a=>!a.tec),ds=new Date(d+'T12:00:00Z').getUTCDay();
@@ -667,7 +740,7 @@ function hAusencia(tec,dia){const hoy=K.madrid().date,de=dia&&dia>=hoy?dia:hoy;
 function vCobros(){const r=K.resumen(S,cfg,Date.now()),L=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&!a.pago.cobrado).sort((a,b)=>a.fin-b.fin);
  let h='<div class="cab"><div><h1>Cobros</h1><p class="sub">'+(r.pend.n?(r.pend.n===1?'1 trabajo por cobrar: ':r.pend.n+' trabajos por cobrar: ')+K.eur(r.pend.total)+'.':'No hay nada por cobrar.')+'</p></div></div>';
  const U=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&a.pago.cobrado).sort((a,b)=>b.pago.t-a.pago.t).slice(0,5);
- h+=sec('Por cobrar',L,'','Todo lo terminado está cobrado.');
+ h+=sec('Por cobrar',L,'','Todo lo terminado está cobrado.',{cobro:1});
  const PF=K.porFacturar(S,Date.now()).map(x=>el(x.id)).filter(Boolean);
  h+=sec('Por facturar',PF,'','Todo lo terminado está facturado.')+(PF.length?'<p class="mnota" style="margin:-4px 0 14px">Ábrelo, copia los datos, haz la factura con tu programa y toca «Facturada».</p>':'');
  h+='<section class="sec"><h2>Caja de hoy</h2><dl class="cifras">'+['efectivo','tarjeta','bizum','transferencia'].map(k=>'<div><dt>'+PAGO[k]+'</dt><dd class="num">'+K.eur(r.caja[k])+'</dd></div>').join('')+'</dl><p class="mnota" style="margin-top:8px">Total cobrado hoy: '+K.eur(r.caja.total)+'. Las facturas las emite el programa de facturas del negocio, no esta app.</p></section>'+(U.length?sec('Últimos cobros',U,'',''):'')+bMes()+bUrgMes()+bDeja();
@@ -701,23 +774,34 @@ const incluye=x=>{const P=cfg.planes[x];if(!P)return'';return[(P.revisiones===1?
 function bContrato(A){
  /* la oficina lo ofrece en cualquier aviso abierto; el técnico, en el suyo, en casa del cliente (trabajando o recién acabado) */
  const puede=Q.rol==='centralita'?A.e!=='cancelado':Q.rol==='tecnico'&&A.tec===Q.id&&(A.e==='curso'||(A.e==='hecho'&&A.fin&&K.madrid(A.fin).date===K.madrid().date));
- if(!A.con)return puede&&HAY_CON()&&A.cli.tel&&A.cli.dir&&!K.contratoDe(S,A.cli,K.madrid().date)?'<div class="acts" id="conOf"><button class="btn peq" data-a="conAlta" data-id="'+A.id+'">Ofrecer el contrato de mantenimiento</button></div>':'';
+ if(!A.con)return puede&&HAY_CON()&&A.cli.tel&&A.cli.dir&&!K.contratoDe(S,A.cli,K.madrid().date)?'<p class="acts" id="conOf"><button class="txt" data-a="conAlta" data-id="'+A.id+'">Ofrecer el contrato de mantenimiento</button></p>':'';
  return'<p class="ojo con" id="conB">Cliente con contrato de mantenimiento '+(Q.rol==='centralita'?'<a href="#/contratos">'+esc(A.con.id)+'</a>':esc(A.con.id))+': '+(A.con.rev?'la revisión y el desplazamiento van incluidos':A.urg&&A.av!==K.REV&&K.gratisDe(A).length?'en esta urgencia no se cobra '+K.gratisDe(A).map(k=>k===cfg.urge?'el suplemento de urgencia':'el desplazamiento').join(' ni '):'sus avisos van primero')+'.</p>'}
+/* Contratos: arriba, lo que piden (renovar, dar cita a la revisión, cobrar la cuota), una línea cada uno con su botón;
+   debajo, una fila por contrato. Lo que se hace con un contrato (ver el papel, copiar la factura, cobrar, renovar y dar de
+   baja) va dentro, al tocarlo: así la lista se lee de un vistazo y la baja no está a mano de un toque sin querer. */
 function vContratos(){const ahora=Date.now(),hoy=K.madrid().date,Pd=K.pendientesContratos(S,cfg,ahora),L=(S.contratos||[]).slice().sort((a,b)=>(a.e==='activo'?0:1)-(b.e==='activo'?0:1)||b.t-a.t);
  const act=L.filter(c=>c.e==='activo').length,nom=id=>{const C=contrato(id);return C?esc(K.nomCli(C.cli)):''};
- const al=Pd.renovar.map(x=>'<li><span><b>Renovar '+esc(x.id)+'</b> ('+nom(x.id)+'): '+(x.vencido?'acabó':'acaba')+' el '+K.fechaCorta(x.a)+'.</span><button class="btn peq" data-a="conRen" data-c="'+x.id+'">Renovar</button></li>')
+ const li=(cls,b,sm,btn)=>'<li'+(cls?' class="'+cls+'"':'')+'><span><b>'+b+'</b>'+(sm?'<small>'+sm+'</small>':'')+'</span>'+btn+'</li>';
+ const al=Pd.renovar.map(x=>li(x.vencido?'atn':'','Renovar · '+nom(x.id),esc(x.id)+' · '+(x.vencido?'acabó':'acaba')+' el '+K.fechaCorta(x.a),'<button class="btn peq" data-a="conRen" data-c="'+x.id+'">Renovar</button>'))
   .concat(Pd.revision.map(x=>{const C=contrato(x.id),ab=C&&S.avisos.find(a=>['nuevo','asignado','camino','ausente'].includes(a.e)&&a.av!==K.REV&&K.tel9(a.cli.tel)===K.tel9(C.cli.tel));
-   return'<li><span><b>Revisión de '+esc(x.id)+'</b> ('+nom(x.id)+'): falta darle cita.'+(ab?' Tiene abierto el aviso <a href="#/aviso/'+ab.id+'">'+ab.id+'</a>: se puede hacer en esa misma visita y ahorrar un viaje.':'')+'</span><button class="btn peq" data-a="conRev" data-c="'+x.id+'">Crear el aviso</button></li>'}))
-  .concat(Pd.cobrar.map(x=>'<li><span><b>'+esc(x.id)+' por cobrar</b> ('+nom(x.id)+'): '+K.eur(x.precio)+'.</span><button class="btn peq" data-a="conCob" data-c="'+x.id+'">Cobrado</button></li>'));
+   return li('','Revisión · '+nom(x.id),esc(x.id)+(x.toca?' · toca el '+K.fechaCorta(x.toca):'')+(ab?' · tiene abierto el aviso <a href="#/aviso/'+ab.id+'">'+ab.id+'</a>: se puede hacer en esa misma visita':''),'<button class="btn peq" data-a="conRev" data-c="'+x.id+'">Crear el aviso</button>')}))
+  .concat(Pd.cobrar.map(x=>li('','Cuota por cobrar · '+nom(x.id),esc(x.id)+' · '+K.eur(x.precio),'<button class="btn peq" data-a="conCob" data-c="'+x.id+'">Cobrado</button>')));
  let h='<div class="cab"><div><h1>Contratos</h1><p class="sub">'+(act?(act===1?'1 contrato de mantenimiento en marcha.':act+' contratos de mantenimiento en marcha.'):'Todavía no hay ningún contrato de mantenimiento.')+'</p></div><button class="btn pri peq" data-a="conAlta">'+I.mas+'Nuevo contrato</button></div>';
- if(al.length)h+='<ul class="alertas" id="conAl" aria-label="Lo que piden los contratos">'+al.join('')+'</ul>';
- h+='<p class="mnota">'+PLANES.map(x=>'<b>'+esc(cfg.planes[x].n)+'</b>, '+K.eur(cfg.planes[x].precio)+' al año: '+incluye(x)).join('<br>')+' No se renueva solo, y el cliente se da de baja cuando quiera.</p>';
- h+='<section class="sec"><h2>Los contratos <span class="n">'+L.length+'</span></h2>'+(L.length?L.map(C=>{const P=cfg.planes[C.plan],u=C.per[C.per.length-1],vig=K.vigente(C,hoy);
-  return'<article class="cont'+(C.e!=='activo'?' baja':'')+'" data-c="'+C.id+'"><h3>'+esc(K.nomCli(C.cli))+' <small>'+esc(C.id)+'</small></h3><p class="ln">'+esc(C.cli.dir)+' · '+K.telBonito(C.cli.tel)+'</p>'+
-   '<p class="ln">'+esc(P?P.n:C.plan)+' · del '+K.fechaCorta(u.de)+' al '+K.fechaCorta(u.a)+' · '+K.eur(u.precio)+(C.e!=='activo'?' · <b>de baja</b>'+(C.baja&&C.baja.des?' (desistió)':''):!vig?' · <b>vencido</b>':'')+'</p>'+
-   '<p class="ln">'+(u.pago.cobrado?'Cobrado el '+K.fechaCorta(K.madrid(u.pago.t).date)+' ('+PAGO[u.pago.modo].toLowerCase()+')':'Pendiente de cobro')+'</p>'+
-   '<div class="acts"><a class="btn peq" href="#/papel/'+C.id+'/contrato">Ver el contrato</a><button class="btn peq" data-a="conFac" data-c="'+C.id+'">Copiar los datos de la factura</button>'+(C.e==='activo'?'<button class="txt mal" data-a="conBaja" data-c="'+C.id+'">Dar de baja</button>':'')+'</div></article>'}).join(''):'<p class="hueco">Cuando un cliente diga que sí, se da de alta aquí o desde su aviso.</p>')+'</section>';
+ if(al.length)h+='<section class="sec"><h2>Por hacer <span class="n">'+al.length+'</span></h2><ul class="porhacer" id="conAl" aria-label="Lo que piden los contratos">'+al.join('')+'</ul></section>';
+ h+='<section class="sec"><h2>Los contratos <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(C=>{const u=C.per[C.per.length-1],vig=K.vigente(C,hoy),bz=barrio({cli:C.cli});
+   const est=C.e!=='activo'?'<span class="pill">De baja</span>':!vig?'<span class="pill ausente">Vencido</span>':!u.pago.cobrado?'<span class="pill cobro">Por cobrar</span>':'';
+   return'<li><button type="button" class="fila cont'+(C.e!=='activo'?' baja':'')+'" data-a="conVer" data-c="'+C.id+'"><span class="f1">'+esc(K.nomCli(C.cli))+'</span><span class="f2">'+esc(C.id)+' · hasta el '+K.fechaCorta(u.a)+(bz?' · '+esc(bz):'')+'</span>'+(est?'<span class="fd">'+est+'</span>':'')+'</button></li>'}).join('')+'</ul>':'<p class="hueco">Cuando un cliente diga que sí, se da de alta aquí o desde su aviso.</p>')+'</section>';
+ h+='<p class="mnota" style="margin-top:14px">'+PLANES.map(x=>'<b>'+esc(cfg.planes[x].n)+'</b>, '+K.eur(cfg.planes[x].precio)+' al año: '+incluye(x)).join('<br>')+' No se renueva solo, y el cliente se da de baja cuando quiera.</p>';
  return h}
+/* un contrato, con todo lo que se puede hacer con él */
+function hConVer(C){const P=cfg.planes[C.plan],u=C.per[C.per.length-1],hoy=K.madrid().date,vig=K.vigente(C,hoy),ren=K.pendientesContratos(S,cfg,Date.now()).renovar.some(x=>x.id===C.id);
+ const d=hoja(hc(esc(K.nomCli(C.cli)))+'<div class="hb"><p class="ln"><b>'+esc(C.id)+'</b> · '+esc(P?P.n:C.plan)+'</p><p class="ln">'+esc(C.cli.dir)+' · '+K.telBonito(C.cli.tel)+'</p>'+
+  '<p class="ln">Del '+K.fechaCorta(u.de)+' al '+K.fechaCorta(u.a)+' · '+K.eur(u.precio)+(C.e!=='activo'?' · <b>de baja</b>'+(C.baja&&C.baja.des?' (desistió)':''):!vig?' · <b>vencido</b>':'')+'</p>'+
+  '<p class="ln">'+(u.pago.cobrado?'Cobrado el '+K.fechaCorta(K.madrid(u.pago.t).date)+' ('+PAGO[u.pago.modo].toLowerCase()+')':'Pendiente de cobro')+'</p>'+
+  '<div class="acts"><a class="btn peq" href="#/papel/'+C.id+'/contrato">Ver el contrato</a><button class="btn peq" data-a="conFac" data-c="'+C.id+'">Copiar los datos de la factura</button>'+(C.e==='activo'&&!u.pago.cobrado?'<button class="btn peq" data-a="conCob" data-c="'+C.id+'">Cobrado</button>':'')+(ren?'<button class="btn peq" data-a="conRen" data-c="'+C.id+'">Renovar</button>':'')+'</div>'+
+  (C.e==='activo'?'<p class="fin"><button class="txt mal" data-a="conBaja" data-c="'+C.id+'">Dar de baja</button></p>':'')+'</div>');
+ d.addEventListener('click',e=>{const b=e.target.closest('[data-a],a[href]');if(b&&b.dataset.a!=='conFac')setTimeout(()=>d.close(),0)})}
+
 function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;const c=A?A.cli:{};
  const pl=x=>esc(cfg.planes[x].n)+' · '+K.eur(cfg.planes[x].precio)+' al año',cp=(id,lb,v,o)=>'<div class="campo"><label for="ca_'+id+'">'+lb+'</label><input id="ca_'+id+'" value="'+esc(v||'')+'" '+(o||'')+' autocomplete="off"></div>';
  const d=hoja(hc('Contrato de mantenimiento')+'<form class="hb" id="caF" novalidate>'+
@@ -829,7 +913,7 @@ function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeU
 let CUR='',NAVH='';
 /* El menú, con sus números. Se puede repintar solo, sin tocar la pantalla. */
 function pNav(){const esT=Q.rol==='tecnico',res=K.resumen(S,cfg,Date.now()),mios=S.avisos.filter(a=>a.tec===Q.id&&a.e==='asignado').length,cur=CUR;
- const L=esT?[['hoy','Hoy',I.hoy,mios],['hechos','Hechos',I.hecho,0]]:[['bandeja','Bandeja',I.bandeja,res.nuevos],['agenda','Agenda',I.agenda,0]].concat(pro()?[['cobros','Cobros',I.euro,res.pend.n]]:[],HAY_CON()?[['contratos','Contratos',I.hecho,(p=>p.renovar.length+p.revision.length+p.cobrar.length)(K.pendientesContratos(S,cfg,Date.now()))]]:[],SOP?[['mejoras','Mejoras',I.mejoras,SOP.sinLeer(),' sin leer']]:[]);
+ const L=esT?[['hoy','Hoy',I.hoy,mios],['hechos','Hechos',I.hecho,0]]:[['bandeja','Bandeja',I.bandeja,bandejaN()],['agenda','Agenda',I.agenda,0]].concat(pro()?[['cobros','Cobros',I.euro,res.pend.n]]:[],HAY_CON()?[['contratos','Contratos',I.hecho,(p=>p.renovar.length+p.revision.length+p.cobrar.length)(K.pendientesContratos(S,cfg,Date.now()))]]:[],SOP?[['mejoras','Mejoras',I.mejoras,SOP.sinLeer(),' sin leer']]:[]);
  const h=L.map(x=>'<a href="#/'+x[0]+'"'+(cur===x[0]||(esT&&x[0]==='hoy'&&cur==='aviso')?' aria-current="page"':'')+'>'+x[2]+'<span>'+x[1]+'</span>'+(x[3]?'<span class="n" aria-label="'+x[3]+(x[4]||' por atender')+'">'+x[3]+'</span>':'')+'</a>').join('');
  if(h!==NAVH){$('#nav').innerHTML=h;NAVH=h}}
 function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
@@ -855,7 +939,9 @@ function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
  document.title=(esT?t.n:'Centralita')+' · '+N.nombre+' por dentro'}
 addEventListener('hashchange',()=>{pinta();scrollTo(0,0);$('#v').focus({preventScroll:true})});
 /* Si llega un cambio mientras alguien escribe, la pantalla no se toca (perdería el foco), pero los números del menú sí se ponen al día. */
-Oficio.suscribir(()=>{const a=document.activeElement;pRed();if(a&&a.closest&&a.closest('#fEntra'))return;if(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,[data-obs]')&&quienEntra()){S=Oficio.estado();pNav();return}pinta()});
+Oficio.suscribir(()=>{const a=document.activeElement;pRed();if(a&&a.closest&&a.closest('#fEntra'))return;if(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,#fBusca,[data-obs]')&&quienEntra()){S=Oficio.estado();pNav();return}pinta()});
+document.addEventListener('input',e=>{if(e.target.id==='busca'){BQ=e.target.value;pintaBusca()}});
+document.addEventListener('submit',e=>{if(e.target.id==='fBusca'){e.preventDefault();const i=$('#busca');if(i)i.blur()}});
 /* con servidor: lo que el servidor no acepta se deshace solo en pantalla, y aquí se dice */
 Oficio.alRechazar(x=>toast('No se ha guardado: '+(ERR[x.err]||'el aviso había cambiado.').replace(/^./,c=>c.toLowerCase())));
 setInterval(()=>{$$('[data-reloj]').forEach(e=>{const A=el(e.dataset.reloj);if(A)e.textContent=dur(K.minutos(A,Date.now()))})},15000);
@@ -946,9 +1032,11 @@ function hCita(A){let dia=A.cita?A.cita.dia:'',fr=A.cita?A.cita.fr:'',conf=!['ci
   $('#cB',d).innerHTML='<div class="campo"><span class="lb">Día</span><div class="ops">'+dias.map(x=>'<button class="op" data-d="'+x.dia+'" aria-pressed="'+(x.dia===dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div></div><div class="campo"><span class="lb">Franja</span><div class="ops">'+F.map(f=>'<button class="op" data-f="'+f.id+'" aria-pressed="'+(f.id===fr)+'"'+(f.okOf?'':' disabled')+'>'+f.txt+'<small>'+(leVa(dia,f.id)?'le va bien · ':'')+frOf(f)+'</small></button>').join('')+'</div></div>'+
    (fS&&fS.por?'<p class="dn" id="c_por">'+PORL[fS.por]+'</p>':'')+
    (fS&&!leVa(dia,fr)?'<label class="chk"><input type="checkbox" id="cConf"'+(conf?' checked':'')+'>Ya lo he hablado con el cliente</label><p class="dn">Si no, la cita queda «pendiente de confirmar».</p>':'')+
-   '<p class="dn">Con cita, la tarifa es siempre la normal.</p>'};
+   '<p class="dn">Con cita, la tarifa es siempre la normal.</p>'+
+   (A.msgs.some(m=>m.k==='ausente'&&!m.env)?'<p class="ojo" id="cAus">El mensaje «'+esc(K.MSG.ausente)+'» aún no se ha mandado. Al dar otra cita se cambia por el de la cita nueva. <button class="txt" id="cMsg">Mandarlo antes</button></p>':'')};
  p();d.addEventListener('change',e=>{if(e.target.id==='cConf')conf=e.target.checked});
- d.addEventListener('click',e=>{const b=e.target.closest('[data-d],[data-f],#cOk,#cUr');if(!b)return;
+ d.addEventListener('click',e=>{const b=e.target.closest('[data-d],[data-f],#cOk,#cUr,#cMsg');if(!b)return;
+  if(b.id==='cMsg'){d.close();hMsg(A,'ausente');return}
   if(b.dataset.d){dia=b.dataset.d;fr='';p()}else if(b.dataset.f){fr=b.dataset.f;p()}
   else if(b.id==='cUr'){if(hacer({tipo:'mover',id:A.id,cita:null}).ok){d.close();toast('Pasa a urgente.')}}
   else{if(!fr)return toast('Elige una franja.');const hablado=leVa(dia,fr)||conf;if(hacer({tipo:'mover',id:A.id,cita:{dia,fr},confirmado:conf&&!leVa(dia,fr)}).ok){d.close();toast('Cita guardada: '+diaCorto(dia)+', '+frTxt(fr)+'.'+(hablado?'':' Queda pendiente de confirmar.'))}}})}
@@ -1056,6 +1144,7 @@ const ACC={
  llamar:A=>hLlamar(A),
  zona:A=>hZona(A),
  msg:(A,b)=>hMsg(A,b.dataset.k),
+ mensajes:()=>hMensajes(),
  completar:A=>hCompletar(A),
  cita:A=>hCita(A),
  cancelar:A=>hCancelar(A),
@@ -1067,6 +1156,7 @@ const ACC={
  ampliar:A=>hPrecio(A,true),
  falta:A=>hFalta(A),
  conAlta:A=>hConAlta(A),
+ conVer:(A,b)=>{const C=contrato(b.dataset.c);if(C)hConVer(C)},
  conCob:(A,b)=>{const C=contrato(b.dataset.c);if(C)hConCob(C)},
  conRen:(A,b)=>{const C=contrato(b.dataset.c);if(C)hConRen(C)},
  conBaja:(A,b)=>{const C=contrato(b.dataset.c);if(C)hConBaja(C)},

@@ -115,6 +115,12 @@ for (const [que, rompe, base] of ROTOS) {
   es(valida(P1, K, HOY).errores.length === 0 && !valida(P1, K, HOY).avisos.some(t => /porTiempo|reserva/.test(t)) && valida(P2, K, HOY).errores.some(t => /porTiempo/.test(t))
     && valida(P3, K, HOY).avisos.some(t => /sin horarios/.test(t)) && valida(P4, K, HOY).avisos.some(t => /citas.reserva/.test(t) && / f4/.test(t)),
     'citas por tiempo: vale con horarios; «porTiempo» que no es sí o no, error; sin horarios, aviso; y si la reserva guarda a todos los de una franja (aquí, de 18 a 20), aviso') }
+// la reserva los días que falta alguien (15-11-2026): la decide el dueño; tiene que ser sí o no, y sin reserva no cambia nada
+{ const Q1 = clon(R); Q1.citas = { porFranja: 3, reserva: 1, porTiempo: true, reservaSiFalta: false }; const Q2 = clon(Q1); Q2.citas.reservaSiFalta = 'no';
+  const Q3 = clon(Q1); Q3.citas.reserva = 0;
+  es(valida(Q1, K, HOY).errores.length === 0 && !valida(Q1, K, HOY).avisos.some(t => /reservaSiFalta/.test(t)) && valida(Q2, K, HOY).errores.some(t => /citas.reservaSiFalta/.test(t))
+    && valida(Q3, K, HOY).errores.length === 0 && valida(Q3, K, HOY).avisos.some(t => /citas.reservaSiFalta/.test(t)),
+    'la reserva los días que falta alguien: false vale; algo que no es sí o no, error; y sin reserva, aviso de que no cambia nada') }
 // las caducidades: lo mismo que hoy pasa, dentro de un año tiene que fallar
 es(valida(R, K, '2027-08-01').errores.some(t => /festivos/.test(t)), 'con la fecha de dentro de nueve meses, avisa de que hay que renovar los festivos');
 es(valida(R, K, '2026-12-28').avisos.some(t => /festivos/.test(t)) && valida(R, K, '2026-12-28').errores.length === 0, 'cuando queda menos de un año, lo dice como aviso, sin parar nada');

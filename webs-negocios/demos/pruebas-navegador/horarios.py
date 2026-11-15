@@ -201,7 +201,8 @@ async def main():
         es(len(so) == 1 and so[0]['fr'] == U and any('Sobra 1 cita' in x and 'no hay técnicos para todas' in x for x in al), 'avisos de arriba: con uno menos ya no hay técnicos para las dos de esa franja: «Sobra 1 cita»')
         es(await c.get_attribute('.alertas li a[href^="#/equipo/"]', 'href') == f'#/equipo/{D1}', 'avisos de arriba: el de «sobra» lleva al día en cuestión')
         await ir(c, '#/bandeja', '.alertas')
-        es(await c.locator('.alertas li').count() == len(al) and 'Reasignar' in await texto(c, '#v .lista'), 'bandeja: los mismos avisos arriba, y el aviso suelto lleva la etiqueta «Reasignar»')
+        alB = [x for x in await c.locator('.alertas li').all_inner_texts() if 'mensaje' not in x]   # en la bandeja, además, los mensajes por mandar
+        es(len(alB) == len(al) and 'Reasignar' in await texto(c, '#bResto'), f'bandeja: los mismos avisos del reparto en «por hacer», y el aviso suelto lleva la etiqueta «Reasignar» ({len(alB)} y {len(al)})')
         suelto = await c.evaluate("Oficio.estado().avisos.find(a=>a.reasignar).id")
         await c.click('.alertas li a[href^="#/aviso/"]'); await c.wait_for_selector('.tec')
         es((await c.evaluate("location.hash")).endswith(suelto) and 'ya no puede ir' in await texto(c, '#v') and 'Ausente ese día' in await texto(c, f'.tec[data-tec="{X}"]'), f'aviso suelto: se abre desde el aviso de arriba, dice que hay que elegir a otro y que {nx} está ausente')
@@ -224,7 +225,10 @@ async def main():
         A = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idk}')")
         es(A['cita']['ok'] is False and A['cita']['dia'] == otra[0] and A['cita']['fr'] == otra[1], 'reglas: la cita se ha movido y está marcada como no confirmada')
         await ir(c, '#/bandeja', '.alertas')
-        es(any('1 cita pendiente de confirmar' in x for x in await c.locator('.alertas li').all_inner_texts()) and 'por confirmar' in await texto(c, '#v .lista'), 'bandeja: sale arriba «1 cita pendiente de confirmar», y en su fila')
+        prox = await c.evaluate("(()=>{const K=Oficio.K,cfg=Oficio.cfg;let d=K.masDias(K.madrid(Date.now()).date,1);for(let i=0;i<7&&!K.laborable(cfg,d);i++)d=K.masDias(d,1);return d})()")
+        al2 = await c.locator('.alertas li').all_inner_texts()
+        if otra[0] > prox: await ir(c, f'#/agenda/{otra[0]}', '.fila')   # una cita de más adelante está en la agenda de su día
+        es(any('1 cita pendiente de confirmar' in x for x in al2) and 'por confirmar' in await texto(c, '#v'), 'bandeja: sale en «por hacer» «1 cita pendiente de confirmar», y en su fila')
         await ir(c, f'#/aviso/{idk}', '#porConf'); await c.click('#porConf [data-a="confirma"]')
         es(await toast(c, 'confirmada') and await hasta(c, "!document.querySelector('#porConf')") and await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idk}').cita.ok") is True, 'cambiar: con «Ya está hablado» deja de estar pendiente')
         # una cita apuntada por teléfono: la casilla viene marcada
@@ -241,7 +245,7 @@ async def main():
         await ir(c, f'#/aviso/{suelto}', '.tec'); await c.click(f'.tec[data-tec="{X}"]')
         es(await toast(c, 'Asignado') and await c.evaluate(f"!Oficio.estado().avisos.some(a=>a.reasignar)"), 'ausencia: y ya se le puede volver a asignar; no queda nada por reasignar')
         await ir(c, '#/bandeja', '.cab')
-        es(await c.locator('.alertas').count() == 0, 'bandeja: sin nada pendiente, no sale ningún aviso arriba')
+        es(all('mensaje' in x for x in await c.locator('.alertas li').all_inner_texts()), 'bandeja: sin nada pendiente del reparto, en «por hacer» como mucho quedan los mensajes por mandar')
 
         # ---------- 8. el técnico no ve «Equipo»; anchos; ordenador ----------
         t = await ctx.new_page(); vigila(t, 'técnico'); await t.goto(B + f'app.html?papel=tecnico&tec={tecs[0]}#/equipo/{D1}'); await t.wait_for_selector('#nav a')

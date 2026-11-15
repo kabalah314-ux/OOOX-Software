@@ -47,8 +47,10 @@ export function estado(plantilla, carpeta) {
 }
 /** Valida el archivo de datos con las reglas de «sitio». Devuelve {N, errores, avisos}. */
 function mira(sitio, archivo) {
-  let N; try { N = leeNegocio(archivo).N } catch (e) { return { N: null, errores: ['No se puede leer el archivo de datos: ' + e.message], avisos: [] } }
-  const r = valida(N, leeNucleo(sitio), hoy()); return { N, errores: r.errores, avisos: r.avisos };
+  let N, muestra; try { ({ N, muestra } = leeNegocio(archivo)) } catch (e) { return { N: null, errores: ['No se puede leer el archivo de datos: ' + e.message], avisos: [] } }
+  // una demo trae su muestra y no va con servidor: no tiene buzón ni personas de verdad
+  const demo = typeof muestra === 'function' && !(N && N.servidor);
+  const r = valida(N, leeNucleo(sitio), hoy()); return { N, demo, errores: r.errores, avisos: r.avisos };
 }
 const azar = (sitio, archivo) => { const r = spawnSync(process.execPath, [path.join(aqui, 'pruebas-reglas/azar.mjs'), sitio, '--negocio', archivo, '--tandas', '6', '--semilla', '20261113'], { encoding: 'utf8', timeout: 240000 }); return { ok: r.status === 0, salida: (r.stdout || '') + (r.stderr || '') } };
 export const copiasDe = destino => fs.existsSync(destino) ? fs.readdirSync(destino).filter(d => !d.startsWith('.') && fs.existsSync(path.join(destino, d, DATOS))).sort() : [];
@@ -71,7 +73,7 @@ export function nueva({ plantilla, destino, datos }) {
     fs.writeFileSync(path.join(tmp, FICHA), JSON.stringify({ id, nombre: m.N.nombre, creada: hoy(), actualizada: hoy(), version: v, prueba: m.N.prueba === true }, null, 1) + '\n');
     fs.chmodSync(tmp, 0o755); fs.renameSync(tmp, carpeta);
   } catch (e) { fs.rmSync(tmp, { recursive: true, force: true }); return { ok: false, errores: ['No se ha podido crear: ' + e.message], avisos: m.avisos } }
-  return { ok: true, id, carpeta, nombre: m.N.nombre, prueba: m.N.prueba === true, version: version(carpeta), errores: [], avisos: m.avisos };
+  return { ok: true, id, carpeta, nombre: m.N.nombre, prueba: m.N.prueba === true, demo: m.demo, version: version(carpeta), errores: [], avisos: m.avisos };
 }
 
 /** Pone al día lo común de una copia. Antes valida sus datos con las reglas nuevas y, si no se dice lo contrario, le pasa recorridos al azar. */
@@ -111,9 +113,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (!r.ok) mal = 1;
     else {
       console.log(`CREADA  ${r.id} · ${r.nombre} · versión ${r.version}\n        ${r.carpeta}`);
-      // el código de soporte: se inventa aquí, se enseña una vez y no se guarda en ningún archivo
-      const P = 'abcdefghjkmnpqrstuvwxyz23456789', cod = Array.from({ length: 4 }, () => Array.from(crypto.randomBytes(4), b => P[b % P.length]).join('')).join('-');
-      console.log(`\nPara que su oficina pueda escribir en «Mejoras», falta darla de alta en el buzón de OOOX (Supabase, proyecto del buzón).\nCódigo de soporte, que no se guarda en ningún sitio: apúntalo en tu gestor de contraseñas y dáselo al negocio.\n\n    ${cod}\n\n    insert into oficios.negocios (id, nombre, plan, prueba, clave_hash)\n    values ('${r.id}', '${r.nombre.replace(/'/g, "''")}', 'pro', ${r.prueba ? 'true' : 'false'}, oficios.huella('${r.id}', '${cod}'));\n`);
+      // una demo no tiene buzón ni servidor: no hace falta código de soporte
+      if (r.demo) console.log('\nEs una demo (trae su muestra y no va con servidor): no necesita código de soporte ni alta en el buzón.');
+      else {
+        // el código de soporte: se inventa aquí, se enseña una vez y no se guarda en ningún archivo
+        const P = 'abcdefghjkmnpqrstuvwxyz23456789', cod = Array.from({ length: 4 }, () => Array.from(crypto.randomBytes(4), b => P[b % P.length]).join('')).join('-');
+        console.log(`\nPara que su oficina pueda escribir en «Mejoras», falta darla de alta en el buzón de OOOX (Supabase, proyecto del buzón).\nCódigo de soporte, que no se guarda en ningún sitio: apúntalo en tu gestor de contraseñas y dáselo al negocio.\n\n    ${cod}\n\n    insert into oficios.negocios (id, nombre, plan, prueba, clave_hash)\n    values ('${r.id}', '${r.nombre.replace(/'/g, "''")}', 'pro', ${r.prueba ? 'true' : 'false'}, oficios.huella('${r.id}', '${cod}'));\n`);
+      }
     }
   } else if (orden === 'actualizar') {
     const ids = tiene('--todas') ? copiasDe(destino) : sueltos;

@@ -14,7 +14,7 @@ const P0 = huellas(sitio), version0 = /const VERSION='([^']+)'/.exec(fs.readFile
 
 // ---- 1. crear una copia
 let r = nueva({ plantilla: sitio, destino, datos: VOLTIO }); const cv = path.join(destino, 'voltio');
-es(r.ok && r.id === 'voltio' && r.carpeta === cv && r.version === version0, 'crear: la copia de Voltio sale con el «id» de sus datos como carpeta y la versión de la plantilla');
+es(r.ok && r.id === 'voltio' && r.carpeta === cv && r.version === version0 && r.demo === false, 'crear: la copia de Voltio sale con el «id» de sus datos como carpeta y la versión de la plantilla (no es una demo: pedirá su código de soporte)');
 es(COMUNES.every(f => fs.existsSync(path.join(cv, f))) && huellas(cv) === P0, 'crear: lleva todos los archivos comunes, idénticos a los de la plantilla');
 es(h(path.join(cv, 'js/oficio-datos.js')) === h(VOLTIO), 'crear: su archivo de datos es el que se le dio, sin tocar');
 const ficha = JSON.parse(fs.readFileSync(path.join(cv, 'copia.json'), 'utf8'));
@@ -33,7 +33,7 @@ es(!r.ok && fs.readdirSync(destino).join() === 'voltio', 'crear: un «id» con m
 r = nueva({ plantilla: sitio, destino, datos: path.join(T, 'no-existe.js') });
 es(!r.ok && /No encuentro/.test(r.errores[0]), 'crear: si el archivo de datos no existe, lo dice');
 r = nueva({ plantilla: sitio, destino, datos: DEMO });
-es(r.ok && r.id === 'ramirez' && copiasDe(destino).join() === 'ramirez,voltio', 'crear: una segunda copia, con otros datos, convive con la primera');
+es(r.ok && r.id === 'ramirez' && copiasDe(destino).join() === 'ramirez,voltio' && r.demo === true, 'crear: una segunda copia, con otros datos, convive con la primera (y como trae su muestra y no va con servidor, es una demo)');
 // una copia marcada como prueba
 const dePrueba = path.join(T, 'prueba.js'); fs.writeFileSync(dePrueba, fs.readFileSync(VOLTIO, 'utf8').replace("id:'voltio'", "id:'voltio-prueba'").replace("pack:'pro',", "pack:'pro',prueba:true,"));
 r = nueva({ plantilla: sitio, destino, datos: dePrueba });

@@ -138,7 +138,7 @@ function vAbre(){
   '<div class="acciones"><button class="btn pri" id="otraVez">Probar otra vez</button><button class="btn" id="salir">Salir</button></div>'}
 
 function tjAhora(a){const v=a.vista||{};
- return'<a class="tj" href="'+enlace(a)+'"><span class="k"><span>'+esc(a.id)+' · '+(a.cita?esc(K.fechaCorta(a.cita.dia))+', '+esc(frTxt(a.cita.fr)):'urgente')+'</span><span class="pill '+PILL[a.e]+'">'+EST[a.e]+'</span></span><b>'+esc(avN(a))+'</b><small>'+(v.tec?'Va '+esc(v.tec)+'. ':'')+'Toca para ver cómo va.</small></a>'}
+ return'<a class="tj" href="'+enlace(a)+'"><span class="k"><span>'+esc(a.id)+' · '+(a.cita?esc(K.fechaCorta(a.cita.dia))+', '+esc(frTxt(a.cita.fr)):'urgente')+'</span><span class="pill '+PILL[a.e]+'">'+EST[a.e]+'</span></span><b>'+esc(avN(a))+'</b><small>'+(a.e==='camino'?esc(v.tec||'El técnico')+' va de camino'+(v.eta?': llega hacia las '+K.hora(v.eta):'')+'.':a.e==='curso'?esc(v.tec||'El técnico')+' está trabajando.':a.e==='hecho'?'Terminado.':v.tec?'Va '+esc(v.tec)+'.':a.cita?'Antes de ese día te decimos quién va.':'Te avisamos en cuanto salga el técnico.')+'</small></a>'}
 function tjHecho(a,hoy){const gar=a.gar?(a.gar.hasta>=hoy?' · garantía hasta el '+K.fechaCorta(a.gar.hasta):' · garantía terminada'):'';
  return'<a class="tj" href="#/aviso/'+esc(a.id)+'"><span class="k"><span>'+esc(a.id)+' · '+K.fechaCorta(K.madrid(a.fin||a.t).date)+'</span><span class="pill hecho">Terminado</span></span><b>'+esc(avN(a))+'</b><small>'+
   (a.tot?K.eur(a.tot.total)+' · '+(a.pago&&a.pago.cobrado?'pagado':'pendiente de pago'):'')+gar+'</small></a>'}

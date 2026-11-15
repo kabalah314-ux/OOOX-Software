@@ -18,7 +18,7 @@ g.OFICIO_NEGOCIO={
     Omar y Laia, de lunes a viernes, de 8 a 14 y de 15 a 20. Jordi, de 8 a 14 y de 15 a 18: la última franja no la hace.
     Los tres hacen guardias, porque el servicio es de 24 horas. Cada técnico lleva una cita por franja y, de las que caben,
     una no se ofrece al cliente: se guarda para urgencias y solo la puede usar la oficina. */
- citas:{porFranja:3,reserva:1,porTiempo:true},
+ citas:{porFranja:3,reserva:1,porTiempo:true,reservaSiFalta:false},   // el dueño ha elegido: los días que falta alguien, no se guarda a nadie para urgencias
  /* coche: lo que ve el cliente cuando va de camino. foto (en assets/) solo con fotoOk:1, que es su permiso por escrito */
  tecnicos:[
   {id:'omar',n:'Omar',ap:'Benali',tono:205,coche:'Furgoneta blanca con el logo de Ramírez',guardia:1,horario:{1:[[480,840],[900,1200]],2:[[480,840],[900,1200]],3:[[480,840],[900,1200]],4:[[480,840],[900,1200]],5:[[480,840],[900,1200]]}},
@@ -166,8 +166,8 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora,info){
   /* las citas que se piden hoy, para los próximos días: unas en la web y otras por teléfono */
   for(let k=0,n=L?entre(5,8):entre(1,3);k<n;k++){const t=at(d,entre(510,1290)),c=quien(),av=pesa(AV);const id=pideCita(t,c,av,az()<.4);
    if(id&&az()<.03){const tc=t+entre(5,30)*H;tareas.push([tc,()=>{const A=el(id);if(A&&['nuevo','asignado'].includes(A.e)&&A.cita.dia>K.madrid(tc).date)haz({tipo:'cancelar',id,motivo:'Lo ha arreglado un familiar'},C,tc)}])}}
-  /* las revisiones de los contratos: la oficina llama y les da cita */
-  if(L&&az()<.12){const X=(S.contratos||[]).filter(x=>x.e==='activo'&&!S.avisos.some(a=>a.av===K.REV&&a.cli.tel===x.cli.tel));if(X.length){const x=X[0],t=at(d,entre(600,780));pideCita(t,{nombre:x.cli.nombre,apellidos:x.cli.apellidos,tel:x.cli.tel,dir:x.cli.dir,cp:x.cli.cp},K.REV,true)}}
+  /* las revisiones de los contratos: la oficina las ve un mes antes de que toquen y llama a los que tocan en los próximos diez días */
+  if(L&&az()<.12){const X=K.pendientesContratos(S,cfg,at(d,600)).revision.filter(r=>r.toca<=sig(d,10)).map(r=>S.contratos.find(c=>c.id===r.id)).filter(Boolean);if(X.length){const x=X[0],t=at(d,entre(600,780));pideCita(t,{nombre:x.cli.nombre,apellidos:x.cli.apellidos,tel:x.cli.tel,dir:x.cli.dir,cp:x.cli.cp},K.REV,true)}}
   if(L&&d<hoy)reparte(sigLab(d,1),at(d,1110));
   if(d<hoy)hazTareas(t0+24*H-M);
  }

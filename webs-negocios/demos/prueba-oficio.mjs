@@ -778,9 +778,12 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(ap({ tipo: 'facturar', id: u2 }, C).err === 'estado' && !K.porFacturar(S, t).some(x => x.id === u2), 'lo que sale a cero no se factura');
   // la revisión: la crea la oficina, va incluida con su desplazamiento, y solo las que tiene el plan
   es(ap({ tipo: 'pedir', av: REV, cli }, CLI).err === 'av' && ap({ tipo: 'pedir', av: REV, cli, origen: 'web' }, { rol: 'cliente' }).err === 'av', 'la revisión no se pide desde la web');
-  es(K.pendientesContratos(S, cfg, t).revision.some(x => x.id === r.id && x.quedan === PL.revisiones), 'mientras no tiene su aviso, la oficina ve que falta dar la cita de la revisión');
+  const per0 = S.contratos.find(c => c.id === r.id).per[0], toca = K.tocaRevision(per0, 1, PL.revisiones), cuando = (d, k) => Date.parse(K.masDias(d, k) + 'T10:00:00Z');
+  es(!K.pendientesContratos(S, cfg, t).revision.some(x => x.id === r.id) && (PL.revisiones !== 1 || toca === per0.a) && !K.pendientesContratos(S, cfg, cuando(toca, -31)).revision.some(x => x.id === r.id)
+    && K.pendientesContratos(S, cfg, cuando(toca, -30)).revision.some(x => x.id === r.id && x.quedan === PL.revisiones && x.toca === toca),
+    'recién dado de alta, la revisión aún no se pide: la oficina la ve desde un mes antes de que toque (con una al año, al cumplir el año)');
   const rv = ap({ tipo: 'pedir', av: REV, cli, origen: 'llamada' }, C).id;
-  es(A(rv).con && A(rv).con.rev === PL.rev && K.gratisDe(A(rv)).slice().sort().join() === [PL.rev, PL.desp].sort().join() && !K.pendientesContratos(S, cfg, t).revision.some(x => x.id === r.id), 'el aviso de la revisión lleva la revisión y el desplazamiento incluidos, y deja de faltar');
+  es(A(rv).con && A(rv).con.rev === PL.rev && K.gratisDe(A(rv)).slice().sort().join() === [PL.rev, PL.desp].sort().join() && !K.pendientesContratos(S, cfg, cuando(toca, -30)).revision.some(x => x.id === r.id), 'el aviso de la revisión lleva la revisión y el desplazamiento incluidos, y deja de faltar');
   ap({ tipo: 'asignar', id: rv, tec: 'jordi' }, C);
   es(ap({ tipo: 'empezar', id: rv, pres: { lineas: cfg.av[REV].ini, firma: F } }, T('jordi')).ok && A(rv).tot.total === 0 && A(rv).tot.lineas.every(l => l.con && l.imp === 0), 'la revisión sola sale a cero y vale como presupuesto');
   es(ap({ tipo: 'terminar', id: rv }, T('jordi')).ok && A(rv).pago.cobrado && A(rv).pago.modo === '' && A(rv).h[A(rv).h.length - 1].txt.includes('sin nada que cobrar'), 'a cero, se termina sin preguntar cómo paga');
@@ -1049,6 +1052,42 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   hd({ tipo: 'ausencia', tec: 'laia', de: dia, a: dia, motivo: 'médico' }, C);
   const so = K.sobran(SD, ct, td);
   es(so.length === 1 && so[0].dia === dia && so[0].fr === 'f4' && so[0].sobran === 2 && K.resumen(SD, ct, td).sobran.length === 1, 'si Laia falta ese día, sus dos citas no le caben a Omar (ya tiene dos y no llegaría): sobran dos, y la oficina lo ve');
+}
+
+// 46. lo decidido el 15-11-2026 por la noche: la revisión del contrato se pide desde un mes antes de que toque; la reserva
+//     para urgencias, los días que falta alguien, la decide el dueño; y la visita en la que no había nadie queda apuntada
+{
+  const p = { de: '2026-01-01', a: '2026-12-31' };
+  es(K.tocaRevision(p, 1, 2) === K.masDias('2026-01-01', 182) && K.tocaRevision(p, 2, 2) === '2026-12-31' && K.tocaRevision(p, 1, 1) === '2026-12-31',
+    'con dos revisiones al año, la primera toca a mitad del periodo y la segunda al final; con una, al final');
+  const NT = JSON.parse(JSON.stringify(PUB)); NT.citas = { porFranja: 3, reserva: 1, porTiempo: true }; const ct = K.cfgDe(NT);
+  const NF = JSON.parse(JSON.stringify(NT)); NF.citas.reservaSiFalta = false; const cf = K.cfgDe(NF);
+  const dia = '2026-11-11', d0 = Object.keys(ct.zonas.dis)[0], X = { av: 'grifo', cli: { dis: d0 } }, f1 = (S, c) => K.franjasDe(S, c, dia, MAR, null, X).find(f => f.id === 'f1');
+  const SA = K.nuevo(), ra = K.aplicar(SA, ct, { tipo: 'ausencia', tec: 'laia', de: dia, a: dia, motivo: 'médico' }, C, MAR);
+  es(ra.ok && ct.reservaSiFalta === true && cf.reservaSiFalta === false && K.reservaDe(SA, ct, dia) === 1 && K.reservaDe(SA, cf, dia) === 0 && K.reservaDe(SA, cf, '2026-11-12') === 1,
+    'la reserva para urgencias se guarda también los días que falta alguien; si el dueño dice que no, esos días no se guarda a nadie (y los demás días, sí)');
+  es(f1(SA, ct).tope === 6 && f1(SA, ct).libres === 3 && f1(SA, cf).tope === 6 && f1(SA, cf).libres === 6,
+    'con Laia de médico trabajan dos: guardando uno, el cliente puede pedir tres grifos esa mañana; si el dueño no guarda a nadie esos días, seis');
+  { const NN = JSON.parse(JSON.stringify(PUB)); NN.citas = { porFranja: 1, reserva: 1 }; const cn = K.cfgDe(NN), NN2 = JSON.parse(JSON.stringify(NN)); NN2.citas.reservaSiFalta = false;
+    const cn2 = K.cfgDe(NN2), fA = cn.franjas[0], tot = K.capacidadTotal(SA, cn, dia, fA);
+    es(cn.conHorario && tot === 2 && K.capacidad(SA, cn, dia, fA) === 1 && K.capacidad(SA, cn2, dia, fA) === 2 && K.capacidad(K.nuevo(), cn2, dia, fA) === 2,
+      'también con las citas por número: ese día trabajan dos y se guarda uno; si el dueño dice que no, ninguno (y sin nadie de baja, se guarda uno de los tres)') }
+  { const NL = JSON.parse(JSON.stringify(NF)), x = NL.tecnicos.find(t => t.id === 'laia'), w = String(new Date(dia + 'T12:00:00Z').getUTCDay());
+    if (x.horario) delete x.horario[w]; else x.horario = Object.fromEntries(Object.entries(NL.horario || {}).filter(([k]) => k !== w));
+    es(K.turnosDe(K.cfgDe(NL), 'laia', dia).length === 0 && K.reservaDe(SA, K.cfgDe(NL), dia) === 1, 'una ausencia el día que a ese técnico no le toca trabajar no cuenta como que falta alguien') }
+  // la visita en la que no había nadie: queda apuntado quién fue y de cuándo a cuándo, y sale en su día aunque luego se dé otra cita
+  const SV = K.nuevo(); let tv = MAR; const hv = (a, q) => K.aplicar(SV, ct, a, q, tv += 5 * M);
+  const cli = { nombre: 'Nadie', apellidos: 'Encasa', tel: '600000470', dir: 'C/ Vacía 1, 2.º', cp: Object.keys(ct.zonas.cp).find(c => ct.zonas.cp[c] === d0) };
+  const id = hv({ tipo: 'pedir', av: 'grifo', cli, cita: { dia, fr: 'f1' } }, C).id; hv({ tipo: 'asignar', id, tec: 'omar' }, C);
+  tv = Date.parse(dia + 'T08:10:00Z'); const rv = hv({ tipo: 'voy', id }, T('omar')); tv += 25 * M; const rn = hv({ tipo: 'ausente', id }, T('omar')), V = SV.avisos.find(a => a.id === id);
+  es(rv.ok && rn.ok && V.vis.length === 1 && V.vis[0].tec === 'omar' && V.vis[0].de === V.sal && V.vis[0].a === V.aus && V.vis[0].a - V.vis[0].de === 30 * M, 'si no había nadie, queda apuntado quién fue y de cuándo a cuándo');
+  const L1 = K.agendaDe(SV, ct, 'omar', dia, tv).filter(x => x.nadie);
+  es(L1.length === 1 && L1[0].id === id && L1[0].hecho && L1[0].llega === K.madrid(V.sal).min && L1[0].acaba === K.madrid(V.aus).min, 'en el día de Omar, ese rato sale como hecho y marcado «no había nadie»');
+  const rm = hv({ tipo: 'mover', id, cita: { dia: '2026-11-12', fr: 'f1' } }, C);
+  es(rm.ok && V.vis.length === 1 && !V.msgs.some(m => m.k === 'ausente') && K.agendaDe(SV, ct, 'omar', dia, tv).some(x => x.nadie && x.id === id) && !K.agendaDe(SV, ct, 'laia', dia, tv).some(x => x.nadie),
+    'con la cita nueva, la visita sigue en el día de quien fue (y solo en el suyo), y el mensaje sin mandar se cambia por el de la cita');
+  const Pf = K.perfilCliente(SV, ct, cli.tel);
+  es(!('vis' in K.vistaCliente(SV, ct, id)) && Pf && !('vis' in Pf.avisos[0]), 'el cliente no ve ese apunte interno');
 }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);

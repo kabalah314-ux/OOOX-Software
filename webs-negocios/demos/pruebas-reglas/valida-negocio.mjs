@@ -142,6 +142,8 @@ export function valida(N, K, hoy) {
   // las citas por lo que tarda cada trabajo (15-11-2026): sí o no, y solo con horarios
   if (N.citas && N.citas.porTiempo != null && typeof N.citas.porTiempo !== 'boolean') E('citas.porTiempo: true para repartir las citas por lo que tarda cada trabajo; si no, false o nada.');
   if (N.citas && N.citas.porTiempo === true && !conHorario) A('citas.porTiempo: sin horarios no se puede; las citas van por número (cupo).');
+  if (N.citas && N.citas.reservaSiFalta != null && typeof N.citas.reservaSiFalta !== 'boolean') E('citas.reservaSiFalta: false para no guardar a nadie para urgencias los días que falta alguien; si no, true o nada.');
+  if (N.citas && N.citas.reservaSiFalta === false && !(N.citas.reserva > 0)) A('citas.reservaSiFalta: sin reserva para urgencias (citas.reserva) no cambia nada.');
   if (conHorario && Array.isArray(tecs) && Array.isArray(fr)) {
     let mal = N.horario ? horarioMal(N.horario, 'horario') : false;
     tecs.forEach(x => { if (x && x.horario) mal = horarioMal(x.horario, 'tecnicos (' + x.id + ').horario') || mal; else if (x && !N.horario) { E('tecnicos (' + x.id + '): falta su horario (o un horario general del negocio).'); mal = true } });

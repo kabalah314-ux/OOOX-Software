@@ -86,7 +86,10 @@ async def main():
         es(all(x['n'] in t for x in N['tecnicos']), 'oficina: sale todo el equipo del negocio')
         await c.click(f'a.fila[href="#/aviso/{idc}"]'); await c.wait_for_selector('.tec[data-tec]')
         es(await c.locator('.tec[data-tec]').count() == len(N['tecnicos']), 'oficina: se puede asignar a cualquiera del equipo')
-        tec = N['tecnicos'][0]['id']
+        # el primero del equipo que puede ir; en una demo con el día a medias puede estar en otro trabajo: se le deja libre
+        tec = await c.evaluate("""(id=>{const S=Oficio.estado(),K=Oficio.K,A=S.avisos.find(a=>a.id===id),oc=new Set(S.avisos.filter(a=>['camino','curso'].includes(a.e)).map(a=>a.tec));
+          const L=Oficio.N.tecnicos.map(t=>t.id).filter(t=>K.puedeIr(S,Oficio.cfg,A,t,Date.now())==='');return L.find(t=>!oc.has(t))||L[0]||Oficio.N.tecnicos[0].id})('%s')""" % idc)
+        await c.evaluate("""(t=>{const q={rol:'tecnico',id:t};Oficio.estado().avisos.filter(a=>a.tec===t&&['camino','curso'].includes(a.e)).forEach(a=>Oficio.hacer(a.e==='camino'?{tipo:'ausente',id:a.id}:{tipo:'terminar',id:a.id,modo:'tarjeta',firma:'M14 78C30 70 44 34 50 14 54 44'},q))})('%s')""" % tec)
         await c.click(f'.tec[data-tec={tec}]'); await c.wait_for_timeout(300); await guarda(c, 'aviso asignado')
         # un aviso que entra por WhatsApp y se apunta a mano
         await c.goto(B + 'app.html#/nuevo'); await c.wait_for_selector('#fNuevo')

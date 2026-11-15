@@ -67,7 +67,7 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | U12 | F14 | Las citas de hoy y de los próximos días | En el plan de cada técnico, ninguna llega tarde a su franja | R | Bien |
 | U13 | F13 | Las citas que sobran | Solo las del técnico de baja que no caben en otro, y la oficina las ve | R, P | Bien (arreglado el fallo 2) |
 | U14 | F11 | El cliente que vuelve | Su aviso nuevo sale «en garantía» | R | Bien |
-| U15 | F12 | Los contratos | Hay contratos activos, alguno por renovar, revisiones pendientes y alguna cuota por cobrar | R, P | Bien |
+| U15 | F12 | Los contratos | Hay contratos activos, alguno por renovar, revisiones pendientes y alguna cuota por cobrar; las revisiones salen desde un mes antes de que toquen, no antes (M2) | R, P | Bien |
 | U16 | F12 | Urgencia de un cliente con contrato | Va sin suplemento y sin desplazamiento | R, Antes | Bien |
 | U17 | F16 | Las urgencias del mes | Los suplementos cobrados sin IVA y el 10 % de OOOX cuadran | R | Bien |
 | U18 | Todos | Seguir trabajando sobre los datos vivos | 400 pasos más (avisos nuevos, trabajos, cobros) sin ningún rechazo inesperado | R | Bien |
@@ -97,8 +97,8 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | U42 | Todos | Volver a abrir | Los datos siguen ahí y no se rehacen | P | Bien |
 | U43 | Todos | Móvil y ordenador | En 390 y en 1280 píxeles de ancho, ninguna pantalla se sale por los lados | P | Bien |
 | U44 | Todos | Firefox y Safari | Todo igual que en Chrome | Antes (en GitHub) | Bien: todas las pruebas de pantallas, también en Firefox y en WebKit (el motor de Safari), en GitHub |
-| U45 | Todos | Las reglas, caso a caso | Los 457 ejemplos pasan | Antes | Bien: 458 |
-| U46 | Todos | Las reglas estropeadas a propósito | Las pruebas cazan las 230 | Antes | Bien: 232 de 232 |
+| U45 | Todos | Las reglas, caso a caso | Todos los ejemplos pasan | Antes | Bien: 467 |
+| U46 | Todos | Las reglas estropeadas a propósito | Las pruebas las cazan todas | Antes | Bien: 243 de 243 |
 | U47 | Todos | Los recorridos al azar | 140 000 pasos sin romper ninguna ley | Antes | Bien: 140 000 pasos, y 14 000 más con el negocio en uso |
 | U48 | F17 | El servidor | El juez y el espejo pasan sus ejemplos y sus recorridos al azar | Antes | Bien |
 | U49 | F17 | Tres móviles a la vez, con servidor | Lo que hace uno lo ven los otros | Antes | Bien |
@@ -110,6 +110,9 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | U55 | F1 | El WhatsApp ya escrito | Se abre con el texto y el número del cliente | A mano | Por probar (Oscar) |
 | U56 | F17 | Voltio con códigos | Entra con su código y ve lo mismo en dos móviles | A mano | Por probar (Oscar) |
 | U57 | F2 | Quién está libre, arriba de la bandeja | Quien falta hoy sale «hoy no está»; de noche, quien no hace guardias sale «fuera de horario»; ninguno de los dos sale «libre» | P | Bien (arreglado el fallo 6) |
+| U58 | F13 | La reserva el día que falta alguien (M8) | En la demo, el dueño ha elegido no guardar a nadie esos días: el día que falta Laia, el cliente puede pedir cita | R | Bien |
+| U59 | F4 | La visita sin nadie, en el tablero (M3) | Ese rato sale rayado en el día de quien fue, con «no había nadie» | P | Bien |
+| U60 | F4 | El mensaje que se iba a perder (M4) | Antes de dar otra cita, avisa de que «No había nadie» aún no se ha mandado, y deja mandarlo antes | P | Bien |
 
 ## Lo que se ha visto y las mejoras
 
@@ -147,27 +150,29 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
     un técnico para urgencias, así que el cliente no ve ninguna franja (la oficina sí). Ahora busca el primer día con
     hueco. Ver la mejora M8.
 
-### Mejoras apuntadas, para decidir
+### Mejoras apuntadas
 
-- **M1. La bandeja, más corta.** Enseña también las citas sin técnico de los próximos días (unas 16 «por atender»
-  en la demo), y la oficina las reparte la tarde antes. Propuesta: en la bandeja, las urgencias y las citas de hoy y mañana;
-  el resto, en la agenda.
-- **M2. La revisión del contrato, a su tiempo.** Un contrato recién vendido ya pide «revisión sin cita» el primer día
-  (en la demo, entre 15 y 26 según el día). Propuesta: pedirla a partir de un mes antes de la fecha que toque, por ejemplo a los once meses del
-  alta, o la que diga el negocio. Lo decide Oscar.
-- **M3. Las visitas sin nadie, en el tablero.** No se pintan, y ese rato no se ve. Propuesta: pintarlas en gris, como
-  lo hecho.
-- **M4. Un mensaje que se va a perder.** Si la oficina da otra cita antes de mandar «No había nadie», ese mensaje se
-  quita. Propuesta: avisar antes de que se pierda.
+El 15-11 por la noche, Oscar dio por buenas las propuestas (M1 y M2), pidió que la reserva de M8 la decida el dueño
+y confirmó el 10 % de OOOX por urgencia y que el contrato quite el suplemento. Quedan hechas todas menos M6.
+
+
+- **M1. La bandeja, más corta (hecho, 15-11).** Ahora enseña lo urgente y las citas sin técnico de hoy y del próximo día
+  de trabajo; las de más adelante, con un enlace a la agenda. Va dentro del rediseño de la bandeja (guía, pestaña
+  «Usabilidad»).
+- **M2. La revisión del contrato, a su tiempo (hecho, 15-11).** La oficina la ve desde un mes antes de que toque: con una
+  al año, a los once meses del alta; con varias, repartidas a lo largo del año. Reglas `2026.11.15k`.
+- **M3. Las visitas sin nadie, en el tablero (hecho, 15-11).** Queda apuntado quién fue y de cuándo a cuándo, y ese rato
+  sale rayado en su día, aunque luego se dé otra cita.
+- **M4. Un mensaje que se va a perder (hecho, 15-11).** Al ir a dar otra cita, la app avisa de que «No había nadie» aún
+  no se ha mandado y deja mandarlo antes.
 - **M5. La reserva con pocos técnicos (hecho).** Con citas por tiempo, la reserva guarda técnicos enteros: en una
   franja donde solo trabaja uno y se guarda uno, el cliente no puede pedir cita. Ahora el validador lo avisa al dar
   de alta el negocio.
 - **M6. Años de datos.** Con nueve semanas, la demo ocupa 1,1 MB en el navegador y tarda 1,5 segundos en hacerse la
   primera vez. Con años de trabajo, cada móvil no puede guardarlo todo: para un negocio de verdad va el servidor (ya
   está) y el móvil solo guarda lo reciente.
-- **M7. Crear una copia de demo.** `copias.mjs nueva` saca un código de soporte y la orden para el servidor también
-  cuando la copia es una demo sin servidor. No hace falta: se puede quitar en ese caso.
-- **M8. La reserva cuando falta alguien.** El día siguiente, con Laia de médico, trabajan dos, se guarda uno para
-  urgencias y las citas ya pedidas llenan al otro: el cliente no puede pedir ninguna cita por la web (la oficina aún
-  puede poner seis). Propuesta: que la reserva baje a cero los días que
-  solo trabajan dos, o que la decida el dueño. Lo decide Oscar.
+- **M7. Crear una copia de demo (hecho, 15-11).** `copias.mjs nueva` ya no saca código de soporte ni la orden para el
+  servidor cuando la copia es una demo.
+- **M8. La reserva cuando falta alguien (hecho, 15-11).** Lo decide el dueño: `citas.reservaSiFalta: false` hace que los
+  días que falta alguien no se guarde a nadie para urgencias (por defecto, sí se guarda). En la demo «en uso», el dueño ha
+  elegido que no: el día que falta Laia, el cliente puede pedir cita.

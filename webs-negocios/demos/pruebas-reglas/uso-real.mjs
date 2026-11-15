@@ -79,6 +79,12 @@ for (const h of HORAS) {
   // U15: los contratos: activos, alguno por renovar, revisiones pendientes y alguna cuota por cobrar
   const pc = K.pendientesContratos(S, cfg, ahora), act = (S.contratos || []).filter(x => x.e === 'activo');
   es(act.length >= 10 && pc.renovar.length >= 1 && pc.revision.length >= 1 && pc.cobrar.length >= 1, q('U15: contratos ' + act.length + ', por renovar ' + pc.renovar.length + ', revisiones ' + pc.revision.length + ', cuotas ' + pc.cobrar.length));
+  // U15: la revisión se pide desde un mes antes de que toque, y no antes (decidido el 15-11-2026)
+  es(pc.revision.every(x => x.toca && x.toca <= K.masDias(hoy, 30)) && act.some(C => { const i = C.per.findIndex(p => p.de <= hoy && p.a >= hoy); return i >= 0 && K.tocaRevision(C.per[i], 1, 1) > K.masDias(hoy, 30) && !pc.revision.some(x => x.id === C.id) }),
+    q('U15: las revisiones que salen tocan en el próximo mes; las de los contratos recientes, aún no'));
+  // U58: el día que falta Laia, el dueño ha decidido no guardar a nadie para urgencias: el cliente puede pedir cita ese día
+  if (baja && baja.de > hoy && lab(baja.de)) { const D = K.diasDe(S, cfg, ahora, 10, false, { av: 'grifo', cli: { dis: '' } }).find(d => d.dia === baja.de);
+    es(!cfg.reservaSiFalta && K.reservaDe(S, cfg, baja.de) === 0 && K.reservaDe(S, cfg, sigLab(baja.de, 1)) === cfg.reserva && D && D.franjas.some(f => f.ok), q('U58: el día que falta Laia no se guarda a nadie para urgencias y el cliente puede pedir cita (' + baja.de + ')')) }
   // U17: las urgencias del mes y la parte de OOOX
   const mes = hoy.slice(0, 7), um = K.urgenciasMes(S, cfg, mes);
   let nU = 0, base = 0; H.forEach(a => { if (!a.pago || !a.pago.cobrado || !a.pago.t || K.madrid(a.pago.t).date.slice(0, 7) !== mes) return; const l = (a.tot.lineas || []).find(x => x.k === cfg.urge && x.imp > 0); if (l) { nU++; base += red(l.imp / (1 + (a.tot.tipo || 10) / 100)) } });

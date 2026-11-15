@@ -190,12 +190,21 @@ async def main():
         es(await toast(t5, 'dado de alta'), 'el técnico da de alta el contrato')
         await t5.wait_for_selector('.papel.doc'); es('Contrato de mantenimiento' in await texto(t5, '.papel.doc') and 'Volver' in await texto(t5, '.atras'), 'y le enseña el papel al cliente, con «Volver» en vez de «Contratos»')
         A = await t5.evaluate(AV + f"('{ut}')"); es(bool(A) and any('dado de alta' in h.get('txt', '') for h in A.get('h', [])), 'en su aviso queda apuntado')
-        await c.goto(B + 'app.html#/contratos'); await c.wait_for_selector('#conAl [data-a=conRev]')
-        await c.click('#conAl [data-a=conRev]'); es(await toast(c, 'Aviso de la revisión creado'), 'desde «Contratos» se crea el aviso de la revisión')
+        await c.goto(B + 'app.html#/contratos'); await c.wait_for_selector('.cab [data-a=conAlta]')
+        # la revisión se pide desde un mes antes de que toque (decidido el 15-11-2026): recién dado de alta, aún no
+        cn = await c.evaluate("Oficio.estado().contratos.slice().sort((a,b)=>b.t-a.t)[0].id")
+        es(await c.locator(f'#conAl [data-a=conRev][data-c="{cn}"]').count() == 0, 'un contrato recién dado de alta aún no pide su revisión: toca al cumplir el año')
+        # once meses después: se adelanta su año en lo guardado (la app lo vuelve a leer al cambiar de pantalla)
+        await c.evaluate("(()=>{const k='oficio:'+Oficio.N.id,S=JSON.parse(localStorage.getItem(k)),K=Oficio.K,h=K.madrid(Date.now()).date,C=S.contratos.slice().sort((a,b)=>b.t-a.t)[0];C.per[0].de=K.masDias(h,-340);C.per[0].a=K.masDias(h,24);S.v++;localStorage.setItem(k,JSON.stringify(S))})()")
+        await c.evaluate("location.hash='#/cobros'"); await c.evaluate("location.hash='#/contratos'"); await c.wait_for_selector(f'#conAl [data-a=conRev][data-c="{cn}"]')
+        await c.click(f'#conAl [data-a=conRev][data-c="{cn}"]'); es(await toast(c, 'Aviso de la revisión creado'), 'once meses después, desde «Contratos» se crea el aviso de la revisión')
         await c.wait_for_selector('#conB'); es('la revisión y el desplazamiento van incluidos' in await texto(c, '#conB'), 'y ese aviso lleva la revisión incluida')
         await c.goto(B + 'app.html#/contratos'); await c.wait_for_selector('.cont')
-        es(await c.locator(f'.cont[data-c="{con}"] [data-a=conBaja]').count() == 1, 'cada contrato se puede dar de baja')
-        await c.click(f'.cont[data-c="{con}"] [data-a=conFac]')
+        # desde el 15-11-2026, una fila por contrato; lo que se hace con él, dentro, al tocarlo
+        es(await c.locator('.cont [data-a=conBaja]').count() == 0, 'en la lista no hay ningún «Dar de baja» a mano')
+        await c.click(f'.cont[data-c="{con}"]'); await c.wait_for_selector('dialog.hoja [data-a=conFac]')
+        es(await c.locator('dialog.hoja [data-a=conBaja]').count() == 1, 'cada contrato se puede dar de baja, desde dentro')
+        await c.click('dialog.hoja [data-a=conFac]')
         es(await toast(c, 'Copiado') or await toast(c, 'No se ha podido copiar'), 'copiar los datos para facturar la cuota dice qué ha pasado')
 
         # ---------- 9. la urgencia como extra y los tiempos: en cuánto llega cada uno, el suplemento, y lo de OOOX ----------

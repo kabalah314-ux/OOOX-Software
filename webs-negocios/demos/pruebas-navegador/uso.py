@@ -69,7 +69,9 @@ async def main():
         hoyC = await c.evaluate(f"Oficio.estado().avisos.filter(a=>a.cita&&a.cita.dia==='{hoy}'&&a.tec&&!['cancelado','hecho'].includes(a.e)).map(a=>a.id)")
         bl = await c.evaluate("[...document.querySelectorAll('.tab .dj')].map(a=>a.getAttribute('href').split('/').pop())")
         es(all(x in bl for x in hoyC), f'U35: cada cita de hoy por hacer sale en el tablero ({len(hoyC)})')
-        es(await c.locator('.tab .dj.h').count() >= 3, 'U35: y lo ya hecho hoy, en gris')
+        hh = await c.evaluate(f"Oficio.estado().avisos.filter(a=>a.e==='hecho'&&a.tec&&a.fin&&Oficio.K.madrid(a.fin).date==='{hoy}').map(a=>a.id)")
+        gr = await c.evaluate("[...document.querySelectorAll('.tab .dj.h')].map(a=>a.getAttribute('href').split('/').pop())")
+        es(len(hh) >= 1 and all(x in gr for x in hh), f'U35: y lo ya hecho hoy, en gris ({len(hh)})')
         # U36: cobros: lo pendiente y la caja de hoy, como en los datos, y las urgencias del mes
         R = await c.evaluate(f"(()=>{{const R={K}.resumen(Oficio.estado(),{CFG},Date.now());return{{pend:{K}.eur(R.pend.total),caja:{K}.eur(R.caja.total),n:R.pend.n}}}})()")
         await c.goto(B + 'app.html#/cobros'); await c.wait_for_timeout(500); t = await c.locator('main').inner_text()
@@ -144,6 +146,31 @@ async def main():
             urg = await c.locator('#urgAhora').inner_text()
             es(r.get('ok') and 'hoy no está' in li and 'libre' not in li and await c.locator('.tira li.off', has_text=nta).count() == 1, f'U57: si {nta} falta hoy, arriba dice «hoy no está» ({li.strip()!r})')
             es(nta not in urg, f'U57: y la línea de la urgencia no lo propone ({urg.strip()[:90]!r})')
+        # U59: la visita en la que no había nadie sale en el tablero del día, rayada; U60: y antes de darle otra cita, la app
+        # avisa de que el mensaje «No había nadie» aún no se ha mandado, y deja mandarlo antes (decidido el 15-11-2026)
+        # el que va de camino llega y no hay nadie (o, si nadie va de camino, uno que sale ahora hacia su cita de hoy)
+        vi = await c.evaluate(f"""(()=>{{const S=Oficio.estado(),ocup=new Set(S.avisos.filter(a=>['camino','curso'].includes(a.e)).map(a=>a.tec));
+          const A=S.avisos.find(a=>a.e==='camino'&&a.tec!=='{ta}')||S.avisos.find(a=>a.e==='asignado'&&a.cita&&a.cita.dia==='{hoy}'&&a.tec&&a.tec!=='{ta}'&&!ocup.has(a.tec));
+          return A?{{id:A.id,tec:A.tec,va:A.e==='camino'}}:null}})()""")
+        es(vi is not None, 'U59: a mediodía alguien va de camino o tiene una cita de hoy por hacer')
+        if vi:
+            r1 = {'ok': True} if vi['va'] else await c.evaluate(f"Oficio.hacer({{tipo:'voy',id:'{vi['id']}'}},{{rol:'tecnico',id:'{vi['tec']}'}})")
+            await c.wait_for_timeout(1200)
+            r2 = await c.evaluate(f"Oficio.hacer({{tipo:'ausente',id:'{vi['id']}'}},{{rol:'tecnico',id:'{vi['tec']}'}})")
+            await c.goto(B + f'app.html#/equipo/{hoy}'); await c.wait_for_selector('.tab')
+            dj = c.locator(f'.tab .dj.n[href="#/aviso/{vi["id"]}"]')
+            lab = await dj.first.get_attribute('aria-label') if await dj.count() else ''
+            es(r1.get('ok') and r2.get('ok') and await dj.count() == 1 and 'no había nadie' in lab and await c.locator('.tabl .ln').count() == 1, f'U59: en el tablero, ese rato sale rayado y dice que no había nadie ({lab!r})')
+            await c.goto(B + f'app.html#/aviso/{vi["id"]}'); await c.wait_for_selector('[data-a="cita"]')
+            await c.click('[data-a="cita"]'); await c.wait_for_selector('#cB')
+            hay = await c.locator('#cAus').count(); txa = await c.locator('#cAus').inner_text() if hay else ''
+            es(hay == 1 and 'aún no se ha mandado' in txa, f'U60: al ir a darle otra cita, avisa de que el mensaje «No había nadie» aún no se ha mandado ({txa.strip()[:80]!r})')
+            if hay:
+                await c.click('#cMsg'); await c.wait_for_selector('#mOk'); await c.click('#mOk'); await c.wait_for_timeout(300)
+                env = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{vi['id']}').msgs.some(m=>m.k==='ausente'&&m.env)")
+                await c.click('[data-a="cita"]'); await c.wait_for_selector('#cB')
+                es(env and await c.locator('#cAus').count() == 0, 'U60: «Mandarlo antes» abre el mensaje; mandado, ya no avisa')
+                await c.keyboard.press('Escape')
         # U57: de noche, quien no hace guardias sale «fuera de horario»; los que las hacen, libres para una urgencia
         ctx2 = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=1, timezone_id='Europe/Madrid')
         await pon_hora(ctx2, '2026-11-18T22:00:00+01:00')
