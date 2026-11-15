@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor'];
+const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento'];
 const esTexto = (x, min = 1, max = 200) => typeof x === 'string' && x.trim().length >= min && x.length <= max;
 const esNum = x => typeof x === 'number' && Number.isFinite(x);
 const esEntero = x => Number.isInteger(x);
@@ -244,6 +244,38 @@ export function valida(N, K, hoy) {
         if (pmax != null && pini > pmax) A(cual + ': el presupuesto que sale ya puesto (' + K.eur(pini) + ') pasa del «hasta» de la web (' + K.eur(pmax) + ').');
       }
     });
+  }
+  // ---- mantenimiento (opcional): los contratos que vende el negocio, con su revisión
+  const MT = N.mantenimiento;
+  if (MT != null) {
+    if (typeof MT !== 'object' || Array.isArray(MT)) E('mantenimiento: tiene que ser un objeto con «revision» y «planes».');
+    else {
+      const r = MT.revision;
+      if (Array.isArray(av) && av.some(a => a && a.id === 'revision')) E('averias: el id «revision» lo usa el mantenimiento; ponle otro a esa avería.');
+      if (!r || typeof r !== 'object') E('mantenimiento.revision: falta la revisión (n, c, d, ini y chips).');
+      else {
+        if (!esTexto(r.n, 3, 40)) E('mantenimiento.revision: falta el nombre (n).');
+        if (!esTexto(r.c, 2, 14)) E('mantenimiento.revision: falta el nombre corto (c), de hasta 14 letras.');
+        if (!esTexto(r.d, 3, 80)) E('mantenimiento.revision: falta la descripción (d).');
+        lineasOk(r.ini, 'mantenimiento.revision.ini');
+        if (!Array.isArray(r.chips)) E('mantenimiento.revision.chips: tiene que ser una lista (puede estar vacía).');
+        else r.chips.forEach(k => { if (!propio(cat, k)) E('mantenimiento.revision.chips: «' + k + '» no está en el catálogo.'); else usadas.add(k) });
+      }
+      const P = MT.planes, ids = new Set();
+      if (!Array.isArray(P) || !P.length || P.length > 3) E('mantenimiento.planes: de uno a tres planes.');
+      else P.forEach((x, i) => {
+        const cual = 'mantenimiento.planes[' + i + ']' + (x && x.id ? ' (' + x.id + ')' : '');
+        if (!x || !ID.test(x.id || '')) { E(cual + ': falta el id.'); return }
+        if (ids.has(x.id)) E(cual + ': id repetido.'); else ids.add(x.id);
+        if (!esTexto(x.n, 3, 40)) E(cual + ': falta el nombre (n), de 3 a 40 letras.');
+        if (!esNum(x.precio) || x.precio <= 0 || x.precio > 3000 || !dosDec(x.precio)) E(cual + ': el precio al año, con el IVA dentro, entre 0 y 3.000 € y con dos decimales como mucho.');
+        if (x.iva != null && ![10, 21].includes(x.iva)) E(cual + ': el IVA tiene que ser 10 o 21 (lo confirma la gestoría).');
+        if (x.revisiones != null && (!esEntero(x.revisiones) || x.revisiones < 1 || x.revisiones > 4)) E(cual + ': de 1 a 4 revisiones al año.');
+        if (!x.rev || !propio(cat, x.rev)) E(cual + ': «rev» tiene que ser la revisión del catálogo.'); else usadas.add(x.rev);
+        if (x.desp != null && x.desp !== '' && !propio(cat, x.desp)) E(cual + ': «desp» no está en el catálogo.');
+        if (r && Array.isArray(r.ini) && x.rev && !r.ini.some(l => l && l.k === x.rev)) A(cual + ': la revisión que sale ya puesta no lleva «' + x.rev + '»; no se descontará sola.');
+      });
+    }
   }
   claves.forEach(k => { if (!usadas.has(k)) A('catalogo.' + k + ': no lo usa ninguna avería; el técnico no podrá elegirlo.') });
 

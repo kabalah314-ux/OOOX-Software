@@ -287,6 +287,8 @@ body.conred main.dos{padding-top:0}
 .solo .doc{max-width:none;border-radius:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .des{display:grid;gap:8px;padding:12px 14px;border:1px solid var(--linea);border-radius:12px}
+.cont{padding:12px 14px;border:1px solid var(--linea);border-radius:12px;margin-bottom:10px;display:grid;gap:4px}.cont h3{margin:0;font-size:1.05rem}.cont h3 small{font-weight:500;color:var(--suave)}.cont.baja{opacity:.7}
+.ojo.con a{color:inherit}
 .mfal{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px}.mfal li{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .mq{display:flex;align-items:center;gap:14px}.mq .num{font-size:1.25rem;min-width:2ch}
 .mat{margin-top:10px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}.mat ul{list-style:none;margin:4px 0 8px;padding:0;display:grid;gap:4px}.mat small a{color:inherit}
@@ -348,7 +350,7 @@ const ORIG={llamada:'por teléfono',web:'desde la web',cita:'cita en la web',wha
 const EST={nuevo:'Sin asignar',asignado:'Asignado',camino:'De camino',curso:'Trabajando',hecho:'Terminado',ausente:'No había nadie',cancelado:'Cancelado'};
 const PAGO={efectivo:'Efectivo',tarjeta:'Tarjeta',bizum:'Bizum',transferencia:'Transferencia',pendiente:'Lo paga después'};
 const ERR={nombre:'Escribe el nombre del cliente.',apellidos:'Escribe los apellidos del cliente.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
- datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',pide:'Falta que el cliente marque «Quiero que lo hagáis ya».',falta:'Eso no vale como material: elige uno de la lista o escríbelo, de 1 a 20 unidades y hasta 12 cosas por aviso.',num:'Ese número de factura no vale.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
+ datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',pide:'Falta que el cliente marque «Quiero que lo hagáis ya».',plan:'Elige un plan.',ya:'Ese cliente ya tiene un contrato en esa dirección.',acepta:'Falta que el cliente diga que sí: que firme o que lo diga por mensaje.',contrato:'No encuentro ese contrato.',fecha:'Aún no toca renovarlo: se renueva el último mes.',motivo:'El motivo tiene que ser un texto.',falta:'Eso no vale como material: elige uno de la lista o escríbelo, de 1 a 20 unidades y hasta 12 cosas por aviso.',num:'Ese número de factura no vale.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
  horario:'Ese técnico no trabaja a esa hora. Elige a otro.',ausente_tec:'Ese técnico está ausente ese día.',lleno:'Ese técnico ya tiene esa franja ocupada.',
  red:'Sin conexión con el servidor. No se ha creado: mira si aparece antes de repetirlo.',lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.',sesion:'Tu sesión se ha cerrado. Entra otra vez.',espera:'Eso tiene que confirmarlo el servidor.',
  fechas:'Revisa las fechas de la ausencia.',mapa:'Este negocio no tiene activado el mapa.',posicion:'Esa posición no vale.',ausencia:'Esa ausencia ya no está apuntada.',aviso:'Ese aviso ya no existe.'};
@@ -381,10 +383,10 @@ function fila(A,sel){const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=K.nomCli(A.cli
  const cita=A.cita?'cita '+diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'';
  const pc=A.cita&&A.cita.ok===false?' · por confirmar':'';
  if(A.e==='nuevo'||A.e==='ausente'){f2=cita?quien+' · '+cita+pc:hace(A.t).replace(/^h/,'H').replace(/^a/,'A')+' · '+quien+' · '+ORIG[A.origen];fd='<span class="pill '+(A.e==='ausente'?'ausente':'nuevo')+'">'+(A.e==='ausente'?'No había nadie':!A.cli.tel?'Faltan datos':A.reasignar?'Reasignar':'Sin asignar')+'</span>'}
- else if(A.e==='hecho'){f2=(t?t.n+' · ':'')+quien;fd=A.tot&&A.pago&&pro()?'<span class="num">'+K.eur(A.tot.total)+'</span>'+(A.pago.cobrado?'<span class="mini">'+PAGO[A.pago.modo]+'</span>':'<span class="pill cobro">Por cobrar</span>'):'<span class="pill hecho">Terminado</span>'}
+ else if(A.e==='hecho'){f2=(t?t.n+' · ':'')+quien;fd=A.tot&&A.pago&&pro()?'<span class="num">'+K.eur(A.tot.total)+'</span>'+(A.pago.cobrado?'<span class="mini">'+(A.tot.total?PAGO[A.pago.modo]:'En su contrato')+'</span>':'<span class="pill cobro">Por cobrar</span>'):'<span class="pill hecho">Terminado</span>'}
  else if(A.e==='cancelado'){f2=quien;fd='<span class="pill">Cancelado</span>'}
  else{f2=(t?t.n+' · ':'')+(A.e==='camino'?'llega sobre las '+K.hora(A.eta):A.e==='curso'?'lleva '+dur(K.minutos(A,Date.now())):cita?cita+pc:'urgente, '+hace(A.t));fd='<span class="pill '+A.e+'">'+EST[A.e]+'</span>'}
- return'<li><a class="fila'+(A.urg&&(A.e==='nuevo'||A.e==='ausente')?' urg':'')+'" href="#/aviso/'+A.id+'"'+(sel===A.id?' aria-current="true"':'')+'><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(f2)+'</span><span class="fd">'+fd+'</span></a></li>'}
+ return'<li><a class="fila'+(A.urg&&(A.e==='nuevo'||A.e==='ausente')?' urg':'')+'" href="#/aviso/'+A.id+'"'+(sel===A.id?' aria-current="true"':'')+'><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(f2)+(A.con&&A.e!=='hecho'&&A.e!=='cancelado'?' · con contrato':'')+'</span><span class="fd">'+fd+'</span></a></li>'}
 const sec=(tit,L,sel,vacio)=>'<section class="sec"><h2>'+tit+' <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(a=>fila(a,sel)).join('')+'</ul>':'<p class="hueco">'+vacio+'</p>')+'</section>';
 function tira(){const r=K.resumen(S,cfg,Date.now());
  return'<ul class="tira" aria-label="Dónde está cada técnico">'+N.tecnicos.map(t=>{const x=r.tec[t.id],A=x.aviso&&el(x.aviso);
@@ -392,7 +394,7 @@ function tira(){const r=K.resumen(S,cfg,Date.now());
 
 /* ===== centralita: la bandeja ===== */
 function vBandeja(sel){const r=K.resumen(S,cfg,Date.now()),hoy=K.madrid().date,H=sel?'p class="h1"':'h1',Hc=sel?'p':'h1';
- const pend=S.avisos.filter(a=>a.e==='nuevo'||a.e==='ausente').sort((a,b)=>(b.urg-a.urg)||(a.t-b.t));
+ const pri=a=>a.con&&a.con.pri?1:0,pend=S.avisos.filter(a=>a.e==='nuevo'||a.e==='ausente').sort((a,b)=>(b.urg-a.urg)||(pri(b)-pri(a))||(a.t-b.t));
  const marcha=S.avisos.filter(a=>['asignado','camino','curso'].includes(a.e)).sort((a,b)=>({curso:0,camino:1,asignado:2}[a.e]-{curso:0,camino:1,asignado:2}[b.e])||(a.t-b.t));
  const hechos=S.avisos.filter(a=>a.e==='hecho'&&K.madrid(a.fin).date===hoy).sort((a,b)=>b.fin-a.fin);
  const u=pend.find(a=>a.urg);
@@ -426,11 +428,12 @@ function bAlertas(){const r=K.resumen(S,cfg,Date.now()),rea=S.avisos.filter(a=>a
  if(conf.length)L.push('<li><span><b>'+(conf.length===1?'1 cita pendiente de confirmar':conf.length+' citas pendientes de confirmar')+'</b> con el cliente.</span><a class="btn peq" href="#/aviso/'+conf[0].id+'">'+(conf.length===1?'Abrirla':'Abrir la primera')+'</a></li>');
  {const hoy=K.madrid().date;let dm=K.masDias(hoy,1);for(let i=0;i<7&&!K.laborable(cfg,dm);i++)dm=K.masDias(dm,1);const n=new Set([].concat(...K.material(S,cfg,dm).map(g=>[].concat(...g.cosas.map(c=>c.av))))).size;
   if(n)L.push('<li><span><b>'+(n===1?'1 aviso':n+' avisos')+' de '+diaTxt(dm)+' con material por preparar</b>: mándalo o cárgalo antes.</span><a class="btn peq" href="#/equipo/'+dm+'">Ver el día</a></li>')}
+ if(HAY_CON()){const pc=K.pendientesContratos(S,cfg,Date.now()),n=pc.renovar.length+pc.revision.length;if(n)L.push('<li><span><b>'+(n===1?'1 contrato pide algo':n+' contratos piden algo')+'</b>: '+[pc.renovar.length?(pc.renovar.length===1?'una renovación':pc.renovar.length+' renovaciones'):'',pc.revision.length?(pc.revision.length===1?'una revisión sin cita':pc.revision.length+' revisiones sin cita'):''].filter(Boolean).join(' y ')+'.</span><a class="btn peq" href="#/contratos">Verlos</a></li>')}
  if(pro()&&r.porFac.viejos)L.push('<li><span><b>'+(r.porFac.viejos===1?'1 trabajo lleva':r.porFac.viejos+' trabajos llevan')+' más de una semana sin facturar</b>.</span><a class="btn peq" href="#/cobros">Verlos</a></li>');
  return L.length?'<ul class="alertas" aria-label="Lo primero que hay que atender">'+L.join('')+'</ul>':''}
 function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
- let h='<section class="blq"><h2>'+(A.e==='hecho'?(A.sinTrabajo?'Solo el desplazamiento':'Total del trabajo'):'Presupuesto firmado')+'</h2><p class="gordo num">'+K.eur(T.total)+'</p><p class="ln">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+(p?' · '+(p.cobrado?'cobrado, '+PAGO[p.modo].toLowerCase():'pendiente de pago'):'')+'</p>';
- h+='<ul class="lins">'+T.lineas.map(l=>'<li><span>'+esc(l.t)+(lq(l)?', '+lq(l):'')+'</span><span class="num">'+K.eur(l.imp)+'</span></li>').join('')+'</ul>';
+ let h='<section class="blq"><h2>'+(A.e==='hecho'?(A.sinTrabajo?'Solo el desplazamiento':'Total del trabajo'):'Presupuesto firmado')+'</h2><p class="gordo num">'+K.eur(T.total)+'</p><p class="ln">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+(p?' · '+(p.cobrado?(T.total?'cobrado, '+PAGO[p.modo].toLowerCase():'nada que cobrar: va en su contrato'):'pendiente de pago'):'')+'</p>';
+ h+='<ul class="lins">'+T.lineas.map(l=>'<li><span>'+esc(l.t)+(lq(l)?', '+lq(l):'')+(l.con?', en su contrato':'')+'</span><span class="num">'+(l.con?'Incluido':K.eur(l.imp))+'</span></li>').join('')+'</ul>';
  if(p&&!p.cobrado)h+='<div class="acts"><button class="btn pri" data-a="cobrar" data-id="'+A.id+'">Marcar como cobrado</button></div>';
  if(Q.rol==='centralita'&&A.e==='hecho'&&T.total>0)h+='<div class="acts" id="fac">'+(A.fac?'<span class="ln">Facturado'+(A.fac.num?': n.º '+esc(A.fac.num):'')+'.</span> <button class="txt" data-a="desfacturar" data-id="'+A.id+'">Quitar</button>':'<button class="btn peq" data-a="copiaFac" data-id="'+A.id+'">Copiar los datos de la factura</button><button class="btn peq pri" data-a="facturar" data-id="'+A.id+'">Facturada</button>')+'</div>';
  h+='<div class="docs">'+(A.pres?'<a class="btn peq" href="#/papel/'+A.id+'/presupuesto">Presupuesto</a>':'')+(A.e==='hecho'?'<a class="btn peq" href="#/papel/'+A.id+'/parte">Parte</a>':'')+(A.gar?'<a class="btn peq" href="#/papel/'+A.id+'/garantia">Garantía</a>':'')+'</div>';
@@ -469,7 +472,7 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
  const av=cfg.av[A.av],mio=esT&&A.tec===Q.id,abierto=['nuevo','asignado','ausente'].includes(A.e),t=cfg.tec[A.tec];
  let h='<a class="atras" href="#/'+(esT?'hoy':'bandeja')+'">'+I.atras+(esT?'Hoy':'Bandeja')+'</a>';
  h+='<div class="cab"><div><h1>'+esc(av.n)+'</h1><p class="sub">'+A.id+(barrio(A)?' · '+esc(barrio(A)):'')+' · '+(A.cita?'cita '+diaTxt(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente')+'</p></div><span class="pill '+A.e+'">'+EST[A.e]+'</span></div>'+pista(A)+bGar(A);
- if(esT){h+=bCliente(A,true);
+ if(esT){h+=bCliente(A,true)+bContrato(A);
   if(mio&&A.e==='curso')h+=bTrabajo(A);
   h+=bFalta(A);
   if(mio)h+=bGeo(A);
@@ -479,7 +482,7 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
   else if(A.e==='asignado')h+='<div class="accion"><button class="btn pri ancho" data-a="voy" data-id="'+A.id+'">Voy</button></div>';
   else if(A.e==='camino')h+='<div class="accion"><button class="btn pri ancho" data-a="empezar" data-id="'+A.id+'">Empezar</button><button class="txt" data-a="ausente" data-id="'+A.id+'">No había nadie</button></div>';
   else if(A.e==='curso')h+='<div class="accion"><button class="btn pri ancho" data-a="terminar" data-id="'+A.id+'">Terminado</button></div>';
- }else{h+=bCliente(A,false);
+ }else{h+=bCliente(A,false)+bContrato(A);
   if(A.e==='camino'&&A.pos&&t)h+='<p class="mnota" id="posOf" style="margin-top:12px">'+esc(t.n)+' compartió su posición '+hace(A.pos.t)+'. El cliente la ve en su página.</p>';
   if(abierto&&A.cli.tel)h+=bReparto(A)+bCita(A);
   h+=bDinero(A)+bFalta(A);
@@ -612,7 +615,67 @@ function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true);if(!dias.find(x=>
   '<button class="btn pri ancho" type="submit">Crear el aviso</button></form>'}
 
 /* ===== los papeles ===== */
-function vPapel(id,tipo){const A=el(id);if(!A||!A.tot)return'<div class="cab"><div><h1>Papeles</h1><p class="sub">Este aviso todavía no tiene papeles.</p></div></div><p class="fin"><a class="txt" href="#/aviso/'+esc(id)+'">Volver al aviso</a></p>';
+/* ===== centralita: los contratos de mantenimiento =====
+   La oficina los da de alta (con la firma del cliente o su sí por mensaje), apunta el cobro, da la cita de la revisión,
+   renueva si el cliente dice que sí y apunta la baja. Los avisos del cliente lo saben solos. */
+const PLANES=Object.keys(cfg.planes||{}),HAY_CON=()=>pro()&&PLANES.length>0,contrato=id=>(S.contratos||[]).find(c=>c.id===id);
+const incluye=x=>{const P=cfg.planes[x];if(!P)return'';return[(P.revisiones===1?'Una revisión':P.revisiones+' revisiones')+' al año, con el desplazamiento',P.desp?'sin desplazamiento en las urgencias':'',P.prioridad?'y sus avisos van primero':''].filter(Boolean).join(', ')+'. IVA del '+P.iva+' % incluido.'};
+function bContrato(A){
+ if(!A.con)return Q.rol==='centralita'&&HAY_CON()&&!['hecho','cancelado'].includes(A.e)&&A.cli.tel&&A.cli.dir&&!K.contratoDe(S,A.cli,K.madrid().date)?'<div class="acts" id="conOf"><button class="btn peq" data-a="conAlta" data-id="'+A.id+'">Ofrecer el contrato de mantenimiento</button></div>':'';
+ return'<p class="ojo con" id="conB">Cliente con contrato de mantenimiento '+(Q.rol==='centralita'?'<a href="#/contratos">'+esc(A.con.id)+'</a>':esc(A.con.id))+': '+(A.con.rev?'la revisión y el desplazamiento van incluidos':A.con.desp&&A.urg&&A.av!==K.REV?'en esta urgencia no se cobra el desplazamiento':'sus avisos van primero')+'.</p>'}
+function vContratos(){const ahora=Date.now(),hoy=K.madrid().date,Pd=K.pendientesContratos(S,cfg,ahora),L=(S.contratos||[]).slice().sort((a,b)=>(a.e==='activo'?0:1)-(b.e==='activo'?0:1)||b.t-a.t);
+ const act=L.filter(c=>c.e==='activo').length,nom=id=>{const C=contrato(id);return C?esc(K.nomCli(C.cli)):''};
+ const al=Pd.renovar.map(x=>'<li><span><b>Renovar '+esc(x.id)+'</b> ('+nom(x.id)+'): '+(x.vencido?'acabó':'acaba')+' el '+K.fechaCorta(x.a)+'.</span><button class="btn peq" data-a="conRen" data-c="'+x.id+'">Renovar</button></li>')
+  .concat(Pd.revision.map(x=>'<li><span><b>Revisión de '+esc(x.id)+'</b> ('+nom(x.id)+'): falta darle cita.</span><button class="btn peq" data-a="conRev" data-c="'+x.id+'">Crear el aviso</button></li>'))
+  .concat(Pd.cobrar.map(x=>'<li><span><b>'+esc(x.id)+' por cobrar</b> ('+nom(x.id)+'): '+K.eur(x.precio)+'.</span><button class="btn peq" data-a="conCob" data-c="'+x.id+'">Cobrado</button></li>'));
+ let h='<div class="cab"><div><h1>Contratos</h1><p class="sub">'+(act?(act===1?'1 contrato de mantenimiento en marcha.':act+' contratos de mantenimiento en marcha.'):'Todavía no hay ningún contrato de mantenimiento.')+'</p></div><button class="btn pri peq" data-a="conAlta">'+I.mas+'Nuevo contrato</button></div>';
+ if(al.length)h+='<ul class="alertas" id="conAl" aria-label="Lo que piden los contratos">'+al.join('')+'</ul>';
+ h+='<p class="mnota">'+PLANES.map(x=>'<b>'+esc(cfg.planes[x].n)+'</b>, '+K.eur(cfg.planes[x].precio)+' al año: '+incluye(x)).join('<br>')+' No se renueva solo, y el cliente se da de baja cuando quiera.</p>';
+ h+='<section class="sec"><h2>Los contratos <span class="n">'+L.length+'</span></h2>'+(L.length?L.map(C=>{const P=cfg.planes[C.plan],u=C.per[C.per.length-1],vig=K.vigente(C,hoy);
+  return'<article class="cont'+(C.e!=='activo'?' baja':'')+'" data-c="'+C.id+'"><h3>'+esc(K.nomCli(C.cli))+' <small>'+esc(C.id)+'</small></h3><p class="ln">'+esc(C.cli.dir)+' · '+K.telBonito(C.cli.tel)+'</p>'+
+   '<p class="ln">'+esc(P?P.n:C.plan)+' · del '+K.fechaCorta(u.de)+' al '+K.fechaCorta(u.a)+' · '+K.eur(u.precio)+(C.e!=='activo'?' · <b>de baja</b>'+(C.baja&&C.baja.des?' (desistió)':''):!vig?' · <b>vencido</b>':'')+'</p>'+
+   '<p class="ln">'+(u.pago.cobrado?'Cobrado el '+K.fechaCorta(K.madrid(u.pago.t).date)+' ('+PAGO[u.pago.modo].toLowerCase()+')':'Pendiente de cobro')+'</p>'+
+   '<div class="acts"><a class="btn peq" href="#/papel/'+C.id+'/contrato">Ver el contrato</a><button class="btn peq" data-a="conFac" data-c="'+C.id+'">Copiar los datos de la factura</button>'+(C.e==='activo'?'<button class="txt mal" data-a="conBaja" data-c="'+C.id+'">Dar de baja</button>':'')+'</div></article>'}).join(''):'<p class="hueco">Cuando un cliente diga que sí, se da de alta aquí o desde su aviso.</p>')+'</section>';
+ return h}
+function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;const c=A?A.cli:{};
+ const pl=x=>esc(cfg.planes[x].n)+' · '+K.eur(cfg.planes[x].precio)+' al año',cp=(id,lb,v,o)=>'<div class="campo"><label for="ca_'+id+'">'+lb+'</label><input id="ca_'+id+'" value="'+esc(v||'')+'" '+(o||'')+' autocomplete="off"></div>';
+ const d=hoja(hc('Contrato de mantenimiento')+'<form class="hb" id="caF" novalidate>'+
+  (PLANES.length>1?'<div class="campo"><span class="lb" id="ca_pl">Plan</span><div class="ops" role="group" aria-labelledby="ca_pl">'+PLANES.map(x=>'<button type="button" class="op" data-cp="'+x+'" aria-pressed="'+(x===plan)+'">'+pl(x)+'</button>').join('')+'</div></div>':'<p><b>'+pl(plan)+'</b></p>')+
+  '<p class="dn" id="ca_inc">'+incluye(plan)+'</p>'+
+  '<div class="duo">'+cp('nombre','Nombre',c.nombre,'maxlength="60"')+cp('apellidos','Apellidos',c.apellidos,'maxlength="80"')+'</div>'+cp('tel','Teléfono',c.tel?K.telBonito(c.tel):'','inputmode="tel" maxlength="20"')+
+  '<div class="duo">'+cp('dir','Dirección (calle, número, piso)',c.dir,'maxlength="120"')+cp('cp','Código postal',c.cp,'inputmode="numeric" maxlength="5"')+'</div>'+
+  '<div class="campo"><span class="lb" id="ca_al">Cómo dice que sí</span><div class="ops" role="group" aria-labelledby="ca_al"><button type="button" class="op" data-ca="firma" aria-pressed="true">Firma aquí</button><button type="button" class="op" data-ca="mensaje" aria-pressed="false">Lo ha dicho por mensaje</button></div></div>'+
+  '<div class="firma" id="ca_fz"><div class="fh"><span class="lb">Firma del cliente</span><button class="txt" id="caB" type="button">Borrar</button></div><canvas id="caFi" aria-label="Zona para firmar con el dedo"></canvas></div>'+
+  '<div class="des"><p>Tiene 14 días para desistir. Si quiere la revisión antes, márcalo: si desiste después de la revisión, paga la parte proporcional.</p><label class="chk"><input type="checkbox" id="ca_pide"> Quiere la revisión antes de esos 14 días</label></div>'+
+  '<div class="campo"><span class="lb">¿Lo paga ya?</span><div id="caM">'+modos(['efectivo','tarjeta','bizum','transferencia','pendiente'],modo)+'</div></div>'+
+  '<p class="err" id="ca_err" style="color:var(--mal)" hidden></p></form><div class="hp"><button class="btn pri ancho" form="caF">Dar de alta el contrato</button></div>',{llena:1});
+ pad=Oficio.firma($('#caFi',d));$('#caB',d).onclick=()=>pad.borrar();
+ d.addEventListener('click',e=>{const b=e.target.closest('[data-cp],[data-ca],[data-modo]');if(!b)return;
+  if(b.dataset.cp){plan=b.dataset.cp;$$('[data-cp]',d).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.cp===plan)));$('#ca_inc',d).textContent=incluye(plan)}
+  else if(b.dataset.ca){acepta=b.dataset.ca;$$('[data-ca]',d).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.ca===acepta)));$('#ca_fz',d).hidden=acepta!=='firma'}
+  else{modo=b.dataset.modo;$('#caM',d).innerHTML=modos(['efectivo','tarjeta','bizum','transferencia','pendiente'],modo)}});
+ $('#caF',d).onsubmit=e=>{e.preventDefault();const m=$('#ca_err',d),v=k=>$('#ca_'+k,d).value,di=t=>{m.textContent=t;m.hidden=false};
+  if(acepta==='firma'&&pad.vacia())return di('Falta la firma del cliente.');
+  const a={tipo:'contrato',plan,cli:{nombre:v('nombre'),apellidos:v('apellidos'),tel:v('tel'),dir:v('dir'),cp:v('cp')},acepta,pide:$('#ca_pide',d).checked};
+  if(acepta==='firma')a.firma=pad.ruta();if(modo!=='pendiente')a.modo=modo;
+  const bt=$('button[form=caF]',d);if(bt.disabled)return;bt.disabled=true;
+  Oficio.crear(a,Q).then(r=>{bt.disabled=false;if(!r.ok)return di(ERR[r.err]||'No se ha podido dar de alta.');d.close();toast('Contrato '+r.id+' dado de alta.');location.hash='#/papel/'+r.id+'/contrato'})}}
+function hConCob(C){let modo='';const u=C.per[C.per.length-1],L=['efectivo','tarjeta','bizum','transferencia'];
+ const d=hoja(hc('Cuota cobrada')+'<div class="hb"><p>'+esc(C.id)+' · '+esc(K.nomCli(C.cli))+' · <b class="num">'+K.eur(u.precio)+'</b></p><div class="campo"><span class="lb">¿Cómo ha pagado?</span><div id="ccM">'+modos(L,'')+'</div></div></div><div class="hp"><button class="btn pri ancho" id="ccOk" disabled>Apuntar el cobro</button></div>');
+ d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#ccOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#ccM',d).innerHTML=modos(L,modo);$('#ccOk',d).disabled=false}
+  else if(hacer({tipo:'cobroContrato',id:C.id,modo}).ok){d.close();toast('Cuota cobrada.')}})}
+function hConRen(C){let modo='pendiente';const P=cfg.planes[C.plan],u=C.per[C.per.length-1],L=['efectivo','tarjeta','bizum','transferencia','pendiente'];
+ const d=hoja(hc('Renovar el contrato')+'<div class="hb"><p>'+esc(C.id)+' · '+esc(K.nomCli(C.cli))+'</p><p>'+(K.madrid().date>u.a?'Acabó':'Acaba')+' el '+K.fechaCorta(u.a)+'. El año nuevo, '+K.eur(P?P.precio:u.precio)+'.</p><p class="dn">Solo si el cliente ha dicho que sí: no se renueva solo.</p><div class="campo"><span class="lb">¿Lo paga ya?</span><div id="crM">'+modos(L,modo)+'</div></div></div><div class="hp"><button class="btn pri ancho" id="crOk">Ha dicho que sí: renovar</button></div>');
+ d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#crOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#crM',d).innerHTML=modos(L,modo);return}
+  const a={tipo:'renovar',id:C.id,acepta:true};if(modo!=='pendiente')a.modo=modo;if(hacer(a).ok){d.close();toast('Renovado hasta el '+K.fechaCorta(contrato(C.id).per.slice(-1)[0].a)+'.')}})}
+function hConBaja(C){const des=K.madrid().date<=K.masDias(K.madrid(C.t).date,14);
+ const d=hoja(hc('Dar de baja el contrato')+'<div class="hb"><p>'+esc(C.id)+' · '+esc(K.nomCli(C.cli))+'</p><p class="dn">'+(des?'Está dentro de sus 14 días: es desistir, y se le devuelve lo pagado menos la parte de la revisión si ya se hizo.':'Sin penalización. Sus avisos dejan de llevar el contrato.')+'</p><div class="campo"><label for="cbM">Motivo (opcional)</label><input id="cbM" maxlength="120" autocomplete="off"></div></div><div class="hp"><button class="btn pri ancho" id="cbOk">Dar de baja</button></div>');
+ $('#cbOk',d).onclick=()=>{if(hacer({tipo:'bajaContrato',id:C.id,motivo:$('#cbM',d).value}).ok){d.close();toast(des?'Baja apuntada: desiste del contrato.':'Baja apuntada.')}}}
+function vPapelContrato(id){const C=contrato(id);if(!C)return'<div class="cab"><div><h1>Contrato</h1><p class="sub">No encuentro el contrato '+esc(id)+'.</p></div></div><p class="fin"><a class="txt" href="#/contratos">Volver a los contratos</a></p>';
+ const d=OficioPapeles.contrato(C,{K,N,cfg,firmaSvg:Oficio.firmaSvg});
+ return'<div class="noimp"><a class="atras" href="#/contratos">'+I.atras+'Contratos</a><div class="cab"><div><h1 class="vh">Contrato '+esc(C.id)+'</h1></div></div></div><article class="papel doc">'+d.replace('<h1>','<h2 class="h1" style="font:700 2.1rem/1.05 var(--fd);color:var(--tinta);margin:18px 0 2px">').replace('</h1>','</h2>')+(Oficio.DEMO?'<p class="pie">Documento de ejemplo de una demo: empresa, cliente e importes son inventados.</p>':'')+'</article>'+
+  '<div class="dacts noimp"><button class="btn pri" data-a="imprimir">Imprimir o guardar en PDF</button></div>'}
+function vPapel(id,tipo){if(tipo==='contrato')return vPapelContrato(id);const A=el(id);if(!A||!A.tot)return'<div class="cab"><div><h1>Papeles</h1><p class="sub">Este aviso todavía no tiene papeles.</p></div></div><p class="fin"><a class="txt" href="#/aviso/'+esc(id)+'">Volver al aviso</a></p>';
  const tipos=OficioPapeles.tipos(A);tipo=OficioPapeles.elige(A,tipo);
  const d=OficioPapeles.doc(A,tipo,{K,N,cfg,firmaSvg:Oficio.firmaSvg});
  return'<div class="noimp"><a class="atras" href="#/aviso/'+A.id+'">'+I.atras+'Aviso '+A.id+'</a><div class="cab"><div><h1 class="vh">Papeles del aviso '+A.id+'</h1></div></div><nav class="vdocs" aria-label="Papeles">'+tipos.map(x=>'<a href="#/papel/'+A.id+'/'+x[0]+'"'+(x[0]===tipo?' aria-current="page"':'')+'>'+x[1]+'</a>').join('')+'</nav></div><article class="papel doc">'+d.replace('<h1>','<h2 class="h1" style="font:700 2.1rem/1.05 var(--fd);color:var(--tinta);margin:18px 0 2px">').replace('</h1>','</h2>')+(Oficio.DEMO?'<p class="pie">Documento de ejemplo de una demo: empresa, cliente e importes son inventados.</p>':'')+'</article>'+
@@ -620,7 +683,7 @@ function vPapel(id,tipo){const A=el(id);if(!A||!A.tot)return'<div class="cab"><d
 
 /* ===== mejoras: lo que la oficina le pide a OOOX y lo que OOOX contesta ===== */
 const SOP=Oficio.soporte,M={tipo:'',texto:'',quien:'',err:'',env:false,cambia:false,codErr:'',carga:false,sinRed:false,nov:[],pet:[]};
-let mP=null,MLH='';const RASTRO=[],PANT=['bandeja','agenda','equipo','cobros','nuevo','aviso','papel'];   /* RASTRO: las tres últimas pantallas (solo el nombre) antes de entrar aquí; viajan con la petición */
+let mP=null,MLH='';const RASTRO=[],PANT=['bandeja','agenda','equipo','cobros','contratos','nuevo','aviso','papel'];   /* RASTRO: las tres últimas pantallas (solo el nombre) antes de entrar aquí; viajan con la petición */
 const MERR={tipo:'Elige qué es: un fallo, una mejora o una duda.',texto:'Cuéntalo con algo más de detalle: al menos 10 letras.',largo:'Es demasiado largo: como mucho 2.000 letras.',clave:'Ese código de soporte no vale. Revísalo.',corto:'Escribe el código de soporte que te dio OOOX.',bloqueo:'Demasiados intentos con un código que no vale. Espera diez minutos.',limite:'Has mandado muchas peticiones seguidas. Prueba dentro de un rato.',red:'No hay conexión con OOOX. Prueba dentro de un rato.',servidor:'No se ha podido enviar. Prueba otra vez.'};
 const MPILL={mirando:'camino',aceptada:'curso',en_curso:'curso',hecha:'hecho',descartada:'ausente'},MNOV={novedad:'Novedad',oferta:'Oferta',aviso:'Aviso'};
 const mHace=x=>{const t=Date.parse(x);return isNaN(t)?'':hace(t)};
@@ -683,7 +746,7 @@ function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeU
 let CUR='',NAVH='';
 /* El menú, con sus números. Se puede repintar solo, sin tocar la pantalla. */
 function pNav(){const esT=Q.rol==='tecnico',res=K.resumen(S,cfg,Date.now()),mios=S.avisos.filter(a=>a.tec===Q.id&&a.e==='asignado').length,cur=CUR;
- const L=esT?[['hoy','Hoy',I.hoy,mios],['hechos','Hechos',I.hecho,0]]:[['bandeja','Bandeja',I.bandeja,res.nuevos],['agenda','Agenda',I.agenda,0]].concat(pro()?[['cobros','Cobros',I.euro,res.pend.n]]:[],SOP?[['mejoras','Mejoras',I.mejoras,SOP.sinLeer(),' sin leer']]:[]);
+ const L=esT?[['hoy','Hoy',I.hoy,mios],['hechos','Hechos',I.hecho,0]]:[['bandeja','Bandeja',I.bandeja,res.nuevos],['agenda','Agenda',I.agenda,0]].concat(pro()?[['cobros','Cobros',I.euro,res.pend.n]]:[],HAY_CON()?[['contratos','Contratos',I.hecho,(p=>p.renovar.length+p.revision.length+p.cobrar.length)(K.pendientesContratos(S,cfg,Date.now()))]]:[],SOP?[['mejoras','Mejoras',I.mejoras,SOP.sinLeer(),' sin leer']]:[]);
  const h=L.map(x=>'<a href="#/'+x[0]+'"'+(cur===x[0]||(esT&&x[0]==='hoy'&&cur==='aviso')?' aria-current="page"':'')+'>'+x[2]+'<span>'+x[1]+'</span>'+(x[3]?'<span class="n" aria-label="'+x[3]+(x[4]||' por atender')+'">'+x[3]+'</span>':'')+'</a>').join('');
  if(h!==NAVH){$('#nav').innerHTML=h;NAVH=h}}
 function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
@@ -697,11 +760,12 @@ function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
  else if(r.v==='agenda')h=vAgenda(r.a);
  else if(r.v==='equipo')h=vEquipo(r.a);
  else if(r.v==='cobros'&&pro())h=vCobros();
+ else if(r.v==='contratos'&&HAY_CON())h=vContratos();
  else if(r.v==='mejoras'&&SOP)h=vMejoras();
  else if(r.v==='nuevo'){det=true;h=vNuevo()}
  else{dos=true;const p0=ANCHO.matches&&(S.avisos.filter(a=>a.e==='nuevo'||a.e==='ausente').sort((a,b)=>(b.urg-a.urg)||(a.t-b.t))[0]||S.avisos.find(a=>['curso','camino','asignado'].includes(a.e)));
   h=p0?'<div class="col lst">'+vBandeja(p0.id)+'</div><div class="col">'+vAviso(p0.id)+'</div>':'<div class="col lst">'+vBandeja('')+'</div><div class="col sin">'+vElige()+'</div>'}
- const v=$('#v');v.className=(dos?'dos ':'')+(det?'det ':'')+(papel?'papelv ':'')+(!esT&&(r.v==='cobros'||r.v==='nuevo'||(r.v==='mejoras'&&SOP))?'estrecha ':'')+Q.rol;v.innerHTML=h;document.body.classList.toggle('det',det);
+ const v=$('#v');v.className=(dos?'dos ':'')+(det?'det ':'')+(papel?'papelv ':'')+(!esT&&(r.v==='cobros'||r.v==='contratos'||r.v==='nuevo'||(r.v==='mejoras'&&SOP))?'estrecha ':'')+Q.rol;v.innerHTML=h;document.body.classList.toggle('det',det);
  CUR=dos||r.v==='nuevo'?'bandeja':r.v==='equipo'&&!esT?'agenda':r.v;pNav();geoSync();
  const t=cfg.tec[Q.id],quien=(esT?ava(Q.id):'<i class="av c" aria-hidden="true">C</i>')+'<span>'+(esT?esc(t.n):'Centralita')+'</span>';
  $('#quien').innerHTML=FIJO?'<span class="quien" style="border-color:transparent">'+quien+'</span>':'<button class="quien" data-a="menu" aria-haspopup="dialog" aria-label="'+(SRV?'Tu sesión':'Cambiar de papel o de pack')+'. Ahora: '+(esT?t.n:'centralita')+'">'+quien+I.baja+'</button>';
@@ -848,7 +912,7 @@ const DES={cita:'Tienes 14 días para echarte atrás de este trabajo. Si quieres
  urgente:'Reparación urgente que has pedido: no tiene derecho de desistimiento.'};
 
 /* el presupuesto que firma el cliente y, con otra forma, la ampliación */
-function hPrecio(A,ampliar){const av=cfg.av[A.av],urg=ampliar?A.tot.urg:K.tarifaDe(cfg,A);
+function hPrecio(A,ampliar){const av=cfg.av[A.av],urg=ampliar?A.tot.urg:K.tarifaDe(cfg,A),GR=K.gratisDe(A);
  let lin=ampliar?[]:av.ini.map(l=>({k:l.k,q:l.q||cfg.cat[l.k].min})),local=ampliar?A.local:false,pad,otro=false,pide=false;
  const base=ampliar?A.lin.map(l=>Object.assign({},l)):[],hayMo=base.some(l=>cfg.cat[l.k]&&cfg.cat[l.k].un==='h'),PASO=HIT?HIT.paso:.25,minMo=ampliar&&hayMo?PASO:(HIT?HIT.min:1);
  const junto=()=>{const J=base.map(l=>Object.assign({},l));lin.forEach(l=>{const ya=l.k!=='otro'&&J.find(x=>x.k===l.k);if(ya)ya.q+=l.q;else J.push(Object.assign({},l))});return J};
@@ -861,13 +925,13 @@ function hPrecio(A,ampliar){const av=cfg.av[A.av],urg=ampliar?A.tot.urg:K.tarifa
   '<div class="hp"><button class="btn pri ancho" id="pOk" disabled>'+(ampliar?'Firmado: añadir':'Firmado: empezar')+'</button>'+(ampliar?'':'<button class="txt mal" id="pNo" type="button" style="justify-self:center">No acepta el precio</button>')+'</div>',{papel:1,llena:1,fijo:1});
  const listo=()=>{$('#pOk',d).disabled=!pad||pad.vacia()||!lin.length||(K.pideYa(K.desiste(cfg,A,lin))&&!pide)};
  const bDes=()=>{const c=K.desiste(cfg,A,lin);return K.pideYa(c)?'<div class="des" id="pDes"><p>'+DES[c]+'</p><label class="chk"><input type="checkbox" id="pPide"'+(pide?' checked':'')+'> Quiero que lo hagáis ya</label></div>':ampliar?'':'<p class="dn">'+DES.urgente+'</p>'};
- const p=cambia=>{const T=K.precio(cfg,junto(),{urg,local}),solo=K.precio(cfg,lin,{urg,tipo:T.tipo,sinMin:ampliar&&hayMo});
+ const p=cambia=>{const T=K.precio(cfg,junto(),{urg,local,gratis:GR}),solo=K.precio(cfg,lin,{urg,tipo:T.tipo,sinMin:ampliar&&hayMo,gratis:GR});
   $('#pL',d).innerHTML=solo.lineas.map((l,i)=>{const it=cfg.cat[l.k],fijo=!ampliar&&!l.mat&&l.un!=='h';
-   const g=[lq(l),l.u?'con el '+PCT+' % de urgencia':'',!A.cita&&it&&it.extra?'añadido, con desistimiento':''].filter(Boolean);
+   const g=[lq(l),l.u?'con el '+PCT+' % de urgencia':'',!A.cita&&it&&it.extra?'añadido, con desistimiento':'',l.con?'incluido en su contrato':''].filter(Boolean);
    return'<li><span class="lt">'+esc(l.t)+(g.length?'<small>'+g.join(' · ')+'</small>':'')+'</span>'+
     (l.un==='h'?'<span class="st"><button type="button" data-q="'+i+'" data-m="-1" aria-label="Quitar tiempo"'+(l.q<=minMo?' disabled':'')+'>−</button><button type="button" data-q="'+i+'" data-m="1" aria-label="Añadir tiempo">+</button></span>':fijo?'<span></span>':'<span class="st"><button type="button" data-del="'+i+'" aria-label="Quitar '+esc(l.t)+'">×</button></span>')+'<b class="num">'+K.eur(l.imp)+'</b></li>'}).join('')||'<li><span class="lt" style="color:var(--tinta-2)">Todavía no has añadido nada.</span><span></span><b></b></li>';
   const ya=new Set(lin.map(l=>l.k)),C=(ampliar&&HK?[HK]:[]).concat(av.chips).filter(k=>!ya.has(k));
-  $('#pC',d).innerHTML=C.map(k=>'<button type="button" class="op" data-add="'+k+'">'+esc(k===HK?'Más tiempo':cfg.cat[k].t)+'<small>'+K.eur(k===HK?porPaso(HIT,T.tipo,urg)*(hayMo?1:Math.round(HIT.min/HIT.paso)):precioDe(k,T.tipo))+'</small></button>').join('')+'<button type="button" class="op" data-otro>Otro material</button>';
+  $('#pC',d).innerHTML=C.map(k=>'<button type="button" class="op" data-add="'+k+'">'+esc(k===HK?'Más tiempo':cfg.cat[k].t)+'<small>'+(k!==HK&&GR.includes(k)?'incluido':K.eur(k===HK?porPaso(HIT,T.tipo,urg)*(hayMo?1:Math.round(HIT.min/HIT.paso)):precioDe(k,T.tipo)))+'</small></button>').join('')+'<button type="button" class="op" data-otro>Otro material</button>';
   $('#pO',d).innerHTML=otro?'<div class="otro" style="margin-top:10px"><div class="campo"><label for="oT">Qué es</label><input id="oT" maxlength="60"></div><div class="campo"><label for="oP">Precio, €</label><input id="oP" inputmode="decimal"></div><button type="button" class="btn peq" id="oOk">Añadir</button></div>':'';
   $('#pT',d).innerHTML='<div class="ptot"><span>'+(ampliar?'Total nuevo':'Total')+'</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">'+(ampliar&&lin.length?K.eur(T.total-A.tot.total)+' más. ':'')+'IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+'</p>'+
    (T.motivo==='material'?'<p class="sube">El material pasa del 40 % del trabajo: Hacienda pide el IVA del 21 % en todo el trabajo.</p>':'')+bDes();
@@ -886,19 +950,21 @@ function hPrecio(A,ampliar){const av=cfg.av[A.av],urg=ampliar?A.tot.urg:K.tarifa
   else if(b.id==='pNo'){d.close();hNoAcepta(A,local)}
   else if(b.id==='pOk'){const r=ampliar?hacer({tipo:'ampliar',id:A.id,lineas:lin,firma:pad.ruta(),pide}):hacer({tipo:'empezar',id:A.id,pres:{lineas:lin,local,firma:pad.ruta(),pide}});
    if(r.ok){d.close();toast(ampliar?'Ampliación firmada: '+K.eur(r.dif)+' más.':'Presupuesto firmado. Empieza el trabajo.')}}})}
-function hNoAcepta(A,local){let modo='';const T=K.precio(cfg,[{k:N.sinTrabajo,q:1}],{urg:K.tarifaDe(cfg,A),local});
+function hNoAcepta(A,local){let modo='';const T=K.precio(cfg,[{k:N.sinTrabajo,q:1}],{urg:K.tarifaDe(cfg,A),local,gratis:K.gratisDe(A)});
+ if(!T.total){const d=hoja(hc('No acepta el precio')+'<div class="hb"><p>El desplazamiento va en su contrato de mantenimiento: no se cobra nada.</p></div><div class="hp"><button class="btn pri ancho" id="nOk">Cerrar el aviso</button></div>');
+  $('#nOk',d).onclick=()=>{if(hacer({tipo:'noacepta',id:A.id,local}).ok){d.close();toast('Aviso cerrado: va en su contrato, no se cobra nada.')}};return}
  const d=hoja(hc('No acepta el precio')+'<div class="hb"><p>Se cobra solo el desplazamiento.</p><div class="ptot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+'</p><div class="campo"><span class="lb">¿Cómo paga?</span><div id="nM">'+modos(['efectivo','tarjeta','bizum','pendiente'],'')+'</div></div></div><div class="hp"><button class="btn pri ancho" id="nOk" disabled>Cerrar el aviso</button></div>',{papel:1,fijo:1});
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#nOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#nM',d).innerHTML=modos(['efectivo','tarjeta','bizum','pendiente'],modo);$('#nOk',d).disabled=false}
   else if(hacer({tipo:'noacepta',id:A.id,modo,local}).ok){d.close();toast('Aviso cerrado: solo el desplazamiento.')}})}
 function hCierre(A){let modo='',pad;const T=A.tot;
  const d=hoja(hc('Trabajo terminado')+'<div class="hb"><p class="dn">'+A.id+' · '+esc(cfg.av[A.av].n)+' · '+dur(K.minutos(A,Date.now()))+' de trabajo</p><ul class="plin">'+T.lineas.map(l=>'<li><span class="lt">'+esc(l.t)+(lq(l)?'<small>'+lq(l)+'</small>':'')+'</span><span></span><b class="num">'+K.eur(l.imp)+'</b></li>').join('')+'</ul>'+
   '<div class="ptot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+'</p>'+
-  '<div class="campo"><span class="lb">¿Cómo paga?</span><div id="tM">'+modos(['efectivo','tarjeta','bizum','pendiente'],'')+'</div></div>'+
+  (T.total?'<div class="campo"><span class="lb">¿Cómo paga?</span><div id="tM">'+modos(['efectivo','tarjeta','bizum','pendiente'],'')+'</div></div>':'<p class="dn">Va en su contrato de mantenimiento: no hay nada que cobrar.</p>')+
   '<div class="firma"><div class="fh"><span class="lb">Conforme con el trabajo (opcional)</span><button class="txt" id="tB" type="button">Borrar</button></div><canvas id="tF" aria-label="Zona para firmar con el dedo"></canvas></div></div>'+
-  '<div class="hp"><button class="btn pri ancho" id="tOk" disabled>Cerrar el trabajo</button></div>',{papel:1,llena:1,fijo:1});
+  '<div class="hp"><button class="btn pri ancho" id="tOk"'+(T.total?' disabled':'')+'>Cerrar el trabajo</button></div>',{papel:1,llena:1,fijo:1});
  pad=Oficio.firma($('#tF',d));$('#tB',d).onclick=()=>pad.borrar();
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#tOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#tM',d).innerHTML=modos(['efectivo','tarjeta','bizum','pendiente'],modo);$('#tOk',d).disabled=false}
-  else if(hacer({tipo:'terminar',id:A.id,modo,firma:pad.vacia()?'':pad.ruta()}).ok){d.close();toast(modo==='pendiente'?'Terminado. Queda por cobrar.':'Terminado y cobrado. Garantía de un año.');location.hash='#/papel/'+A.id+'/parte'}})}
+  else if(hacer(Object.assign({tipo:'terminar',id:A.id,firma:pad.vacia()?'':pad.ruta()},T.total?{modo}:{})).ok){d.close();toast(!T.total?'Terminado. Va en su contrato: no se cobra nada.':modo==='pendiente'?'Terminado. Queda por cobrar.':'Terminado y cobrado. Garantía de un año.');location.hash='#/papel/'+A.id+'/parte'}})}
 
 /* ===== los toques ===== */
 const ACC={
@@ -917,6 +983,12 @@ const ACC={
  mes:(A,b)=>bajaMes(b.dataset.m),
  ampliar:A=>hPrecio(A,true),
  falta:A=>hFalta(A),
+ conAlta:A=>hConAlta(A),
+ conCob:(A,b)=>{const C=contrato(b.dataset.c);if(C)hConCob(C)},
+ conRen:(A,b)=>{const C=contrato(b.dataset.c);if(C)hConRen(C)},
+ conBaja:(A,b)=>{const C=contrato(b.dataset.c);if(C)hConBaja(C)},
+ conFac:(A,b)=>{const C=contrato(b.dataset.c);if(C)copia(K.datosFacturaContrato(S,cfg,C,Date.now()),'Copiado. Pégalo en tu programa de facturas.')},
+ conRev:(A,b)=>{const C=contrato(b.dataset.c);if(!C)return;Oficio.crear({tipo:'pedir',av:K.REV,origen:'llamada',cli:C.cli},Q).then(r=>{if(!r.ok)return toast(ERR[r.err]||'No se ha podido crear.');toast('Aviso de la revisión creado: dale cita y asígnalo.');location.hash='#/aviso/'+r.id})},
  quitaFalta:(A,b)=>{const k=b.dataset.k,r=hacer(k?{tipo:'falta',id:A.id,k,quitar:true}:{tipo:'falta',id:A.id,t:b.dataset.t,quitar:true});if(r.ok)toast('Quitado de lo que falta.')},
  faltaListo:A=>{if(hacer({tipo:'falta',id:A.id,vaciar:true}).ok)toast('Hecho: ya no falta nada en este aviso.')},
  copiaMat:(A,b)=>{const d=b.dataset.dia||'',g=K.material(S,cfg,d).find(x=>x.tec===(b.dataset.tec||''));if(g)copia(K.textoMaterial(cfg,g,d),'Copiado. Pégalo donde quieras.')},

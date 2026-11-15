@@ -96,7 +96,7 @@ async function tanda(semilla) {
       for (const x of n.diario) { const r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(x.accion)), x.q, x.t); ley(r.ok && S.v === x.v, 'el-diario-se-puede-repetir', id + ' v' + x.v); }
       const guardado = [...n.avisos.values()].map(f => f.datos).sort((a, b) => a.n - b.n), sin = a => { const y = Object.assign({}, a); delete y.llave; return y; };
       ley(igual(S.avisos, guardado.map(sin)), 'lo-guardado-es-el-diario', id);
-      ley(igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [] }, n.cab), 'la-cabecera-es-el-diario', id);
+      ley(igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0 }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0 }, n.cab)), 'la-cabecera-es-el-diario', id);
       const Sg = Object.assign({}, S, { avisos: guardado });
       for (const f of n.avisos.values()) {
         ley(igual(f.vista, K.vistaCliente(Sg, cfg, f.id)), 'lo-que-ve-el-cliente-esta-al-dia', f.id);

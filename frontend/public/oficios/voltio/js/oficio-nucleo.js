@@ -22,6 +22,8 @@
      añade y no es la reparación, y cualquier trabajo con cita, sí. Para empezar ya, el cliente tiene que pedirlo.
    - El material que falta en un aviso lo apuntan su técnico o la oficina, y se junta por día y por técnico para
      mandarlo por WhatsApp. El cliente no lo ve.
+   - Los contratos de mantenimiento: la oficina los da de alta con la firma o el sí del cliente; 14 días para desistir;
+     no se renuevan solos. Cada aviso del cliente lleva lo justo del contrato («con») para que todos calculen el mismo precio.
    - Todo lo que llega de fuera se trata como sospechoso: claves que no
      existen, textos que no son texto y cantidades imposibles se rechazan
      sin cambiar nada.
@@ -30,7 +32,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.15b';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.15c';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -59,12 +61,16 @@ const franjaTxt=f=>'de '+hf(f.de)+' a '+hf(f.a);
 const eur=cs=>new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:'always'}).format(cs/100)+' €';
 
 /* ---------- de data del negocio, lo que las reglas necesitan ---------- */
+const REV='revision';   /* la avería de la revisión del contrato: la crea la oficina, nunca la web */
 function cfgDe(N){const vacio=()=>Object.create(null),limpio=o=>Object.assign(vacio(),o||{}),cat=vacio();
  Object.entries(N.catalogo).forEach(([k,i])=>{const p10=i.p10!=null?cts(i.p10):red(cts(i.p21)/1.1),p21=i.p21!=null?cts(i.p21):red(cts(i.p10)*1.1);
   cat[k]={k,t:i.t,p10,p21,u:!!i.u,mat:!!i.mat,extra:!!i.extra,un:i.un||'',min:i.min||1,paso:i.paso||1}});
- const av=vacio(),tec=vacio();N.averias.forEach(a=>{av[a.id]=a});N.tecnicos.forEach(x=>{tec[x.id]=x});
+ const av=vacio(),tec=vacio(),planes=vacio();N.averias.forEach(a=>{av[a.id]=a});N.tecnicos.forEach(x=>{tec[x.id]=x});
+ /* el mantenimiento: sus planes y la revisión, que es un aviso más pero no se pide desde la web */
+ const MT=N.mantenimiento;if(MT&&Array.isArray(MT.planes)&&MT.revision){av[REV]=Object.assign({},MT.revision,{id:REV,min:MT.revision.ini,max:null,interna:true});
+  MT.planes.forEach(x=>{planes[x.id]={id:x.id,n:x.n,precio:cts(x.precio),iva:x.iva||21,revisiones:x.revisiones||1,desp:typeof x.desp==='string'&&cat[x.desp]?x.desp:'',rev:typeof x.rev==='string'&&cat[x.rev]?x.rev:'',prioridad:!!x.prioridad}})}
  const zonas={banda:limpio(N.zonas.banda),dis:limpio(N.zonas.dis),cp:limpio(N.zonas.cp)};
- return{N,cat,av,tec,pack:N.pack||'pro',recargo:N.tarifa.recargo,dia:N.tarifa.dia,festivos:N.festivos||[],franjas:N.franjas,cupo:N.cupo,zonas,
+ return{N,cat,av,tec,planes,pack:N.pack||'pro',recargo:N.tarifa.recargo,dia:N.tarifa.dia,festivos:N.festivos||[],franjas:N.franjas,cupo:N.cupo,zonas,
   etaMax:Math.max.apply(null,Object.values(zonas.banda)),horas:Object.keys(cat).find(k=>cat[k].un==='h')||'',meses:N.garantiaMeses||12,
   mapa:N.mapa&&typeof N.mapa==='object'?N.mapa:null,conHorario:!!(N.horario||N.tecnicos.some(x=>x.horario)),porFranja:(N.citas&&N.citas.porFranja)||1,reserva:(N.citas&&N.citas.reserva)||0,hayGuardia:N.tecnicos.some(x=>x.guardia)}}
 function nuevo(){return{esq:ESQ,v:0,n:0,avisos:[],ausencias:[]}}
@@ -79,11 +85,12 @@ function precio(cfg,lineas,o){o=o||{};const L=[];let mat=0,todo=0;
   if(l.k==='otro'){const p=cts(Math.max(0,Math.min(+l.p||0,5000)));if(!p)return;it={k:'otro',t:(txt(l.t).trim()||'Otro material').slice(0,60),p10:p,p21:red(p*1.1),u:false,mat:true,un:'',min:1,paso:1}}
   else it=typeof l.k==='string'?cfg.cat[l.k]:null;
   if(!it)return;
+  const gr=Array.isArray(o.gratis)&&o.gratis.includes(it.k);
   let q=+l.q||it.min;q=Math.max(o.sinMin?it.paso:it.min,Math.round(q/it.paso)*it.paso);q=Math.min(q,it.un==='h'?12:20);
-  const f=o.urg&&it.u?1+cfg.recargo:1,b=it.p10*q*f;todo+=b;if(it.mat)mat+=b;L.push({it,q,f,p:l.p})});
+  const f=o.urg&&it.u?1+cfg.recargo:1,b=gr?0:it.p10*q*f;todo+=b;if(it.mat)mat+=b;L.push({it,q,f,p:l.p,gr})});
  const pmat=todo?mat/todo:0,tipo=o.tipo||(o.local||pmat>.4?21:10),motivo=o.local?'local':pmat>.4?'material':'vivienda';
  let total=0;
- const out=L.map(({it,q,f,p})=>{const imp=red((tipo===21?it.p21:it.p10)*q*f);total+=imp;const r={k:it.k,t:it.t,q,un:it.un,mat:it.mat,u:it.u&&!!o.urg,imp};if(it.k==='otro')r.p=+p;return r});
+ const out=L.map(({it,q,f,p,gr})=>{const imp=gr?0:red((tipo===21?it.p21:it.p10)*q*f);total+=imp;const r={k:it.k,t:it.t,q,un:it.un,mat:it.mat,u:it.u&&!!o.urg&&!gr,imp};if(it.k==='otro')r.p=+p;if(gr)r.con=true;return r});
  const base=red(total/(1+tipo/100));
  return{lineas:out,total,base,iva:total-base,tipo,motivo,pmat,urg:!!o.urg,local:!!o.local}}
 /* lo que la web enseña de cada avería: de cuánto a cuánto */
@@ -108,6 +115,23 @@ const VACIAS=new Set(['c','calle','carrer','de','del','la','el','les','los','las
 const normDir=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[ºª]/g,' ').split(/[^a-z0-9]+/).filter(w=>w&&!VACIAS.has(w)).join(' ');
 function garantiaDe(S,cfg,cli,t,menos){const hoy=madrid(t).date,tel=tel9(cli&&cli.tel),dir=normDir(cli&&cli.dir);
  return S.avisos.filter(a=>a.id!==menos&&a.e==='hecho'&&!a.sinTrabajo&&a.gar&&a.gar.hasta>=hoy&&((tel&&tel9(a.cli.tel)===tel)||(dir.length>4&&normDir(a.cli.dir)===dir))).map(a=>a.id)}
+
+/* ---------- los contratos de mantenimiento (15-11-2026) ----------
+   Un contrato es de un cliente y de una finca (su teléfono y su edificio). Va por periodos de un año: «per», cada uno con
+   su precio y su pago. Está vigente si está de alta y hoy cae dentro de un periodo. */
+const planDe=(cfg,id)=>typeof id==='string'&&cfg.planes?cfg.planes[id]||null:null;
+const perDe=(C,d)=>Array.isArray(C&&C.per)?C.per.findIndex(p=>p.de<=d&&p.a>=d):-1;
+const vigente=(C,d)=>!!C&&C.e==='activo'&&perDe(C,d)>=0;
+const pagoDe=(modo,t)=>modo&&modo!=='pendiente'?{modo,t,cobrado:true}:{modo:'pendiente',t,cobrado:false};
+function contratoDe(S,cli,d){const t9=tel9(cli&&cli.tel),fi=fincaDe(cli&&cli.dir);if(!t9||fi.length<5)return null;
+ return(S.contratos||[]).find(C=>tel9(C.cli.tel)===t9&&fincaDe(C.cli.dir)===fi&&vigente(C,d))||null}
+/* lo que el contrato da a un aviso: sin desplazamiento en urgencias, la revisión incluida (las que tiene el plan) y prioridad */
+function conDe(S,cfg,A,t){const d=madrid(t).date,C=contratoDe(S,A.cli,d),P=C&&planDe(cfg,C.plan);if(!P)return null;const per=perDe(C,d);
+ const usadas=S.avisos.filter(x=>x.id!==A.id&&x.e!=='cancelado'&&x.con&&x.con.id===C.id&&x.con.per===per&&x.con.rev).length;
+ return{id:C.id,per,desp:P.desp,rev:A.av===REV&&usadas<P.revisiones?P.rev:'',pri:P.prioridad}}
+/* lo que no se cobra en un aviso: en la revisión incluida, la revisión y el desplazamiento; en una urgencia, el desplazamiento
+   (una revisión de más no es una urgencia: se paga entera) */
+const gratisDe=A=>!A||!A.con?[]:A.con.rev?[A.con.rev,A.con.desp].filter(Boolean):A.urg&&A.av!==REV&&A.con.desp?[A.con.desp]:[];
 
 /* ---------- citas sin prisa: días y franjas ---------- */
 const laborable=(cfg,f)=>{const w=diaSem(f);return w>=1&&w<=5&&!cfg.festivos.includes(f)};
@@ -180,6 +204,7 @@ function minutos(A,t){if(!A.ini)return 0;const fin=A.fin||t||Date.now();let ms=f
 const enPausa=A=>!!(A.pausas&&A.pausas.length&&!A.pausas[A.pausas.length-1][1]);
 
 /* ---------- las acciones ---------- */
+const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato'].concat(CON_ACC);
 function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  const R=err=>({ok:false,err});
  const A=typeof a.id==='string'?S.avisos.find(x=>x.id===a.id):null;
@@ -197,13 +222,15 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  const unaCita=c=>c&&typeof c==='object'&&typeof c.dia==='string'&&typeof c.fr==='string';
  /* queda escrito cuando la oficina pone una cita donde el cliente no habría podido */
  const porOf=c=>!c.of?'':c.of==='margen'?', con menos de dos horas de margen':c.of==='reserva'?', en el hueco que se guarda para urgencias':', hoy mismo y en el hueco que se guarda para urgencias';
- if(a.tipo!=='pedir'&&a.tipo!=='ausencia'&&a.tipo!=='quitarAusencia'&&!A)return R('aviso');
+ if(!SIN_AVISO.includes(a.tipo)&&!A)return R('aviso');
+ const C=CON_ACC.includes(a.tipo)&&typeof a.id==='string'?(S.contratos||[]).find(x=>x.id===a.id)||null:null;
+ const logC=(X,txt)=>{X.h.push({t,q:nom,txt});X.v=(X.v||0)+1};
  /* si el técnico que lo llevaba ya no puede (cambio de hora o ausencia), el aviso vuelve a la bandeja marcado */
  const suelta=(X,por)=>{log(X,cfg.tec[X.tec].n+' '+por+': queda sin asignar');X.tec='';if(X.e==='asignado')X.e='nuevo';X.reasignar=true;sinMsg(X,['cita','vispera'])};
 
  switch(a.tipo){
  case 'pedir':{
-  if(typeof a.av!=='string'||!cfg.av[a.av])return R('av');
+  if(typeof a.av!=='string'||!cfg.av[a.av]||(a.av===REV&&!esC))return R('av');
   const deWeb=a.origen==='web';             // el aviso que deja la web al abrir WhatsApp: los datos llegan después
   const d=datosCli(a.cli,deWeb);if(d.err)return R(d.err);
   let cita=null;
@@ -215,7 +242,8 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   const n=++S.n,id=cfg.N.serie+'-'+String(n).padStart(4,'0');
   const X={id,n,v:0,t,origen:a.origen==null?'cita':ORIGEN.includes(a.origen)?a.origen:'otro',av:a.av,nota:txt(a.nota).trim().slice(0,400),foto:typeof a.foto==='string'&&a.foto.length<140000?a.foto:'',cli:d.cli,cita,urg:!cita,e:'nuevo',tec:'',msgs:[],h:[]};if(vale)X.vale=vale;
   const g0=garantiaDe(S,cfg,X.cli,t);if(g0.length)X.gar0=g0[g0.length-1];
-  S.avisos.push(X);log(X,cita?'Cita pedida'+porOf(cita):'Aviso recibido');
+  const c0=conDe(S,cfg,X,t);if(c0)X.con=c0;
+  S.avisos.push(X);log(X,(cita?'Cita pedida'+porOf(cita):'Aviso recibido')+(c0?'. Cliente con contrato de mantenimiento ('+c0.id+')':''));
   if(X.cli.tel)msg(X,'recibido');
   return ok({id})}
 
@@ -223,6 +251,8 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   if(!esC&&!mio)return R('permiso');if(!['nuevo','asignado','ausente'].includes(A.e))return R('estado');
   const d=datosCli(Object.assign({},A.cli,a.cli),false);if(d.err)return R(d.err);
   const antes=A.cli.tel;A.cli=d.cli;const g0=garantiaDe(S,cfg,A.cli,t,A.id);if(g0.length)A.gar0=g0[g0.length-1];else delete A.gar0;
+  /* el contrato lo vuelve a mirar la oficina, que es quien tiene la lista: el técnico no la tiene y lo quitaría sin querer */
+  if(esC&&!A.pres&&!A.tot){const c1=conDe(S,cfg,A,t);if(c1)A.con=c1;else delete A.con}
   if(!antes)msg(A,'recibido');log(A,'Datos del cliente completados');return ok()}
 
  case 'asignar':{
@@ -267,7 +297,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   if(!mio)return R('permiso');if(A.e!=='camino'&&A.e!=='asignado')return R('estado');
   if(S.avisos.some(x=>x.id!==A.id&&x.tec===A.tec&&(x.e==='camino'||x.e==='curso')))return R('ocupado');
   const p=a.pres&&typeof a.pres==='object'?a.pres:{};if(typeof p.firma!=='string'||p.firma.length<12)return R('firma');
-  const pr=precio(cfg,p.lineas,{urg:tarifaDe(cfg,A),local:!!p.local});if(!pr.total)return R('lineas');
+  const pr=precio(cfg,p.lineas,{urg:tarifaDe(cfg,A),local:!!p.local,gratis:gratisDe(A)});if(!pr.lineas.length||(!pr.total&&!pr.lineas.some(l=>l.con)))return R('lineas');
   const des=desiste(cfg,A,p.lineas);if(pideYa(des)&&p.pide!==true)return R('pide');
   A.lin=pr.lineas.map(l=>l.k==='otro'?{k:'otro',t:l.t,p:l.p,q:1}:{k:l.k,q:l.q});A.local=!!p.local;
   A.pres=Object.assign({t,firma:p.firma,des:{c:des,pide:pideYa(des)?t:0}},pr);A.tot=pr;
@@ -276,11 +306,11 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
  case 'noacepta':{
   if(!mio)return R('permiso');if(A.e!=='camino'&&A.e!=='asignado')return R('estado');
-  if(!PAGOS.includes(a.modo))return R('modo');
-  const pr=precio(cfg,[{k:cfg.N.sinTrabajo,q:1}],{urg:tarifaDe(cfg,A),local:!!a.local});
+  const pr=precio(cfg,[{k:cfg.N.sinTrabajo,q:1}],{urg:tarifaDe(cfg,A),local:!!a.local,gratis:gratisDe(A)});
+  if(pr.total&&!PAGOS.includes(a.modo))return R('modo');
   A.tot=pr;A.lin=[{k:cfg.N.sinTrabajo,q:1}];A.local=!!a.local;A.sinTrabajo=true;A.e='hecho';A.fin=t;if(!A.sal)A.sal=t;delete A.pos;delete A.posNo;
-  A.pago={modo:a.modo,t,cobrado:a.modo!=='pendiente'};sinMsg(A,['camino','recibido','cita','vispera']);msg(A,'hecho');if(!A.pago.cobrado)msg(A,'cobro',t+3*1440*MIN);
-  log(A,'No acepta el precio. Solo el desplazamiento: '+eur(pr.total));return ok()}
+  A.pago=pr.total?{modo:a.modo,t,cobrado:a.modo!=='pendiente'}:{modo:'',t,cobrado:true};sinMsg(A,['camino','recibido','cita','vispera']);msg(A,'hecho');if(!A.pago.cobrado)msg(A,'cobro',t+3*1440*MIN);
+  log(A,'No acepta el precio. '+(pr.total?'Solo el desplazamiento: '+eur(pr.total):'El desplazamiento va en su contrato: no se cobra nada'));return ok()}
 
  case 'ampliar':{
   if(!mio)return R('permiso');if(A.e!=='curso'||!A.tot||!A.lin)return R('estado');
@@ -289,8 +319,8 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   const des=desiste(cfg,A,mas);if(pideYa(des)&&a.pide!==true)return R('pide');
   const junto=A.lin.map(l=>Object.assign({},l));
   mas.forEach(l=>{const ya=l.k!=='otro'&&junto.find(x=>x.k===l.k);if(ya)ya.q+=(+l.q||cfg.cat[l.k].min);else junto.push(l.k==='otro'?{k:'otro',t:l.t,p:+l.p,q:1}:{k:l.k,q:+l.q||cfg.cat[l.k].min})});
-  const pr=precio(cfg,junto,{urg:A.tot.urg,local:A.local}),dif=pr.total-A.tot.total;if(dif<=0)return R('lineas');
-  A.amp=A.amp||[];A.amp.push({t,firma:a.firma,dif,des:{c:des,pide:pideYa(des)?t:0},lineas:precio(cfg,mas,{urg:A.tot.urg,tipo:pr.tipo,sinMin:A.lin.some(l=>cfg.cat[l.k]&&cfg.cat[l.k].un==='h')}).lineas,tipo:pr.tipo});
+  const gr=gratisDe(A),pr=precio(cfg,junto,{urg:A.tot.urg,local:A.local,gratis:gr}),dif=pr.total-A.tot.total;if(dif<=0)return R('lineas');
+  A.amp=A.amp||[];A.amp.push({t,firma:a.firma,dif,des:{c:des,pide:pideYa(des)?t:0},lineas:precio(cfg,mas,{urg:A.tot.urg,tipo:pr.tipo,sinMin:A.lin.some(l=>cfg.cat[l.k]&&cfg.cat[l.k].un==='h'),gratis:gr}).lineas,tipo:pr.tipo});
   A.lin=pr.lineas.map(l=>l.k==='otro'?{k:'otro',t:l.t,p:l.p,q:1}:{k:l.k,q:l.q});A.tot=pr;
   log(A,'Ampliación firmada: '+eur(dif)+' más');return ok({dif})}
 
@@ -323,13 +353,13 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
  case 'terminar':{
   if(!mio)return R('permiso');if(A.e!=='curso'||!A.tot)return R('estado');
-  if(!PAGOS.includes(a.modo))return R('modo');
+  if(A.tot.total&&!PAGOS.includes(a.modo))return R('modo');
   if(enPausa(A))A.pausas[A.pausas.length-1][1]=t;
   A.e='hecho';A.fin=t;A.min=minutos(A,t);
   A.gar={hasta:masMeses(madrid(t).date,cfg.meses)};
-  A.pago={modo:a.modo,t,cobrado:a.modo!=='pendiente'};if(typeof a.firma==='string'&&a.firma.length>=12)A.conf={t,firma:a.firma};
+  A.pago=A.tot.total?{modo:a.modo,t,cobrado:a.modo!=='pendiente'}:{modo:'',t,cobrado:true};if(typeof a.firma==='string'&&a.firma.length>=12)A.conf={t,firma:a.firma};
   msg(A,'hecho');msg(A,'resena',t+120*MIN);if(!A.pago.cobrado)msg(A,'cobro',t+3*1440*MIN);
-  log(A,'Terminado. '+eur(A.tot.total)+(A.pago.cobrado?', cobrado ('+a.modo+')':', pendiente de pago'));return ok()}
+  log(A,'Terminado. '+eur(A.tot.total)+(!A.tot.total?', sin nada que cobrar':A.pago.cobrado?', cobrado ('+a.modo+')':', pendiente de pago'));return ok()}
 
  case 'cobrar':{
   if(!esC&&!mio)return R('permiso');if(A.e!=='hecho'||!A.pago||A.pago.cobrado)return R('estado');
@@ -343,6 +373,39 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   if(a.quitar===true){if(!A.fac)return R('estado');delete A.fac;log(A,'Ya no consta como facturado');return ok()}
   if(A.fac)return R('estado');if(a.num!=null&&typeof a.num!=='string'&&typeof a.num!=='number')return R('num');
   const num=txt(a.num).trim().replace(/\s+/g,' ').slice(0,30);A.fac={t,num};log(A,'Facturado'+(num?' con el número '+num:''));return ok()}
+
+ /* ---- los contratos de mantenimiento: solo la oficina ----
+    El alta: el plan, los datos del cliente y cómo dijo que sí: firmando en el aparato («firma») o por mensaje («mensaje»).
+    «pide»: quiere la revisión antes de que pasen sus 14 días para desistir. «modo»: si ya lo ha pagado. */
+ case 'contrato':{
+  if(!esC)return R('permiso');const P=planDe(cfg,a.plan);if(!P)return R('plan');
+  const d=datosCli(a.cli,false);if(d.err)return R(d.err);const hoy=madrid(t).date;if(contratoDe(S,d.cli,hoy))return R('ya');
+  if(a.acepta!=='firma'&&a.acepta!=='mensaje')return R('acepta');if(a.acepta==='firma'&&(typeof a.firma!=='string'||a.firma.length<12))return R('firma');
+  if(a.modo!=null&&!PAGOS.includes(a.modo))return R('modo');
+  S.contratos=Array.isArray(S.contratos)?S.contratos:[];const n=(S.nc||0)+1;S.nc=n;const id=cfg.N.serie+'M-'+String(n).padStart(4,'0');
+  const X={id,n,v:0,plan:P.id,cli:d.cli,t,acepta:a.acepta,des:{pide:a.pide===true?t:0},e:'activo',per:[{de:hoy,a:masDias(masMeses(hoy,12),-1),precio:P.precio,pago:pagoDe(a.modo,t)}],h:[]};
+  if(a.acepta==='firma')X.firma=a.firma;
+  S.contratos.push(X);logC(X,'Alta: '+P.n+', '+eur(P.precio)+' al año'+(X.per[0].pago.cobrado?', cobrado ('+a.modo+')':''));
+  /* los avisos abiertos de ese cliente que aún no tienen precio pasan a llevar el contrato */
+  S.avisos.forEach(x=>{if(['nuevo','asignado','camino','ausente'].includes(x.e)&&!x.pres&&!x.tot){const c=conDe(S,cfg,x,t);if(c&&(!x.con||x.con.id!==c.id)){x.con=c;log(x,'Ahora con el contrato de mantenimiento '+id)}}});
+  return ok({id})}
+ case 'cobroContrato':{
+  if(!esC)return R('permiso');if(!C)return R('contrato');const p=C.per[C.per.length-1];
+  if(p.pago.cobrado)return R('estado');if(!PAGOS.includes(a.modo)||a.modo==='pendiente')return R('modo');
+  p.pago={modo:a.modo,t,cobrado:true};logC(C,'Cobrado ('+a.modo+')');return ok()}
+ /* renovar: solo si el cliente ha dicho que sí («acepta»), del mes antes de acabar a los dos meses después */
+ case 'renovar':{
+  if(!esC)return R('permiso');if(!C)return R('contrato');if(C.e!=='activo')return R('estado');if(a.acepta!==true)return R('acepta');
+  const P=planDe(cfg,C.plan);if(!P)return R('plan');if(a.modo!=null&&!PAGOS.includes(a.modo))return R('modo');
+  const hoy=madrid(t).date,u=C.per[C.per.length-1];if(hoy<masDias(u.a,-30)||hoy>masDias(u.a,60))return R('fecha');
+  const de=hoy<=u.a?masDias(u.a,1):hoy;C.per.push({de,a:masDias(masMeses(de,12),-1),precio:P.precio,pago:pagoDe(a.modo,t)});
+  logC(C,'Renovado: del '+fechaCorta(de)+' al '+fechaCorta(C.per[C.per.length-1].a)+', '+eur(P.precio));return ok()}
+ /* la baja, cuando el cliente quiera y sin penalización. Dentro de los 14 días desde el alta, es que desiste */
+ case 'bajaContrato':{
+  if(!esC)return R('permiso');if(!C)return R('contrato');if(C.e!=='activo')return R('estado');
+  if(a.motivo!=null&&typeof a.motivo!=='string')return R('motivo');
+  const hoy=madrid(t).date,des=hoy<=masDias(madrid(C.t).date,14);C.e='baja';C.baja={t,des,motivo:txt(a.motivo).trim().replace(/\s+/g,' ').slice(0,120)};
+  logC(C,des?'Desiste del contrato, dentro de sus 14 días':'Baja del contrato');return ok()}
 
  case 'cancelar':{
   if(!esC)return R('permiso');if(!['nuevo','asignado','ausente'].includes(A.e))return R('estado');
@@ -379,21 +442,31 @@ function vistaCliente(S,cfg,id){const A=S.avisos.find(x=>x.id===id);if(!A)return
 /* Lo que es de un cliente lo decide su teléfono. Se le da lo que ya lleva en sus papeles (presupuesto, parte y garantía)
    y la vista de cada aviso. Nunca el diario interno, los mensajes, la nota con la que entró el aviso ni nada de otro cliente.
    Se devuelve una copia: tocarla no cambia los avisos. */
-const PERFIL=['id','av','e','urg','t','cita','tec','ini','fin','min','sinTrabajo','pres','amp','tot','pago','gar','obs','conf','fotos','fac','cli'];
+const PERFIL=['id','av','e','urg','t','cita','tec','ini','fin','min','sinTrabajo','pres','amp','tot','pago','gar','obs','conf','fotos','fac','cli','con'];
+const CONT=['id','plan','cli','t','acepta','firma','des','e','per','baja'];   /* lo que el cliente ve de su contrato: no el historial */
 const CLIENTE_DEMO='2468-1357';   /* en la demo, sin servidor, los clientes de muestra entran con este código */
 /* el edificio de una dirección: la calle y su número, sin el piso ni la puerta («C/ Verdi 28, 2.º 1.ª» y «C/ Verdi 28, bajos», la misma finca) */
 const fincaDe=d=>{const w=normDir(d).split(' ').filter(Boolean),i=w.findIndex(x=>/^\d/.test(x));return(i>=0?w.slice(0,i+1):w).join(' ')};
 const edificio=d=>{const s=txt(d).trim(),m=s.match(/^(.*?\d+[a-zA-Z]?)\s*,/);return m?m[1]:s};
 function perfilCliente(S,cfg,tel){const t9=tel9(tel);if(!t9||!S||!Array.isArray(S.avisos))return null;
- const mios=S.avisos.filter(a=>a&&a.cli&&tel9(a.cli.tel)===t9).sort((a,b)=>b.t-a.t);if(!mios.length)return null;
+ const mios=S.avisos.filter(a=>a&&a.cli&&tel9(a.cli.tel)===t9).sort((a,b)=>b.t-a.t);
+ const contratos=(S.contratos||[]).filter(C=>C&&C.cli&&tel9(C.cli.tel)===t9).sort((a,b)=>b.t-a.t).map(C=>{const o={};CONT.forEach(k=>{if(C[k]!==undefined)o[k]=JSON.parse(JSON.stringify(C[k]))});return o});
+ if(!mios.length&&!contratos.length)return null;
  const avisos=mios.map(A=>{const o={};PERFIL.forEach(k=>{if(A[k]!==undefined)o[k]=JSON.parse(JSON.stringify(A[k]))});o.vista=vistaCliente(S,cfg,A.id);return o});
  /* sus datos, del último aviso que los tenga: uno que entró por WhatsApp puede llevar solo el teléfono */
- const c=(mios.find(a=>txt(a.cli.nombre).trim()&&txt(a.cli.dir).trim())||mios.find(a=>txt(a.cli.nombre).trim())||mios[0]).cli;
+ const c=(mios.find(a=>txt(a.cli.nombre).trim()&&txt(a.cli.dir).trim())||mios.find(a=>txt(a.cli.nombre).trim())||mios[0]||{cli:contratos[0].cli}).cli;
  /* sus fincas: un administrador lleva varias direcciones con el mismo teléfono. Los pisos de un mismo edificio, juntos */
- const fincas=[];mios.forEach(a=>{const k=fincaDe(a.cli.dir);if(k.length>4&&!fincas.some(f=>f.k===k))fincas.push({k,dir:edificio(a.cli.dir),cp:txt(a.cli.cp),dis:txt(a.cli.dis)})});
- return{tel:t9,cli:{nombre:txt(c.nombre),apellidos:txt(c.apellidos),dir:txt(c.dir),cp:txt(c.cp),dis:txt(c.dis)},avisos,fincas}}
+ const fincas=[];mios.concat(contratos).forEach(a=>{const k=fincaDe(a.cli.dir);if(k.length>4&&!fincas.some(f=>f.k===k))fincas.push({k,dir:edificio(a.cli.dir),cp:txt(a.cli.cp),dis:txt(a.cli.dis)})});
+ return{tel:t9,cli:{nombre:txt(c.nombre),apellidos:txt(c.apellidos),dir:txt(c.dir),cp:txt(c.cp),dis:txt(c.dis)},avisos,fincas,contratos}}
 
 /* ---------- las cifras del día para la centralita ---------- */
+/* los contratos que piden algo a la oficina: renovar (del mes antes de acabar a dos meses después), dar la cita de la revisión y cobrar */
+function pendientesContratos(S,cfg,t){const hoy=madrid(t).date,renovar=[],revision=[],cobrar=[];
+ (S.contratos||[]).forEach(C=>{if(C.e!=='activo')return;const u=C.per[C.per.length-1],P=planDe(cfg,C.plan);
+  if(hoy>=masDias(u.a,-30)&&hoy<=masDias(u.a,60))renovar.push({id:C.id,a:u.a,vencido:hoy>u.a});
+  const i=perDe(C,hoy);if(i>=0&&P){const n=S.avisos.filter(x=>x.e!=='cancelado'&&x.con&&x.con.id===C.id&&x.con.per===i&&x.con.rev).length;if(n<P.revisiones)revision.push({id:C.id,quedan:P.revisiones-n})}
+  if(!u.pago.cobrado)cobrar.push({id:C.id,precio:u.precio})});
+ return{renovar,revision,cobrar}}
 function resumen(S,cfg,t){const hoy=madrid(t).date,caja={efectivo:0,tarjeta:0,bizum:0,transferencia:0,total:0},pend={n:0,total:0},tec={};
  Object.keys(cfg.tec).forEach(id=>{tec[id]={hoy:0,hechos:0,e:'libre',aviso:''}});
  let nuevos=0,urgentes=0,marcha=0,hechos=0,sinDatos=0;const canal={};ORIGEN.forEach(o=>{canal[o]=0});const mes=hoy.slice(0,7);
@@ -402,7 +475,7 @@ function resumen(S,cfg,t){const hoy=madrid(t).date,caja={efectivo:0,tarjeta:0,bi
   if(A.e==='nuevo'||A.e==='ausente'){nuevos++;if(A.urg)urgentes++;if(!A.cli.tel)sinDatos++}
   if(EN_MARCHA.includes(A.e)){marcha++;const x=tec[A.tec];if(x){if(!A.cita||A.cita.dia===hoy||A.e!=='asignado')x.hoy++;if(A.e==='camino'||A.e==='curso'){x.e=A.e;x.aviso=A.id}}}
   if(A.e==='hecho'){const esHoy=madrid(A.fin).date===hoy;if(esHoy){hechos++;if(tec[A.tec])tec[A.tec].hechos++}
-   if(A.pago&&A.tot){if(!A.pago.cobrado){pend.n++;pend.total+=A.tot.total}else if(madrid(A.pago.t).date===hoy){caja[A.pago.modo]+=A.tot.total;caja.total+=A.tot.total}}}});
+   if(A.pago&&A.tot){if(!A.pago.cobrado){pend.n++;pend.total+=A.tot.total}else if(madrid(A.pago.t).date===hoy&&caja[A.pago.modo]!=null){caja[A.pago.modo]+=A.tot.total;caja.total+=A.tot.total}}}});
  const pf=porFacturar(S,t);
  return{nuevos,urgentes,sinDatos,marcha,hechos,pend,caja,tec,canal,sobran:sobran(S,cfg,t),reasignar:S.avisos.filter(a=>a.reasignar&&a.e==='nuevo').length,porFac:{n:pf.length,viejos:pf.filter(x=>x.dias>=7).length}}}
 
@@ -422,8 +495,18 @@ function datosFactura(cfg,A){if(!A||!A.tot)return'';const c=A.cli||{},p=A.pago||
 /* ---------- el mes para la gestoría: una fila por trabajo terminado, para abrirlo en una hoja de cálculo ---------- */
 const CSV_CAB=['Fecha','Aviso','Cliente','Teléfono','Dirección','CP','Trabajo','Base','IVA %','IVA','Total','Forma de pago','Cobrado','Factura'];
 const num2=c=>(c/100).toFixed(2).replace('.',',');
+/* la cuota de cada contrato, en el mes en que empieza su año. El precio lleva el IVA dentro, como todo */
+function cuotasMes(S,cfg,mes){const F=[];(S.contratos||[]).forEach(C=>{const P=planDe(cfg,C.plan);C.per.forEach(p=>{if(p.de.slice(0,7)!==mes)return;const iva=P?P.iva:21,base=red(p.precio/(1+iva/100));
+  F.push([p.de,C.id,nomCli(C.cli),telBonito(C.cli.tel),txt(C.cli.dir),txt(C.cli.cp),'Contrato de mantenimiento'+(P?': '+P.n:''),num2(base),String(iva),num2(p.precio-base),num2(p.precio),PAGO_N[p.pago.modo]||'',p.pago.cobrado?'Sí':'No','No'])})});
+ return F.sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0)}
+/* los datos para facturar la cuota de un contrato (la del año que va, o la última) */
+function datosFacturaContrato(S,cfg,C,t){if(!C)return'';const P=planDe(cfg,C.plan),i=perDe(C,madrid(t).date),p=C.per[i>=0?i:C.per.length-1],iva=P?P.iva:21,base=red(p.precio/(1+iva/100)),c=C.cli;
+ return['Cliente: '+nomCli(c),'Dirección: '+txt(c.dir)+(txt(c.cp)?', '+txt(c.cp):'')+' '+txt(cfg.N.ciudad),'Teléfono: '+telBonito(c.tel),
+  'Contrato de mantenimiento '+C.id+(P?': '+P.n:'')+', del '+fechaCorta(p.de)+' al '+fechaCorta(p.a),
+  'Base: '+eur(base)+' · IVA del '+iva+' %: '+eur(p.precio-base)+' · Total: '+eur(p.precio)+' (el precio lleva el IVA dentro)',
+  'Pago: '+(p.pago.cobrado?(PAGO_N[p.pago.modo]||'')+', cobrado el '+fechaCorta(madrid(p.pago.t).date):'pendiente')].join('\n')}
 function trabajosMes(S,cfg,mes){return(S.avisos||[]).filter(A=>A.e==='hecho'&&A.tot&&A.fin&&madrid(A.fin).date.slice(0,7)===mes).sort((a,b)=>a.fin-b.fin).map(A=>{const p=A.pago||{},av=cfg.av[A.av];
- return[madrid(A.fin).date,A.id,nomCli(A.cli),telBonito(A.cli.tel),txt(A.cli.dir),txt(A.cli.cp),(av?av.n:'')+(A.sinTrabajo?' (solo desplazamiento)':''),num2(A.tot.base),String(A.tot.tipo),num2(A.tot.iva),num2(A.tot.total),PAGO_N[p.modo]||'',p.cobrado?'Sí':'No',A.fac?(A.fac.num||'Sí'):'No']})}
+ return[madrid(A.fin).date,A.id,nomCli(A.cli),telBonito(A.cli.tel),txt(A.cli.dir),txt(A.cli.cp),(av?av.n:'')+(A.sinTrabajo?' (solo desplazamiento)':''),num2(A.tot.base),String(A.tot.tipo),num2(A.tot.iva),num2(A.tot.total),PAGO_N[p.modo]||'',p.cobrado?'Sí':'No',A.fac?(A.fac.num||'Sí'):'No']}).concat(cuotasMes(S,cfg,mes))}
 /* punto y coma, como lo abre una hoja de cálculo en español. Lo que empieza por = + - @ va con una comilla delante: así un
    nombre escrito en la web no se convierte en una fórmula al abrir el archivo */
 const celda=x=>{let s=String(x==null?'':x);if(/^[=+\-@\t\r]/.test(s))s="'"+s;return /[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
@@ -449,5 +532,5 @@ function material(S,cfg,dia){const out=Object.create(null);
 function textoMaterial(cfg,g,dia){if(!g||!g.cosas||!g.cosas.length)return'';
  return'Material '+(dia?'para el '+fechaLarga(dia):'de los avisos sin día')+(g.n?', '+g.n:', sin técnico')+':\n'+g.cosas.map(c=>'- '+c.q+' × '+c.t+' ('+c.av.join(', ')+')').join('\n')+'\n'+cfg.N.nombre}
 
-g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,REV,CONT,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

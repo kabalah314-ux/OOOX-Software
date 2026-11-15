@@ -36,7 +36,7 @@ function repite(id, N) {
   for (const d of n.diario) { const r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(d.accion)), d.q, d.t); if (!r.ok || S.v !== d.v) return false; }
   const sin = a => { const x = Object.assign({}, a); delete x.llave; return x; };
   const guardado = [...n.avisos.values()].map(f => f.datos).sort((a, b) => a.n - b.n);
-  return S.v === n.v && igual(S.avisos, guardado.map(sin)) && igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [] }, n.cab)
+  return S.v === n.v && igual(S.avisos, guardado.map(sin)) && igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0 }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0 }, n.cab))
     && [...n.avisos.values()].every(f => igual(f.vista, K.vistaCliente(Object.assign({}, S, { avisos: guardado }), cfg, f.id)));
 }
 
@@ -274,6 +274,30 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   es(rr.every(x => x && x.ok === false && typeof x.err === 'string'), 'lo que no es una petición de la zona del cliente recibe un «no», sin romper nada');
   es(new Set(Array.from({ length: 200 }, () => codigoCliente())).size === 200 && Array.from({ length: 50 }, () => codigoCliente()).every(c => limpiaCodigo(c) === c) && limpiaCodigo('ABCD EFGH') === 'abcd-efgh'
     && limpiaCodigo('abcd-efgi') === '' && limpiaCodigo('abc-defg') === '' && limpiaCodigo(12345678) === '', 'los códigos salen distintos y con su forma, y se leen escritos de cualquier manera, pero no con letras que no se usan'); }
+
+// 14. los contratos de mantenimiento (15-11-2026): los guarda el juez con lo de la oficina; un técnico no los recibe; los
+//     avisos del cliente los llevan, y el cliente los ve en su zona, también si solo tiene el contrato
+{ reloj.t += 601000; crudo('ramirez').fallos = [];
+  const acceso = (quien, tel) => J.atiende(Object.assign({ que: 'acceso', tel }, quien)), perfil = (tel, codigo, red) => J.atiende({ que: 'perfil', negocio: 'ramirez', tel, codigo, red });
+  const P = NR.mantenimiento.planes[0], TC = '622334455', cliC = Object.assign(cliDe(NR), { nombre: 'Clara', apellidos: 'Riu', tel: TC, dir: 'Calle del Contrato 3, 1.º' });
+  const sinPermiso = await hacer(T(tecR[0]), { tipo: 'contrato', plan: P.id, cli: cliC, acepta: 'mensaje' });
+  const nc0 = crudo('ramirez').cab.nc || 0, al = await hacer(OF, { tipo: 'contrato', plan: P.id, cli: cliC, acepta: 'mensaje', modo: 'bizum' }), cab = crudo('ramirez').cab;
+  es(!sinPermiso.ok && sinPermiso.err === 'permiso' && al.ok && al.r.id === NR.serie + 'M-' + String(nc0 + 1).padStart(4, '0') && cab.contratos.some(c => c.id === al.r.id && c.per[0].pago.cobrado) && cab.nc === nc0 + 1,
+    'el contrato lo da de alta la oficina por el servidor, y se guarda con lo de la oficina');
+  const lo = await leer(OF, 0), lt = await leer(T(tecR[0]), 0);
+  es(lo.cambios.cab.contratos.some(c => c.id === al.r.id) && !('contratos' in lt.cambios.cab) && !JSON.stringify(lt).includes('Clara'), 'la oficina recibe los contratos; un técnico, no');
+  const acc = await acceso(OF, TC);
+  es(acc.ok && acc.nuevo === true, 'un cliente que solo tiene el contrato también recibe el código de su zona');
+  const z1 = await perfil(TC, acc.codigo, 'red-contrato');
+  es(z1.ok && z1.perfil.avisos.length === 0 && z1.perfil.contratos.length === 1 && z1.perfil.contratos[0].id === al.r.id && !('h' in z1.perfil.contratos[0]) && z1.perfil.cli.nombre === 'Clara', 'y en su zona ve su contrato, sin el historial de la oficina');
+  const rw = await J.atiende({ que: 'pedir', negocio: 'ramirez', accion: { tipo: 'pedir', av: K.REV, origen: 'web', cli: cliC }, red: 'red-contrato' });
+  es(!rw.ok && rw.err === 'av', 'la revisión no se pide desde la web');
+  const pw = await J.atiende({ que: 'pedir', negocio: 'ramirez', accion: { tipo: 'pedir', av: NR.averias[0].id, origen: 'web', cli: cliC }, red: 'red-contrato' });
+  const fila = pw.ok ? crudo('ramirez').avisos.get(pw.id) : null;
+  es(pw.ok && fila.datos.con && fila.datos.con.id === al.r.id && fila.vista && !('con' in fila.vista), 'el aviso que pide el cliente desde la web lleva su contrato; su página no lo enseña');
+  const z2 = await perfil(TC, acc.codigo, 'red-contrato');
+  es(z2.ok && z2.perfil.avisos.length === 1 && z2.perfil.avisos[0].con.id === al.r.id, 'en su zona, el aviso dice que va con su contrato');
+  es(repite('ramirez', NR), 'con los contratos, lo guardado sigue siendo igual a repetir el diario'); }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

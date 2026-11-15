@@ -42,7 +42,7 @@ export function limpiaCodigo(c) {
 
 const texto = (x, max) => typeof x === 'string' && x.length > 0 && x.length <= max;
 const R = (err, mas) => Object.assign({ ok: false, err }, mas);
-const cabDe = S => ({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [] });
+const cabDe = S => ({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0 });   // solo para la oficina
 
 /** Lo que una persona puede recibir de un aviso guardado: entero, «ya no es tuyo» o nada. */
 export function paraQuien(q, fila) {
@@ -70,7 +70,7 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
   /* el estado con el que trabajan las reglas, tal como está guardado ahora */
   async function carga(neg) {
     const filas = (await almacen.vivos(neg.id)).slice().sort((a, b) => (a.datos.n || 0) - (b.datos.n || 0));
-    const S = Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, neg.cab || {}, { v: neg.v || 0, avisos: filas.map(f => f.datos) });
+    const S = Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0 }, neg.cab || {}, { v: neg.v || 0, avisos: filas.map(f => f.datos) });
     return { S, filas: new Map(filas.map(f => [f.id, f])) };
   }
 

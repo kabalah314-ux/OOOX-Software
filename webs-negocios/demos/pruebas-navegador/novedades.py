@@ -1,5 +1,5 @@
 # Lo del 15-11-2026, en pantalla: el desistimiento al firmar el presupuesto, «Facturada», el mes para la gestoría, lo que
-# deja cada trabajo, la zona de un administrador de fincas, quién va en la página del aviso y el material que falta.
+# deja cada trabajo, la zona de un administrador de fincas, quién va en la página del aviso, el material que falta y los contratos de mantenimiento.
 # Uso: python3 novedades.py [puerto]   (por defecto 8765) · NAVEGADOR=chromium|firefox|webkit
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')
@@ -148,6 +148,39 @@ async def main():
         await c.goto(B + f'app.html#/aviso/{mid}'); await c.wait_for_selector('#falta [data-a=faltaListo]')
         await c.click('#falta [data-a=faltaListo]')
         es(await toast(c, 'ya no falta nada') and 'falta' not in (await c.evaluate(AV + f"('{mid}')")), '«Ya está todo» lo vacía')
+
+        # ---------- 8. los contratos de mantenimiento: el alta, su papel, la zona del cliente, la urgencia sin desplazamiento y la revisión ----------
+        cp0 = await c.evaluate("Object.keys(OFICIO_NEGOCIO.zonas.cp)[0]")
+        await c.goto(B + 'app.html#/contratos'); await c.wait_for_selector('.cab [data-a=conAlta]')
+        es('Contratos' in await texto(c, 'main h1') and 'al año' in await texto(c, 'main'), 'la pantalla de contratos, con lo que vende el negocio')
+        await c.click('.cab [data-a=conAlta]'); await c.wait_for_selector('#caF')
+        for k, v in (('nombre', 'Clara'), ('apellidos', 'Riu'), ('tel', '611000020'), ('dir', 'C/ Verdi 50, 2.º'), ('cp', cp0)):
+            await c.fill('#ca_' + k, v)
+        await c.click('button[form=caF]'); await c.wait_for_timeout(200)
+        es('Falta la firma' in await texto(c, '#ca_err'), 'sin la firma del cliente no se da de alta')
+        await firma(c, '#caFi'); await c.click('#ca_pide'); await c.click('#caM [data-modo=bizum]'); await c.click('button[form=caF]')
+        es(await toast(c, 'dado de alta'), 'alta del contrato')
+        await c.wait_for_selector('.papel.doc'); pt = await texto(c, '.papel.doc')
+        es('Contrato de mantenimiento' in pt and 'Formulario de desistimiento' in pt and 'Pediste que la revisión' in pt and 'Firmado el' in pt and 'Cobrado el' in pt, 'el papel del contrato: el desistimiento, la petición de la revisión, la firma y el cobro')
+        con = await c.evaluate("Oficio.estado().contratos.slice(-1)[0].id")
+        z3 = oye(await ctx.new_page(), 'cliente con contrato'); await z3.goto(B + 'cliente.html#/entra/611000020/2468-1357'); await z3.wait_for_selector('#cons')
+        es('Del ' in await texto(z3, '#cons'), 'en su zona, el cliente ve su contrato')
+        await z3.click('#cons a.tj'); await z3.wait_for_selector('.papel.doc')
+        es('Formulario de desistimiento' in await texto(z3, '.papel.doc'), 'y su papel, con el formulario')
+        r = await c.evaluate(CREA + "('fuga',false,'611000020','C/ Verdi 50, 2.º')"); uc, tc = r.get('id'), r.get('tec')
+        A = await c.evaluate(AV + f"('{uc}')"); es(bool(A) and A.get('con', {}).get('id') == con, 'la urgencia de ese cliente lleva su contrato')
+        t4 = oye(await ctx.new_page(), 'técnico, contrato'); await t4.goto(B + f'app.html?papel=tecnico&tec={tc}#/aviso/{uc}'); await t4.wait_for_selector('#conB')
+        es('no se cobra el desplazamiento' in await texto(t4, '#conB'), 'el técnico ve que en esa urgencia no se cobra el desplazamiento')
+        await t4.click('[data-a=voy]'); await t4.wait_for_selector('[data-a=empezar]'); await t4.click('[data-a=empezar]'); await t4.wait_for_selector('#pL'); await t4.wait_for_timeout(250)
+        es('incluido en su contrato' in await texto(t4, '#pL'), 'en el presupuesto, el desplazamiento sale incluido')
+        await t4.keyboard.press('Escape')
+        await c.goto(B + 'app.html#/contratos'); await c.wait_for_selector('#conAl [data-a=conRev]')
+        await c.click('#conAl [data-a=conRev]'); es(await toast(c, 'Aviso de la revisión creado'), 'desde «Contratos» se crea el aviso de la revisión')
+        await c.wait_for_selector('#conB'); es('la revisión y el desplazamiento van incluidos' in await texto(c, '#conB'), 'y ese aviso lleva la revisión incluida')
+        await c.goto(B + 'app.html#/contratos'); await c.wait_for_selector('.cont')
+        es(await c.locator(f'.cont[data-c="{con}"] [data-a=conBaja]').count() == 1, 'cada contrato se puede dar de baja')
+        await c.click(f'.cont[data-c="{con}"] [data-a=conFac]')
+        es(await toast(c, 'Copiado') or await toast(c, 'No se ha podido copiar'), 'copiar los datos para facturar la cuota dice qué ha pasado')
 
         es(not errores, 'sin errores en la consola ni archivos que falten: ' + '; '.join(errores[:4]))
         await br.close()

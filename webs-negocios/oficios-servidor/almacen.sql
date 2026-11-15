@@ -14,7 +14,7 @@ create table if not exists oficios.estados (
                                                   -- «jsonb» porque jsonb cambia el orden de las claves, y las reglas miran
                                                   -- alguna vez «la primera» (por ejemplo, el concepto que va por horas)
   v        bigint not null default 0,             -- sube en uno con cada acción aceptada
-  cab      jsonb not null default '{}'::jsonb,    -- {esq, n, nu, ausencias}: contadores y ausencias
+  cab      jsonb not null default '{}'::jsonb,    -- {esq, n, nu, ausencias, contratos, nc}: contadores, ausencias y contratos
   cambiado timestamptz not null default now()
 );
 create table if not exists oficios.avisos (

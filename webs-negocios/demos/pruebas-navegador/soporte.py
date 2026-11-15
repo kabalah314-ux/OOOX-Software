@@ -108,7 +108,8 @@ async def main():
 
         # ---------- 1. el menú ----------
         nav = await c.locator('#nav a').all_inner_texts()
-        es(any('Mejoras' in x for x in nav) and len(nav) == 4, f'menú: la oficina tiene «Mejoras» junto a lo demás {[x.strip() for x in nav]}')
+        con = await c.evaluate('Object.keys(Oficio.cfg.planes||{}).length>0')   # con contratos de mantenimiento, el menú lleva «Contratos»
+        es(any('Mejoras' in x for x in nav) and len(nav) == (5 if con else 4) and (not con or any('Contratos' in x for x in nav)), f'menú: la oficina tiene «Mejoras» junto a lo demás {[x.strip() for x in nav]}')
         es(await c.locator('#nav a[href="#/mejoras"] .n').count() == 0, 'menú: sin nada nuevo, «Mejoras» no lleva número')
         t = await ctx.new_page(); vigila(t, 'técnico'); antes = len(srv.llamadas)
         await t.goto(B + 'app.html?papel=tecnico#/mejoras'); await t.wait_for_selector('#nav a'); await t.wait_for_timeout(2300)

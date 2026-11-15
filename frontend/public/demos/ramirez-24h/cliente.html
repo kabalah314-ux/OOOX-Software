@@ -155,6 +155,9 @@ function vPerfil(Pf){const c=Pf.cli,hoy=K.madrid().date,n=(c.nombre||'').split('
  h+='<section class="sec"><h2>Ahora</h2>'+(ahora.length?grupo(ahora,tjAhora):'<p class="vacio">No tienes ningún aviso abierto.</p>')+'</section>';
  h+='<section class="sec"><h2>Tus trabajos</h2>'+(hechos.length?grupo(hechos,a=>tjHecho(a,hoy)):'<p class="vacio">Todavía no hay ningún trabajo terminado.</p>')+
   (canc.length?'<p class="vacio" style="margin-top:10px">'+(canc.length===1?'Un aviso cancelado':canc.length+' avisos cancelados')+': '+canc.map(a=>esc(a.id)).join(', ')+'.</p>':'')+'</section>';
+ const CS=Pf.contratos||[];
+ if(CS.length)h+='<section class="sec" id="cons"><h2>'+(CS.length===1?'Tu contrato de mantenimiento':'Tus contratos de mantenimiento')+'</h2><div class="tarjetas">'+CS.map(C=>{const P=K.planDe(cfg,C.plan),u=C.per[C.per.length-1],vig=K.vigente(C,hoy);
+  return'<a class="tj" href="#/contrato/'+esc(C.id)+'"><b>'+esc(P?P.n:'Mantenimiento')+'</b><span>'+esc(C.cli.dir)+'</span><span>'+(C.e!=='activo'?'De baja':vig?'Del '+K.fechaCorta(u.de)+' al '+K.fechaCorta(u.a):'Acabó el '+K.fechaCorta(u.a))+' · '+K.eur(u.precio)+' al año'+(u.pago.cobrado?'':' · pendiente de pago')+'</span><span class="mas">Ver el contrato</span></a>'}).join('')+'</div></section>';
  const fac=hechos.filter(a=>a.fac);
  h+='<section class="sec"><h2>Tus facturas</h2>'+(fac.length?fac.map(a=>'<p class="fac">'+(a.fac.num?'Factura '+esc(a.fac.num):'Factura hecha')+' · trabajo '+esc(a.id)+(a.tot?' · '+K.eur(a.tot.total):'')+'</p>').join('')+'<p class="vacio" style="margin-top:8px">Las hace '+esc(N.razon)+' con su programa de facturas. Si no te ha llegado alguna, pídesela.</p>'
   :'<p class="vacio">Las facturas las hace '+esc(N.razon)+' con su programa de facturas. Cuando las suba, las tendrás aquí.</p>')+'</section>';
@@ -162,6 +165,10 @@ function vPerfil(Pf){const c=Pf.cli,hoy=K.madrid().date,n=(c.nombre||'').split('
  if(Oficio.DEMO)h+='<p class="vacio" style="margin-top:28px">Demo de OOOX Oficios: los clientes, los avisos y los importes son inventados.</p>';
  return h}
 
+function vContratoCli(Pf,id){const C=(Pf.contratos||[]).find(x=>x.id===id),volver='<a class="atras" href="#/">Tu zona</a>';
+ if(!C)return'<div class="noimp">'+volver+'</div><h1>No está en tu zona</h1><p class="lead">Ese contrato no es de este teléfono.</p>';
+ return'<div class="noimp">'+volver+'</div><article class="papel doc">'+P.contrato(C,{K,N,cfg,firmaSvg:Oficio.firmaSvg})+(Oficio.DEMO?'<p class="pie">Documento de ejemplo de una demo: empresa, cliente e importes son inventados.</p>':'')+'</article>'+
+  '<div class="dacts noimp"><button class="btn pri" id="imprime">Imprimir o guardar en PDF</button></div>'}
 function vPapel(Pf,id,tipo){const A=Pf.avisos.find(x=>x.id===id),volver='<a class="atras" href="#/">Tu zona</a>';
  if(!A)return'<div class="noimp">'+volver+'</div><h1>No está en tu zona</h1><p class="lead">Ese aviso no es de este teléfono.</p>';
  const T=P.tipos(A);
@@ -181,8 +188,8 @@ function pinta(){S=Oficio.estado();let r=ruta();
   r=ruta()}
  const se=sesion(),Pf=perfil();
  if(SRV&&se&&!Pf&&!Z.va&&!Z.err)trae();
- const v=Pf?(r.v==='aviso'?'aviso/'+r.a+'/'+r.b:'perfil'):SRV&&se?'abre':'entra';
- $('#v').innerHTML=Pf?(r.v==='aviso'?vPapel(Pf,r.a,r.b):vPerfil(Pf)):SRV&&se?vAbre():vEntra();
+ const v=Pf?(r.v==='aviso'?'aviso/'+r.a+'/'+r.b:r.v==='contrato'?'contrato/'+r.a:'perfil'):SRV&&se?'abre':'entra';
+ $('#v').innerHTML=Pf?(r.v==='aviso'?vPapel(Pf,r.a,r.b):r.v==='contrato'?vContratoCli(Pf,r.a):vPerfil(Pf)):SRV&&se?vAbre():vEntra();
  document.title=(Pf?'Tu zona':'Entra en tu zona')+' · '+N.nombre;
  if(v!==vista){const cambia=!!vista;vista=v;if(cambia){scrollTo(0,0);$('#v').focus({preventScroll:true})}}}
 

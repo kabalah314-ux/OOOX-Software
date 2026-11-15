@@ -20,7 +20,7 @@ function doc(A,tipo,o){const K=o.K,N=o.N,cfg=o.cfg,firmaSvg=o.firmaSvg,f=K.fecha
  const c=A.cli,av=cfg.av[A.av]||{n:''},t=cfg.tec[A.tec]||{n:'',ap:''};
  const cab='<div class="dh"><span class="wm">'+MARCA+'</span><p>'+esc(N.razon)+' · NIF '+N.nif+'<br>'+esc(N.dir)+' · '+N.tel+(N.email?' · '+esc(N.email):'')+'</p></div>';
  const cli='<div class="dos"><div><h2>Cliente</h2><p><b>'+esc(K.nomCli(c))+'</b><br>'+esc(c.dir)+'<br>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(c.tel)+'</p></div><div><h2>Trabajo</h2><p>'+esc(av.n)+'<br>Técnico: '+esc((t.n+' '+t.ap).trim())+'<br>'+(A.cita?'Con cita':'Aviso urgente')+' · '+(A.tot.urg?'tarifa de urgencia':'tarifa normal')+'</p></div></div>';
- const lin=L=>L.map(l=>'<div class="lin"><span>'+esc(l.t)+'</span><b>'+K.eur(l.imp)+'</b>'+(lq(l)||l.u?'<small>'+[lq(l),l.u?'con el '+PCT+' % de urgencia':''].filter(Boolean).join(' · ')+'</small>':'')+'</div>').join('');
+ const lin=L=>L.map(l=>'<div class="lin"><span>'+esc(l.t)+'</span><b>'+(l.con?'Incluido':K.eur(l.imp))+'</b>'+(lq(l)||l.u||l.con?'<small>'+[lq(l),l.u?'con el '+PCT+' % de urgencia':'',l.con?'va en tu contrato de mantenimiento':''].filter(Boolean).join(' · ')+'</small>':'')+'</div>').join('');
  const tot=T=>'<div class="tot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+(T.motivo==='material'?'. El material pasa del 40 % del trabajo.':T.motivo==='local'?'. Local o vivienda de menos de dos años.':'')+'</p>';
  const fir=(x,txt)=>x?'<div class="fir">'+firmaSvg(x.firma)+'<small>'+txt+' el '+f(K.madrid(x.t).date)+' a las '+K.hora(x.t)+'</small></div>':'';
  /* el desistimiento (ley de consumidores). Texto provisional hasta que lo revise el abogado */
@@ -42,12 +42,34 @@ function doc(A,tipo,o){const K=o.K,N=o.N,cfg=o.cfg,firmaSvg=o.firmaSvg,f=K.fecha
   (A.amp?'<h2>Ampliaciones firmadas después</h2>'+A.amp.map(m=>'<div class="lin"><span>'+m.lineas.map(l=>esc(l.t)+(lq(l)?', '+lq(l):'')).join(' · ')+'</span><b>+ '+K.eur(m.dif)+'</b><small>Firmada a las '+K.hora(m.t)+(m.des&&m.des.pide?'. Pidió que se hiciera ya, sabiendo que, hecho, ya no podrá desistir':'')+(m.dif!==m.lineas.reduce((s,l)=>s+l.imp,0)?'. Incluye el cambio de IVA de todo el trabajo':'')+'</small></div>').join(''):'')+
   desist(A)+'<p class="pie">Precio cerrado antes de empezar. Si durante el trabajo hace falta algo más, se dice el precio y se firma antes de hacerlo.</p><p class="sello">Precio cerrado</p>';
  else if(tipo==='parte')d='<h1>Parte de trabajo</h1><p class="dn">N.º '+A.id+' · '+f(K.madrid(A.fin).date)+'</p>'+cli+'<h2>Tiempos</h2><p>Aviso: '+K.hora(A.t)+' · Llegada: '+K.hora(A.ini||A.fin)+' · Fin: '+K.hora(A.fin)+(A.sinTrabajo?'':' · Trabajo: '+dur(A.min||0))+'</p>'+
-  '<h2>'+(A.sinTrabajo?'El cliente no aceptó el presupuesto':'Trabajo y material')+'</h2>'+lin(A.tot.lineas)+tot(A.tot)+'<h2>Pago</h2><p>'+(A.pago&&A.pago.cobrado?'Cobrado el '+f(K.madrid(A.pago.t).date)+': '+(PAGO[A.pago.modo]||'').toLowerCase()+'.':'Pendiente de pago.')+'</p>'+
+  '<h2>'+(A.sinTrabajo?'El cliente no aceptó el presupuesto':'Trabajo y material')+'</h2>'+lin(A.tot.lineas)+tot(A.tot)+'<h2>Pago</h2><p>'+(A.tot&&!A.tot.total?'No hay nada que pagar: va en tu contrato de mantenimiento.':A.pago&&A.pago.cobrado?'Cobrado el '+f(K.madrid(A.pago.t).date)+': '+(PAGO[A.pago.modo]||'').toLowerCase()+'.':'Pendiente de pago.')+'</p>'+
   (A.obs?'<h2>Nota del técnico</h2><p>'+esc(A.obs)+'</p>':'')+(A.fotos&&A.fotos.length?'<h2>Fotos</h2><div class="fotos">'+A.fotos.map(x=>'<img src="'+esc(x)+'" alt="Foto del trabajo">').join('')+'</div>':'')+
   (A.conf?'<h2>Conforme</h2>'+fir(A.conf,'Firmado por el cliente'):'')+'<p class="pie">Este parte no es una factura. La factura la emite '+esc(N.razon)+' con su programa de facturas'+(A.fac?(A.fac.num?' (factura n.º '+esc(A.fac.num)+')':' (ya está hecha)'):'')+'.'+(A.gar?' Garantía de un año, hasta el '+f(A.gar.hasta)+'.':'')+'</p>';
  else d='<h1>Garantía</h1><p class="dn">Trabajo '+A.id+' · terminado el '+f(K.madrid(A.fin).date)+'</p><p class="gran" style="margin-top:18px">1 año</p><p>Hasta el <b>'+f(A.gar.hasta)+'</b>.</p>'+cli+'<h2>Qué cubre</h2><p>'+esc(av.n)+': la mano de obra'+(A.tot.lineas.some(l=>l.mat)?' y el material que pusimos ('+A.tot.lineas.filter(l=>l.mat).map(l=>esc(l.t.toLowerCase())).join(', ')+')':'')+'.</p>'+
   '<p style="margin-top:12px">Si lo que arreglamos vuelve a fallar dentro del año, volvemos sin cobrar el desplazamiento ni la mano de obra.</p><h2>Cómo pedirla</h2><p>Llama al '+N.tel+' o escribe por WhatsApp con el número del trabajo: <b>'+A.id+'</b>.</p><p class="pie">'+esc(N.razon)+' · NIF '+N.nif+'</p><p class="sello">Garantía de '+esc(N.nombre)+'</p>';
  return cab+d}
 
-g.OficioPapeles={tipos,elige,doc,esc,PAGO,dur,lq};
+/* el contrato de mantenimiento: lo que incluye, el precio, la renovación y la baja, y el desistimiento con su formulario.
+   Texto provisional hasta que lo revise el abogado. */
+function contrato(C,o){if(!C||!Array.isArray(C.per)||!C.per.length)return'';const K=o.K,N=o.N,cfg=o.cfg,firmaSvg=o.firmaSvg,f=K.fechaCorta;
+ const P=K.planDe(cfg,C.plan)||{n:'',iva:21,revisiones:1,desp:'',prioridad:false},c=C.cli,u=C.per[C.per.length-1],alta=K.madrid(C.t).date;
+ const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
+ const cab='<div class="dh"><span class="wm">'+MARCA+'</span><p>'+esc(N.razon)+' · NIF '+N.nif+'<br>'+esc(N.dir)+' · '+N.tel+(N.email?' · '+esc(N.email):'')+'</p></div>';
+ const pago=p=>p.pago.cobrado?'Cobrado el '+f(K.madrid(p.pago.t).date)+': '+(PAGO[p.pago.modo]||'').toLowerCase()+'.':'Pendiente de pago.';
+ const inc=['<li>'+(P.revisiones===1?'Una revisión':P.revisiones+' revisiones')+' de la instalación al año, con el desplazamiento.</li>',P.desp?'<li>Sin desplazamiento en las urgencias.</li>':'',P.prioridad?'<li>Prioridad: tus avisos se atienden los primeros.</li>':'',
+  '<li>Lo demás (el material y las reparaciones) con los precios de siempre, y siempre con el presupuesto firmado antes de hacerlo.</li>'].join('');
+ return cab+'<h1>Contrato de mantenimiento</h1><p class="dn">N.º '+esc(C.id)+' · alta el '+f(alta)+'</p>'+
+  '<div class="dos"><div><h2>Cliente</h2><p><b>'+esc(K.nomCli(c))+'</b><br>'+esc(c.dir)+'<br>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(c.tel)+'</p></div><div><h2>Plan</h2><p>'+esc(P.n)+'<br>'+K.eur(u.precio)+' al año, IVA del '+P.iva+' % incluido<br>Del '+f(u.de)+' al '+f(u.a)+'</p></div></div>'+
+  '<h2>Qué incluye</h2><ul class="inc">'+inc+'</ul>'+
+  '<h2>Pago</h2><p>'+pago(u)+' El cobro lo hace '+esc(N.razon)+', como siempre.</p>'+
+  (C.per.length>1?'<h2>Años anteriores</h2>'+C.per.slice(0,-1).map(p=>'<div class="lin"><span>Del '+f(p.de)+' al '+f(p.a)+'</span><b>'+K.eur(p.precio)+'</b><small>'+pago(p)+'</small></div>').join(''):'')+
+  '<h2>Renovación y baja</h2><p>No se renueva solo: al acabar el año te lo preguntamos, y sigue solo si dices que sí. Puedes darte de baja cuando quieras, sin penalización.</p>'+
+  (C.e==='baja'&&C.baja?'<p><b>De baja desde el '+f(K.madrid(C.baja.t).date)+(C.baja.des?', desistiendo dentro de los 14 días':'')+'.</b></p>':'')+
+  '<h2>Desistimiento</h2><p>Tienes 14 días naturales desde el alta, hasta el '+f(K.masDias(alta,14))+', para desistir sin dar ningún motivo, con el formulario de abajo o como prefieras.</p>'+
+  (C.des&&C.des.pide?'<p>Pediste que la revisión se hiciera antes de esos 14 días, el '+f(K.madrid(C.des.pide).date)+' a las '+K.hora(C.des.pide)+'. Si desistes después de la revisión, pagas la parte proporcional del servicio.</p>':'')+
+  '<div class="fdes"><h3>Formulario de desistimiento</h3><p>Rellénalo y envíalo solo si quieres desistir del contrato.</p><p>A '+esc(N.razon)+', '+esc(N.dir)+', teléfono '+esc(N.tel)+(N.email?', correo '+esc(N.email):'')+':<br>Por la presente te comunico que desisto del contrato de mantenimiento '+esc(C.id)+', con alta el '+f(alta)+'.<br>Nombre del cliente: …………<br>Dirección del cliente: …………<br>Firma (solo si se envía en papel): …………<br>Fecha: …………</p></div>'+
+  '<h2>Aceptado por el cliente</h2>'+(C.acepta==='firma'&&C.firma?'<div class="fir">'+firmaSvg(C.firma)+'<small>Firmado el '+f(alta)+' a las '+K.hora(C.t)+'</small></div>':'<p>Aceptado por mensaje el '+f(alta)+' a las '+K.hora(C.t)+'.</p>')+
+  '<p class="pie">Este papel no es una factura. La factura de la cuota la emite '+esc(N.razon)+' con su programa de facturas.</p>'}
+
+g.OficioPapeles={tipos,elige,doc,contrato,esc,PAGO,dur,lq};
 })(globalThis);

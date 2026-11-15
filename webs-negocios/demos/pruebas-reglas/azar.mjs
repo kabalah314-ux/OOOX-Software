@@ -31,9 +31,10 @@ const clon = o => JSON.parse(JSON.stringify(o));
 class Rota extends Error { constructor(ley, detalle) { super(ley + ': ' + detalle); this.ley = ley; this.detalle = detalle } }
 const rota = (ley, detalle) => { throw new Rota(ley, detalle) };
 const SALTOS = new Set(['asignado>nuevo', 'nuevo>asignado', 'nuevo>cancelado', 'asignado>camino', 'asignado>curso', 'asignado>hecho', 'asignado>cancelado', 'camino>curso', 'camino>ausente', 'camino>hecho', 'curso>hecho', 'ausente>asignado', 'ausente>nuevo', 'ausente>cancelado']);
-const SOLO_CENTRALITA = ['asignar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia', 'facturar'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado', 'falta'];
+const SOLO_CENTRALITA = ['asignar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia', 'facturar', 'contrato', 'cobroContrato', 'renovar', 'bajaContrato'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado', 'falta'];
+const CON_TIPOS = ['contrato', 'cobroContrato', 'renovar', 'bajaContrato'];
 const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'pos', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo', 'quien'];
-const PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'fac', 'cli', 'vista'];   // lo que puede llevar cada aviso del perfil del cliente
+const PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'fac', 'cli', 'con', 'vista'];   // lo que puede llevar cada aviso del perfil del cliente
 const FEO = /undefined|NaN|\bnull\b|\[object|Invalid|Infinity/;
 function numerosLimpios(o, donde) {
   if (typeof o === 'number') { if (!Number.isFinite(o)) rota('numeros-limpios', donde + ' = ' + o) }
@@ -88,7 +89,9 @@ function paso(W, a, q, t) {
   // --- contador, y nada cambia fuera del aviso tocado
   if (S.v !== v0 + 1) rota('version-sube-de-uno-en-uno', v0 + ' → ' + S.v);
   if (S.avisos.length !== n0 + (tipo === 'pedir' ? 1 : 0)) rota('nadie-desaparece', n0 + ' → ' + S.avisos.length);
-  if (tipo !== 'ausencia') for (const x of S.avisos) { const j = otros0.get(x.id); if (j !== undefined && x.id !== idA && JSON.stringify(x) !== j) rota('solo-cambia-el-aviso-tocado', tipo + ' sobre ' + idA + ' ha cambiado ' + x.id) }
+  if (tipo !== 'ausencia' && tipo !== 'contrato') for (const x of S.avisos) { const j = otros0.get(x.id); if (j !== undefined && x.id !== idA && JSON.stringify(x) !== j) rota('solo-cambia-el-aviso-tocado', tipo + ' sobre ' + idA + ' ha cambiado ' + x.id) }
+  if (tipo === 'contrato') for (const x of S.avisos) { const j = otros0.get(x.id); if (j === undefined || JSON.stringify(x) === j) continue; const y = JSON.parse(j), sin = o => { const c = Object.assign({}, o); delete c.con; delete c.h; delete c.v; return JSON.stringify(c) };
+    if (sin(x) !== sin(y) || !x.con || x.con.id !== r.id || x.h.length !== y.h.length + 1 || y.pres || y.tot) rota('el-alta-solo-pone-el-contrato', x.id) }
   numerosLimpios(S, 'S');
   const ids = new Set();
   for (const x of S.avisos) { if (ids.has(x.id)) rota('numeros-unicos', x.id); ids.add(x.id); if (!new RegExp('^' + W.N.serie + '-\\d{4,}$').test(x.id)) rota('numeros-unicos', 'forma rara: ' + x.id); W.estados.add(x.e) }
@@ -146,6 +149,30 @@ function paso(W, a, q, t) {
     if (junto !== suma) rota('material-juntado-cuadra', junto + ' / ' + suma);
     if (tipo === 'falta' && A && (A.e === 'hecho' || A.e === 'cancelado')) rota('material-solo-en-lo-abierto', A.id) }
   W.leyes += 4;
+  // --- los contratos: bien hechos, uno vigente por cliente y finca, y lo que dan a los avisos cuadra
+  { const Cs = S.contratos || [], hoy = K.madrid(t).date, ids = new Set();
+    if (S.contratos !== undefined && !Array.isArray(S.contratos)) rota('contratos-en-su-sitio', 'no es una lista');
+    for (const X of Cs) {
+      if (ids.has(X.id)) rota('contratos-numeros-unicos', X.id); ids.add(X.id);
+      if (!new RegExp('^' + W.N.serie + 'M-\\d{4,}$').test(X.id)) rota('contratos-numeros-unicos', 'forma rara: ' + X.id);
+      if (!['activo', 'baja'].includes(X.e) || !cfg.planes[X.plan] || !Array.isArray(X.per) || !X.per.length) rota('contratos-en-su-sitio', X.id);
+      if (!K.tel9(X.cli.tel) || !X.cli.nombre || !X.cli.dir) rota('contratos-con-sus-datos', X.id);
+      if (X.acepta === 'firma' ? !(typeof X.firma === 'string' && X.firma.length >= 12) : X.acepta !== 'mensaje') rota('contratos-aceptados', X.id);
+      X.per.forEach((p, i) => { if (p.a !== K.masDias(K.masMeses(p.de, 12), -1)) rota('contratos-un-año', X.id + ' ' + p.de + '–' + p.a); if (i && p.de <= X.per[i - 1].a) rota('contratos-sin-pisarse', X.id); entero(p.precio, X.id + '.precio');
+        if (typeof p.pago.cobrado !== 'boolean' || (p.pago.cobrado ? !K.PAGOS.includes(p.pago.modo) || p.pago.modo === 'pendiente' : p.pago.modo !== 'pendiente')) rota('contratos-pago-claro', X.id) });
+      if (X.e === 'baja' && !(X.baja && typeof X.baja.des === 'boolean')) rota('contratos-baja-clara', X.id) }
+    const claves = new Set();
+    for (const X of Cs.filter(X => K.vigente(X, hoy))) { const k = K.tel9(X.cli.tel) + '|' + K.fincaDe(X.cli.dir); if (claves.has(k)) rota('contratos-uno-por-finca', k); claves.add(k) }
+    const usadas = {};
+    for (const x of S.avisos) { if (!x.con) continue; const X = Cs.find(c => c.id === x.con.id); if (!X) { rota('con-de-un-contrato', x.id); continue }
+      if (x.con.rev && x.av !== K.REV) rota('revision-solo-en-la-revision', x.id);
+      if (x.con.rev && x.e !== 'cancelado') { const k = x.con.id + '/' + x.con.per; usadas[k] = (usadas[k] || 0) + 1; if (usadas[k] > cfg.planes[X.plan].revisiones) rota('revisiones-las-del-plan', k) }
+      for (const l of (x.tot && x.tot.lineas) || []) if (l.con && l.imp !== 0) rota('lo-incluido-a-cero', x.id) }
+    for (const x of S.avisos) if (x.e === 'hecho' && x.tot && x.tot.total === 0 && !(x.pago && x.pago.cobrado && x.pago.modo === '')) rota('a-cero-sin-pago', x.id);
+    let P2; try { P2 = K.pendientesContratos(S, cfg, t) } catch (e) { rota('pendientes-contratos-no-revienta', e.message) }
+    for (const y of P2.cobrar) { const X = Cs.find(c => c.id === y.id); if (!X || X.per[X.per.length - 1].pago.cobrado) rota('pendientes-contratos-cuadran', y.id) }
+    if (CON_TIPOS.includes(tipo) && r && r.ok && tipo !== 'contrato' && !Cs.some(c => c.id === idA)) rota('contratos-acciones-sobre-uno', tipo) }
+  W.leyes += 8;
   // --- el perfil del cliente: todo lo suyo, nada de otro, nada interno, lo último primero; y es una copia
   if (A && A.cli && K.tel9(A.cli.tel)) {
     let P; try { P = K.perfilCliente(S, cfg, A.cli.tel) } catch (e) { rota('perfil-no-revienta', e.message) }
@@ -230,14 +257,14 @@ function unAviso(W, A, t) {
   // dinero
   if (A.tot) {
     const T = A.tot; entero(T.total, A.id + '.total'); entero(T.base, A.id + '.base'); entero(T.iva, A.id + '.iva');
-    if (!(T.total > 0)) rota('total-mayor-que-cero', A.id);
+    if (!(T.total > 0) && !(A.con && T.lineas.length && T.lineas.every(l => l.con))) rota('total-mayor-que-cero', A.id);   // a cero, solo si todo va en el contrato
     if (T.tipo !== 10 && T.tipo !== 21) rota('iva-conocido', A.id + ': ' + T.tipo);
     let suma = 0; T.lineas.forEach(l => { entero(l.imp, A.id + ' línea ' + l.k); suma += l.imp });
     if (suma !== T.total) rota('total-suma-de-lineas', A.id + ': ' + suma + ' ≠ ' + T.total);
     if (T.base + T.iva !== T.total) rota('base-mas-iva', A.id);
     if (Math.abs(T.base * (1 + T.tipo / 100) - T.total) > 1) rota('iva-bien-calculado', A.id + ': base ' + T.base + ', total ' + T.total + ' al ' + T.tipo + ' %');
     if ((T.motivo === 'local') !== !!T.local || (T.tipo === 21) !== (T.motivo !== 'vivienda')) rota('motivo-del-iva', A.id + ': ' + T.motivo + ' al ' + T.tipo + ' %');
-    const otra = K.precio(cfg, A.lin, { urg: T.urg, local: T.local });
+    const otra = K.precio(cfg, A.lin, { urg: T.urg, local: T.local, gratis: K.gratisDe(A) });
     if (otra.total !== T.total || otra.tipo !== T.tipo) rota('se-puede-recalcular', A.id + ': guardado ' + T.total + ', recalculado ' + otra.total);
   }
   if (A.pres) {
@@ -255,7 +282,7 @@ function unAviso(W, A, t) {
     if (A.sinTrabajo) { if (A.gar) rota('sin-trabajo-sin-garantia', A.id); if (!A.pago) rota('terminado-con-cobro', A.id) }
     else { if (!A.gar || A.gar.hasta !== K.masMeses(K.madrid(A.fin).date, cfg.meses)) rota('garantia-bien-fechada', A.id + ': ' + JSON.stringify(A.gar)) }
     if (!A.tot || !A.pago) rota('terminado-con-cobro', A.id + ': terminado sin precio firmado o sin decir cómo se paga');
-    if (A.pago) { if (!K.PAGOS.includes(A.pago.modo)) rota('forma-de-pago-conocida', A.id); if (A.pago.cobrado !== (A.pago.modo !== 'pendiente')) rota('pendiente-no-es-cobrado', A.id) }
+    if (A.pago) { const cero = A.tot && A.tot.total === 0; if (cero ? A.pago.modo !== '' : !K.PAGOS.includes(A.pago.modo)) rota('forma-de-pago-conocida', A.id); if (A.pago.cobrado !== (A.pago.modo !== 'pendiente')) rota('pendiente-no-es-cobrado', A.id) }   // a cero (todo en el contrato), sin forma de pago
   } else if (A.pago || A.gar) rota('cobro-y-garantia-solo-al-acabar', A.id + ' en ' + A.e);
   // mensajes
   const pendientes = new Set();
@@ -291,10 +318,24 @@ function generador(G) {
   const firma = () => r() < .06 ? pick(['', 'M1', null, 7]) : FIRMA, mats = cat.filter(k => cfg.cat[k].mat);
   const modo = () => r() < .06 ? pick(['paypal', '', null, 'constructor']) : pick(K.PAGOS);
 
+  const planes = Object.keys(cfg.planes || {});
+  function contrato(S, t) {
+    const Cs = S.contratos || [];
+    if (r() < .5 || !Cs.length) {
+      const de = S.avisos.length && r() < .7 ? pick(S.avisos).cli : cliente(), cli = r() < .1 ? pick([null, 'x', {}, Object.assign({}, de, { tel: '12' })]) : Object.assign({}, de);
+      return [{ tipo: 'contrato', plan: r() < .08 ? pick(RAROS) : pick(planes.length ? planes : ['anual']), cli, acepta: r() < .06 ? pick(['sí', '', null, 7]) : pick(['firma', 'mensaje']), firma: r() < .9 ? FIRMA : pick(['', 'M1', null]), pide: r() < .3 ? pick([true, 'sí', 1]) : undefined, modo: r() < .4 ? modo() : undefined },
+        r() < .08 ? pick([T(pick(tecs)), { rol: 'cliente' }]) : C];
+    }
+    const X = pick(Cs), quien = r() < .08 ? pick([T(pick(tecs)), { rol: 'cliente' }]) : C, v = r();
+    if (v < .35) return [{ tipo: 'cobroContrato', id: r() < .05 ? pick(RAROS) : X.id, modo: modo() }, quien];
+    if (v < .7) return [{ tipo: 'renovar', id: X.id, acepta: r() < .85 ? true : pick(['sí', false, undefined]), modo: r() < .3 ? modo() : undefined }, quien];
+    return [{ tipo: 'bajaContrato', id: X.id, motivo: pick(['', 'Se muda', 'x'.repeat(300), { a: 1 }, undefined]) }, quien];
+  }
   function pedir(S, t) {
     const a = { tipo: 'pedir', av: r() < .04 ? pick(RAROS) : pick(avs), cli: cliente(), origen: r() < .05 ? pick(RAROS) : pick(K.ORIGEN), nota: pick(['', 'Gotea desde ayer.', 'x'.repeat(900), '<script>1</script>']) };
     if (r() < .5) { a.cita = cita(S, t); if (r() < .35) a.alt = [cita(S, t), cita(S, t), r() < .2 ? pick(RAROS) : cita(S, t)] }
     if (r() < .12) { const c = a.cli, que = pick(['tel', 'dir', 'cp', 'nombre', 'apellidos', 'zona', 'todo']); if (que === 'zona') c.cp = '99999'; else if (que === 'todo') a.cli = pick([null, 'hola', {}, []]); else if (que === 'tel') c.tel = pick(['', '12345', '+34 600 00 01 02', '0034600000102', '5551234']); else c[que] = '' }
+    if (S.contratos && S.contratos.length && r() < .25) a.cli = Object.assign({}, pick(S.contratos).cli);
     if (a.origen === 'web' && r() < .6) a.cli = { nombre: '', tel: '', dir: '', cp: r() < .5 ? pick(cps) : '' };
     if (r() < .2) a.foto = 'data:image/jpeg;base64,' + 'A'.repeat(r() < .1 ? 150000 : 400);
     return [a, r() < .7 ? { rol: 'cliente' } : C];
@@ -346,6 +387,7 @@ function generador(G) {
     const u = r(); if (u < .04) return basura(S);
     if (u < .065) { const hoy = K.madrid(t).date, de = K.masDias(hoy, Math.floor(r() * 7)), al = K.masDias(de, Math.floor(r() * 5));
       return r() < .12 ? [{ tipo: 'ausencia', tec: pick(tecs.concat(RAROS)), de: pick([de, '2020-01-01', '2026-02-30', 7, null]), a: pick([al, '1999-12-31', 'mañana']) }, pick([C, C, T(pick(tecs))])] : [{ tipo: 'ausencia', tec: pick(tecs), de, a: al, motivo: pick(['Vacaciones', 'Baja', '', 'x'.repeat(100)]) }, C] }
+    if (u >= .075 && u < .1) return contrato(S, t);
     if (u < .075) return [{ tipo: 'quitarAusencia', aus: S.ausencias && S.ausencias.length && r() < .8 ? pick(S.ausencias).id : pick(['U99', null, 7]) }, C];
     const vivos = S.avisos.filter(a => a.e !== 'hecho' && a.e !== 'cancelado');
     if (!S.avisos.length || (vivos.length < 4 && r() < .6) || r() < .08) return pedir(S, t);
@@ -450,7 +492,7 @@ for (const archivo of opc.negocio) {
       for (const k in R.W.acept) acept[k] = (acept[k] || 0) + R.W.acept[k]; for (const k in R.W.rech) rech[k] = (rech[k] || 0) + R.W.rech[k];
     }
     // el recorrido tiene que haber pasado por todo: si no, la prueba no prueba
-    const faltan = ['pedir', 'completar', 'asignar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'ausencia', 'quitarAusencia', 'falta'].filter(k => !acept[k]);
+    const faltan = ['pedir', 'completar', 'asignar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'ausencia', 'quitarAusencia', 'falta'].concat(Object.keys(cfg.planes || {}).length ? ['contrato', 'cobroContrato', 'bajaContrato'] : []).filter(k => !acept[k]);
     const sinVer = ['nuevo', 'asignado', 'camino', 'curso', 'hecho', 'ausente', 'cancelado'].filter(e => !estados.has(e));
     if (opc.tandas >= 50 && (faltan.length || sinVer.length)) { fallos++; mal++; console.log('  EL RECORRIDO SE QUEDA CORTO en ' + NN.id + ': sin aceptar ' + faltan.join(', ') + ' · sin ver ' + sinVer.join(', ')) }
     const nA = Object.values(acept).reduce((s, x) => s + x, 0), nR = Object.values(rech).reduce((s, x) => s + x, 0);

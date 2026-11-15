@@ -51,7 +51,8 @@ g.OFICIO_NEGOCIO={
   termostato:{t:'Termostato',p10:22,mat:1},
   resistencia:{t:'Resistencia',p10:38,mat:1},
   grifon:{t:'Grifo monomando',p10:35,mat:1},
-  termo80:{t:'Termo eléctrico de 80 litros, instalado',p21:390,mat:1,extra:1}},
+  termo80:{t:'Termo eléctrico de 80 litros, instalado',p21:390,mat:1,extra:1},
+  revinst:{t:'Revisión de la instalación',p10:45}},
  /* las averías: min y max dan el «de cuánto a cuánto» de la web; ini es el presupuesto que sale ya puesto en la puerta */
  averias:[
   {id:'fuga',n:'Fuga de agua',c:'Fuga',d:'Tubería, llave de paso o latiguillo.',min:[{k:'desp'},{k:'mo',q:1}],max:[{k:'desp'},{k:'mo',q:2},{k:'juntas'},{k:'sellador'}],ini:[{k:'desp'},{k:'mo',q:1},{k:'juntas'}],chips:['sellador','latig','llave','tubo']},
@@ -59,7 +60,13 @@ g.OFICIO_NEGOCIO={
   {id:'termo',n:'Sin agua caliente',c:'Termo',d:'Termo eléctrico que no calienta o pierde.',min:[{k:'desp'},{k:'mo',q:1},{k:'valvula'}],max:[{k:'desp'},{k:'mo',q:2},{k:'resistencia'},{k:'termostato'}],ini:[{k:'desp'},{k:'mo',q:1}],chips:['valvula','termostato','resistencia','termo80']},
   {id:'cisterna',n:'Cisterna que pierde',c:'Cisterna',d:'No para de correr el agua o no carga.',min:[{k:'cisterna'}],max:[{k:'cisterna'},{k:'mecanismo'}],ini:[{k:'cisterna'}],chips:['mecanismo','latig','llave']},
   {id:'grifo',n:'Grifo que gotea',c:'Grifo',d:'Gotea, está duro o hay que cambiarlo.',min:[{k:'grifo'}],max:[{k:'grifo'},{k:'latig'},{k:'llave'}],ini:[{k:'grifo'}],chips:['latig','llave','grifon']},
-  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'desp'},{k:'mo',q:1}],max:null,ini:[{k:'desp'},{k:'mo',q:1}],chips:['juntas','sellador','latig','llave','sifon','tubo']}]
+  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'desp'},{k:'mo',q:1}],max:null,ini:[{k:'desp'},{k:'mo',q:1}],chips:['juntas','sellador','latig','llave','sifon','tubo']}],
+ /* el mantenimiento: la cuota al año que vende el negocio. La revisión es un aviso que crea la oficina, no una avería de la web.
+    En cada plan: «precio», al año y con el IVA dentro; «desp», lo que no se cobra en una urgencia; «rev», la revisión incluida
+    (en su aviso tampoco se cobra el desplazamiento); «revisiones», cuántas al año; «prioridad», sus avisos van primero. */
+ mantenimiento:{
+  revision:{n:'Revisión del contrato',c:'Revisión',d:'La revisión de la instalación que lleva el contrato.',ini:[{k:'desp'},{k:'revinst'}],chips:['juntas','sellador','latig','llave','valvula','termostato']},
+  planes:[{id:'anual',n:'Mantenimiento anual',precio:120,iva:21,revisiones:1,desp:'desp',rev:'revinst',prioridad:1}]}
 };
 
 /* ---------- los avisos de muestra de la demo, siempre recientes ---------- */

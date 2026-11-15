@@ -167,6 +167,13 @@ if (cfg.mapa || true) {
 { const X = aparato('oficina', 'centralita'); X.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, n: 1, nu: 0, ausencias: [] }, avisos: [{ id: 'F-1', v: 1, datos: { id: 'F-1', n: 1, e: 'nuevo', foto: 'data:image/jpeg;base64,AAAA', fotos: ['data:image/jpeg;base64,BBBB'] } }] });
   es(X.E.estado().avisos[0].foto.length > 10 && X.E.guardado().B.avisos[0].foto === '' && X.E.guardado().B.avisos[0].fotos.length === 0 && X.E.estado().avisos[0].fotos.length === 1, 'las fotos se quedan en la memoria y no ocupan sitio en el aparato');
 }
+// 13 bis. los contratos de mantenimiento llegan a la oficina con la cabecera, y a un técnico no le llegan (15-11-2026)
+{ const X = aparato('oficina', 'centralita'), Y = aparato('omar', 'tecnico'), CC = [{ id: 'RM-0001', n: 1, plan: 'anual', e: 'activo', per: [] }];
+  X.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, n: 0, nu: 0, ausencias: [], contratos: CC, nc: 1 }, avisos: [] });
+  Y.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ }, avisos: [] });
+  es(X.E.estado().contratos.length === 1 && X.E.estado().contratos[0].id === 'RM-0001' && X.E.estado().nc === 1 && X.E.guardado().B.contratos.length === 1 && Y.E.estado().contratos.length === 0 && (Y.E.estado().nc || 0) === 0,
+    'la oficina recibe los contratos y se le quedan guardados; un técnico no tiene ninguno');
+}
 // 14. respuestas viejas y respuestas enteras
 { const B = Object.assign(K.nuevo(), { v: 5, avisos: [{ id: 'A', n: 1, x: 'nuevo' }] }), ver = { A: 5 };
   es(!E.mezcla(B, ver, { v: 3, entero: false, cab: {}, avisos: [{ id: 'A', v: 3, datos: { id: 'A', n: 1, x: 'viejo' } }] }) && B.avisos[0].x === 'nuevo' && B.v === 5, 'una respuesta más vieja que lo que hay no pisa nada');

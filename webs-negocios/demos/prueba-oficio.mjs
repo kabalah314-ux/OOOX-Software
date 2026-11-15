@@ -737,5 +737,128 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(K.material(S, cfg, dia).length === 0 && ap({ tipo: 'falta', id: c2, k: mat }, C).err === 'estado', 'lo cancelado ya no sale en la lista ni se apunta');
 }
 
+// 41. los contratos de mantenimiento (15-11-2026): el alta, lo que da a los avisos del cliente, la revisión, el cobro,
+//     la renovación, la baja, la zona del cliente y el mes para la gestoría
+{
+  empieza(); let r, r2;
+  const P = Object.keys(cfg.planes)[0], PL = cfg.planes[P], REV = K.REV;
+  const cli = { nombre: 'Rosa', apellidos: 'Puig', tel: '600 00 02 10', dir: 'C/ Verdi 30, 1.º 2.ª', cp: '08012' };
+  es(!!PL && PL.precio > 0 && cfg.av[REV] && cfg.av[REV].interna && !N.averias.some(a => a.id === REV), 'el negocio de muestra vende un plan, y la revisión no es una avería de la web');
+  es(ap({ tipo: 'contrato', plan: P, cli, acepta: 'mensaje' }, T('omar')).err === 'permiso' && ap({ tipo: 'contrato', plan: P, cli, acepta: 'mensaje' }, CLI).err === 'permiso', 'el contrato lo da de alta la oficina');
+  es(ap({ tipo: 'contrato', plan: 'nada', cli, acepta: 'mensaje' }, C).err === 'plan' && ap({ tipo: 'contrato', plan: P, cli: Object.assign({}, cli, { tel: '12' }), acepta: 'mensaje' }, C).err === 'tel' && ap({ tipo: 'contrato', plan: P, cli: Object.assign({}, cli, { apellidos: '' }), acepta: 'mensaje' }, C).err === 'apellidos', 'con un plan que existe y los datos del cliente completos');
+  es(ap({ tipo: 'contrato', plan: P, cli }, C).err === 'acepta' && ap({ tipo: 'contrato', plan: P, cli, acepta: 'firma' }, C).err === 'firma' && ap({ tipo: 'contrato', plan: P, cli, acepta: 'mensaje', modo: 'paypal' }, C).err === 'modo' && !S.contratos, 'el cliente tiene que decir que sí, firmando o por mensaje; y la forma de pago, de las de siempre');
+  r = ap({ tipo: 'contrato', plan: P, cli, acepta: 'firma', firma: F, pide: true }, C);
+  const X = () => S.contratos.find(c => c.id === r.id), hoy = K.madrid(t).date, t0 = t;
+  es(r.ok && r.id === N.serie + 'M-0001' && X().e === 'activo' && X().per.length === 1 && X().per[0].de === hoy && X().per[0].a === K.masDias(K.masMeses(hoy, 12), -1) && X().per[0].precio === PL.precio && !X().per[0].pago.cobrado && X().des.pide === t && X().firma === F && X().cli.tel === '600000210',
+    'alta: un año desde hoy, con su precio, pendiente de cobro, firmado y con la petición de hacer la revisión antes de los 14 días');
+  es(ap({ tipo: 'contrato', plan: P, cli: Object.assign({}, cli, { dir: 'Carrer de Verdi, 30, bajos' }), acepta: 'mensaje' }, C).err === 'ya', 'el mismo cliente no tiene dos contratos a la vez en la misma finca');
+  { const rp = ap({ tipo: 'contrato', plan: P, cli: Object.assign({}, cli, { tel: '600000219', dir: 'C/ Verdi 31' }), acepta: 'mensaje', pide: 'sí' }, C);
+    es(rp.ok && S.contratos.find(c => c.id === rp.id).des.pide === 0, 'la petición de hacer la revisión antes de los 14 días tiene que ser un sí de verdad') }
+  // los avisos del cliente: sin desplazamiento en urgencias y primero
+  const u = ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({}, cli, { dir: 'C/ Verdi 30, bajos' }) }, CLI).id;
+  es(A(u).con && A(u).con.id === r.id && A(u).con.desp === PL.desp && A(u).con.rev === '' && A(u).con.pri === PL.prioridad && K.gratisDe(A(u)).join() === PL.desp && A(u).h[0].txt.includes(r.id), 'un aviso urgente del cliente lleva su contrato: sin desplazamiento, con prioridad, y queda dicho');
+  const o1 = ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({}, cli, { tel: '600000211' }) }, CLI).id, o2 = ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({}, cli, { dir: 'C/ Verdi 40' }) }, CLI).id;
+  es(!A(o1).con && !A(o2).con && K.gratisDe(A(o1)).length === 0 && K.gratisDe(null).length === 0, 'otro teléfono, u otra finca del mismo teléfono, no lo llevan');
+  ap({ tipo: 'asignar', id: u, tec: 'omar' }, C);
+  r2 = ap({ tipo: 'empezar', id: u, pres: { lineas: [{ k: PL.desp }, { k: 'mo', q: 1 }], firma: F } }, T('omar'));
+  const ld = A(u).tot.lineas.find(l => l.k === PL.desp), sinD = K.precio(cfg, [{ k: 'mo', q: 1 }], { urg: K.tarifaDe(cfg, A(u)) }).total;
+  es(r2.ok && ld.imp === 0 && ld.con === true && A(u).tot.total === sinD && A(u).tot.total === K.precio(cfg, [{ k: PL.desp }, { k: 'mo', q: 1 }], { urg: K.tarifaDe(cfg, A(u)), gratis: K.gratisDe(A(u)) }).total, 'en el presupuesto, el desplazamiento va a cero y marcado: lo mismo que calcula el técnico');
+  es(ap({ tipo: 'ampliar', id: u, lineas: [{ k: PL.desp }], firma: F }, T('omar')).err === 'lineas', 'añadir otro desplazamiento no suma nada: no hay nada que firmar');
+  // con cita, el desplazamiento se paga; si la cita pasa a urgencia, ya no
+  const dia = K.diasDe(S, cfg, t, 3).find(d => d.franjas.some(f => f.ok)).dia, fr = K.franjasDe(S, cfg, dia, t).find(f => f.ok).id;
+  const c1 = ap({ tipo: 'pedir', av: 'grifo', cli, cita: { dia, fr } }, CLI).id;
+  es(A(c1).con && K.gratisDe(A(c1)).length === 0 && ap({ tipo: 'mover', id: c1, cita: null }, C).ok && K.gratisDe(A(c1)).join() === PL.desp, 'con cita, el desplazamiento se paga; si pasa a urgencia, no');
+  ap({ tipo: 'asignar', id: c1, tec: 'jordi' }, C);
+  { const St = JSON.parse(JSON.stringify(S)); delete St.contratos;   // el aparato del técnico no tiene la lista de contratos
+    es(K.aplicar(St, cfg, { tipo: 'completar', id: c1, cli: { nombre: 'Rosa María' } }, T('jordi'), t += M).ok && St.avisos.find(x => x.id === c1).con && St.avisos.find(x => x.id === c1).con.id === r.id, 'si el técnico completa los datos, el aviso sigue con su contrato aunque su aparato no tenga la lista') }
+  es(ap({ tipo: 'completar', id: c1, cli: { nombre: 'Rosa María' } }, T('jordi')).ok && A(c1).cli.nombre === 'Rosa María' && A(c1).con && A(c1).con.id === r.id, 'y lo mismo en la oficina');
+  // la urgencia que no acepta el precio: a cero, y sin forma de pago
+  const u2 = ap({ tipo: 'pedir', av: 'fuga', cli }, CLI).id; ap({ tipo: 'asignar', id: u2, tec: 'laia' }, C);
+  es(ap({ tipo: 'noacepta', id: u2 }, T('laia')).ok && A(u2).tot.total === 0 && A(u2).pago.cobrado && A(u2).pago.modo === '' && !A(u2).msgs.some(m => m.k === 'cobro') && A(u2).h[A(u2).h.length - 1].txt.includes('no se cobra nada'), 'si no acepta el precio, el desplazamiento de su urgencia no se cobra');
+  es(ap({ tipo: 'facturar', id: u2 }, C).err === 'estado' && !K.porFacturar(S, t).some(x => x.id === u2), 'lo que sale a cero no se factura');
+  // la revisión: la crea la oficina, va incluida con su desplazamiento, y solo las que tiene el plan
+  es(ap({ tipo: 'pedir', av: REV, cli }, CLI).err === 'av' && ap({ tipo: 'pedir', av: REV, cli, origen: 'web' }, { rol: 'cliente' }).err === 'av', 'la revisión no se pide desde la web');
+  es(K.pendientesContratos(S, cfg, t).revision.some(x => x.id === r.id && x.quedan === PL.revisiones), 'mientras no tiene su aviso, la oficina ve que falta dar la cita de la revisión');
+  const rv = ap({ tipo: 'pedir', av: REV, cli, origen: 'llamada' }, C).id;
+  es(A(rv).con && A(rv).con.rev === PL.rev && K.gratisDe(A(rv)).slice().sort().join() === [PL.rev, PL.desp].sort().join() && !K.pendientesContratos(S, cfg, t).revision.some(x => x.id === r.id), 'el aviso de la revisión lleva la revisión y el desplazamiento incluidos, y deja de faltar');
+  ap({ tipo: 'asignar', id: rv, tec: 'jordi' }, C);
+  es(ap({ tipo: 'empezar', id: rv, pres: { lineas: cfg.av[REV].ini, firma: F } }, T('jordi')).ok && A(rv).tot.total === 0 && A(rv).tot.lineas.every(l => l.con && l.imp === 0), 'la revisión sola sale a cero y vale como presupuesto');
+  es(ap({ tipo: 'terminar', id: rv }, T('jordi')).ok && A(rv).pago.cobrado && A(rv).pago.modo === '' && A(rv).h[A(rv).h.length - 1].txt.includes('sin nada que cobrar'), 'a cero, se termina sin preguntar cómo paga');
+  const R0 = K.resumen(S, cfg, t);
+  es(Object.keys(R0.caja).join() === 'efectivo,tarjeta,bizum,transferencia,total' && Number.isFinite(R0.caja.total), 'la caja sigue con sus cuatro formas de pago');
+  const rv2 = ap({ tipo: 'pedir', av: REV, cli, origen: 'llamada' }, C).id;
+  es(A(rv2).con && A(rv2).con.rev === '' && K.gratisDe(A(rv2)).length === 0, 'otra revisión el mismo año ya no va incluida');
+  es(ap({ tipo: 'cancelar', id: rv2, motivo: 'repetida' }, C).ok, 'y se puede cancelar');
+  // la zona del cliente: sus contratos, sin el historial; y un cliente solo con contrato también tiene zona
+  const Pf = K.perfilCliente(S, cfg, cli.tel);
+  es(Pf.contratos.length === 1 && Pf.contratos[0].id === r.id && !('h' in Pf.contratos[0]) && !('v' in Pf.contratos[0]) && Pf.contratos[0].firma === F && Pf.avisos.find(a => a.id === u).con.id === r.id, 'en su zona, el cliente ve su contrato con su firma y sin el historial de la oficina');
+  const solo = { nombre: 'Joan', apellidos: 'Mas', tel: '600000212', dir: 'C/ Sants 5', cp: '08014' };
+  const rs = ap({ tipo: 'contrato', plan: P, cli: solo, acepta: 'mensaje', modo: 'efectivo' }, C);
+  const Ps = K.perfilCliente(S, cfg, solo.tel);
+  es(rs.ok && rs.id === N.serie + 'M-0003' && S.contratos.find(c => c.id === rs.id).per[0].pago.cobrado && Ps && Ps.avisos.length === 0 && Ps.contratos.length === 1 && Ps.cli.nombre === 'Joan' && Ps.fincas.length === 1, 'un cliente solo con contrato, pagado al darlo de alta, también tiene zona, con sus datos y su finca');
+  es(K.perfilCliente(S, cfg, '600000299') === null, 'quien no tiene nada, no tiene zona');
+  // el cobro
+  es(ap({ tipo: 'cobroContrato', id: r.id, modo: 'bizum' }, T('omar')).err === 'permiso' && ap({ tipo: 'cobroContrato', id: r.id, modo: 'pendiente' }, C).err === 'modo' && ap({ tipo: 'cobroContrato', id: 'RM-9999', modo: 'bizum' }, C).err === 'contrato', 'el cobro lo apunta la oficina, con una forma de pago de verdad');
+  es(K.pendientesContratos(S, cfg, t).cobrar.some(x => x.id === r.id && x.precio === PL.precio) && ap({ tipo: 'cobroContrato', id: r.id, modo: 'bizum' }, C).ok && X().per[0].pago.cobrado && !K.pendientesContratos(S, cfg, t).cobrar.some(x => x.id === r.id) && ap({ tipo: 'cobroContrato', id: r.id, modo: 'bizum' }, C).err === 'estado', 'cobrado, deja de estar pendiente; dos veces, no');
+  // el mes para la gestoría y los datos para la factura
+  const cu = K.cuotasMes(S, cfg, hoy.slice(0, 7)), F1 = cu.find(f => f[1] === r.id);
+  const base = Math.round(PL.precio / (1 + PL.iva / 100));
+  es(F1 && F1[0] === hoy && F1[7] === (base / 100).toFixed(2).replace('.', ',') && F1[8] === String(PL.iva) && F1[10] === (PL.precio / 100).toFixed(2).replace('.', ',') && F1[12] === 'Sí' && K.trabajosMes(S, cfg, hoy.slice(0, 7)).some(f => f[1] === r.id), 'la cuota sale en el mes para la gestoría, con su base y su IVA');
+  const df = K.datosFacturaContrato(S, cfg, X(), t);
+  es(df.includes('Contrato de mantenimiento ' + r.id) && df.includes('Total: ' + K.eur(PL.precio)) && df.includes('cobrado el') && K.datosFacturaContrato(S, cfg, null, t) === '', 'los datos para facturar la cuota');
+  // la renovación: el último mes, con el sí del cliente, empalmada; sin renovar, vence
+  es(ap({ tipo: 'renovar', id: r.id, acepta: true }, C).err === 'fecha', 'no se renueva hasta el último mes');
+  t = Date.parse(X().per[0].a + 'T10:00:00Z') - 10 * D;
+  es(K.pendientesContratos(S, cfg, t).renovar.some(x => x.id === r.id && !x.vencido), 'el último mes, la oficina ve que toca renovar');
+  es(ap({ tipo: 'renovar', id: r.id }, C).err === 'acepta' && ap({ tipo: 'renovar', id: r.id, acepta: 'sí' }, C).err === 'acepta', 'solo con el sí del cliente');
+  es(ap({ tipo: 'renovar', id: r.id, acepta: true }, C).ok && X().per.length === 2 && X().per[1].de === K.masDias(X().per[0].a, 1) && X().per[1].a === K.masDias(K.masMeses(X().per[1].de, 12), -1) && !X().per[1].pago.cobrado && !K.pendientesContratos(S, cfg, t).renovar.some(x => x.id === r.id), 'renovado: el año siguiente, empalmado y pendiente de cobro');
+  t = Date.parse(S.contratos.find(c => c.id === rs.id).per[0].a + 'T10:00:00Z') + 5 * D;
+  es(K.pendientesContratos(S, cfg, t).renovar.some(x => x.id === rs.id && x.vencido) && !K.vigente(S.contratos.find(c => c.id === rs.id), K.madrid(t).date), 'sin renovar, vence, y la oficina lo ve');
+  const tarde = ap({ tipo: 'pedir', av: 'fuga', cli: solo }, CLI).id;
+  es(!A(tarde).con, 'vencido, sus avisos ya no lo llevan');
+  es(ap({ tipo: 'renovar', id: rs.id, acepta: true }, C).ok && S.contratos.find(c => c.id === rs.id).per[1].de === K.madrid(t).date, 'renovado después de vencer, empieza el día que se renueva');
+  es(ap({ tipo: 'completar', id: tarde, cli: solo }, C).ok && A(tarde).con && A(tarde).con.id === rs.id, 'al completar los datos de un aviso sin precio, se mira otra vez el contrato');
+  // la baja: cuando quiera; en sus 14 días, desiste
+  es(ap({ tipo: 'bajaContrato', id: r.id }, T('omar')).err === 'permiso' && ap({ tipo: 'bajaContrato', id: r.id, motivo: { a: 1 } }, C).err === 'motivo', 'la baja la apunta la oficina');
+  es(ap({ tipo: 'bajaContrato', id: r.id, motivo: 'Se muda' }, C).ok && X().e === 'baja' && X().baja.des === false && X().baja.motivo === 'Se muda' && ap({ tipo: 'bajaContrato', id: r.id }, C).err === 'estado' && ap({ tipo: 'renovar', id: r.id, acepta: true }, C).err === 'estado', 'baja después de los 14 días: sin desistir, y ya no se renueva');
+  const r9 = ap({ tipo: 'contrato', plan: P, cli: Object.assign({}, solo, { tel: '600000213', dir: 'C/ Sants 9' }), acepta: 'mensaje' }, C);
+  t += 3 * D;
+  es(ap({ tipo: 'bajaContrato', id: r9.id }, C).ok && S.contratos.find(c => c.id === r9.id).baja.des === true, 'en sus 14 días, la baja es desistir');
+  es(S.contratos.every(c => c.h.length > 0 && c.v === c.h.length), 'cada contrato lleva su historial');
+  // un aviso abierto de antes del contrato pasa a llevarlo; uno con precio, no
+  const pre = ap({ tipo: 'pedir', av: 'fuga', cli: { nombre: 'Eva', apellidos: 'Gil', tel: '600000214', dir: 'C/ Sants 12', cp: '08014' } }, CLI).id;
+  const pre2 = ap({ tipo: 'pedir', av: 'fuga', cli: { nombre: 'Eva', apellidos: 'Gil', tel: '600000214', dir: 'C/ Sants 12', cp: '08014' } }, CLI).id;
+  ap({ tipo: 'asignar', id: pre2, tec: 'laia' }, C); es(ap({ tipo: 'empezar', id: pre2, pres: { lineas: [{ k: 'mo', q: 1 }], firma: F } }, T('laia')).ok, 'el otro aviso empieza con su precio');
+  const re = ap({ tipo: 'contrato', plan: P, cli: { nombre: 'Eva', apellidos: 'Gil', tel: '600000214', dir: 'C/ Sants 12', cp: '08014' }, acepta: 'mensaje' }, C);
+  es(re.ok && A(pre).con && A(pre).con.id === re.id && A(pre).h[A(pre).h.length - 1].txt.includes(re.id) && !A(pre2).con, 'al dar de alta el contrato, el aviso abierto del cliente sin precio pasa a llevarlo; el que ya tiene precio, no');
+  es(t0 > 0, 'fin de la sección');
+}
+
+// 42. los papeles del contrato, y los de un trabajo que va en el contrato (15-11-2026)
+{
+  const P = globalThis.OficioPapeles, svg = () => '<svg></svg>', o = { K, N, cfg, firmaSvg: svg }, oc = { K, N: Object.assign({}, N, { email: 'avisos@ramirez.example' }), cfg, firmaSvg: svg };
+  empieza();
+  const PL = cfg.planes[Object.keys(cfg.planes)[0]], cli = { nombre: '<b>Rosa</b>', apellidos: 'Puig', tel: '600000230', dir: 'C/ Verdi 60', cp: '08012' };
+  const r = ap({ tipo: 'contrato', plan: PL.id, cli, acepta: 'firma', firma: F, pide: true, modo: 'tarjeta' }, C);
+  const X = S.contratos.find(c => c.id === r.id), alta = K.madrid(X.t).date;
+  let h = P.contrato(X, o);
+  es(h.includes('<h1>Contrato de mantenimiento</h1>') && h.includes('N.º ' + r.id) && h.includes(K.eur(PL.precio) + ' al año, IVA del ' + PL.iva + ' % incluido') && h.includes('No se renueva solo') && h.includes('cuando quieras, sin penalización'), 'el papel del contrato: el plan, el precio con su IVA, sin renovación automática y la baja cuando quiera');
+  es(h.includes('14 días naturales desde el alta, hasta el ' + K.fechaCorta(K.masDias(alta, 14))) && h.includes('Formulario de desistimiento') && h.includes('desisto del contrato de mantenimiento ' + r.id + ', con alta el ' + K.fechaCorta(alta)) && h.includes('Pediste que la revisión se hiciera antes') && h.includes('pagas la parte proporcional'), 'el desistimiento: el plazo con su fecha, el formulario y la petición de la revisión');
+  es(h.includes('Firmado el ' + K.fechaCorta(alta)) && h.includes('Cobrado el') && !h.includes('<b>Rosa</b>') && h.includes('&lt;b&gt;Rosa'), 'la firma, el cobro, y el nombre sin colarse como código');
+  es(P.contrato(X, oc).includes(', correo avisos@ramirez.example:') && !h.includes(', correo '), 'el formulario lleva el correo del negocio si lo tiene');
+  const r2 = ap({ tipo: 'contrato', plan: PL.id, cli: Object.assign({}, cli, { tel: '600000231', dir: 'C/ Verdi 62' }), acepta: 'mensaje' }, C);
+  h = P.contrato(S.contratos.find(c => c.id === r2.id), o);
+  es(h.includes('Aceptado por mensaje el') && h.includes('Pendiente de pago') && !h.includes('Pediste que la revisión'), 'aceptado por mensaje y pendiente de cobro');
+  ap({ tipo: 'bajaContrato', id: r2.id }, C);
+  es(P.contrato(S.contratos.find(c => c.id === r2.id), o).includes('desistiendo dentro de los 14 días'), 'de baja en sus 14 días: el papel lo dice');
+  es(P.contrato(null, o) === '' && P.contrato({ per: [] }, o) === '', 'sin contrato, sin papel');
+  const rv = ap({ tipo: 'pedir', av: K.REV, cli, origen: 'llamada' }, C).id; ap({ tipo: 'asignar', id: rv, tec: 'omar' }, C);
+  ap({ tipo: 'empezar', id: rv, pres: { lineas: cfg.av[K.REV].ini, firma: F } }, T('omar')); ap({ tipo: 'terminar', id: rv }, T('omar'));
+  const hp = P.doc(A(rv), 'presupuesto', o), hq = P.doc(A(rv), 'parte', o);
+  es(hp.includes('<b>Incluido</b>') && hp.includes('va en tu contrato de mantenimiento') && hq.includes('No hay nada que pagar: va en tu contrato de mantenimiento.') && !hq.includes('Cobrado el'), 'el presupuesto dice lo que va incluido, y el parte que no hay nada que pagar');
+  t = Date.parse(X.per[0].a + 'T10:00:00Z') - 5 * D; ap({ tipo: 'renovar', id: r.id, acepta: true }, C);
+  es(P.contrato(S.contratos.find(c => c.id === r.id), o).includes('Años anteriores'), 'renovado, el papel lleva también los años de antes');
+}
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

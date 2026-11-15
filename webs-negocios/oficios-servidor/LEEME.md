@@ -66,7 +66,8 @@ Contesta siempre `{ok:true, …}` o `{ok:false, err}`. Nunca lanza.
 | `perfil` | El cliente, en su zona | `negocio, tel, codigo` (el suyo) | `perfil`: `{tel, cli, avisos}`; cada aviso, con su `vista` y su `llave` |
 
 `cambios` es `{v, entero, cab, avisos}`. `entero:true` quiere decir «tira lo que tengas y quédate con esto». La oficina
-recibe todos los avisos y la cabecera (contadores y ausencias); un técnico, solo los avisos que lleva y los `fuera`.
+recibe todos los avisos y la cabecera (contadores, ausencias y, desde el 15-11, los contratos de mantenimiento); un técnico,
+solo los avisos que lleva y los `fuera`.
 
 Errores propios del juez: `clave` (código malo, persona o negocio que no existe, negocio de baja: todos contestan lo
 mismo; en la zona del cliente, también un teléfono que no es suyo), `bloqueo` (demasiados códigos fallados seguidos),
@@ -150,7 +151,7 @@ Once funciones. Devuelven siempre copias.
 
 | Función | Qué hace |
 |---|---|
-| `negocio(id)` | `{id, activo, datos, v, cab}` o nada. `datos` es el archivo de datos del negocio; `cab`, `{esq, n, nu, ausencias}` |
+| `negocio(id)` | `{id, activo, datos, v, cab}` o nada. `datos` es el archivo de datos del negocio; `cab`, `{esq, n, nu, ausencias, contratos, nc}` (los dos últimos, desde el 15-11; si faltan, vacíos) |
 | `entra(negocio, persona, codigo, red)` | `{rol, id}`, nada, o `'bloqueo'`. Cuenta los códigos fallados por conexión |
 | `vivos(negocio)` | Los avisos con los que trabajan las reglas: `[{id, v, datos, de, llave, vista}]`. Hoy son todos; cuando pesen, se archivan los cerrados antiguos |
 | `hecha(negocio, clave)` | El resultado guardado de una acción con esa marca, o nada |
@@ -169,17 +170,18 @@ bloque solo).
 
 Sin navegador:
 
-- `pruebas-reglas/prueba-juez.mjs`: el juez, con ejemplos escritos a mano. 82 (26 de la zona del cliente).
+- `pruebas-reglas/prueba-juez.mjs`: el juez, con ejemplos escritos a mano. 91 (26 de la zona del cliente; los contratos,
+  desde el 15-11).
 - `pruebas-reglas/azar-juez.mjs`: dos negocios, once aparatos cada tanda, acciones al azar, otros aparatos que se
   adelantan entre que el juez lee y guarda, y acciones mandadas dos veces; y la oficina que da o cambia códigos de la zona
   y el cliente que entra con ellos. 9.000 pasos y 1,29 millones de comprobaciones.
 - `pruebas-reglas/mutantes-juez.mjs`: se quita adrede cada protección del juez y se mira que alguna prueba lo note. 51 de 51.
-- `pruebas-reglas/prueba-espejo.mjs`: el espejo de la app contra el juez de verdad, con ejemplos. 71.
+- `pruebas-reglas/prueba-espejo.mjs`: el espejo de la app contra el juez de verdad, con ejemplos. 72.
 - `pruebas-reglas/azar-espejo.mjs`: varios aparatos con su espejo, red que falla (peticiones que no llegan, respuestas
   que se pierden, aparatos sin cobertura), la app que se cierra y se abre, códigos que se retiran. Leyes: lo que se ve es
   siempre lo último del servidor más lo pendiente, en orden; al calmarse todo, cada aparato ve lo que le toca; cada
   acción acaba una sola vez en el diario o rechazada y avisada. 45.000 pasos y 256.000 comprobaciones.
-- `pruebas-reglas/mutantes-espejo.mjs`: lo mismo que con el juez, para el espejo. 29 de 29.
+- `pruebas-reglas/mutantes-espejo.mjs`: lo mismo que con el juez, para el espejo. 30 de 30.
 - `oficios-servidor/pruebas-almacen.sql`: el almacén de verdad, en la base de datos. 31, en verde el 14-11-2026.
 
 Con navegador:

@@ -39,7 +39,7 @@ function mezcla(B,ver,c){
  B.avisos=[...por.values()].sort((a,b)=>(a.n||0)-(b.n||0));
  B.v=c.v;const cab=c.cab||{};
  if(Number.isInteger(cab.esq))B.esq=cab.esq;
- if('n' in cab){B.n=cab.n||0;B.nu=cab.nu||0;B.ausencias=Array.isArray(cab.ausencias)?cab.ausencias:[]}
+ if('n' in cab){B.n=cab.n||0;B.nu=cab.nu||0;B.ausencias=Array.isArray(cab.ausencias)?cab.ausencias:[];B.contratos=Array.isArray(cab.contratos)?cab.contratos:[];B.nc=cab.nc||0}
  return true}
 
 /* Lo que se escribe en el aparato cuando hay varias pestañas: nadie pisa lo que otra tiene por enviar.
@@ -55,7 +55,7 @@ function junta(viejo,mio){
 function crea(o){
  const K=o.K,cfg=o.cfg,q={rol:o.quien.rol,id:o.quien.id},ahora=o.ahora||(()=>Date.now()),marca=o.marca||marcaNueva;
  let B=K.nuevo(),ver={},cola=[],hechas=[],S=null,sucio=true;
- B.v=0;B.n=B.n||0;B.nu=B.nu||0;B.ausencias=B.ausencias||[];
+ B.v=0;B.n=B.n||0;B.nu=B.nu||0;B.ausencias=B.ausencias||[];B.contratos=B.contratos||[];B.nc=B.nc||0;
  const adelantadas=()=>cola.some(p=>!p.crea);
  /* lo que se ve: la base y, encima, lo adelantado. Sin nada adelantado es la base misma, sin copiarla. */
  function rehace(){sucio=false;if(!adelantadas()){S=B;return}
@@ -114,7 +114,7 @@ function crea(o){
  /* al abrir: recupera lo guardado, si es de la misma persona y de la misma versión de la app */
  function carga(x){
   if(!x||x.f!==1||!x.quien||x.quien.rol!==q.rol||x.quien.id!==q.id||!x.B||x.B.esq!==K.ESQ||!Array.isArray(x.B.avisos)||!Number.isInteger(x.B.v))return false;
-  B=x.B;B.n=B.n||0;B.nu=B.nu||0;B.ausencias=Array.isArray(B.ausencias)?B.ausencias:[];ver=x.ver&&typeof x.ver==='object'?x.ver:{};
+  B=x.B;B.n=B.n||0;B.nu=B.nu||0;B.ausencias=Array.isArray(B.ausencias)?B.ausencias:[];B.contratos=Array.isArray(B.contratos)?B.contratos:[];B.nc=B.nc||0;ver=x.ver&&typeof x.ver==='object'?x.ver:{};
   hechas=Array.isArray(x.hechas)?x.hechas.filter(k=>typeof k==='string').slice(-300):[];const H=new Set(hechas),mias=new Set(cola.map(p=>p.clave));
   (Array.isArray(x.cola)?x.cola:[]).forEach(p=>{if(p&&typeof p.clave==='string'&&p.accion&&typeof p.accion==='object'&&!H.has(p.clave)&&!mias.has(p.clave))cola.push({clave:p.clave,accion:p.accion,t:p.t||0})});
   cola.sort((a,b)=>(a.t||0)-(b.t||0));sucio=true;return true}
