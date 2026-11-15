@@ -241,7 +241,9 @@ llegada que da el servidor a quien pide una urgencia cuenta también con eso. Y 
 las citas por lo que tarda cada trabajo; los huecos que da el servidor miran la avería y el barrio que manda la página, y
 los datos de Voltio en el servidor ya llevan `citas.porTiempo` (iguales letra por letra al archivo). Y la versión 15, con las reglas `2026.11.15j` del
 commit `cf2290f`: con citas por tiempo, una cita que ya existe va en su sitio al mirar si cabe, y al cambiarla de franja
-se compara con su día sin ella (lo encontró la demo «en uso»).
+se compara con su día sin ella (lo encontró la demo «en uso»). Y la versión 16, con las reglas `2026.11.15k` del commit `50bb60d`: las
+revisiones de un contrato repartidas por su año, la reserva para urgencias que el dueño puede no guardar los días que
+falta alguien, y la visita en la que no había nadie, que queda apuntada (quién fue y cuándo) para el tablero.
 
 ## Lo que falta
 

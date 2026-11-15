@@ -5,8 +5,8 @@
 // Para llevar al servidor un cambio de las reglas o del juez: cambiar ese número en las dos líneas y volver a desplegar.
 // No pide la llave de Supabase a quien llama (verify_jwt = false): cada persona entra con su código, y eso lo mira el juez.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-import "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/cf2290fe128cd77f1de6b29222083a5fc1f0a384/frontend/public/demos/ramirez-24h/js/oficio-nucleo.js";   // las reglas: quedan en globalThis.OficioNucleo
-import { crea } from "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/cf2290fe128cd77f1de6b29222083a5fc1f0a384/webs-negocios/oficios-servidor/juez.mjs";
+import "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/50bb60dc2d69c4d90d8802c59ec37a0873e3a96c/frontend/public/demos/ramirez-24h/js/oficio-nucleo.js";   // las reglas: quedan en globalThis.OficioNucleo
+import { crea } from "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/50bb60dc2d69c4d90d8802c59ec37a0873e3a96c/webs-negocios/oficios-servidor/juez.mjs";
 
 // deno-lint-ignore no-explicit-any
 const K = (globalThis as any).OficioNucleo;
@@ -36,7 +36,7 @@ const almacen = {
   clienteEntra: (negocio: string, tel: string, codigo: string, red: string) => srv("cliente_entra", { negocio, tel, codigo, red }),
 };
 const juez = crea({ K, almacen, aviso: (e: unknown) => console.error("juez:", e) });
-const VERSION = { reglas: K && K.VERSION, commit: "cf2290fe128c" };   // para saber desde fuera qué versión corre
+const VERSION = { reglas: K && K.VERSION, commit: "50bb60dc2d69" };   // para saber desde fuera qué versión corre
 
 const CAB = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type, apikey, authorization, x-client-info", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-max-age": "86400" };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...CAB, "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
