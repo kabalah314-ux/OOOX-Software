@@ -24,7 +24,7 @@ async def main():
         await pg.evaluate("(()=>{const s=JSON.parse(localStorage.getItem('oficio:ramirez'));s.t0=Date.now()-9*3600*1000;localStorage.setItem('oficio:ramirez',JSON.stringify(s))})()")
         await pg.reload(); await pg.wait_for_selector('.fila')
         s=await pg.evaluate("JSON.parse(localStorage.getItem('oficio:ramirez'))")
-        es('Hoy Mismo' not in await pg.locator('main').inner_text() and len(s['avisos'])==6,'una muestra de hace 9 horas se rehace sola')
+        es('Hoy Mismo' not in await pg.locator('main').inner_text() and len(s['avisos'])==9,'una muestra de hace 9 horas se rehace sola')
         t=await pg.locator('main').inner_text()
         es('hace 9 h' not in t,'y ya no dice «hace 9 h»')
         await pg.evaluate("(()=>{const s=JSON.parse(localStorage.getItem('oficio:ramirez'));delete s.t0;localStorage.setItem('oficio:ramirez',JSON.stringify(s))})()")

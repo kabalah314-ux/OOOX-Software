@@ -350,6 +350,13 @@ body.conred main.dos{padding-top:0}
 .cont.baja{opacity:.7}
 .ojo.con a{color:inherit}
 #msgPend{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wa-b{white-space:pre-line}
+.mno{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;margin-top:8px}
+.mno .txt{min-height:44px}
+.nomsg .txt{min-height:44px}
+.chk.avi{align-items:flex-start;margin:12px 0 4px;font-weight:600}
+.chk.avi input{margin-top:4px;flex:none}
+.chk.avi small{display:block;font-weight:400;color:var(--suave)}
 #msgPend .btn{flex:none;border-color:currentColor;color:inherit}
 #conOf{margin-top:10px}
 .mfal{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px}.mfal li{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -413,7 +420,7 @@ const ORIG={llamada:'por teléfono',web:'desde la web',cita:'cita en la web',wha
 const EST={nuevo:'Sin asignar',asignado:'Asignado',camino:'De camino',curso:'Trabajando',hecho:'Terminado',ausente:'No había nadie',cancelado:'Cancelado'};
 const PAGO={efectivo:'Efectivo',tarjeta:'Tarjeta',bizum:'Bizum',transferencia:'Transferencia',pendiente:'Lo paga después'};
 const ERR={nombre:'Escribe el nombre del cliente.',apellidos:'Escribe los apellidos del cliente.',tel:'El teléfono tiene que tener 9 cifras.',telAviso:'El contrato tiene que ser para el teléfono del cliente de este aviso.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
- datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',pide:'Falta que el cliente marque «Quiero que lo hagáis ya».',plan:'Elige un plan.',ya:'Ese cliente ya tiene un contrato en esa dirección.',acepta:'Falta que el cliente diga que sí: que firme o que lo diga por mensaje.',contrato:'No encuentro ese contrato.',fecha:'Aún no toca renovarlo: se renueva el último mes.',motivo:'El motivo tiene que ser un texto.',falta:'Eso no vale como material: elige uno de la lista o escríbelo, de 1 a 20 unidades y hasta 12 cosas por aviso.',num:'Ese número de factura no vale.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
+ datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',pide:'Falta que el cliente marque «Quiero que lo hagáis ya».',plan:'Elige un plan.',ya:'Ese cliente ya tiene un contrato en esa dirección.',acepta:'Falta que el cliente diga que sí: que firme o que lo diga por mensaje.',contrato:'No encuentro ese contrato.',fecha:'Aún no toca renovarlo: se renueva el último mes.',motivo:'El motivo tiene que ser un texto.',falta:'Eso no vale como material: elige uno de la lista o escríbelo, de 1 a 20 unidades y hasta 12 cosas por aviso.',num:'Ese número de factura no vale.',modo:'Elige cómo paga.',si:'Falta decir si quiere o no los mensajes de seguimiento.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
  horario:'Ese técnico no trabaja a esa hora. Elige a otro.',ausente_tec:'Ese técnico está ausente ese día.',lleno:'Ese técnico ya tiene esa franja ocupada.',
  red:'Sin conexión con el servidor. No se ha creado: mira si aparece antes de repetirlo.',lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.',sesion:'Tu sesión se ha cerrado. Entra otra vez.',espera:'Eso tiene que confirmarlo el servidor.',
  fechas:'Revisa las fechas de la ausencia.',mapa:'Este negocio no tiene activado el mapa.',posicion:'Esa posición no vale.',ausencia:'Esa ausencia ya no está apuntada.',aviso:'Ese aviso ya no existe.'};
@@ -511,6 +518,7 @@ function bCliente(A,esT){const c=A.cli;let h='<section class="blq"><h2>Cliente</
  if(!c.tel)return h+'<p class="gr">Aviso desde la web'+(barrio(A)?', en '+esc(barrio(A)):'')+'</p><p class="ln">Ha abierto WhatsApp desde la web '+hace(A.t)+'. El teléfono y la dirección llegan con su mensaje.</p>'+(esT?'':'<div class="acts"><button class="btn pri" data-a="completar" data-id="'+A.id+'">Completar los datos</button></div>')+'</section>';
  h+=(esT?'<p class="dir">'+esc(c.dir)+'</p><p class="ln">'+esc(c.cp)+' '+esc(barrio(A))+' · '+esc(K.nomCli(c))+'</p>':'<p class="gr">'+esc(K.nomCli(c))+'</p><p class="ln">'+esc(c.dir)+' · '+esc(c.cp)+' '+esc(barrio(A))+'</p>');
  if(A.nota)h+='<p class="dice">'+esc(A.nota)+'</p>';
+ if(!esT&&K.noEscribe(S,c.tel))h+='<p class="ln nomsg">No quiere mensajes de seguimiento. <button class="txt" data-a="escribirSi" data-id="'+A.id+'">Volver a escribirle</button></p>';
  if(A.foto)h+='<img class="fotoc" src="'+A.foto+'" alt="Foto que ha mandado el cliente">';
  h+='<div class="acts"><button class="btn peq" data-a="llamar" data-id="'+A.id+'">'+I.tel+K.telBonito(c.tel)+'</button><a class="btn peq" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.dir.split(',')[0]+', '+c.cp+' '+N.ciudad)+'">'+I.mapa+'Mapa</a>'+(esT?'':'<button class="btn peq" data-a="zona" data-id="'+A.id+'">Su zona</button>')+'</div>';
  return h+'</section>'}
@@ -530,22 +538,30 @@ function bCita(A){const c=A.cita,hoy=K.madrid().date,otras=c&&A.vale?A.vale.filt
   (otras.length?'<p class="mnota" style="margin-top:8px">Al cliente también le va bien: '+otras.map(v=>diaCorto(v.dia)+', '+frTxt(v.fr)).join(' · ')+'.</p>':'')+'</section>'}
 /* lo que hay que atender antes que nada: citas que no caben, avisos sin técnico porque el suyo falta y citas sin confirmar */
 /* los mensajes al cliente que ya tocaba mandar y no se han mandado */
-const porMandar=ahora=>[].concat(...S.avisos.filter(a=>a.e!=='cancelado'&&Array.isArray(a.msgs)).map(a=>a.msgs.filter(m=>!m.env&&m.t<=ahora).map(m=>({a,m})))).sort((x,y)=>x.m.t-y.m.t);
+const porMandar=ahora=>K.porMandar(S,ahora),esSeg=x=>K.SEGUIR.includes(x.m.k);
+/* por qué toca cada mensaje de seguimiento, en pocas palabras */
+const porQue=x=>{const A=x.a,m=x.m,av=cfg.av[A.av],qu=av?av.n.toLowerCase()+', ':'';return m.k==='presupuesto'?qu+'no aceptó '+(A.noPres?K.eur(A.noPres.total):'el presupuesto')+' '+hace(A.fin):m.k==='proxima'&&A.prox?'toca el '+K.fechaCorta(A.prox.dia):qu+'terminado '+hace(A.fin)};
 function bAlertas(ag){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),rea=S.avisos.filter(a=>a.reasignar&&a.e==='nuevo'),conf=S.avisos.filter(a=>a.cita&&a.cita.ok===false&&abiertos.includes(a.e));
  const it=(b,sm,href,atn,da)=>'<li'+(atn?' class="atn"':'')+'>'+(da?'<button type="button" data-a="'+da+'">':'<a href="'+href+'">')+'<b>'+b+'</b>'+(sm?'<small>'+sm+'</small>':'')+(da?'</button>':'</a>')+'</li>';
  const L=r.sobran.map(x=>it(x.sobran===1?'Sobra 1 cita':'Sobran '+x.sobran+' citas',diaTxt(x.dia)+', '+frTxt(x.fr)+': no hay técnicos para todas','#/equipo/'+x.dia,1));
  if(rea.length)L.push(it(rea.length===1?'1 aviso por reasignar':rea.length+' avisos por reasignar','quien lo llevaba ya no puede ir','#/aviso/'+rea[0].id,1));
- if(!ag){const M=porMandar(ahora);if(M.length)L.push(it(M.length===1?'1 mensaje por mandar':M.length+' mensajes por mandar','«'+K.MSG[M[0].m.k]+'» a '+esc(K.nomCli(M[0].a.cli)||'un cliente')+(M.length>1?' y '+(M.length-1)+(M.length===2?' más':' más'):''),'',0,'mensajes'))}
+ const M=ag?[]:porMandar(ahora),Mo=M.filter(x=>!esSeg(x)),Ms=M.filter(esSeg);
+ if(Mo.length)L.push(it(Mo.length===1?'1 mensaje por mandar':Mo.length+' mensajes por mandar','«'+K.MSG[Mo[0].m.k]+'» a '+esc(K.nomCli(Mo[0].a.cli)||'un cliente')+(Mo.length>1?' y '+(Mo.length-1)+' más':''),'',0,'mensajes'))
  if(conf.length)L.push(it(conf.length===1?'1 cita pendiente de confirmar':conf.length+' citas pendientes de confirmar','con el cliente','#/aviso/'+conf[0].id));
  {const dm=proxLab(),n=new Set([].concat(...K.material(S,cfg,dm).map(g=>[].concat(...g.cosas.map(c=>c.av))))).size;
   if(n)L.push(it((n===1?'1 aviso':n+' avisos')+' de '+diaTxt(dm)+' con material por preparar','mándalo o cárgalo antes','#/equipo/'+dm))}
  /* contratos y facturas son cosa de la oficina: en la agenda y en el equipo solo sale lo del reparto («ag») */
  if(!ag&&HAY_CON()){const pc=K.pendientesContratos(S,cfg,ahora),n=pc.renovar.length+pc.revision.length;if(n)L.push(it(n===1?'1 contrato pide algo':n+' contratos piden algo',[pc.renovar.length?(pc.renovar.length===1?'una renovación':pc.renovar.length+' renovaciones'):'',pc.revision.length?(pc.revision.length===1?'una revisión sin cita':pc.revision.length+' revisiones sin cita'):''].filter(Boolean).join(' y '),'#/contratos'))}
  if(!ag&&pro()&&r.porFac.viejos)L.push(it((r.porFac.viejos===1?'1 trabajo lleva':r.porFac.viejos+' trabajos llevan')+' más de una semana sin facturar','','#/cobros'));
+ /* el seguimiento: lo último, porque puede esperar a un rato tranquilo */
+ if(Ms.length){const c=k=>Ms.filter(x=>k.includes(x.m.k)).length,tr=c(['resena','seguimiento']),pr=c(['presupuesto']),vu=c(['proxima']);
+  L.push(it(Ms.length===1?'1 cliente para el seguimiento':Ms.length+' clientes para el seguimiento',[tr?(tr===1?'1 trabajo terminado':tr+' trabajos terminados'):'',pr?(pr===1?'1 presupuesto sin respuesta':pr+' presupuestos sin respuesta'):'',vu?(vu===1?'1 al que le toca volver':vu+' a los que les toca volver'):''].filter(Boolean).join(', '),'',0,'seguir'))}
  return L.length?'<ul class="alertas" aria-label="Lo que hay que hacer">'+L.join('')+'</ul>':''}
 /* todos los mensajes por mandar, para mandarlos uno detrás de otro */
-function hMensajes(){const M=porMandar(Date.now());
- const d=hoja(hc(M.length===1?'1 mensaje por mandar':M.length+' mensajes por mandar')+'<div class="hb">'+(M.length?'<ul class="msgs">'+M.map(x=>'<li><span>'+K.MSG[x.m.k]+'<small>'+esc(K.nomCli(x.a.cli)||'Aún sin nombre')+' · '+x.a.id+' · '+cuandoT(x.m.t)+'</small></span><button class="btn peq" data-a="msg" data-id="'+x.a.id+'" data-k="'+x.m.k+'">Ver</button></li>').join('')+'</ul>':'<p class="hueco">No queda ningún mensaje por mandar.</p>')+'</div>');
+function hMensajes(seg){const T=porMandar(Date.now()),M=T.filter(x=>esSeg(x)===!!seg);
+ const fila=x=>'<li><span>'+K.MSG[x.m.k]+'<small>'+esc(K.nomCli(x.a.cli)||'Aún sin nombre')+' · '+(seg?porQue(x):x.a.id+' · '+cuandoT(x.m.t))+'</small></span><button class="btn peq" data-a="msg" data-id="'+x.a.id+'" data-k="'+x.m.k+'">Ver</button></li>';
+ const tit=seg?(M.length===1?'1 cliente para el seguimiento':M.length+' clientes para el seguimiento'):(M.length===1?'1 mensaje por mandar':M.length+' mensajes por mandar');
+ const d=hoja(hc(tit)+'<div class="hb">'+(seg&&M.length?'<p class="dn">Mensajes para después del trabajo. Si alguno no hace falta, déjalo: no pasa nada. Caducan solos.</p>':'')+(M.length?'<ul class="msgs">'+M.map(fila).join('')+'</ul>':'<p class="hueco">'+(seg?'No hay ningún cliente para el seguimiento.':'No queda ningún mensaje por mandar.')+'</p>')+'</div>');
  d.addEventListener('click',e=>{if(e.target.closest('[data-a="msg"]'))d.close()})}
 function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
  let h='<section class="blq"><h2>'+(A.e==='hecho'?(A.sinTrabajo?'Solo el desplazamiento':'Total del trabajo'):'Presupuesto firmado')+'</h2><p class="gordo num">'+K.eur(T.total)+'</p><p class="ln">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+(p?' · '+(p.cobrado?(T.total?'cobrado, '+PAGO[p.modo].toLowerCase():'nada que cobrar: va en su contrato'):'pendiente de pago'):'')+'</p>';
@@ -949,9 +965,14 @@ setInterval(()=>{const a=document.activeElement;if(document.querySelector('dialo
 
 /* ===== las hojas de cada paso ===== */
 function hMsg(A,k){const txt=K.mensaje(cfg,A,k),m=A.msgs.find(x=>x.k===k&&!x.env);
- const d=hoja(hc(K.MSG[k])+'<div class="hb">'+waHtml(txt,A.cli.nombre)+(Oficio.DEMO?'<p class="dn">En la app real, este botón abre WhatsApp con el mensaje ya escrito para '+esc(A.cli.nombre.split(' ')[0])+'. En la demo no se escribe a nadie.</p></div><div class="hp"><button class="btn pri ancho" id="mOk">'+(m?'Enviar':'Entendido')+'</button></div>'
-  :'<p class="dn">Se abre WhatsApp con el mensaje ya escrito. Revísalo y envíalo desde allí.</p></div><div class="hp"><a class="btn pri ancho" id="mOk" target="_blank" rel="noopener" href="https://wa.me/34'+K.tel9(A.cli.tel)+'?text='+encodeURIComponent(txt)+'">Abrir WhatsApp</a></div>'));
- $('#mOk',d).onclick=()=>{if(m&&hacer({tipo:'enviado',id:A.id,k}).ok)toast(Oficio.DEMO?'Mensaje enviado (en la demo, solo se apunta).':'Apuntado como enviado.');d.close()}}
+ /* la oficina puede dejarlo sin mandar; en el seguimiento, apuntar que el cliente no quiere estos mensajes (se le dice en cada uno, como pide la ley) */
+ const mas=m&&Q.rol==='centralita'?'<div class="mno"><button class="txt" id="mNo" type="button">No hace falta mandarlo</button>'+(K.SEGUIR.includes(k)?'<button class="txt" id="mBaja" type="button">No quiere estos mensajes</button>':'')+'</div>':'';
+ const d=hoja(hc(K.MSG[k])+'<div class="hb">'+waHtml(txt,A.cli.nombre)+(Oficio.DEMO?'<p class="dn">En la app real, este botón abre WhatsApp con el mensaje ya escrito para '+esc(A.cli.nombre.split(' ')[0])+'. En la demo no se escribe a nadie.</p></div><div class="hp"><button class="btn pri ancho" id="mOk">'+(m?'Enviar':'Entendido')+'</button>'+mas+'</div>'
+  :'<p class="dn">Se abre WhatsApp con el mensaje ya escrito. Revísalo y envíalo desde allí.</p></div><div class="hp"><a class="btn pri ancho" id="mOk" target="_blank" rel="noopener" href="https://wa.me/34'+K.tel9(A.cli.tel)+'?text='+encodeURIComponent(txt)+'">Abrir WhatsApp</a>'+mas+'</div>'));
+ $('#mOk',d).onclick=()=>{if(m&&hacer({tipo:'enviado',id:A.id,k}).ok)toast(Oficio.DEMO?'Mensaje enviado (en la demo, solo se apunta).':'Apuntado como enviado.');d.close()};
+ const no=$('#mNo',d),baja=$('#mBaja',d);
+ if(no)no.onclick=()=>{if(hacer({tipo:'descartar',id:A.id,k}).ok)toast('Dejado sin mandar.');d.close()};
+ if(baja)baja.onclick=()=>{if(hacer({tipo:'escribir',tel:A.cli.tel,si:false}).ok)toast('Apuntado: no le mandaremos más mensajes de seguimiento.');d.close()}}
 /* la zona del cliente: el mensaje con su enlace y su código. En la demo, el código de la muestra, y su zona se abre aquí.
    Con servidor, el código lo da el servidor (el que ya tiene, o uno nuevo si se cambia) y el mensaje sale por WhatsApp */
 const ZERR={nadie:'Este teléfono todavía no tiene avisos en el servidor. Espera unos segundos y prueba otra vez.',permiso:'Solo la centralita puede dar el código de la zona del cliente.',tel:'Este aviso todavía no tiene un teléfono que valga.',
@@ -1118,24 +1139,26 @@ function hPrecio(A,ampliar){const av=cfg.av[A.av],urg=ampliar?A.tot.urg:K.tarifa
   else if(b.dataset.add){lin.push({k:b.dataset.add,q:b.dataset.add===HK?minMo:1});p(true)}
   else if('otro'in b.dataset){otro=!otro;p(false);if(otro)$('#oT',d).focus()}
   else if(b.id==='oOk'){const t=$('#oT',d).value.trim(),v=parseFloat($('#oP',d).value.replace(',','.'));if(!t||!(v>0))return toast('Escribe qué es y cuánto cuesta.');lin.push({k:'otro',t,p:Math.round(v*100)/100,q:1});otro=false;p(true)}
-  else if(b.id==='pNo'){d.close();hNoAcepta(A,local)}
+  else if(b.id==='pNo'){d.close();hNoAcepta(A,local,ampliar?null:lin)}
   else if(b.id==='pOk'){const r=ampliar?hacer({tipo:'ampliar',id:A.id,lineas:lin,firma:pad.ruta(),pide}):hacer({tipo:'empezar',id:A.id,pres:{lineas:lin,local,firma:pad.ruta(),pide}});
    if(r.ok){d.close();toast(ampliar?'Ampliación firmada: '+K.eur(r.dif)+' más.':'Presupuesto firmado. Empieza el trabajo.')}}})}
-function hNoAcepta(A,local){let modo='';const T=K.precio(cfg,[{k:N.sinTrabajo,q:1}],{urg:K.tarifaDe(cfg,A),local,gratis:K.gratisDe(A)});
+function hNoAcepta(A,local,lin){let modo='';const pres=Array.isArray(lin)&&lin.length?{pres:{lineas:lin}}:{};const T=K.precio(cfg,[{k:N.sinTrabajo,q:1}],{urg:K.tarifaDe(cfg,A),local,gratis:K.gratisDe(A)});
  if(!T.total){const d=hoja(hc('No acepta el precio')+'<div class="hb"><p>El desplazamiento va en su contrato de mantenimiento: no se cobra nada.</p></div><div class="hp"><button class="btn pri ancho" id="nOk">Cerrar el aviso</button></div>');
-  $('#nOk',d).onclick=()=>{if(hacer({tipo:'noacepta',id:A.id,local}).ok){d.close();toast('Aviso cerrado: va en su contrato, no se cobra nada.')}};return}
+  $('#nOk',d).onclick=()=>{if(hacer(Object.assign({tipo:'noacepta',id:A.id,local},pres)).ok){d.close();toast('Aviso cerrado: va en su contrato, no se cobra nada.')}};return}
  const d=hoja(hc('No acepta el precio')+'<div class="hb"><p>Se cobra solo el desplazamiento.</p><div class="ptot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+'</p><div class="campo"><span class="lb">¿Cómo paga?</span><div id="nM">'+modos(['efectivo','tarjeta','bizum','pendiente'],'')+'</div></div></div><div class="hp"><button class="btn pri ancho" id="nOk" disabled>Cerrar el aviso</button></div>',{papel:1,fijo:1});
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#nOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#nM',d).innerHTML=modos(['efectivo','tarjeta','bizum','pendiente'],modo);$('#nOk',d).disabled=false}
-  else if(hacer({tipo:'noacepta',id:A.id,modo,local}).ok){d.close();toast('Aviso cerrado: solo el desplazamiento.')}})}
-function hCierre(A){let modo='',pad;const T=A.tot;
+  else if(hacer(Object.assign({tipo:'noacepta',id:A.id,modo,local},pres)).ok){d.close();toast('Aviso cerrado: solo el desplazamiento.')}})}
+const mesesTxt=n=>n%12?n+' meses':n===12?'un año':(n/12)+' años';
+function hCierre(A){let modo='',pad;const T=A.tot,vuelve=A.av!==K.REV&&!A.con&&(A.lin||[]).map(l=>cfg.cat[l.k]).find(x=>x&&x.cada)||null;   // con contrato, sus revisiones ya las lleva el contrato
  const d=hoja(hc('Trabajo terminado')+'<div class="hb"><p class="dn">'+A.id+' · '+esc(cfg.av[A.av].n)+' · '+dur(K.minutos(A,Date.now()))+' de trabajo</p><ul class="plin">'+T.lineas.map(l=>'<li><span class="lt">'+esc(l.t)+(lq(l)?'<small>'+lq(l)+'</small>':'')+'</span><span></span><b class="num">'+K.eur(l.imp)+'</b></li>').join('')+'</ul>'+
   '<div class="ptot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+'</p>'+
   (T.total?'<div class="campo"><span class="lb">¿Cómo paga?</span><div id="tM">'+modos(['efectivo','tarjeta','bizum','pendiente'],'')+'</div></div>':'<p class="dn">Va en su contrato de mantenimiento: no hay nada que cobrar.</p>')+
+  (vuelve?'<label class="chk avi" id="tAv"><input type="checkbox" id="tAvi"> <span>Avisarle cuando toque volver: '+esc(vuelve.t.toLowerCase())+', dentro de '+mesesTxt(vuelve.cada)+'<small>Pregúntaselo. Solo si dice que sí.</small></span></label>':'')+
   '<div class="firma"><div class="fh"><span class="lb">Conforme con el trabajo (opcional)</span><button class="txt" id="tB" type="button">Borrar</button></div><canvas id="tF" aria-label="Zona para firmar con el dedo"></canvas></div></div>'+
   '<div class="hp"><button class="btn pri ancho" id="tOk"'+(T.total?' disabled':'')+'>Cerrar el trabajo</button></div>',{papel:1,llena:1,fijo:1});
  pad=Oficio.firma($('#tF',d));$('#tB',d).onclick=()=>pad.borrar();
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#tOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#tM',d).innerHTML=modos(['efectivo','tarjeta','bizum','pendiente'],modo);$('#tOk',d).disabled=false}
-  else if(hacer(Object.assign({tipo:'terminar',id:A.id,firma:pad.vacia()?'':pad.ruta()},T.total?{modo}:{})).ok){d.close();toast(!T.total?'Terminado. Va en su contrato: no se cobra nada.':modo==='pendiente'?'Terminado. Queda por cobrar.':'Terminado y cobrado. Garantía de un año.');location.hash='#/papel/'+A.id+'/parte'}})}
+  else if(hacer(Object.assign({tipo:'terminar',id:A.id,firma:pad.vacia()?'':pad.ruta()},T.total?{modo}:{},vuelve&&$('#tAvi',d).checked?{avisar:true}:{})).ok){d.close();toast(!T.total?'Terminado. Va en su contrato: no se cobra nada.':modo==='pendiente'?'Terminado. Queda por cobrar.':'Terminado y cobrado. Garantía de un año.');location.hash='#/papel/'+A.id+'/parte'}})}
 
 /* ===== los toques ===== */
 const ACC={
@@ -1145,6 +1168,8 @@ const ACC={
  zona:A=>hZona(A),
  msg:(A,b)=>hMsg(A,b.dataset.k),
  mensajes:()=>hMensajes(),
+ seguir:()=>hMensajes(true),
+ escribirSi:A=>{if(hacer({tipo:'escribir',tel:A.cli.tel,si:true}).ok)toast('Vuelve a recibir los mensajes de seguimiento.')},
  completar:A=>hCompletar(A),
  cita:A=>hCita(A),
  cancelar:A=>hCancelar(A),

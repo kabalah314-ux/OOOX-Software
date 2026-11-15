@@ -32,7 +32,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.15k';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.15l';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -66,7 +66,9 @@ function cfgDe(N){const vacio=()=>Object.create(null),limpio=o=>Object.assign(va
  Object.entries(N.catalogo).forEach(([k,i])=>{const p10=i.p10!=null?cts(i.p10):red(cts(i.p21)/1.1),p21=i.p21!=null?cts(i.p21):red(cts(i.p10)*1.1);
   cat[k]={k,t:i.t,p10,p21,u:!!i.u,mat:!!i.mat,extra:!!i.extra,un:i.un||'',min:i.min||1,paso:i.paso||1};
   /* lo que tarda ese servicio, por unidad, y a qué servicio de la base de OOOX corresponde */
-  if(Array.isArray(i.dur)&&i.dur.length===2&&i.dur[0]>0&&i.dur[1]>=i.dur[0])cat[k].dur=[i.dur[0],i.dur[1]];if(typeof i.base==='string')cat[k].base=i.base});
+  if(Array.isArray(i.dur)&&i.dur.length===2&&i.dur[0]>0&&i.dur[1]>=i.dur[0])cat[k].dur=[i.dur[0],i.dur[1]];if(typeof i.base==='string')cat[k].base=i.base;
+  /* «cada»: cada cuántos meses toca volver a hacerlo (una revisión). Con él, el técnico puede apuntar que el cliente quiere que se le avise */
+  if(Number.isInteger(i.cada)&&i.cada>=3&&i.cada<=60)cat[k].cada=i.cada});
  const av=vacio(),tec=vacio(),planes=vacio();N.averias.forEach(a=>{av[a.id]=a});N.tecnicos.forEach(x=>{tec[x.id]=x});
  /* el mantenimiento: sus planes y la revisión, que es un aviso más pero no se pide desde la web */
  const MT=N.mantenimiento;if(MT&&Array.isArray(MT.planes)&&MT.revision){av[REV]=Object.assign({},MT.revision,{id:REV,min:MT.revision.ini,max:null,interna:true});
@@ -319,7 +321,10 @@ function cuantasCaben(S,cfg,Y,guarda){let V=S.avisos,k=0;
  return k}
 /* lo que sobra con citas por tiempo: las citas que no le caben a nadie y las que su técnico ya no llega a tiempo */
 function sobranTiempo(S,cfg,t){const hoy=madrid(t).date,P=['nuevo','asignado','ausente'],out=[];
- [...new Set(S.avisos.filter(a=>a.cita&&a.cita.dia>=hoy&&P.includes(a.e)).map(a=>a.cita.dia))].sort().forEach(dia=>{const R=repartoDia(S,cfg,dia),c={};
+ [...new Set(S.avisos.filter(a=>a.cita&&a.cita.dia>=hoy&&P.includes(a.e)).map(a=>a.cita.dia))].sort().forEach(dia=>{
+  /* una cita en «no había nadie» de un técnico que ese día falta ya no es suya: se mira como si no tuviera técnico */
+  const S1=Object.assign({},S,{avisos:S.avisos.map(a=>a.e==='ausente'&&a.tec&&a.cita&&a.cita.dia===dia&&ausente(S,a.tec,dia)?Object.assign({},a,{tec:''}):a)});
+  const R=repartoDia(S1,cfg,dia),c={};
   const cuenta=id=>{const A=R.S.avisos.find(a=>a.id===id);if(A&&P.includes(A.e))c[A.cita.fr]=(c[A.cita.fr]||0)+1};
   R.fuera.forEach(cuenta);Object.keys(cfg.tec).forEach(tec=>agendaDe(R.S,cfg,tec,dia).forEach(x=>{if(x.tarde)cuenta(x.id)}));
   cfg.franjas.forEach(f=>{if(c[f.id])out.push({dia,fr:f.id,sobran:c[f.id]})})});
@@ -350,23 +355,36 @@ function mensaje(cfg,A,k){const N=cfg.N,n=(A.cli.nombre||'').split(' ')[0],hola=
   case 'hecho':return A.tot?(A.sinTrabajo?hola+'Hoy solo hemos cobrado el desplazamiento: '+tot+'. ':hola+'Trabajo terminado. Total: '+tot+', IVA incluido. ')+(A.pago&&A.pago.cobrado?'Pagado ('+A.pago.modo+'). ':'Queda pendiente de pago. ')+(A.gar?'Tienes garantía hasta el '+fechaCorta(A.gar.hasta)+'. Te adjuntamos el parte. ':'')+N.nombre+'.'
    :hola+'Trabajo terminado. Gracias por confiar en '+N.nombre+'.';
   case 'resena':return hola+'¿Todo bien con la reparación? Si tienes un minuto, tu opinión en Google nos ayuda mucho: '+N.resenas+' Gracias.';
+  case 'seguimiento':return hola+'Hace una semana '+(av?'del arreglo ('+av.n.toLowerCase()+')':'del trabajo')+'. ¿Sigue todo bien? Si algo falla, contesta a este mensaje y volvemos'+(A.gar?': tienes garantía hasta el '+fechaCorta(A.gar.hasta):'')+'.\n\n'
+   +'Si aún no has podido, tu opinión en Google nos ayuda mucho:\n'+N.resenas+'\n\nY si conoces a alguien que nos necesite, puedes pasarle este número.\n\nSi prefieres que no te escribamos para esto, dínoslo. '+N.nombre+'.';
+  case 'presupuesto':if(!A.noPres)return'';return hola+'¿Has podido pensar lo del presupuesto'+(av?' ('+av.n.toLowerCase()+')':'')+'? Eran '+eur(A.noPres.total)+', IVA incluido. Si quieres hacerlo, contesta a este mensaje y te damos cita.\n\nSi prefieres que no te escribamos para esto, dínoslo. '+N.nombre+'.';
+  case 'proxima':{const P=A.prox,it=P&&cfg.cat[P.k];if(!P)return'';return hola+'El '+fechaCorta(P.dia)+' toca '+(it?'la próxima '+it.t.toLowerCase():'volver a pasar')+': la última fue el '+fechaCorta(madrid(A.fin).date)+'. ¿Quieres que vayamos? Contesta con el día que te va bien.\n\nSi prefieres que no te avisemos más, dínoslo. '+N.nombre+'.'}
   case 'cobro':if(!A.tot)return'';return hola+'Te recordamos que queda pendiente el pago del trabajo '+A.id+': '+tot+'. Puedes hacerlo por Bizum o por transferencia. Gracias. '+N.nombre+'.';
  }return''}
-const MSG={recibido:'Aviso recibido',cita:'Cita confirmada',vispera:'Recordatorio de la víspera',camino:'Va de camino',ausente:'No había nadie',hecho:'Trabajo terminado',resena:'Pedir reseña',cobro:'Recordar el pago'};
+const MSG={recibido:'Aviso recibido',cita:'Cita confirmada',vispera:'Recordatorio de la víspera',camino:'Va de camino',ausente:'No había nadie',hecho:'Trabajo terminado',resena:'Pedir reseña',cobro:'Recordar el pago',
+ seguimiento:'Seguimiento a la semana',presupuesto:'Presupuesto sin respuesta',proxima:'Toca volver'};
+/* los mensajes de después del trabajo (el seguimiento): la oficina puede dejarlos sin mandar, caducan («hasta») y no van a quien dijo que no.
+   Con «resena» y «seguimiento» son dos como mucho, dentro de los 30 días en que la reseña aún vale */
+const SEGUIR=['resena','seguimiento','presupuesto','proxima'],DIA=1440*MIN;
+/* quien dijo que no quiere estos mensajes: se apunta en todos sus avisos (por el teléfono) */
+const noEscribe=(S,tel)=>{const t9=tel9(tel);return!!t9&&S.avisos.some(x=>x.noMsg&&x.cli&&x.cli.tel===t9)};
+/* los mensajes que ya toca mandar: ni los mandados, ni los dejados, ni los caducados, ni los de seguimiento a quien dijo que no */
+function porMandar(S,ahora){const no=new Set(S.avisos.filter(x=>x.noMsg&&x.cli&&x.cli.tel).map(x=>x.cli.tel));
+ return[].concat(...S.avisos.filter(a=>a.e!=='cancelado'&&Array.isArray(a.msgs)).map(a=>a.msgs.filter(m=>!m.env&&m.t<=ahora&&!(m.hasta&&m.hasta<ahora)&&!(SEGUIR.includes(m.k)&&(a.noMsg||no.has(a.cli&&a.cli.tel)))).map(m=>({a,m})))).sort((x,y)=>x.m.t-y.m.t)}
 
 /* ---------- el tiempo de trabajo, sin las pausas ---------- */
 function minutos(A,t){if(!A.ini)return 0;const fin=A.fin||t||Date.now();let ms=fin-A.ini;(A.pausas||[]).forEach(p=>{ms-=(p[1]||fin)-p[0]});return Math.max(0,Math.round(ms/MIN))}
 const enPausa=A=>!!(A.pausas&&A.pausas.length&&!A.pausas[A.pausas.length-1][1]);
 
 /* ---------- las acciones ---------- */
-const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato'].concat(CON_ACC);
+const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato','escribir'].concat(CON_ACC);
 function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  const R=err=>({ok:false,err});
  const A=typeof a.id==='string'?S.avisos.find(x=>x.id===a.id):null;
  const esC=q.rol==='centralita',esT=q.rol==='tecnico'&&typeof q.id==='string'&&!!cfg.tec[q.id],mio=!!A&&esT&&A.tec===q.id;
  const nom=q.rol==='cliente'?'Cliente':esT?cfg.tec[q.id].n:esC?'Centralita':'Web';
  const log=(X,txt)=>{X.h.push({t,q:nom,txt});X.v=(X.v||0)+1};
- const msg=(X,k,cuando)=>{X.msgs=X.msgs.filter(m=>m.k!==k||m.env);X.msgs.push({k,t:cuando||t,env:0})};
+ const msg=(X,k,cuando,hasta)=>{if(SEGUIR.includes(k)&&(X.noMsg||noEscribe(S,X.cli.tel)))return;X.msgs=X.msgs.filter(m=>m.k!==k||m.env);const m={k,t:cuando||t,env:0};if(hasta)m.hasta=hasta;X.msgs.push(m)};
  const sinMsg=(X,ks)=>{X.msgs=X.msgs.filter(m=>m.env||!ks.includes(m.k))};
  const ok=r=>{S.v++;return Object.assign({ok:true},r)};
  const datosCli=(c0,parcial)=>{const c1=c0&&typeof c0==='object'?c0:{},nombre=txt(c1.nombre).trim().replace(/\s+/g,' ').slice(0,60),apellidos=txt(c1.apellidos).trim().replace(/\s+/g,' ').slice(0,80),tel=tel9(c1.tel),dir=txt(c1.dir).trim().replace(/\s+/g,' ').slice(0,120),cp=soloNum(c1.cp).slice(0,5);
@@ -398,6 +416,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   const X={id,n,v:0,t,origen:a.origen==null?'cita':ORIGEN.includes(a.origen)?a.origen:'otro',av:a.av,nota:txt(a.nota).trim().slice(0,400),foto:typeof a.foto==='string'&&a.foto.length<140000?a.foto:'',cli:d.cli,cita,urg:!cita,e:'nuevo',tec:'',msgs:[],h:[]};if(vale)X.vale=vale;
   const g0=garantiaDe(S,cfg,X.cli,t);if(g0.length)X.gar0=g0[g0.length-1];
   const c0=conDe(S,cfg,X,t);if(c0)X.con=c0;
+  if(noEscribe(S,X.cli.tel))X.noMsg=t;   // quien dijo que no quiere mensajes de seguimiento, lo sigue diciendo en su aviso nuevo
   S.avisos.push(X);log(X,(cita?'Cita pedida'+porOf(cita):'Aviso recibido')+(c0?'. Cliente con contrato de mantenimiento ('+c0.id+')':''));
   if(X.cli.tel)msg(X,'recibido');
   return ok({id})}
@@ -408,6 +427,8 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   const antes=A.cli.tel;A.cli=d.cli;const g0=garantiaDe(S,cfg,A.cli,t,A.id);if(g0.length)A.gar0=g0[g0.length-1];else delete A.gar0;
   /* el contrato lo vuelve a mirar la oficina, que es quien tiene la lista: el técnico no la tiene y lo quitaría sin querer */
   if(esC&&!A.pres&&!A.tot){const c1=conDe(S,cfg,A,t);if(c1)A.con=c1;else delete A.con}
+  /* si el teléfono nuevo es de alguien que no quiere mensajes de seguimiento, este aviso tampoco los lleva */
+  if(A.cli.tel!==antes&&noEscribe(S,A.cli.tel)){A.noMsg=A.noMsg||t;A.msgs=A.msgs.filter(m=>m.env||!SEGUIR.includes(m.k))}
   if(!antes)msg(A,'recibido');log(A,'Datos del cliente completados');return ok()}
 
  case 'asignar':{
@@ -465,6 +486,8 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   if(pr.total&&!PAGOS.includes(a.modo))return R('modo');
   A.tot=pr;A.lin=[{k:cfg.N.sinTrabajo,q:1}];A.local=!!a.local;A.sinTrabajo=true;A.e='hecho';A.fin=t;if(!A.sal)A.sal=t;delete A.pos;delete A.posNo;
   A.pago=pr.total?{modo:a.modo,t,cobrado:a.modo!=='pendiente'}:{modo:'',t,cobrado:true};sinMsg(A,['camino','recibido','cita','vispera']);msg(A,'hecho');if(!A.pago.cobrado)msg(A,'cobro',t+3*1440*MIN);
+  {const p=a.pres&&typeof a.pres==='object'?a.pres:null,pq=p&&Array.isArray(p.lineas)?precio(cfg,p.lineas,{urg:tarifaDe(cfg,A),local:!!a.local,gratis:gratisDe(A)}):null;
+   if(pq&&pq.lineas.length&&pq.total>0){A.noPres={t,total:pq.total,lin:pq.lineas.map(l=>l.k==='otro'?{k:'otro',t:l.t,p:l.p,q:1}:{k:l.k,q:l.q})};msg(A,'presupuesto',t+3*DIA,t+14*DIA)}}
   log(A,'No acepta el precio. '+(pr.total?'Solo el desplazamiento: '+eur(pr.total):'El desplazamiento va en su contrato: no se cobra nada'));return ok()}
 
  case 'ampliar':{
@@ -513,7 +536,11 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   A.e='hecho';A.fin=t;A.min=minutos(A,t);
   A.gar={hasta:masMeses(madrid(t).date,cfg.meses)};
   A.pago=A.tot.total?{modo:a.modo,t,cobrado:a.modo!=='pendiente'}:{modo:'',t,cobrado:true};if(typeof a.firma==='string'&&a.firma.length>=12)A.conf={t,firma:a.firma};
-  msg(A,'hecho');msg(A,'resena',t+120*MIN);if(!A.pago.cobrado)msg(A,'cobro',t+3*1440*MIN);
+  msg(A,'hecho');msg(A,'resena',t+120*MIN,t+7*DIA);msg(A,'seguimiento',t+7*DIA,t+25*DIA);if(!A.pago.cobrado)msg(A,'cobro',t+3*1440*MIN);
+  /* «avisar»: el cliente ha dicho que sí a que se le avise cuando toque volver (un servicio con «cada»). El mensaje sale un mes antes y caduca un mes después.
+     Con contrato no: sus revisiones ya las lleva el contrato */
+  {const k=a.avisar===true&&A.av!==REV&&!A.con&&A.lin.map(l=>l.k).find(x=>cfg.cat[x]&&cfg.cat[x].cada);if(k){const dia=masMeses(madrid(t).date,cfg.cat[k].cada);A.prox={k,dia,t};
+   msg(A,'proxima',Date.parse(masDias(dia,-30)+'T09:00:00Z'),Date.parse(masDias(dia,30)+'T19:00:00Z'))}}
   log(A,'Terminado. '+eur(A.tot.total)+(!A.tot.total?', sin nada que cobrar':A.pago.cobrado?', cobrado ('+a.modo+')':', pendiente de pago'));return ok()}
 
  case 'cobrar':{
@@ -546,7 +573,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   S.contratos.push(X);logC(X,'Alta: '+P.n+', '+eur(P.precio)+' al año'+(X.per[0].pago.cobrado?', cobrado ('+a.modo+')':'')+(Av?', en el aviso '+Av.id:''));
   if(Av)log(Av,'Contrato de mantenimiento '+id+' dado de alta'+(X.per[0].pago.cobrado?', cuota cobrada ('+a.modo+')':''));
   /* los avisos abiertos de ese cliente que aún no tienen precio pasan a llevar el contrato */
-  S.avisos.forEach(x=>{if(['nuevo','asignado','camino','ausente'].includes(x.e)&&!x.pres&&!x.tot){const c=conDe(S,cfg,x,t);if(c&&(!x.con||x.con.id!==c.id)){x.con=c;log(x,'Ahora con el contrato de mantenimiento '+id)}}});
+  S.avisos.forEach(x=>{if(x.cli&&x.cli.tel===d.cli.tel&&['nuevo','asignado','camino','ausente'].includes(x.e)&&!x.pres&&!x.tot){const c=conDe(S,cfg,x,t);if(c&&(!x.con||x.con.id!==c.id)){x.con=c;log(x,'Ahora con el contrato de mantenimiento '+id)}}});
   return ok({id})}
  case 'cobroContrato':{
   if(!esC)return R('permiso');if(!C)return R('contrato');const p=C.per[C.per.length-1];
@@ -585,6 +612,19 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  case 'enviado':{
   if(!esC&&!mio)return R('permiso');const m=A.msgs.find(x=>x.k===a.k&&!x.env);if(!m)return R('mensaje');
   m.env=t;A.v++;return ok()}
+
+ /* la oficina deja un mensaje sin mandar: no hace falta (el cliente ya lo sabe, ya ha dejado la reseña...) */
+ case 'descartar':{
+  if(!esC)return R('permiso');const m=A.msgs.find(x=>x.k===a.k&&!x.env);if(!m)return R('mensaje');
+  m.env=t;m.no=1;A.v++;return ok()}
+
+ /* el cliente no quiere mensajes de seguimiento (o vuelve a quererlos). Va por su teléfono, en todos sus avisos */
+ case 'escribir':{
+  if(!esC)return R('permiso');if(typeof a.si!=='boolean')return R('si');const t9=tel9(a.tel),L=t9?S.avisos.filter(x=>x.cli&&x.cli.tel===t9):[];if(!L.length)return R('tel');
+  const ult=L.reduce((x,y)=>y.t>x.t?y:x);
+  if(a.si){if(!L.some(x=>x.noMsg))return R('estado');L.forEach(x=>{if(x.noMsg){delete x.noMsg;x.v=(x.v||0)+1}});log(ult,'Vuelve a querer los mensajes de seguimiento')}
+  else{if(L.every(x=>x.noMsg))return R('estado');L.forEach(x=>{x.noMsg=t;x.msgs=x.msgs.filter(m=>m.env||!SEGUIR.includes(m.k));x.v=(x.v||0)+1});log(ult,'No quiere mensajes de seguimiento')}
+  return ok()}
 
  }
  return R('accion')}
@@ -696,5 +736,5 @@ function material(S,cfg,dia){const out=Object.create(null);
 function textoMaterial(cfg,g,dia){if(!g||!g.cosas||!g.cosas.length)return'';
  return'Material '+(dia?'para el '+fechaLarga(dia):'de los avisos sin día')+(g.n?', '+g.n:', sin técnico')+':\n'+g.cosas.map(c=>'- '+c.q+' × '+c.t+' ('+c.av.join(', ')+')').join('\n')+'\n'+cfg.N.nombre}
 
-g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

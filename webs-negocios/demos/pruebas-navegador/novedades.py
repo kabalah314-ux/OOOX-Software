@@ -250,6 +250,34 @@ async def main():
         fu = await c.locator(f'a[href="#/aviso/{ru.get("id")}"]').first.inner_text()
         es(('antes llega' in fu.lower()) == hay, 'en la bandeja, cada urgencia sin repartir dice quién llegaría antes y en cuánto (si ahora hay alguien)')
 
+        # ---------- 11. el seguimiento (15-11-2026, noche): el técnico apunta si el cliente quiere que le avisen cuando toque volver,
+        # y el presupuesto que no se acepta queda guardado para preguntar por él a los tres días ----------
+        LIBRE = """(()=>{const S=Oficio.estado(),T=Object.keys(OficioNucleo.cfgDe(OFICIO_NEGOCIO).tec),C={rol:'centralita',id:'oficina'};
+          let t=T.find(x=>!S.avisos.some(a=>a.tec===x&&(a.e==='camino'||a.e==='curso')));
+          if(!t){t=T[0];const A=S.avisos.find(a=>a.tec===t&&(a.e==='camino'||a.e==='curso'));if(A.e==='camino')Oficio.hacer({tipo:'ausente',id:A.id},{rol:'tecnico',id:t});else Oficio.hacer({tipo:'terminar',id:A.id,modo:'tarjeta'},{rol:'tecnico',id:t})}
+          return t})()"""
+        def nuevo_aviso(tel, av):
+            return f"""(()=>{{const C={{rol:'centralita',id:'oficina'}},r=Oficio.hacer({{tipo:'pedir',av:'{av}',origen:'llamada',cli:{{nombre:'Seguimiento',apellidos:'Prueba',tel:'{tel}',dir:'C/ Seguimiento 11',cp:'{cp1}'}}}},C);if(!r.ok)return r;return r}})()"""
+        st = await c.evaluate(LIBRE); ra = await c.evaluate(nuevo_aviso('611000051', 'otra')); sid = ra.get('id')
+        r1 = await c.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{sid}',tec:'{st}'}},{{rol:'centralita',id:'oficina'}})")
+        r2 = await c.evaluate(f"Oficio.hacer({{tipo:'voy',id:'{sid}'}},{{rol:'tecnico',id:'{st}'}})")
+        r3 = await c.evaluate(f"Oficio.hacer({{tipo:'empezar',id:'{sid}',pres:{{lineas:[{{k:'desp'}},{{k:'revinst'}}],firma:'M10 10L60 40L110 12L160 44',pide:true}}}},{{rol:'tecnico',id:'{st}'}})")
+        es(r1.get('ok') and r2.get('ok') and r3.get('ok'), f'una revisión de la instalación, en marcha ({r1} {r2} {r3})')
+        await c.goto(B + f'app.html?papel=tecnico&tec={st}#/aviso/{sid}'); await c.wait_for_selector('[data-a="terminar"]')
+        await c.click('[data-a="terminar"]'); await c.wait_for_selector('#tAv')
+        ta = await texto(c, '#tAv')
+        es('Avisarle cuando toque volver' in ta and 'revisión de la instalación' in ta and 'un año' in ta and not await c.locator('#tAvi').is_checked(), 'al cerrar una revisión, el técnico puede apuntar que el cliente quiere que le avisen cuando toque (sin marcar)')
+        await c.check('#tAvi'); await c.click('dialog.hoja [data-modo="tarjeta"]'); await c.click('#tOk'); await c.wait_for_timeout(300)
+        pr = await c.evaluate(f"(()=>{{const A=Oficio.estado().avisos.find(a=>a.id==='{sid}');return {{e:A.e,k:A.prox&&A.prox.k,m:A.msgs.some(m=>m.k==='proxima'),s:A.msgs.some(m=>m.k==='seguimiento')}}}})()")
+        es(pr['e'] == 'hecho' and pr['k'] == 'revinst' and pr['m'] and pr['s'], f'con la casilla, queda apuntado cuándo toca volver y su aviso, además del seguimiento ({pr})')
+        st = await c.evaluate(LIBRE); rb = await c.evaluate(nuevo_aviso('611000052', 'grifo')); nid = rb.get('id')
+        await c.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{nid}',tec:'{st}'}},{{rol:'centralita',id:'oficina'}})"); await c.evaluate(f"Oficio.hacer({{tipo:'voy',id:'{nid}'}},{{rol:'tecnico',id:'{st}'}})")
+        await c.goto(B + f'app.html?papel=tecnico&tec={st}#/aviso/{nid}'); await c.wait_for_selector('[data-a="empezar"]')
+        await c.click('[data-a="empezar"]'); await c.wait_for_selector('#pNo'); await c.click('#pNo')
+        await c.wait_for_selector('dialog.hoja [data-modo="efectivo"]'); await c.click('dialog.hoja [data-modo="efectivo"]'); await c.click('#nOk'); await c.wait_for_timeout(300)
+        nb = await c.evaluate(f"(()=>{{const A=Oficio.estado().avisos.find(a=>a.id==='{nid}');return {{e:A.e,st:A.sinTrabajo,tot:A.noPres&&A.noPres.total,n:A.noPres&&A.noPres.lin.length,m:A.msgs.some(m=>m.k==='presupuesto')}}}})()")
+        es(nb['e'] == 'hecho' and nb['st'] and (nb['tot'] or 0) > 0 and (nb['n'] or 0) >= 1 and nb['m'], f'si no acepta el precio, el presupuesto que vio queda guardado y su mensaje sale a los tres días ({nb})')
+
         es(not errores, 'sin errores en la consola ni archivos que falten: ' + '; '.join(errores[:4]))
         await br.close()
     webkit_linux.resumen_rarezas()

@@ -221,6 +221,9 @@ export function valida(N, K, hoy) {
     if (it.mat && it.u) A(cual + ': es material y además lleva recargo de urgencia. ¿Seguro?');
     // lo que tarda el servicio y a cuál de la base corresponde (15-11-2026)
     if (it.dur !== undefined && !(Array.isArray(it.dur) && it.dur.length === 2 && it.dur.every(esEntero) && it.dur[0] >= 1 && it.dur[0] <= it.dur[1] && it.dur[1] <= 600)) E(cual + '.dur: lo que tarda, [normal, máximo] en minutos por unidad (entre 1 y 600), por ejemplo [30, 60].');
+    // cada cuántos meses toca volver (una revisión): con eso el técnico puede apuntar que el cliente quiere que se le avise (15-11-2026)
+    if (it.cada !== undefined && !(esEntero(it.cada) && it.cada >= 3 && it.cada <= 60)) E(cual + '.cada: cada cuántos meses toca volver, un número entero de 3 a 60 (12 = cada año).');
+    if (it.cada !== undefined && it.mat) A(cual + '.cada: es material; lo normal es poner «cada» en el servicio que se repite (una revisión).');
     if (it.base !== undefined) {
       const b = typeof it.base === 'string' ? BASE[it.base] : null;
       if (!b) E(cual + '.base: «' + it.base + '» no está en la base de servicios de OOOX (webs-negocios/oficios-base/servicios.mjs).');

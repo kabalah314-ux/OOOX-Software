@@ -53,7 +53,7 @@ g.OFICIO_NEGOCIO={
   resistencia:{t:'Resistencia',p10:38,mat:1},
   grifon:{t:'Grifo monomando',p10:35,mat:1},
   termo80:{t:'Termo eléctrico de 80 litros, instalado',p21:390,mat:1,extra:1,base:'fon-termo',dur:[90,180]},
-  revinst:{t:'Revisión de la instalación',p10:45,base:'fon-revision',dur:[40,75]}},
+  revinst:{t:'Revisión de la instalación',p10:45,base:'fon-revision',dur:[40,75],cada:12}},
  /* las averías: min y max dan el «de cuánto a cuánto» de la web; ini es el presupuesto que sale ya puesto en la puerta */
  averias:[
   {id:'fuga',n:'Fuga de agua',c:'Fuga',d:'Tubería, llave de paso o latiguillo.',min:[{k:'desp'},{k:'mo',q:1}],max:[{k:'desp'},{k:'mo',q:2},{k:'juntas'},{k:'sellador'}],dur:[45,120],ini:[{k:'desp'},{k:'mo',q:1},{k:'juntas'}],chips:['sellador','latig','llave','tubo']},
@@ -115,6 +115,9 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora,info){
  const el=id=>S.avisos.find(a=>a.id===id);
  /* después del trabajo: el que paga después, la factura y, a veces, el contrato */
  let nf=412;const despues=(id,tec,tf)=>{const A=el(id);if(!A||A.e!=='hecho')return;
+  /* el primer cliente de hace tres semanas contesta al seguimiento que no quiere más mensajes de esos: la oficina lo apunta */
+  if(!A.sinTrabajo&&!S._baja){const df=K.madrid(tf).date;if(df>=sig(hoy,-24)&&df<=sig(hoy,-18)){S._baja=1;const tb=tf+7*1440*M+3*60*M;
+   tareas.push([tb,()=>{const B=el(id);if(!B)return;const m=(B.msgs||[]).find(x=>x.k==='seguimiento'&&!x.env);if(m)m.env=tb-170*M;haz({tipo:'escribir',tel:B.cli.tel,si:false},C,tb)}])}}
   if(A.pago&&!A.pago.cobrado){const dc=entre(1,6),tc=at(sig(K.madrid(tf).date,dc),entre(600,1080));if(az()<.85)tareas.push([tc,()=>haz({tipo:'cobrar',id,modo:elige(['bizum','transferencia','tarjeta'])},C,tc)])}
   if(A.tot&&A.tot.total){const tq=at(sig(K.madrid(tf).date,entre(1,4)),entre(570,660));tareas.push([tq,()=>{{const df=K.madrid(tf).date;if(df>=sig(hoy,-12)&&df<=sig(hoy,-8)&&!S._dejada){S._dejada=1;return}}haz({tipo:'facturar',id,num:'2026-'+String(++nf).padStart(4,'0')},C,tq)}])}
   if(!A.sinTrabajo&&az()<(A.cita?.03:.04)){const c=A.cli;if(!(S.contratos||[]).some(x=>x.e==='activo'&&x.cli.tel===c.tel))
@@ -124,7 +127,7 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora,info){
   if(!haz({tipo:'voy',id},T(tec),tv))return;
   const r=az();if(!urg&&r<.035){if(haz({tipo:'ausente',id},T(tec),tl+5*M))(el(id).msgs||[]).forEach(m=>{if(m.k==='ausente'&&!m.env)m.env=tl+7*M});const tm=at(sig(d,1),entre(600,700));tareas.push([tm,()=>{const B=el(id);if(!B||B.e!=='ausente')return;
     let dd=sigLab(K.madrid(tm).date,1);for(let k=0;k<6;k++,dd=sigLab(dd,1)){const f=K.franjasDe(S,cfg,dd,tm,id,B).filter(x=>x.okOf);if(f.length){haz({tipo:'mover',id,cita:{dia:dd,fr:elige(f).id},confirmado:true},C,tm);return}}}]);return}
-  if(!urg&&r<.075){haz({tipo:'noacepta',id,modo:elige(['tarjeta','efectivo','bizum'])},T(tec),tl+12*M);despues(id,tec,tl+12*M);return}
+  if(!urg&&r<.075){haz({tipo:'noacepta',id,modo:elige(['tarjeta','efectivo','bizum']),pres:{lineas:datosAv(A.av).ini}},T(tec),tl+12*M);despues(id,tec,tl+12*M);return}
   const te=tl+3*M;if(!haz({tipo:'empezar',id,pres:{lineas:lineas(A.av,urg),firma:FIRMA,pide:true}},T(tec),te))return;
   const B=el(id),dur=tiempo(B,Math.max(20,tope-l-4));
   if(az()<.05){const ta=te+Math.round(dur/3)*M;haz({tipo:'ampliar',id,lineas:[{k:elige(['latig','llave','sifon','tubo'])}],firma:FIRMA,pide:true},T(tec),ta)}
@@ -184,6 +187,10 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora,info){
   if(pr[0])haz({tipo:'falta',id:pr[0].id,k:'latig'},C,ahora-20*M);
   if(n.min>=1110)reparte(sigLab(hoy,1),Math.min(ahora-5*M,at(hoy,1110)))}
  /* los mensajes ya mandados: todos los de hace más de media hora */
- S.avisos.forEach(A=>(A.msgs||[]).forEach(m=>{if(!m.env&&m.t<ahora-30*M)m.env=m.t+M}));
- delete S._dejada;S.v=1;if(info){info.fallos=fallos;info.cuenta=cuenta}return S};
+ /* el seguimiento (reseña, a la semana, presupuesto): el de hoy, por mandar; el de antes, mandado, y alguno dejado porque no hacía falta */
+ const hoy0=at(hoy,0);
+ S.avisos.forEach(A=>(A.msgs||[]).forEach(m=>{if(m.env||m.t>=ahora-30*M)return;
+  if(K.SEGUIR.includes(m.k)){if(m.t>=hoy0)return;m.env=m.t+(m.k==='resena'?20:95)*M;if(A.n%6===0)m.no=1;return}
+  m.env=m.t+M}));
+ delete S._dejada;delete S._baja;S.v=1;if(info){info.fallos=fallos;info.cuenta=cuenta}return S};
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -78,6 +78,9 @@ const ROTOS = [
   ['el permiso de la foto con un sí escrito', N => { N.tecnicos[0].foto = 'assets/tec/jordi.jpg'; N.tecnicos[0].fotoOk = 'sí' }],
   // lo que tarda cada servicio y su servicio de la base (15-11-2026)
   ['lo que tarda un servicio al revés', N => { N.catalogo.grifo.dur = [60, 30] }],
+  ['cada cuántos meses toca volver, con decimales', N => { N.catalogo.revinst.cada = 12.5 }],
+  ['cada cuántos meses toca volver, demasiado seguido', N => { N.catalogo.revinst.cada = 1 }],
+  ['cada cuántos meses toca volver, escrito como texto', N => { N.catalogo.revinst.cada = '12' }],
   ['lo que tarda un servicio en horas y no en minutos', N => { N.catalogo.grifo.dur = [0.5, 1] }],
   ['un servicio de la base que no existe', N => { N.catalogo.grifo.base = 'fon-no-existe' }],
   ['lo que tarda una avería con un solo número', N => { N.averias[0].dur = [45] }],

@@ -45,6 +45,7 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | F18. Sin cobertura | El técnico sigue trabajando y se envía al volver la señal |
 | F19. Datos malos | Teléfono mal, código postal fuera de zona, texto raro, foto grande |
 | F20. Permisos | El técnico no ve las cifras; el cliente solo ve lo suyo |
+| F21. Después del trabajo | La reseña a las dos horas, el seguimiento a la semana, el presupuesto sin respuesta a los tres días y, si el cliente dijo que sí, el aviso cuando toque volver; alguno no hace falta, y un cliente dice que no quiere más |
 
 ## La lista
 
@@ -113,6 +114,13 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | U58 | F13 | La reserva el día que falta alguien (M8) | En la demo, el dueño ha elegido no guardar a nadie esos días: el día que falta Laia, el cliente puede pedir cita | R | Bien |
 | U59 | F4 | La visita sin nadie, en el tablero (M3) | Ese rato sale rayado en el día de quien fue, con «no había nadie» | P | Bien |
 | U60 | F4 | El mensaje que se iba a perder (M4) | Antes de dar otra cita, avisa de que «No había nadie» aún no se ha mandado, y deja mandarlo antes | P | Bien |
+| U61 | F21 | El seguimiento por mandar | Es el de hoy, sin caducados, y en un día de trabajo hay alguno | R | Bien |
+| U62 | F21 | El cliente que no quiere estos mensajes | No tiene ninguno de seguimiento por mandar, y está apuntado en todos sus avisos | R | Bien |
+| U63 | F21 | El presupuesto no aceptado | Queda guardado con su total y su mensaje sale a los tres días | R | Bien |
+| U64 | F21 | Cada trabajo, su seguimiento | Cada trabajo hecho lleva el suyo (salvo quien no los quiere), y los que no hacían falta quedan dejados | R | Bien |
+| U65 | F21 | El seguimiento en la bandeja | En «Por hacer» sale «N clientes para el seguimiento», y su hoja tiene una fila por cliente | P | Bien |
+| U66 | F21 | Dejarlo sin mandar | Cada mensaje dice cómo dejar de recibirlos; «No hace falta mandarlo» lo deja apuntado y ya no sale | P | Bien |
+| U67 | F21 | «No quiere estos mensajes» | Se apunta en todos sus avisos, ya no le sale ninguno, se ve en su ficha y «Volver a escribirle» lo quita | P | Bien |
 
 ## Lo que se ha visto y las mejoras
 
@@ -137,16 +145,28 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
    lo mismo: decía «Laia, libre» mientras la línea de la urgencia, bien, no la proponía. Ahora quien falta hoy sale
    «hoy no está» y quien no trabaja a esa hora y no hace guardias, «fuera de horario», con el borde de puntos. Con una
    prueba nueva (U57), que falla con la tira de antes.
+7. **Un contrato nuevo cambiaba avisos de otros clientes.** Al dar de alta un contrato, la app volvía a mirar el
+   contrato de todos los avisos abiertos, no solo los de ese cliente. Si antes un técnico había corregido el teléfono
+   de un aviso al de un cliente con contrato, ese aviso se cambiaba con el alta de otro. Ahora solo se tocan los avisos
+   del cliente del contrato. Lo encontraron los recorridos al azar al probar el seguimiento (15-11, noche).
+8. **Corregir el teléfono de un aviso y los mensajes de seguimiento.** Si el teléfono nuevo era de alguien que no
+   quiere estos mensajes, el aviso los seguía llevando. Ahora tampoco los lleva, y a un número que pasa a ser de
+   alguien que dijo que no, no le sale ninguno. Mejor uno de menos que uno a quien dijo que no. También de los
+   recorridos al azar.
+9. **Lo que sobra, con una cita en «no había nadie» de un técnico que ese día falta (citas por tiempo).** La cita
+   se quedaba con su técnico y no salía en «sobran» aunque ese día no trabajara nadie más. Ahora, al mirar lo que
+   sobra, esa cita cuenta como sin técnico: si otro puede ir, no sobra; si no, la oficina lo ve. Venía de antes; lo
+   encontraron los recorridos al azar de la copia de Voltio.
 
 ### Fallos de las pruebas, ya arreglados
 
-7. Dos leyes de los recorridos al azar daban por hecho que la reserva para urgencias cuenta citas. Con citas por
+10. Dos leyes de los recorridos al azar daban por hecho que la reserva para urgencias cuenta citas. Con citas por
    tiempo se guardan técnicos enteros. Ahora cada ley mira lo suyo.
-8. La prueba de la zona del cliente en las copias daba por hecho que una copia sin servidor no tiene zona. La copia
+11. La prueba de la zona del cliente en las copias daba por hecho que una copia sin servidor no tiene zona. La copia
    «en uso» trae su muestra y funciona como la demo: ahora se prueba como la demo.
-9. El generador del negocio dejaba el mensaje «No había nadie» sin mandar, y al dar otra cita la app lo quitaba (a
+12. El generador del negocio dejaba el mensaje «No había nadie» sin mandar, y al dar otra cita la app lo quitaba (a
    propósito: lo sustituye el de la cita nueva). Ahora se manda al momento, como haría la oficina.
-10. La prueba de pedir cita daba por hecho que mañana siempre hay hueco para el cliente. Mañana falta Laia y se guarda
+13. La prueba de pedir cita daba por hecho que mañana siempre hay hueco para el cliente. Mañana falta Laia y se guarda
     un técnico para urgencias, así que el cliente no ve ninguna franja (la oficina sí). Ahora busca el primer día con
     hueco. Ver la mejora M8.
 

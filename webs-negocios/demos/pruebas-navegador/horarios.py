@@ -201,7 +201,7 @@ async def main():
         es(len(so) == 1 and so[0]['fr'] == U and any('Sobra 1 cita' in x and 'no hay técnicos para todas' in x for x in al), 'avisos de arriba: con uno menos ya no hay técnicos para las dos de esa franja: «Sobra 1 cita»')
         es(await c.get_attribute('.alertas li a[href^="#/equipo/"]', 'href') == f'#/equipo/{D1}', 'avisos de arriba: el de «sobra» lleva al día en cuestión')
         await ir(c, '#/bandeja', '.alertas')
-        alB = [x for x in await c.locator('.alertas li').all_inner_texts() if 'mensaje' not in x]   # en la bandeja, además, los mensajes por mandar
+        alB = [x for x in await c.locator('.alertas li').all_inner_texts() if 'mensaje' not in x and 'seguimiento' not in x]   # en la bandeja, además, los mensajes por mandar y el seguimiento
         es(len(alB) == len(al) and 'Reasignar' in await texto(c, '#bResto'), f'bandeja: los mismos avisos del reparto en «por hacer», y el aviso suelto lleva la etiqueta «Reasignar» ({len(alB)} y {len(al)})')
         suelto = await c.evaluate("Oficio.estado().avisos.find(a=>a.reasignar).id")
         await c.click('.alertas li a[href^="#/aviso/"]'); await c.wait_for_selector('.tec')
@@ -245,7 +245,7 @@ async def main():
         await ir(c, f'#/aviso/{suelto}', '.tec'); await c.click(f'.tec[data-tec="{X}"]')
         es(await toast(c, 'Asignado') and await c.evaluate(f"!Oficio.estado().avisos.some(a=>a.reasignar)"), 'ausencia: y ya se le puede volver a asignar; no queda nada por reasignar')
         await ir(c, '#/bandeja', '.cab')
-        es(all('mensaje' in x for x in await c.locator('.alertas li').all_inner_texts()), 'bandeja: sin nada pendiente del reparto, en «por hacer» como mucho quedan los mensajes por mandar')
+        es(all('mensaje' in x or 'seguimiento' in x for x in await c.locator('.alertas li').all_inner_texts()), 'bandeja: sin nada pendiente del reparto, en «por hacer» como mucho quedan los mensajes por mandar y el seguimiento')
 
         # ---------- 8. el técnico no ve «Equipo»; anchos; ordenador ----------
         t = await ctx.new_page(); vigila(t, 'técnico'); await t.goto(B + f'app.html?papel=tecnico&tec={tecs[0]}#/equipo/{D1}'); await t.wait_for_selector('#nav a')

@@ -53,7 +53,7 @@ g.OFICIO_NEGOCIO={
   resistencia:{t:'Resistencia',p10:38,mat:1},
   grifon:{t:'Grifo monomando',p10:35,mat:1},
   termo80:{t:'Termo eléctrico de 80 litros, instalado',p21:390,mat:1,extra:1,base:'fon-termo',dur:[90,180]},
-  revinst:{t:'Revisión de la instalación',p10:45,base:'fon-revision',dur:[40,75]}},
+  revinst:{t:'Revisión de la instalación',p10:45,base:'fon-revision',dur:[40,75],cada:12}},
  /* las averías: min y max dan el «de cuánto a cuánto» de la web; ini es el presupuesto que sale ya puesto en la puerta */
  averias:[
   {id:'fuga',n:'Fuga de agua',c:'Fuga',d:'Tubería, llave de paso o latiguillo.',min:[{k:'desp'},{k:'mo',q:1}],max:[{k:'desp'},{k:'mo',q:2},{k:'juntas'},{k:'sellador'}],dur:[45,120],ini:[{k:'desp'},{k:'mo',q:1},{k:'juntas'}],chips:['sellador','latig','llave','tubo']},
@@ -83,10 +83,27 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora){
   S.avisos.find(a=>a.id===id).msgs.forEach(m=>{if(m.k==='hecho'||m.k==='recibido'||m.k==='camino'||(m.k==='resena'&&m.t<ahora))m.env=m.t});return id};
  const elvira={nombre:'Elvira',apellidos:'Casas',tel:'600 00 01 12',dir:'C/ Aragó 214, 4.º 2.ª',cp:'08011'};
 
+ /* hace once meses: la revisión de la instalación de Jaume. Dijo que sí a que le avisemos cuando toque la siguiente:
+ el mensaje ya toca mandarlo (sale un mes antes) */
+ S.n=84;
+ {const t=ahora-337*D,id=pide(t,'otra',{nombre:'Jaume',apellidos:'Ferrer',tel:'600 00 01 05',dir:'C/ de Provença 180, 1.º 1.ª',cp:'08036'},{origen:'llamada',nota:'Quiero que me revisen toda la instalación del piso.'});
+  haz({tipo:'asignar',id,tec:'omar'},C,t+4*M);haz({tipo:'voy',id},T('omar'),t+9*M);haz({tipo:'empezar',id,pres:{lineas:[{k:'desp'},{k:'revinst'}],firma:FIRMA}},T('omar'),t+38*M);
+  haz({tipo:'terminar',id,modo:'bizum',firma:FIRMA,avisar:true},T('omar'),t+98*M);haz({tipo:'facturar',id,num:'2025-0388'},C,t+D);
+  S.avisos.find(a=>a.id===id).msgs.forEach(m=>{if(m.k!=='proxima')m.env=m.t+20*M})}
  /* hace siete meses: la cisterna de Elvira. Sigue en garantía */
  S.n=97;
  {const id=completo(ahora-212*D,'cisterna',elvira,'jordi',[{k:'cisterna'},{k:'mecanismo'}],'tarjeta',35,'Pierde agua sin parar.');
   haz({tipo:'facturar',id,num:'2026-0412'},C,ahora-211*D)}   /* y su factura, hecha con el programa del negocio */
+ /* hace una semana: el desatasco de Pere. Hoy toca preguntarle si sigue todo bien (el seguimiento) */
+ S.n=131;
+ {const id=completo(ahora-7*D-5*H,'atasco',{nombre:'Pere',apellidos:'Roca',tel:'600 00 01 31',dir:'C/ de Còrsega 255, 5.º 2.ª',cp:'08036'},'laia',[{k:'desatasco'}],'efectivo',45,'La bañera no traga.');
+  haz({tipo:'facturar',id,num:'2026-0431'},C,ahora-6*D)}
+ /* hace tres días: el termo nuevo que Lluïsa no aceptó. Solo pagó el desplazamiento; hoy toca preguntarle por el presupuesto */
+ S.n=135;
+ {const t=ahora-3*D-4*H,id=pide(t,'termo',{nombre:'Lluïsa',apellidos:'Mas',tel:'600 00 01 35',dir:'C/ del Consell de Cent 402, 2.º 1.ª',cp:'08009'},{origen:'llamada',nota:'El termo es muy viejo y no calienta.'});
+  haz({tipo:'asignar',id,tec:'jordi'},C,t+4*M);haz({tipo:'voy',id},T('jordi'),t+9*M);
+  haz({tipo:'noacepta',id,modo:'tarjeta',pres:{lineas:[{k:'desp'},{k:'mo',q:1.5},{k:'termo80'}]}},T('jordi'),t+40*M);haz({tipo:'facturar',id,num:'2026-0435'},C,t+D);
+  S.avisos.find(a=>a.id===id).msgs.forEach(m=>{if(m.k!=='presupuesto')m.env=m.t+5*M})}
  /* ayer: un termo, por transferencia. Queda por cobrar */
  S.n=138;
  completo(ahora-26*H,'termo',{nombre:'Andreu',apellidos:'Soler',tel:'600 00 01 39',dir:'C/ de Sants 131, 1.º 3.ª',cp:'08014'},'jordi',[{k:'desp'},{k:'mo',q:1.5},{k:'termostato'}],'pendiente',85,'El termo no calienta desde ayer.');

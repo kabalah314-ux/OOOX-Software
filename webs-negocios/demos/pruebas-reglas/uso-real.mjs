@@ -85,6 +85,17 @@ for (const h of HORAS) {
   // U58: el día que falta Laia, el dueño ha decidido no guardar a nadie para urgencias: el cliente puede pedir cita ese día
   if (baja && baja.de > hoy && lab(baja.de)) { const D = K.diasDe(S, cfg, ahora, 10, false, { av: 'grifo', cli: { dis: '' } }).find(d => d.dia === baja.de);
     es(!cfg.reservaSiFalta && K.reservaDe(S, cfg, baja.de) === 0 && K.reservaDe(S, cfg, sigLab(baja.de, 1)) === cfg.reserva && D && D.franjas.some(f => f.ok), q('U58: el día que falta Laia no se guarda a nadie para urgencias y el cliente puede pedir cita (' + baja.de + ')')) }
+  // U61–U64: los mensajes de después del trabajo (15-11-2026, noche)
+  { const PM = K.porMandar(S, ahora), seg = PM.filter(x => K.SEGUIR.includes(x.m.k)), ini = Date.parse(hoy + 'T00:00:00Z') - 2 * 3600000;
+    es(seg.every(x => x.m.t >= ini && !(x.m.hasta && x.m.hasta < ahora)) && (!(lab(hoy) && n.min >= 600 && n.min <= 1200) || seg.length >= 1),
+      q('U61: el seguimiento por mandar es el de hoy, sin caducados, y en un día de trabajo hay alguno (' + seg.length + ')'));
+    const noQ = A.filter(a => a.noMsg), tels = new Set(noQ.map(a => a.cli.tel)), malos = A.filter(a => tels.has(a.cli.tel) && a.msgs.some(m => !m.env && K.SEGUIR.includes(m.k)));
+    es(tels.size >= (hoy >= '2026-11-16' ? 1 : 0) && !malos.length && A.filter(a => tels.has(a.cli.tel)).every(a => a.noMsg) && !PM.some(x => tels.has(x.a.cli.tel) && K.SEGUIR.includes(x.m.k)),
+      q('U62: el cliente que dijo que no quiere mensajes de seguimiento no tiene ninguno por mandar (' + [...tels].join(', ') + ')'));
+    const np = H.filter(a => a.noPres), malP = np.filter(a => !(a.sinTrabajo && a.noPres.total > 0 && a.msgs.some(m => m.k === 'presupuesto' && m.t === a.fin + 3 * D && m.hasta === a.fin + 14 * D)));
+    es(np.length >= 2 && !malP.length && H.filter(a => a.sinTrabajo).every(a => a.noPres), q('U63: cada presupuesto no aceptado queda guardado con su mensaje a los tres días (' + np.length + ')' + (malP.length ? ': ' + malP.slice(0, 3).map(a => a.id) : '')));
+    const todos = [].concat(...A.map(a => a.msgs)), dej = todos.filter(m => m.no), segH = H.filter(a => !a.sinTrabajo && a.av !== K.REV), sinSeg = segH.filter(a => !tels.has(a.cli.tel) && !a.msgs.some(m => m.k === 'seguimiento'));
+    es(dej.length >= 1 && dej.every(m => m.env && K.SEGUIR.includes(m.k)) && !sinSeg.length, q('U64: cada trabajo hecho lleva su seguimiento, y los que no hacían falta quedan dejados (' + dej.length + ')' + (sinSeg.length ? ': sin seguimiento ' + sinSeg.slice(0, 3).map(a => a.id) : ''))) }
   // U17: las urgencias del mes y la parte de OOOX
   const mes = hoy.slice(0, 7), um = K.urgenciasMes(S, cfg, mes);
   let nU = 0, base = 0; H.forEach(a => { if (!a.pago || !a.pago.cobrado || !a.pago.t || K.madrid(a.pago.t).date.slice(0, 7) !== mes) return; const l = (a.tot.lineas || []).find(x => x.k === cfg.urge && x.imp > 0); if (l) { nU++; base += red(l.imp / (1 + (a.tot.tipo || 10) / 100)) } });

@@ -217,8 +217,8 @@ es(ap({ tipo: 'cosa-rara', id: r.id }, C).err === 'accion', 'una acción que no 
 
 // 18. la muestra de la demo sale bien a cualquier hora de cualquier día
 let fallos = 0;
-for (let i = 0; i < 7 * 48; i++) { try { const X = globalThis.OFICIO_MUESTRA(K, cfg, MAR + i * 30 * M); if (X.avisos.length !== 6 || !X.avisos.some(a => a.gar0)) fallos++ } catch (e) { fallos++; if (fallos === 1) console.log('   ', e.message) } }
-es(fallos === 0, 'la muestra se genera en las 336 medias horas de una semana, con su aviso en garantía');
+for (let i = 0; i < 7 * 48; i++) { try { const X = globalThis.OFICIO_MUESTRA(K, cfg, MAR + i * 30 * M); if (X.avisos.length !== 9 || !X.avisos.some(a => a.gar0) || !X.avisos.some(a => a.noPres) || !X.avisos.some(a => a.prox)) fallos++ } catch (e) { fallos++; if (fallos === 1) console.log('   ', e.message) } }
+es(fallos === 0, 'la muestra se genera en las 336 medias horas de una semana, con su aviso en garantía, su presupuesto no aceptado y su revisión con aviso');
 
 
 // 19. festivos y cambio de hora (13-11-2026: se añadió el 6-12-2027, que faltaba)
@@ -1088,6 +1088,115 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
     'con la cita nueva, la visita sigue en el día de quien fue (y solo en el suyo), y el mensaje sin mandar se cambia por el de la cita');
   const Pf = K.perfilCliente(SV, ct, cli.tel);
   es(!('vis' in K.vistaCliente(SV, ct, id)) && Pf && !('vis' in Pf.avisos[0]), 'el cliente no ve ese apunte interno');
+}
+
+// 47. los mensajes de después del trabajo (15-11-2026, noche): la reseña a las dos horas, el seguimiento a la semana, el
+//     presupuesto que no se aceptó a los tres días y, si el cliente dice que sí, el aviso cuando toque volver. La oficina
+//     puede dejarlos sin mandar, caducan solos y no van a quien dijo que no los quiere
+{
+  const SG = K.nuevo(); let tg = MAR; const hg = (a, q) => K.aplicar(SG, cfg, a, q, tg += M), G = id => SG.avisos.find(a => a.id === id);
+  const cliG = (tel, nombre) => Object.assign({}, montse, { tel, nombre: nombre || 'Montse' });
+  const trabajo = (tel, lineas, extra, av) => { const id = hg({ tipo: 'pedir', av: av || 'fuga', cli: cliG(tel), origen: 'llamada' }, C).id; hg({ tipo: 'asignar', id, tec: 'jordi' }, C); hg({ tipo: 'voy', id }, T('jordi'));
+    hg({ tipo: 'empezar', id, pres: { lineas, firma: F, pide: true } }, T('jordi')); const r = hg(Object.assign({ tipo: 'terminar', id, modo: 'tarjeta' }, extra || {}), T('jordi')); return { id, r } };
+  const { id: g1, r: rg1 } = trabajo('600000501', [{ k: 'desp' }, { k: 'mo', q: 1 }]), A1 = G(g1), m1 = k => A1.msgs.find(m => m.k === k);
+  es(rg1.ok && m1('resena').t === A1.fin + 2 * H && m1('resena').hasta === A1.fin + 7 * D && m1('seguimiento').t === A1.fin + 7 * D && m1('seguimiento').hasta === A1.fin + 25 * D && !m1('proxima'),
+    'al terminar: la reseña a las dos horas (vale una semana) y el seguimiento a la semana (vale hasta el día 25, dentro de los 30 de la reseña)');
+  const pm = (t0, id) => K.porMandar(SG, t0).filter(x => x.a.id === (id || g1)).map(x => x.m.k).filter(k => K.SEGUIR.includes(k));
+  es(pm(A1.fin + H).length === 0 && pm(A1.fin + 2 * H).join() === 'resena' && pm(A1.fin + 7 * D).join() === 'resena,seguimiento' && pm(A1.fin + 7 * D + M).join() === 'seguimiento' && pm(A1.fin + 26 * D).length === 0,
+    'por mandar: nada la primera hora; la reseña a las dos horas; a la semana, el seguimiento, y la reseña hasta ese mismo minuto; a los 26 días, nada');
+  const ts = K.mensaje(cfg, A1, 'seguimiento');
+  es(ts.startsWith('Hola, Montse. Hace una semana del arreglo (fuga de agua). ¿Sigue todo bien?') && ts.includes('garantía hasta el ' + K.fechaCorta(A1.gar.hasta)) && ts.includes('Si aún no has podido, tu opinión en Google nos ayuda mucho:\n' + N.resenas) && !/si (todo|lo) ha ido bien|content[oa]|cinco estrellas/i.test(ts) && ts.includes('puedes pasarle este número') && ts.includes('Si prefieres que no te escribamos para esto, dínoslo.') && ts.endsWith(N.nombre + '.'),
+    'el seguimiento pregunta si sigue bien, recuerda la garantía, pide la reseña a todos por igual, deja recomendar y dice cómo dejar de recibirlos');
+  es(['seguimiento', 'presupuesto', 'proxima'].every(k => typeof K.MSG[k] === 'string') && K.SEGUIR.join() === 'resena,seguimiento,presupuesto,proxima', 'cada mensaje nuevo tiene su nombre, y los cuatro de seguimiento son estos');
+  // volver cuando toque: solo con un servicio que se repite y si el cliente dice que sí
+  es(cfg.cat.revinst.cada === 12, 'la revisión de la instalación se repite cada 12 meses');
+  const { id: g2, r: rg2 } = trabajo('600000502', [{ k: 'desp' }, { k: 'revinst' }], { avisar: true }), A2 = G(g2), mp = A2.msgs.find(m => m.k === 'proxima');
+  const dia2 = K.masMeses(K.madrid(A2.fin).date, 12);
+  es(rg2.ok && A2.prox && A2.prox.k === 'revinst' && A2.prox.dia === dia2 && mp && mp.t === Date.parse(K.masDias(dia2, -30) + 'T09:00:00Z') && mp.hasta === Date.parse(K.masDias(dia2, 30) + 'T19:00:00Z'),
+    'si el cliente dice que sí, se apunta cuándo toca volver (un año después) y el aviso sale un mes antes y caduca un mes después');
+  const tp = K.mensaje(cfg, A2, 'proxima');
+  es(tp.includes('El ' + K.fechaCorta(dia2) + ' toca la próxima revisión de la instalación') && tp.includes('la última fue el ' + K.fechaCorta(K.madrid(A2.fin).date)) && tp.includes('Si prefieres que no te avisemos más, dínoslo.'), 'el aviso dice qué toca, cuándo y cuándo fue la última');
+  const { id: g3 } = trabajo('600000503', [{ k: 'desp' }, { k: 'revinst' }]), { id: g4 } = trabajo('600000504', [{ k: 'desp' }, { k: 'mo', q: 1 }], { avisar: true });
+  es(!G(g3).prox && !G(g3).msgs.some(m => m.k === 'proxima') && !G(g4).prox && !G(g4).msgs.some(m => m.k === 'proxima'), 'sin el sí del cliente, o sin nada que se repita, no se apunta nada');
+  { const id = hg({ tipo: 'pedir', av: K.REV, cli: cliG('600000505'), origen: 'llamada' }, C).id; hg({ tipo: 'asignar', id, tec: 'jordi' }, C); hg({ tipo: 'voy', id }, T('jordi'));
+    hg({ tipo: 'empezar', id, pres: { lineas: [{ k: 'desp' }, { k: 'revinst' }], firma: F, pide: true } }, T('jordi')); const r = hg({ tipo: 'terminar', id, modo: 'tarjeta', avisar: true }, T('jordi'));
+    es(r.ok && !G(id).prox && !G(id).msgs.some(m => m.k === 'proxima'), 'en la revisión de un contrato no: sus revisiones ya las lleva el contrato') }
+  // el presupuesto que no se acepta
+  const pideG = (tel, av) => { const id = hg({ tipo: 'pedir', av: av || 'termo', cli: cliG(tel, 'Lluïsa'), origen: 'llamada' }, C).id; hg({ tipo: 'asignar', id, tec: 'omar' }, C); hg({ tipo: 'voy', id }, T('omar')); return id };
+  tg = Date.parse('2026-11-10T21:00:00Z');   // a las 22:00: tarifa de urgencia
+  const g5 = pideG('600000506'), L5 = [{ k: 'desp' }, { k: 'mo', q: 1.5 }, { k: 'termo80' }], r5 = hg({ tipo: 'noacepta', id: g5, modo: 'tarjeta', pres: { lineas: L5 } }, T('omar')), A5 = G(g5), mq = A5.msgs.find(m => m.k === 'presupuesto');
+  const tot5 = K.precio(cfg, L5, { urg: K.tarifaDe(cfg, A5) }).total;
+  es(K.tarifaDe(cfg, A5) && tot5 !== K.precio(cfg, L5, {}).total, 'el presupuesto que no quiso era de noche, con la tarifa de urgencia');
+  es(r5.ok && A5.noPres && A5.noPres.total === tot5 && A5.noPres.lin.length === 3 && mq && mq.t === A5.fin + 3 * D && mq.hasta === A5.fin + 14 * D && !A5.msgs.some(m => m.k === 'resena' || m.k === 'seguimiento'),
+    'si no acepta, se guarda el presupuesto que no quiso y a los tres días sale el mensaje (vale dos semanas); sin trabajo, ni reseña ni seguimiento');
+  es(K.mensaje(cfg, A5, 'presupuesto').includes('Eran ' + K.eur(tot5) + ', IVA incluido') && K.mensaje(cfg, A5, 'presupuesto').startsWith('Hola, Lluïsa. ¿Has podido pensar lo del presupuesto (sin agua caliente)?'), 'el mensaje recuerda el presupuesto con su total');
+  const g6 = pideG('600000507'), g7 = pideG('600000508');
+  hg({ tipo: 'noacepta', id: g6, modo: 'tarjeta' }, T('omar')); hg({ tipo: 'noacepta', id: g7, modo: 'tarjeta', pres: { lineas: [{ k: 'noexiste' }] } }, T('omar'));
+  es(!G(g6).noPres && !G(g6).msgs.some(m => m.k === 'presupuesto') && !G(g7).noPres && !G(g7).msgs.some(m => m.k === 'presupuesto'), 'sin presupuesto, o con uno que no vale, no hay nada que recordar');
+  // dejar un mensaje sin mandar
+  es(hg({ tipo: 'descartar', id: g1, k: 'resena' }, T('jordi')).err === 'permiso', 'dejar un mensaje sin mandar lo decide la oficina, no el técnico');
+  const rd = hg({ tipo: 'descartar', id: g1, k: 'resena' }, C);
+  es(rd.ok && m1('resena').env === tg && m1('resena').no === 1 && hg({ tipo: 'descartar', id: g1, k: 'resena' }, C).err === 'mensaje' && pm(A1.fin + 2 * H).length === 0, 'la oficina lo deja sin mandar: queda apuntado y ya no sale');
+  // quien no quiere estos mensajes
+  const g8 = trabajo('600000501', [{ k: 'desp' }, { k: 'mo', q: 1 }], { modo: 'pendiente' }).id;
+  es(G(g8).msgs.some(m => m.k === 'cobro') && G(g8).msgs.some(m => m.k === 'seguimiento'), 'un segundo trabajo del mismo cliente, pendiente de pago: lleva su seguimiento y el recordatorio del pago');
+  es(hg({ tipo: 'escribir', tel: '600000501', si: false }, T('jordi')).err === 'permiso' && hg({ tipo: 'escribir', tel: '600000501' }, C).err === 'si' && hg({ tipo: 'escribir', tel: '611222333', si: false }, C).err === 'tel',
+    'lo de no querer mensajes lo apunta la oficina, diciendo sí o no, y para un teléfono que tiene avisos');
+  const re = hg({ tipo: 'escribir', tel: '600 000 501', si: false }, C), mis = SG.avisos.filter(a => a.cli.tel === '600000501');
+  es(re.ok && mis.length === 2 && mis.every(a => a.noMsg === tg) && !mis.some(a => a.msgs.some(m => !m.env && K.SEGUIR.includes(m.k))) && G(g8).msgs.some(m => m.k === 'cobro' && !m.env) && m1('resena').no === 1,
+    'el cliente no quiere: se apunta en todos sus avisos y se quitan los de seguimiento sin mandar (el del pago y lo ya hecho se quedan)');
+  es(hg({ tipo: 'escribir', tel: '600000501', si: false }, C).err === 'estado', 'apuntarlo otra vez no hace nada');
+  const g9 = trabajo('600000501', [{ k: 'desp' }, { k: 'mo', q: 1 }]).id;
+  es(G(g9).noMsg && !G(g9).msgs.some(m => K.SEGUIR.includes(m.k)) && G(g9).msgs.some(m => m.k === 'hecho') && K.noEscribe(SG, '600000501') && !K.noEscribe(SG, '600000502'),
+    'su aviso nuevo ya lo sabe: le llegan los mensajes del servicio (el del trabajo terminado), pero no los de seguimiento');
+  const rs = hg({ tipo: 'escribir', tel: '600000501', si: true }, C);
+  es(rs.ok && !SG.avisos.some(a => a.noMsg) && !K.noEscribe(SG, '600000501') && hg({ tipo: 'escribir', tel: '600000501', si: true }, C).err === 'estado', 'si cambia de idea, se quita en todos sus avisos');
+  const g10 = trabajo('600000501', [{ k: 'desp' }, { k: 'mo', q: 1 }]).id;
+  es(G(g10).msgs.some(m => m.k === 'seguimiento'), 'y los trabajos de después vuelven a llevar su seguimiento');
+  // un aviso que ya dice que no (de otro aparato, de antes) no saca su seguimiento aunque lo lleve apuntado
+  { const SX = JSON.parse(JSON.stringify(SG)), X = SX.avisos.find(a => a.id === g10); X.noMsg = tg; const mX = X.msgs.find(m => m.k === 'seguimiento');
+    es(mX && !mX.env && !K.porMandar(SX, mX.t + M).some(x => x.a.id === g10 && x.m.k === 'seguimiento') && K.porMandar(SG, mX.t + M).some(x => x.a.id === g10 && x.m.k === 'seguimiento'),
+      'si el aviso ya dice que no quiere, su seguimiento no sale por mandar aunque esté apuntado') }
+  // al corregir el teléfono de un aviso: si es de alguien que no quiere estos mensajes, el aviso tampoco los lleva; y si el aviso
+  // que no los quería pasa a otro número, ese número deja de recibirlos (mejor uno de menos que uno a quien dijo que no)
+  { const SC = K.nuevo(); let tc = MAR; const hc = (a, q) => K.aplicar(SC, cfg, a, q, tc += M), GC = id => SC.avisos.find(a => a.id === id);
+    const pide = tel => hc({ tipo: 'pedir', av: 'fuga', cli: cliG(tel), origen: 'llamada' }, C).id;
+    const a1 = pide('600000601'); hc({ tipo: 'asignar', id: a1, tec: 'jordi' }, C); hc({ tipo: 'voy', id: a1 }, T('jordi'));
+    hc({ tipo: 'empezar', id: a1, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], firma: F, pide: true } }, T('jordi')); hc({ tipo: 'terminar', id: a1, modo: 'tarjeta' }, T('jordi'));
+    const a2 = pide('600000602'), a3 = pide('600000603'), a4 = pide('600000604'); hc({ tipo: 'escribir', tel: '600000602', si: false }, C); hc({ tipo: 'escribir', tel: '600000604', si: false }, C);
+    const r2 = hc({ tipo: 'completar', id: a2, cli: { tel: '600000601' } }, C), r3 = hc({ tipo: 'completar', id: a3, cli: { tel: '600000604' } }, C);
+    es(r2.ok && GC(a2).noMsg && K.noEscribe(SC, '600000601') && GC(a1).msgs.some(m => m.k === 'resena' && !m.env) && !K.porMandar(SC, GC(a1).fin + 3 * H).some(x => x.a.id === a1 && K.SEGUIR.includes(x.m.k)),
+      'si el aviso que no quería mensajes pasa a otro número, a ese número tampoco le sale ninguno (aunque otro aviso suyo lo tenga apuntado)');
+    es(r3.ok && GC(a3).noMsg && !GC(a3).msgs.some(m => K.SEGUIR.includes(m.k)), 'y si un aviso pasa al número de quien no los quiere, ese aviso tampoco los lleva') }
+  // un contrato nuevo solo cambia los avisos de su cliente (no los de otro, aunque les falte el suyo)
+  { const SK = K.nuevo(); let tk = MAR; const hk = (a, q) => K.aplicar(SK, cfg, a, q, tk += M), GK = id => SK.avisos.find(a => a.id === id);
+    const c1 = hk({ tipo: 'contrato', plan: 'anual', cli: cliG('600000611'), acepta: 'firma', firma: F, modo: 'tarjeta' }, C);
+    const k1 = hk({ tipo: 'pedir', av: 'fuga', cli: cliG('600000612'), origen: 'llamada' }, C).id; hk({ tipo: 'asignar', id: k1, tec: 'jordi' }, C);
+    const rk = hk({ tipo: 'completar', id: k1, cli: { tel: '600000611' } }, T('jordi'));   // el técnico no tiene la lista de contratos: no lo pone
+    const c2 = hk({ tipo: 'contrato', plan: 'anual', cli: Object.assign(cliG('600000613'), { dir: 'C/ Otra 5, 1.º' }), acepta: 'firma', firma: F, modo: 'tarjeta' }, C);
+    es(c1.ok && rk.ok && c2.ok && !GK(k1).con, 'el alta de otro cliente no toca los avisos que no son suyos') }
+  // lo de dentro no lo ve el cliente
+  const vc = K.vistaCliente(SG, cfg, g5), pf = K.perfilCliente(SG, cfg, '600000506');
+  es(!('noPres' in vc) && !('noMsg' in vc) && !('prox' in K.vistaCliente(SG, cfg, g2)) && pf && !pf.avisos.some(a => 'noPres' in a || 'msgs' in a), 'el cliente no ve el presupuesto guardado ni los apuntes del seguimiento');
+  // «cada», solo si vale
+  const NC = JSON.parse(JSON.stringify(N)); NC.catalogo.revinst.cada = 2; NC.catalogo.desp.cada = 61; NC.catalogo.mo.cada = 12.5; NC.catalogo.grifo.cada = '12';
+  const cc = K.cfgDe(NC);
+  es(!cc.cat.revinst.cada && !cc.cat.desp.cada && !cc.cat.mo.cada && !cc.cat.grifo.cada, '«cada» tiene que ser un número entero de meses, de 3 a 60');
+}
+
+// 48. lo que encontraron los recorridos al azar al probar el seguimiento (15-11-2026, noche): con citas por tiempo, una
+//     cita en «no había nadie» de un técnico que ese día falta cuenta como sin técnico al mirar lo que sobra
+{
+  const NT = JSON.parse(JSON.stringify(PUB)); NT.citas = { porFranja: 3, reserva: 1, porTiempo: true }; const ct = K.cfgDe(NT);
+  const dia = '2026-11-11', d0 = Object.keys(ct.zonas.dis)[0], SA = K.nuevo(); let ta = MAR; const ha = (a, q) => K.aplicar(SA, ct, a, q, ta += 5 * M);
+  const cli = { nombre: 'Nadie', apellidos: 'Encasa', tel: '600000480', dir: 'C/ Vacía 2, 1.º', cp: Object.keys(ct.zonas.cp).find(c => ct.zonas.cp[c] === d0) };
+  const id = ha({ tipo: 'pedir', av: 'grifo', cli, cita: { dia, fr: 'f1' } }, C).id; ha({ tipo: 'asignar', id, tec: 'omar' }, C);
+  ta = Date.parse(dia + 'T08:10:00Z'); const rv = ha({ tipo: 'voy', id }, T('omar')), ru = ha({ tipo: 'ausencia', tec: 'omar', de: dia, a: dia, motivo: 'médico' }, C), rn = ha({ tipo: 'ausente', id }, T('omar'));
+  const A = SA.avisos.find(a => a.id === id), f1 = s => s.find(x => x.dia === dia && x.fr === 'f1');
+  es(rv.ok && ru.ok && rn.ok && A.e === 'ausente' && A.tec === 'omar' && !f1(K.sobran(SA, ct, ta)), 'si el técnico de una cita en «no había nadie» falta ese día y otro puede ir, no sobra');
+  ha({ tipo: 'ausencia', tec: 'jordi', de: dia, a: dia, motivo: 'curso' }, C); ha({ tipo: 'ausencia', tec: 'laia', de: dia, a: dia, motivo: 'curso' }, C);
+  const s = f1(K.sobran(SA, ct, ta));
+  es(s && s.sobran === 1, 'y si ese día no trabaja nadie, la oficina ve que sobra (para moverla a otro día)');
 }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
