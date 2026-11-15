@@ -56,7 +56,7 @@ function contrato(C,o){if(!C||!Array.isArray(C.per)||!C.per.length)return'';cons
  const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
  const cab='<div class="dh"><span class="wm">'+MARCA+'</span><p>'+esc(N.razon)+' · NIF '+N.nif+'<br>'+esc(N.dir)+' · '+N.tel+(N.email?' · '+esc(N.email):'')+'</p></div>';
  const pago=p=>p.pago.cobrado?'Cobrado el '+f(K.madrid(p.pago.t).date)+': '+(PAGO[p.pago.modo]||'').toLowerCase()+'.':'Pendiente de pago.';
- const inc=['<li>'+(P.revisiones===1?'Una revisión':P.revisiones+' revisiones')+' de la instalación al año, con el desplazamiento.</li>',P.desp?'<li>Sin desplazamiento en las urgencias.</li>':'',P.prioridad?'<li>Prioridad: tus avisos se atienden los primeros.</li>':'',
+ const inc=['<li>'+(P.revisiones===1?'Una revisión':P.revisiones+' revisiones')+' de la instalación al año, con el desplazamiento.</li>',P.desp||cfg.urge?'<li>En las urgencias, sin '+[P.desp?'desplazamiento':'',cfg.urge?'suplemento de urgencia':''].filter(Boolean).join(' ni ')+'.</li>':'',P.prioridad?'<li>Prioridad: tus avisos se atienden los primeros.</li>':'',
   '<li>Lo demás (el material y las reparaciones) con los precios de siempre, y siempre con el presupuesto firmado antes de hacerlo.</li>'].join('');
  return cab+'<h1>Contrato de mantenimiento</h1><p class="dn">N.º '+esc(C.id)+' · alta el '+f(alta)+'</p>'+
   '<div class="dos"><div><h2>Cliente</h2><p><b>'+esc(K.nomCli(c))+'</b><br>'+esc(c.dir)+'<br>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(c.tel)+'</p></div><div><h2>Plan</h2><p>'+esc(P.n)+'<br>'+K.eur(u.precio)+' al año, IVA del '+P.iva+' % incluido<br>Del '+f(u.de)+' al '+f(u.a)+'</p></div></div>'+

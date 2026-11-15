@@ -24,6 +24,8 @@ const M = [
   ['todos los técnicos se enteran de cada aviso que cambia', "return (fila.de || []).includes(q.id) ?", 'return true ?'],
   ['quien no es de la casa recibe avisos', "if (q.rol !== 'tecnico') return null;", ''],
   ['un técnico recibe las ausencias y los contadores de la casa', 'let cab = { esq: cb.esq };', 'let cab = cb;'],
+  ['el tiempo de urgencia dice quién va', 'urg: u ? { de: u.de, a: u.a } : null', 'urg: u'],
+  ['el barrio que da el cliente no se mira', "const dis = typeof q.dis === 'string' && Object.prototype.hasOwnProperty.call(cfg.zonas.dis, q.dis) ? q.dis : null", 'const dis = null'],
   ['los contratos no se marcan al cambiar', 'if (JSON.stringify(S.contratos || []) !== contAntes) S.vc = S.v;', ''],
   ['la oficina ya no vuelve a recibir los contratos', 'if (d > 0 && !((cb.vc || 0) > d)) delete cab.contratos;', 'if (d > 0) delete cab.contratos;'],
   ['la oficina recibe todos los contratos con cada cambio', 'if (d > 0 && !((cb.vc || 0) > d)) delete cab.contratos;', ''],

@@ -12,7 +12,7 @@ g.OFICIO_NEGOCIO={
  resenas:'g.page/r/ramirez24h-demo/review',
  pack:'pro',garantiaMeses:12,sinTrabajo:'desp',
  /* tarifa normal de 8 a 20 h en días laborables; el resto, urgencia */
- tarifa:{dia:[480,1200],recargo:.4},
+ tarifa:{dia:[480,1200],recargo:.4,urgente:'urge'},
  festivos:['2026-01-01','2026-01-06','2026-04-03','2026-04-06','2026-05-01','2026-05-25','2026-06-24','2026-08-15','2026-09-11','2026-09-24','2026-10-12','2026-11-01','2026-12-06','2026-12-08','2026-12-25','2026-12-26','2027-01-01','2027-01-06','2027-03-26','2027-03-29','2027-05-01','2027-05-17','2027-06-24','2027-09-11','2027-09-24','2027-10-12','2027-11-01','2027-12-06','2027-12-08','2027-12-25'],
  /* horarios y turnos, con valores de prueba (cada negocio pone los suyos):
     Omar y Laia, de lunes a viernes, de 8 a 14 y de 15 a 20. Jordi, de 8 a 14 y de 15 a 18: la última franja no la hace.
@@ -35,6 +35,7 @@ g.OFICIO_NEGOCIO={
     extra: no es una pieza para arreglar la avería (un aparato nuevo): aunque sea una urgencia, tiene desistimiento */
  catalogo:{
   desp:{t:'Desplazamiento en Barcelona',p10:30,u:1},
+  urge:{t:'Servicio urgente: salimos en el momento',p10:30},
   mo:{t:'Mano de obra',p10:45,u:1,un:'h',min:1,paso:.25},
   desatasco:{t:'Desatasco manual, con desplazamiento',p10:65,u:1},
   maquina:{t:'Máquina desatascadora',p10:55,u:1},
@@ -55,17 +56,17 @@ g.OFICIO_NEGOCIO={
   revinst:{t:'Revisión de la instalación',p10:45}},
  /* las averías: min y max dan el «de cuánto a cuánto» de la web; ini es el presupuesto que sale ya puesto en la puerta */
  averias:[
-  {id:'fuga',n:'Fuga de agua',c:'Fuga',d:'Tubería, llave de paso o latiguillo.',min:[{k:'desp'},{k:'mo',q:1}],max:[{k:'desp'},{k:'mo',q:2},{k:'juntas'},{k:'sellador'}],ini:[{k:'desp'},{k:'mo',q:1},{k:'juntas'}],chips:['sellador','latig','llave','tubo']},
-  {id:'atasco',n:'Atasco',c:'Atasco',d:'Fregadero, lavabo, ducha o inodoro.',min:[{k:'desatasco'}],max:[{k:'desatasco'},{k:'maquina'}],ini:[{k:'desatasco'}],chips:['maquina','sifon']},
-  {id:'termo',n:'Sin agua caliente',c:'Termo',d:'Termo eléctrico que no calienta o pierde.',min:[{k:'desp'},{k:'mo',q:1},{k:'valvula'}],max:[{k:'desp'},{k:'mo',q:2},{k:'resistencia'},{k:'termostato'}],ini:[{k:'desp'},{k:'mo',q:1}],chips:['valvula','termostato','resistencia','termo80']},
-  {id:'cisterna',n:'Cisterna que pierde',c:'Cisterna',d:'No para de correr el agua o no carga.',min:[{k:'cisterna'}],max:[{k:'cisterna'},{k:'mecanismo'}],ini:[{k:'cisterna'}],chips:['mecanismo','latig','llave']},
-  {id:'grifo',n:'Grifo que gotea',c:'Grifo',d:'Gotea, está duro o hay que cambiarlo.',min:[{k:'grifo'}],max:[{k:'grifo'},{k:'latig'},{k:'llave'}],ini:[{k:'grifo'}],chips:['latig','llave','grifon']},
-  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'desp'},{k:'mo',q:1}],max:null,ini:[{k:'desp'},{k:'mo',q:1}],chips:['juntas','sellador','latig','llave','sifon','tubo']}],
+  {id:'fuga',n:'Fuga de agua',c:'Fuga',d:'Tubería, llave de paso o latiguillo.',min:[{k:'desp'},{k:'mo',q:1}],max:[{k:'desp'},{k:'mo',q:2},{k:'juntas'},{k:'sellador'}],dur:[45,120],ini:[{k:'desp'},{k:'mo',q:1},{k:'juntas'}],chips:['sellador','latig','llave','tubo']},
+  {id:'atasco',n:'Atasco',c:'Atasco',d:'Fregadero, lavabo, ducha o inodoro.',min:[{k:'desatasco'}],max:[{k:'desatasco'},{k:'maquina'}],dur:[30,90],ini:[{k:'desatasco'}],chips:['maquina','sifon']},
+  {id:'termo',n:'Sin agua caliente',c:'Termo',d:'Termo eléctrico que no calienta o pierde.',min:[{k:'desp'},{k:'mo',q:1},{k:'valvula'}],max:[{k:'desp'},{k:'mo',q:2},{k:'resistencia'},{k:'termostato'}],dur:[60,150],ini:[{k:'desp'},{k:'mo',q:1}],chips:['valvula','termostato','resistencia','termo80']},
+  {id:'cisterna',n:'Cisterna que pierde',c:'Cisterna',d:'No para de correr el agua o no carga.',min:[{k:'cisterna'}],max:[{k:'cisterna'},{k:'mecanismo'}],dur:[30,75],ini:[{k:'cisterna'}],chips:['mecanismo','latig','llave']},
+  {id:'grifo',n:'Grifo que gotea',c:'Grifo',d:'Gotea, está duro o hay que cambiarlo.',min:[{k:'grifo'}],max:[{k:'grifo'},{k:'latig'},{k:'llave'}],dur:[30,60],ini:[{k:'grifo'}],chips:['latig','llave','grifon']},
+  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'desp'},{k:'mo',q:1}],max:null,dur:[45,120],ini:[{k:'desp'},{k:'mo',q:1}],chips:['juntas','sellador','latig','llave','sifon','tubo']}],
  /* el mantenimiento: la cuota al año que vende el negocio. La revisión es un aviso que crea la oficina, no una avería de la web.
     En cada plan: «precio», al año y con el IVA dentro; «desp», lo que no se cobra en una urgencia; «rev», la revisión incluida
     (en su aviso tampoco se cobra el desplazamiento); «revisiones», cuántas al año; «prioridad», sus avisos van primero. */
  mantenimiento:{
-  revision:{n:'Revisión del contrato',c:'Revisión',d:'La revisión de la instalación que lleva el contrato.',ini:[{k:'desp'},{k:'revinst'}],chips:['juntas','sellador','latig','llave','valvula','termostato']},
+  revision:{n:'Revisión del contrato',c:'Revisión',d:'La revisión de la instalación que lleva el contrato.',dur:[40,75],ini:[{k:'desp'},{k:'revinst'}],chips:['juntas','sellador','latig','llave','valvula','termostato']},
   planes:[{id:'anual',n:'Mantenimiento anual',precio:120,iva:21,revisiones:1,desp:'desp',rev:'revinst',prioridad:1}]}
 };
 

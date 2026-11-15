@@ -109,7 +109,7 @@ const ERR={av:'Elige qué te pasa.',franja:'Elige un día y una franja.',llena:'
 const SRV=Oficio.SRV,H={dias:null,err:'',t:0,va:false};
 Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al '+N.tel+'.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al '+N.tel+' y te damos cita.',red:'No hay conexión. Tu cita no se ha enviado: prueba otra vez.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',grande:'Esa foto pesa demasiado. Quítala y prueba otra vez.'});
 function traeHuecos(){if(!SRV||H.va)return;H.va=true;Oficio.huecos().then(r=>{H.va=false;H.t=Date.now();
- if(r.ok&&Array.isArray(r.dias)){H.err='';H.dias=r.dias.map(d=>({dia:d.dia,hoy:!!d.hoy,franjas:cfg.franjas.map(f=>{const x=(d.franjas||[]).find(y=>y.id===f.id);return{id:f.id,txt:K.franjaTxt(f),ok:!!(x&&x.ok),libres:null}})}))}else H.err=r.err||'red';
+ if(r.ok&&Array.isArray(r.dias)){H.err='';H.urg=r.urg&&Number.isInteger(r.urg.de)&&Number.isInteger(r.urg.a)?{de:r.urg.de,a:r.urg.a}:null;H.dias=r.dias.map(d=>({dia:d.dia,hoy:!!d.hoy,franjas:cfg.franjas.map(f=>{const x=(d.franjas||[]).find(y=>y.id===f.id);return{id:f.id,txt:K.franjaTxt(f),ok:!!(x&&x.ok),libres:null}})}))}else H.err=r.err||'red';
  const a=document.activeElement;if(ruta().v!=='aviso'&&!(a&&a.closest&&a.closest('#f input,#f textarea')))pinta()})}
 const D3=['dom','lun','mar','mié','jue','vie','sáb'];
 const diaCorto=f=>{const h=K.madrid().date;return f===h?'hoy':f===K.masDias(h,1)?'mañana':D3[new Date(f+'T12:00:00Z').getUTCDay()]+' '+(+f.slice(8))};
@@ -128,7 +128,9 @@ function vPedir(){
  B.alt=B.alt.filter(k=>cand.some(c=>c.k===k));
  const R=B.av&&K.rango(cfg,B.av,false),ult=mem.get('oficio:'+N.id+':mio'),U=ult&&(SRV?(Oficio.vista(ult)||{}).v:K.vistaCliente(S,cfg,ult));
  const c=(id,lb,v,o)=>'<div class="campo'+(B.err===id||(id==='cp'&&B.err==='zona')?' mal':'')+'"><label for="c_'+id+'">'+lb+'</label><input id="c_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(B.err===id?' aria-invalid="true" aria-describedby="e_'+id+'"':'')+'>'+(B.err===id?'<p class="err" id="e_'+id+'">'+ERR[id]+'</p>':'')+'</div>';
- return'<h1>Pide cita sin prisa.</h1><p class="lead">Con cita, la tarifa es siempre la normal. ¿No puede esperar? <a href="./">Llama o manda una foto</a>: llegamos en 25–40 min.</p>'+
+ /* ¿no puede esperar?: en cuánto llegamos ahora de verdad (con lo que hay en marcha) y el suplemento de urgencia */
+ const UA=SRV?H.urg:K.urgenciaAhora(S,cfg,null,Date.now(),''),sup=cfg.urge?' El servicio urgente lleva un suplemento de '+K.eur(cfg.cat[cfg.urge].p10)+'.':'';
+ return'<h1>Pide cita sin prisa.</h1><p class="lead" id="urgLead">Con cita, la tarifa es siempre la normal. ¿No puede esperar? <a href="./">Llama o manda una foto</a>'+(UA?': ahora llegamos en unos '+UA.de+'–'+UA.a+' minutos.':'; ahora mismo no podemos decirte en cuánto llegamos: te lo decimos al llamar.')+sup+'</p>'+
   (U&&U.e!=='cancelado'?'<p class="ult">Ya tienes un aviso: '+U.id+', '+esc(cfg.av[U.av].n.toLowerCase())+'. <a href="#/aviso/'+U.id+'">Ver cómo va</a></p>':'')+
   '<form id="f" novalidate>'+
   '<fieldset><legend><b>1</b>¿Qué pasa?</legend><div class="avs">'+N.averias.map(a=>'<label class="avc"><img src="assets/img/av-'+a.id+'-s.webp" alt="" width="52" height="52" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>'+esc(a.n)+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>'+

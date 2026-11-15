@@ -239,7 +239,7 @@ es(!K.urgente(cfg, Date.parse('2026-10-26T07:30:00Z')) && K.urgente(cfg, Date.pa
     const o = { urg: !!azar(2), local: azar(5) === 0 }, x = K.precio(cfg, lin, o);
     const ok1 = x.lineas.reduce((s, l) => s + l.imp, 0) === x.total && x.base + x.iva === x.total && [10, 21].includes(x.tipo) && Number.isInteger(x.total) && x.total >= 0;
     const ok2 = !o.local || x.tipo === 21;
-    const ok3 = K.precio(cfg, lin, { ...o, urg: false }).total <= K.precio(cfg, lin, { ...o, urg: true }).total;
+    const x0 = K.precio(cfg, lin, { ...o, urg: false }), ok3 = x0.total <= K.precio(cfg, lin, { ...o, urg: true, tipo: x0.tipo }).total;   // con el mismo IVA: si el material baja del 40 %, el IVA reducido puede dejarlo más barato, y eso es la ley
     if (!(ok1 && ok2 && ok3)) { malos++; if (!ej) ej = JSON.stringify({ lin, o, x: { t: x.total, b: x.base, i: x.iva, tipo: x.tipo } }) } }
   es(malos === 0, 'mil presupuestos al azar: suma de líneas = total, base + IVA = total, céntimos enteros, local al 21 %, la urgencia nunca abarata' + (ej ? ' · ' + ej : '')) }
 p = K.precio(cfg, [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'juntas' }], { urg: true, local: true });
@@ -756,7 +756,7 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
     es(rp.ok && S.contratos.find(c => c.id === rp.id).des.pide === 0, 'la petición de hacer la revisión antes de los 14 días tiene que ser un sí de verdad') }
   // los avisos del cliente: sin desplazamiento en urgencias y primero
   const u = ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({}, cli, { dir: 'C/ Verdi 30, bajos' }) }, CLI).id;
-  es(A(u).con && A(u).con.id === r.id && A(u).con.desp === PL.desp && A(u).con.rev === '' && A(u).con.pri === PL.prioridad && K.gratisDe(A(u)).join() === PL.desp && A(u).h[0].txt.includes(r.id), 'un aviso urgente del cliente lleva su contrato: sin desplazamiento, con prioridad, y queda dicho');
+  es(A(u).con && A(u).con.id === r.id && A(u).con.desp === PL.desp && A(u).con.rev === '' && A(u).con.pri === PL.prioridad && K.gratisDe(A(u)).join() === [PL.desp, cfg.urge].filter(Boolean).join() && A(u).h[0].txt.includes(r.id), 'un aviso urgente del cliente lleva su contrato: sin desplazamiento, con prioridad, y queda dicho');
   const o1 = ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({}, cli, { tel: '600000211' }) }, CLI).id, o2 = ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({}, cli, { dir: 'C/ Verdi 40' }) }, CLI).id;
   es(!A(o1).con && !A(o2).con && K.gratisDe(A(o1)).length === 0 && K.gratisDe(null).length === 0, 'otro teléfono, u otra finca del mismo teléfono, no lo llevan');
   ap({ tipo: 'asignar', id: u, tec: 'omar' }, C);
@@ -767,7 +767,7 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   // con cita, el desplazamiento se paga; si la cita pasa a urgencia, ya no
   const dia = K.diasDe(S, cfg, t, 3).find(d => d.franjas.some(f => f.ok)).dia, fr = K.franjasDe(S, cfg, dia, t).find(f => f.ok).id;
   const c1 = ap({ tipo: 'pedir', av: 'grifo', cli, cita: { dia, fr } }, CLI).id;
-  es(A(c1).con && K.gratisDe(A(c1)).length === 0 && ap({ tipo: 'mover', id: c1, cita: null }, C).ok && K.gratisDe(A(c1)).join() === PL.desp, 'con cita, el desplazamiento se paga; si pasa a urgencia, no');
+  es(A(c1).con && K.gratisDe(A(c1)).length === 0 && ap({ tipo: 'mover', id: c1, cita: null }, C).ok && K.gratisDe(A(c1)).join() === [PL.desp, cfg.urge].filter(Boolean).join(), 'con cita, el desplazamiento se paga; si pasa a urgencia, no');
   ap({ tipo: 'asignar', id: c1, tec: 'jordi' }, C);
   { const St = JSON.parse(JSON.stringify(S)); delete St.contratos;   // el aparato del técnico no tiene la lista de contratos
     es(K.aplicar(St, cfg, { tipo: 'completar', id: c1, cli: { nombre: 'Rosa María' } }, T('jordi'), t += M).ok && St.avisos.find(x => x.id === c1).con && St.avisos.find(x => x.id === c1).con.id === r.id, 'si el técnico completa los datos, el aviso sigue con su contrato aunque su aparato no tenga la lista') }
@@ -872,6 +872,70 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(hp.includes('<b>Incluido</b>') && hp.includes('va en tu contrato de mantenimiento') && hq.includes('No hay nada que pagar: va en tu contrato de mantenimiento.') && !hq.includes('Cobrado el'), 'el presupuesto dice lo que va incluido, y el parte que no hay nada que pagar');
   t = Date.parse(X.per[0].a + 'T10:00:00Z') - 5 * D; ap({ tipo: 'renovar', id: r.id, acepta: true }, C);
   es(P.contrato(S.contratos.find(c => c.id === r.id), o).includes('Años anteriores'), 'renovado, el papel lleva también los años de antes');
+}
+
+// 43. los tiempos y la urgencia como extra (15-11-2026): lo que tarda cada trabajo, cuándo llegaría cada técnico a una
+//     urgencia, el suplemento de urgencia en el presupuesto de partida, el contrato que lo quita y lo que se lleva OOOX
+{
+  empieza(); const dis = Object.keys(cfg.zonas.dis)[0], viaje = cfg.zonas.banda[cfg.zonas.dis[dis][1]];
+  const sinDur = JSON.parse(JSON.stringify(N)); sinDur.averias.forEach(a => { delete a.dur }); const c2 = K.cfgDe(sinDur);
+  es(K.durDe(cfg, 'fuga').join() === N.averias.find(a => a.id === 'fuga').dur.join() && K.durDe(c2, 'fuga').join() === '65,110' && K.durDe(c2, 'atasco').join() === '15,60' && K.durDe(cfg, 'nada').join() === '45,120',
+    'lo que tarda cada trabajo: lo que dice el dueño o, si no lo ha dicho, las horas de su presupuesto de partida y 20 minutos más');
+  const cli = n => ({ nombre: 'Urge', apellidos: 'Prueba', tel: '6000003' + String(n).padStart(2, '0'), dir: 'C/ Prueba ' + n, cp: Object.keys(cfg.zonas.cp).find(c => cfg.zonas.cp[c] === dis) });
+  const u1 = ap({ tipo: 'pedir', av: 'fuga', cli: cli(1) }, CLI).id; ap({ tipo: 'asignar', id: u1, tec: 'omar' }, C);
+  const L0 = K.llegadas(S, cfg, dis, t, 'fuga'), media = Math.round((K.durDe(cfg, 'fuga')[0] + K.durDe(cfg, 'fuga')[1]) / 2);
+  es(L0.length === 3 && L0[2].tec === 'omar' && L0[2].libre === viaje + media && L0[0].libre === 0 && L0[0].llega === viaje && L0.every(x => x.llega === x.libre + x.viaje && x.viaje === viaje),
+    'con una urgencia en cola, Omar llega el último: antes tiene que ir a la otra y hacerla; los libres llegan en lo que se tarda hasta el barrio');
+  ap({ tipo: 'voy', id: u1 }, T('omar')); t += 10 * M;
+  es(K.ocupacion(S, cfg, 'omar', t) === Math.max(0, Math.round((A(u1).eta - t) / M)) + media, 'de camino: lo que le falta para llegar y el trabajo entero');
+  ap({ tipo: 'empezar', id: u1, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 3 }], firma: F } }, T('omar')); t += 30 * M;
+  es(K.durEst(cfg, A(u1)) === 190 && K.ocupacion(S, cfg, 'omar', t) === 190 - K.minutos(A(u1), t), 'trabajando: si el presupuesto lleva tres horas, se cuentan tres horas; le falta lo que no ha hecho');
+  ap({ tipo: 'ausencia', tec: 'laia', de: K.madrid(t).date, a: K.madrid(t).date, motivo: 'médico' }, C);
+  const L1 = K.llegadas(S, cfg, dis, t, 'fuga');
+  es(!L1.some(x => x.tec === 'laia') && L1[0].tec === 'jordi', 'quien tiene una ausencia hoy no sale para urgencias');
+  // con horarios y una cita: quien llegaría tarde a su cita, o se saldría de su hora, va al final; y el tiempo que se dice
+  const NP = JSON.parse(JSON.stringify(PUB)); NP.tecnicos.forEach(x => { delete x.guardia }); const cp = K.cfgDe(NP); let SP = K.nuevo(), tp = Date.parse('2026-11-10T09:00:00Z');
+  const hp = (a, q) => K.aplicar(SP, cp, a, q, tp += M), dP = Object.keys(cp.zonas.dis)[0];
+  // con horarios seguidos de 8 a 20 h: Omar tiene una cita a las 15 h; Jordi, una urgencia en cola
+  const NQ = JSON.parse(JSON.stringify(PUB)); NQ.tecnicos.forEach(x => { delete x.guardia; x.horario = { '2': [[480, 1200]] } }); const cq = K.cfgDe(NQ); const SQ = K.nuevo(); let tz = Date.parse('2026-11-10T09:00:00Z');
+  const hq = (a, q) => K.aplicar(SQ, cq, a, q, tz += M), fr = cq.franjas.find(f => f.de === 900), cc = hq({ tipo: 'pedir', av: 'grifo', cli: cli(2), cita: { dia: K.madrid(tz).date, fr: fr.id } }, C).id;
+  hq({ tipo: 'asignar', id: cc, tec: 'omar' }, C); const uj = hq({ tipo: 'pedir', av: 'fuga', cli: cli(5) }, C).id; hq({ tipo: 'asignar', id: uj, tec: 'jordi' }, C);
+  const tq = Date.parse('2026-11-10T00:00:00+01:00') + (fr.de - 70) * M, Lq = K.llegadas(SQ, cq, dP, tq, 'termo'), lo = Lq.find(x => x.tec === 'omar'), lj = Lq.find(x => x.tec === 'jordi');
+  es(lo.choca === cc && lo.llega < lj.llega && Lq[Lq.length - 1].tec === 'omar' && !Lq[0].choca && !lj.fuera, 'Omar tiene una cita dentro de un rato: aunque llegaría antes que Jordi, con una urgencia de por medio llegaría tarde a la cita, así que va al final y se avisa');
+  const tf = Date.parse('2026-11-10T00:00:00+01:00') + (NP.tecnicos.find(x => x.id === 'jordi').horario['2'][1][1] - 30) * M, Lf = K.llegadas(SP, cp, dP, tf, 'fuga');
+  es(Lf.find(x => x.tec === 'jordi').fuera === true && Lf.find(x => x.tec === 'omar').fuera === false, 'a media hora de salir, Jordi acabaría fuera de su horario; Omar, que sale más tarde, no');
+  const noche = Date.parse('2026-11-10T22:30:00+01:00');
+  es(K.urgenciaAhora(SP, cp, dP, noche, 'fuga') === null && K.llegadas(SP, cp, dP, noche, 'fuga').every(x => x.fuera), 'de noche, sin nadie de guardia, no se promete ningún tiempo');
+  const NG = JSON.parse(JSON.stringify(PUB)), cg = K.cfgDe(NG), ug = K.urgenciaAhora(K.nuevo(), cg, dP, noche, 'fuga');
+  es(ug && ug.de % 5 === 0 && ug.de >= 10 && ug.a === ug.de + 15 && ug.de >= cg.zonas.banda[cg.zonas.dis[dP][1]], 'con técnicos de guardia, sí: un tiempo de cinco en cinco, de «tanto» a «tanto más un cuarto de hora»');
+  const ua = K.urgenciaAhora(S, cfg, dis, t, 'fuga');
+  es(ua && ua.tec === 'jordi' && ua.de === Math.ceil(Math.max(viaje, 10) / 5) * 5, 'lo que se le dice a quien pide una urgencia sale del que antes llega');
+  { const SR = K.nuevo(); let tr = MAR; const hr = (a, q) => K.aplicar(SR, cfg, a, q, tr += M);   // todos ocupados: el tiempo, redondeado a cinco minutos
+    ['omar', 'laia', 'jordi'].forEach((x, i) => { const id = hr({ tipo: 'pedir', av: 'fuga', cli: cli(10 + i) }, C).id; hr({ tipo: 'asignar', id, tec: x }, C); hr({ tipo: 'voy', id }, T(x)); hr({ tipo: 'empezar', id, pres: { lineas: [{ k: 'mo', q: 1 + i }], firma: F } }, T(x)) });
+    tr += 7 * M; const ur = K.urgenciaAhora(SR, cfg, dis, tr, 'fuga'), L = K.llegadas(SR, cfg, dis, tr, 'fuga');
+    es(L[0].llega % 5 !== 0 && ur.de === Math.ceil(L[0].llega / 5) * 5 && ur.de > L[0].llega && L[0].tec === 'omar', 'con todos trabajando, sale el que antes acaba, y el tiempo se redondea hacia arriba a cinco minutos') }
+  // el suplemento de urgencia: en el presupuesto de partida de una urgencia, no en una cita ni en una revisión
+  es(cfg.urge === N.tarifa.urgente && K.iniDe(cfg, A(u1))[0].k === cfg.urge && K.iniDe(cfg, SQ.avisos.find(a => a.id === cc)).every(l => l.k !== cfg.urge)
+    && K.iniDe(cfg, { av: K.REV }).every(l => l.k !== cfg.urge) && K.iniDe(c2, A(u1)).length === N.averias.find(a => a.id === 'fuga').ini.length + 1 && K.iniDe(Object.assign({}, cfg, { urge: '' }), A(u1)).every(l => l.k !== cfg.urge),
+    'el suplemento va solo en el presupuesto de partida de una urgencia: no en una cita, ni en una revisión, ni si el negocio no lo tiene');
+  const p1 = K.precio(cfg, K.iniDe(cfg, A(u1)), { urg: false }), p0 = K.precio(cfg, N.averias.find(a => a.id === 'fuga').ini, { urg: false });
+  es(p1.total === p0.total + cfg.cat[cfg.urge].p10, 'con el suplemento, la urgencia cuesta lo que dice el negocio más (con el IVA de la vivienda)');
+  // con contrato, la urgencia va sin suplemento
+  const Pl = Object.keys(cfg.planes)[0], ct = ap({ tipo: 'contrato', plan: Pl, cli: cli(3), acepta: 'mensaje' }, C), u3 = ap({ tipo: 'pedir', av: 'fuga', cli: cli(3) }, CLI).id;
+  es(ct.ok && A(u3).con && A(u3).con.urge === cfg.urge && K.gratisDe(A(u3)).includes(cfg.urge) && K.precio(cfg, K.iniDe(cfg, A(u3)), { gratis: K.gratisDe(A(u3)) }).lineas.find(l => l.k === cfg.urge).imp === 0,
+    'con contrato de mantenimiento, la urgencia va sin suplemento: sale «incluido»');
+  // lo que se lleva OOOX: solo de los suplementos cobrados, sin IVA, por el mes del cobro
+  ap({ tipo: 'terminar', id: u1, modo: 'tarjeta', firma: F }, T('omar'));
+  const mes = K.madrid(t).date.slice(0, 7), um0 = K.urgenciasMes(S, cfg, mes);
+  es(um0.n === 0 && um0.base === 0, 'un presupuesto sin la línea del suplemento no cuenta');
+  ap({ tipo: 'asignar', id: u3, tec: 'jordi' }, C); ap({ tipo: 'voy', id: u3 }, T('jordi'));
+  ap({ tipo: 'empezar', id: u3, pres: { lineas: K.iniDe(cfg, A(u3)), firma: F } }, T('jordi')); ap({ tipo: 'terminar', id: u3, modo: 'efectivo', firma: F }, T('jordi'));
+  const u4 = ap({ tipo: 'pedir', av: 'grifo', cli: cli(4) }, CLI).id; ap({ tipo: 'asignar', id: u4, tec: 'jordi' }, C); ap({ tipo: 'voy', id: u4 }, T('jordi'));
+  ap({ tipo: 'empezar', id: u4, pres: { lineas: K.iniDe(cfg, A(u4)), firma: F } }, T('jordi')); ap({ tipo: 'terminar', id: u4, modo: 'pendiente', firma: F }, T('jordi'));
+  const um1 = K.urgenciasMes(S, cfg, mes); ap({ tipo: 'cobrar', id: u4, modo: 'bizum' }, C); const um2 = K.urgenciasMes(S, cfg, mes);
+  const imp = A(u4).tot.lineas.find(l => l.k === cfg.urge).imp, b = Math.round(imp / (1 + A(u4).tot.tipo / 100));
+  es(um1.n === 0 && um2.n === 1 && um2.base === b && um2.oox === Math.round(b * K.COMISION_URG) && K.urgenciasMes(S, cfg, '2026-01').n === 0 && K.urgenciasMes(S, Object.assign({}, cfg, { urge: '' }), mes).n === 0,
+    'la parte de OOOX: solo del suplemento que se ha cobrado (el del contrato va incluido y no cuenta), sin IVA, y en el mes del cobro');
 }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);

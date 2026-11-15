@@ -134,10 +134,14 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       return { ok: true, id: res.r.id, llave: mio ? mio.llave : '' };   // su número y su llave: nada más
     },
 
-    /* los huecos para quien pide cita: días y franjas, sin cifras de la casa ni datos de nadie */
-    async huecos(neg, cfg) {
-      const { S } = await carga(neg), t = ahora();
-      return { ok: true, dias: K.diasDe(S, cfg, t, TOPES.dias).map(d => ({ dia: d.dia, hoy: !!d.hoy, franjas: d.franjas.map(f => ({ id: f.id, ok: !!f.ok })) })) };
+    /* los huecos para quien pide cita: días y franjas, sin cifras de la casa ni datos de nadie. Y, para quien tiene una
+       urgencia, en cuánto se llegaría ahora a su barrio («dis», si lo da; si no, al más lejano): de «de» a «a» minutos,
+       o null si ahora no hay nadie que pueda ir sin dejar tirada una cita */
+    async huecos(neg, cfg, p) {
+      const { S } = await carga(neg), t = ahora(), q = p && typeof p === 'object' ? p : {};
+      const dis = typeof q.dis === 'string' && Object.prototype.hasOwnProperty.call(cfg.zonas.dis, q.dis) ? q.dis : null, av = typeof q.av === 'string' && Object.prototype.hasOwnProperty.call(cfg.av, q.av) ? q.av : '';
+      const u = K.urgenciaAhora(S, cfg, dis, t, av);
+      return { ok: true, dias: K.diasDe(S, cfg, t, TOPES.dias).map(d => ({ dia: d.dia, hoy: !!d.hoy, franjas: d.franjas.map(f => ({ id: f.id, ok: !!f.ok })) })), urg: u ? { de: u.de, a: u.a } : null };
     },
 
     /* lo que ve el cliente con el enlace de su aviso */

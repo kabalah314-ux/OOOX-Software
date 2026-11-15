@@ -46,6 +46,11 @@ export function valida(N, K, hoy) {
   const tf = N.tarifa || {};
   if (!Array.isArray(tf.dia) || tf.dia.length !== 2 || !tf.dia.every(esEntero) || tf.dia[0] < 0 || tf.dia[1] > 1440 || tf.dia[0] >= tf.dia[1]) E('tarifa.dia: dos minutos del día, [desde, hasta], con desde menor que hasta (8 a 20 h es [480, 1200]).');
   if (!esNum(tf.recargo) || tf.recargo < 0 || tf.recargo > 2) E('tarifa.recargo: el recargo de urgencia en tanto por uno (0.4 es un 40 %), entre 0 y 2.');
+  if (tf.urgente !== undefined) {   // el suplemento de urgencia: una línea del catálogo, a precio fijo
+    const u = N.catalogo && typeof tf.urgente === 'string' ? N.catalogo[tf.urgente] : null;
+    if (!u) E('tarifa.urgente: tiene que ser la clave de una línea del catálogo (la del suplemento de urgencia).');
+    else { if (u.un === 'h' || u.mat) E('tarifa.urgente: el suplemento es un precio fijo, ni por horas ni material.'); if (u.u) A('tarifa.urgente: el suplemento lleva además el recargo de noche y festivos. ¿Seguro?'); }
+  }
 
   // ---- festivos
   const fs = N.festivos;
@@ -212,7 +217,7 @@ export function valida(N, K, hoy) {
   if (!porHoras.length) A('catalogo: no hay mano de obra por horas; el técnico no podrá añadir «más tiempo».');
 
   // ---- averías
-  const av = N.averias, idsAv = new Set(), usadas = new Set([N.sinTrabajo]);
+  const av = N.averias, idsAv = new Set(), usadas = new Set([N.sinTrabajo, (N.tarifa || {}).urgente]);   // el suplemento de urgencia lo pone la app sola
   const lineasOk = (L, cual, vacioVale) => {
     if (!Array.isArray(L) || (!L.length && !vacioVale)) { E(cual + ': tiene que ser una lista de conceptos del catálogo.'); return false }
     let bien = true;
@@ -234,6 +239,8 @@ export function valida(N, K, hoy) {
       if (!esTexto(a.c, 2, 14)) E(cual + ': falta el nombre corto (c), de hasta 14 letras.');
       if (!esTexto(a.d, 3, 80)) E(cual + ': falta la descripción (d).');
       const m = lineasOk(a.min, cual + '.min'), x = a.max === null ? true : lineasOk(a.max, cual + '.max'), n = lineasOk(a.ini, cual + '.ini');
+      if (a.dur !== undefined && !(Array.isArray(a.dur) && a.dur.length === 2 && a.dur.every(esEntero) && a.dur[0] >= 5 && a.dur[0] <= a.dur[1] && a.dur[1] <= 600)) E(cual + '.dur: lo que tarda, [mínimo, máximo] en minutos (entre 5 y 600), por ejemplo [45, 120].');
+      if (a.dur === undefined) A(cual + '.dur: falta lo que tarda (mínimo y máximo en minutos). Sin eso, el tiempo de llegada a una urgencia sale de las horas del presupuesto.');
       if (!Array.isArray(a.chips)) E(cual + '.chips: tiene que ser una lista (puede estar vacía).');
       else a.chips.forEach(k => { if (!propio(cat, k)) E(cual + '.chips: «' + k + '» no está en el catálogo.'); else { usadas.add(k); if (cat[k].un === 'h') E(cual + '.chips: «' + k + '» va por horas; el tiempo se añade con «más tiempo», no como material.') } });
       if (cfg && m && x && n) {

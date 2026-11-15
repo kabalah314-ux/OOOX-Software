@@ -196,6 +196,30 @@ async def main():
         await c.click(f'.cont[data-c="{con}"] [data-a=conFac]')
         es(await toast(c, 'Copiado') or await toast(c, 'No se ha podido copiar'), 'copiar los datos para facturar la cuota dice qué ha pasado')
 
+        # ---------- 9. la urgencia como extra y los tiempos: en cuánto llega cada uno, el suplemento, y lo de OOOX ----------
+        cp1 = await c.evaluate("Object.keys(OFICIO_NEGOCIO.zonas.cp)[0]")
+        r = await c.evaluate("Oficio.hacer({tipo:'pedir',av:'fuga',origen:'llamada',cli:{nombre:'Urge',apellidos:'Prisa',tel:'611000031',dir:'C/ Urgencia 1',cp:'" + cp1 + "'}},{rol:'centralita',id:'oficina'})")
+        uu = r.get('id'); await c.goto(B + f'app.html#/aviso/{uu}'); await c.wait_for_selector('.tecs')
+        tq = await texto(c, '.tecs')
+        es('llega en ~' in tq and ('el que antes llega' in tq or 'llegaría tarde' in tq or 'fuera de su horario' in tq), '«¿Quién va?» dice en cuánto llega cada uno a la urgencia y cuál llega antes')
+        es('Suplemento de urgencia de 30,00' in await texto(c, '.cita'), 'y en «Cuándo», el suplemento de urgencia que irá en el presupuesto')
+        await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('#urgAhora')
+        es('Para una urgencia ahora' in await texto(c, '#urgAhora'), 'la bandeja dice quién puede ir a una urgencia ahora')
+        # los tres técnicos están trabajando (el de la muestra y los de antes): el del contrato acaba el suyo y queda libre
+        await t5.evaluate(f"Oficio.hacer({{tipo:'terminar',id:'{ut}',modo:'efectivo',firma:'M1 1L20 20L40 10L60 30L80 12'}},{{rol:'tecnico',id:'{tt}'}})")
+        await c.reload(); await c.wait_for_selector('#urgAhora')   # lo que han hecho otras pestañas
+        tu = await c.evaluate(f"(()=>{{const K=OficioNucleo,cfg=K.cfgDe(OFICIO_NEGOCIO),S=Oficio.estado(),A=S.avisos.find(a=>a.id==='{uu}');const libre=x=>!S.avisos.some(y=>y.tec===x&&(y.e==='camino'||y.e==='curso')),L=K.llegadas(S,cfg,A.cli.dis,Date.now(),A.av).filter(x=>!x.choca&&!x.fuera&&libre(x.tec));return L.length?L[0].tec:Object.keys(cfg.tec).find(libre)}})()")
+        await c.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{uu}',tec:'{tu}'}},{{rol:'centralita',id:'oficina'}})")
+        t6 = oye(await ctx.new_page(), 'técnico, urgencia'); await t6.goto(B + f'app.html?papel=tecnico&tec={tu}#/aviso/{uu}'); await t6.wait_for_selector('[data-a=voy]')
+        await t6.click('[data-a=voy]'); await t6.wait_for_selector('[data-a=empezar]'); await t6.click('[data-a=empezar]'); await t6.wait_for_selector('#pL'); await t6.wait_for_timeout(250)
+        es('Servicio urgente' in await texto(t6, '#pL'), 'el presupuesto de la urgencia ya lleva la línea del suplemento')
+        await t6.keyboard.press('Escape')
+        await c.goto(B + 'app.html#/cobros'); await c.wait_for_selector('#urgMes')
+        es('Urgencias de este mes' in await texto(c, '#urgMes') and 'OOOX' in await texto(c, '#urgMes'), 'en «Cobros», las urgencias cobradas del mes y la parte de OOOX')
+        k9 = oye(await ctx.new_page(), 'cita, urgencia'); await k9.goto(B + 'cita.html'); await k9.wait_for_selector('#urgLead')
+        tl = await texto(k9, '#urgLead')
+        es(('ahora llegamos en unos' in tl or 'te lo decimos al llamar' in tl) and 'suplemento de 30,00' in tl, 'la página de citas dice en cuánto llegamos ahora a una urgencia, y su suplemento')
+
         es(not errores, 'sin errores en la consola ni archivos que falten: ' + '; '.join(errores[:4]))
         await br.close()
     webkit_linux.resumen_rarezas()

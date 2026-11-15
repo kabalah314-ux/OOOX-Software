@@ -21,7 +21,7 @@ g.OFICIO_NEGOCIO={
     La llave es la PÚBLICA del proyecto; la de servicio no sale nunca del servidor. Sin esta línea, la app guarda todo en el navegador. */
  servidor:{url:'https://glsmahzpvzabeeucyqif.supabase.co',llave:'sb_publishable_SmbXr1nXApZ8HRF1ezbXcg_lqtr2yaZ'},
  /* tarifa normal de 9 a 19 h en días laborables; el resto, urgencia con un 50 % más */
- tarifa:{dia:[540,1140],recargo:.5},
+ tarifa:{dia:[540,1140],recargo:.5,urgente:'urge'},
  festivos:['2026-01-01','2026-01-06','2026-01-22','2026-03-19','2026-04-03','2026-04-06','2026-05-01','2026-06-24','2026-08-15','2026-10-09','2026-10-12','2026-12-08','2026-12-25',
   '2027-01-01','2027-01-06','2027-01-22','2027-03-19','2027-03-26','2027-03-29','2027-05-01','2027-06-24','2027-08-16','2027-10-09','2027-10-12','2027-11-01','2027-12-06','2027-12-08','2027-12-25'],
  /* horarios: Inés, de lunes a viernes, mañana y tarde; Pau, de lunes a jueves solo por la mañana, y es quien hace las guardias.
@@ -37,6 +37,7 @@ g.OFICIO_NEGOCIO={
  franjas:[{id:'m1',de:510,a:660},{id:'m2',de:660,a:810},{id:'t1',de:930,a:1080}],
  catalogo:{
   visita:{t:'Visita y diagnóstico',p10:35,u:1},
+  urge:{t:'Servicio urgente: salimos en el momento',p10:25},
   horas:{t:'Mano de obra',p10:42,u:1,un:'h',min:.5,paso:.5},
   enchufe:{t:'Cambio de enchufe o interruptor, con visita',p10:48,u:1},
   lampara:{t:'Instalar una lámpara, con visita',p10:55,u:1},
@@ -49,15 +50,15 @@ g.OFICIO_NEGOCIO={
   cuadro:{t:'Cuadro eléctrico de 12 módulos, instalado',p21:290,mat:1},
   revinst:{t:'Revisión de la instalación eléctrica',p21:40}},
  averias:[
-  {id:'salta',n:'Salta el diferencial',c:'Diferencial',d:'Se va la luz de toda la casa.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:2},{k:'diferencial'}],ini:[{k:'visita'},{k:'horas',q:1}],chips:['diferencial','magneto','cable','cuadro']},
-  {id:'sinluz',n:'Sin luz en una zona',c:'Sin luz',d:'Una habitación o varios enchufes.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:1.5},{k:'magneto'},{k:'cable'}],ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','cable','caja','regleta']},
-  {id:'enchufe',n:'Enchufe o interruptor',c:'Enchufe',d:'Suelto, quemado o que no funciona.',min:[{k:'enchufe'}],max:[{k:'enchufe'},{k:'mecanismo'},{k:'caja'}],ini:[{k:'enchufe'}],chips:['mecanismo','caja','cable']},
-  {id:'lampara',n:'Instalar una lámpara',c:'Lámpara',d:'Colgar y conectar una lámpara o un plafón.',min:[{k:'lampara'}],max:[{k:'lampara'},{k:'regleta'},{k:'cable'}],ini:[{k:'lampara'}],chips:['regleta','cable']},
-  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'visita'},{k:'horas',q:.5}],max:null,ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','mecanismo','cable','caja','regleta']}],
+  {id:'salta',n:'Salta el diferencial',c:'Diferencial',d:'Se va la luz de toda la casa.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:2},{k:'diferencial'}],dur:[30,90],ini:[{k:'visita'},{k:'horas',q:1}],chips:['diferencial','magneto','cable','cuadro']},
+  {id:'sinluz',n:'Sin luz en una zona',c:'Sin luz',d:'Una habitación o varios enchufes.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:1.5},{k:'magneto'},{k:'cable'}],dur:[30,90],ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','cable','caja','regleta']},
+  {id:'enchufe',n:'Enchufe o interruptor',c:'Enchufe',d:'Suelto, quemado o que no funciona.',min:[{k:'enchufe'}],max:[{k:'enchufe'},{k:'mecanismo'},{k:'caja'}],dur:[20,45],ini:[{k:'enchufe'}],chips:['mecanismo','caja','cable']},
+  {id:'lampara',n:'Instalar una lámpara',c:'Lámpara',d:'Colgar y conectar una lámpara o un plafón.',min:[{k:'lampara'}],max:[{k:'lampara'},{k:'regleta'},{k:'cable'}],dur:[30,60],ini:[{k:'lampara'}],chips:['regleta','cable']},
+  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'visita'},{k:'horas',q:.5}],max:null,dur:[45,120],ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','mecanismo','cable','caja','regleta']}],
  /* el mantenimiento, para probar los contratos con el servidor: la revisión anual del cuadro y la instalación, y en las
     urgencias no se cobra la visita */
  mantenimiento:{
-  revision:{n:'Revisión del contrato',c:'Revisión',d:'La revisión de la instalación eléctrica que lleva el contrato.',ini:[{k:'visita'},{k:'revinst'}],chips:['diferencial','magneto','mecanismo','regleta']},
+  revision:{n:'Revisión del contrato',c:'Revisión',d:'La revisión de la instalación eléctrica que lleva el contrato.',dur:[40,75],ini:[{k:'visita'},{k:'revinst'}],chips:['diferencial','magneto','mecanismo','regleta']},
   planes:[{id:'anual',n:'Mantenimiento anual',precio:95,iva:21,revisiones:1,desp:'visita',rev:'revinst',prioridad:1}]}
 };
 })(typeof globalThis!=='undefined'?globalThis:this);

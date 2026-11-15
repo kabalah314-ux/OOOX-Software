@@ -390,7 +390,11 @@ function fila(A,sel){const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=K.nomCli(A.cli
 const sec=(tit,L,sel,vacio)=>'<section class="sec"><h2>'+tit+' <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(a=>fila(a,sel)).join('')+'</ul>':'<p class="hueco">'+vacio+'</p>')+'</section>';
 function tira(){const r=K.resumen(S,cfg,Date.now());
  return'<ul class="tira" aria-label="Dónde está cada técnico">'+N.tecnicos.map(t=>{const x=r.tec[t.id],A=x.aviso&&el(x.aviso);
-  return'<li class="'+(x.e!=='libre'?'on':'')+'">'+ava(t.id)+'<span>'+esc(t.n)+'<small>'+(x.e==='curso'?'trabajando en '+esc(barrio(A)):x.e==='camino'?'de camino a '+esc(barrio(A)):'libre')+'</small></span></li>'}).join('')+'</ul>'}
+  const lib=K.ocupacion(S,cfg,t.id,Date.now()),fin=lib?' · libre ~'+K.hora(Date.now()+lib*60000):'';
+  return'<li class="'+(x.e!=='libre'?'on':'')+'">'+ava(t.id)+'<span>'+esc(t.n)+'<small>'+(x.e==='curso'?'trabajando en '+esc(barrio(A))+fin:x.e==='camino'?'de camino a '+esc(barrio(A))+fin:lib?'con urgencias en cola'+fin:'libre')+'</small></span></li>'}).join('')+'</ul>'+bUrgAhora()}
+/* para una urgencia que entre ahora: quién llega antes y en cuánto, o que no hay nadie sin dejar tirada una cita */
+function bUrgAhora(){const L=K.llegadas(S,cfg,null,Date.now(),'').filter(x=>!x.choca&&!x.fuera);
+ return'<p class="ojo" id="urgAhora">'+(L.length?'Para una urgencia ahora: '+esc(cfg.tec[L[0].tec].n)+(L[0].libre?', libre hacia las '+K.hora(Date.now()+L[0].libre*60000):', libre ya')+'. Llega en '+(L[0].libre?'unos '+L[0].llega+' min':'lo que se tarde hasta el barrio')+'.':'Para una urgencia ahora no hay nadie libre sin llegar tarde a una cita o salirse de su horario.')+'</p>'}
 
 /* ===== centralita: la bandeja ===== */
 function vBandeja(sel){const r=K.resumen(S,cfg,Date.now()),hoy=K.madrid().date,H=sel?'p class="h1"':'h1',Hc=sel?'p':'h1';
@@ -414,10 +418,13 @@ function bCliente(A,esT){const c=A.cli;let h='<section class="blq"><h2>Cliente</
  return h+'</section>'}
 function bGar(A){const G=A.gar0&&el(A.gar0);if(!G)return'';return'<p class="ojo">Puede ser garantía: <a href="#/aviso/'+G.id+'">'+G.id+'</a>, '+esc(cfg.av[G.av].n.toLowerCase())+', terminado el '+K.fechaCorta(K.madrid(G.fin).date)+'.</p>'}
 function bReparto(A){const r=K.resumen(S,cfg,Date.now()),rep=['nuevo','asignado','ausente'].includes(A.e);
+ /* en una urgencia por repartir: en cuánto llegaría cada uno, y si llegaría tarde a su cita o se saldría de su horario */
+ const LL=rep&&!A.cita&&!A.tec?K.llegadas(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):[],ll=id=>LL.find(x=>x.tec===id),pri=LL.find(x=>!x.choca&&!x.fuera);
+ const eta=id=>{const x=ll(id);if(!x)return'';return' · llega en ~'+x.llega+' min'+(x.choca?' (y llegaría tarde a su cita)':x.fuera?' (acabaría fuera de su horario)':pri&&pri.tec===id?' · el que antes llega':'')};
  return'<section class="blq"><h2>'+(A.tec?'Lo lleva':'¿Quién va?')+'</h2>'+(A.reasignar&&!A.tec?'<p class="ojo" style="margin:0 0 10px">Quien lo llevaba ya no puede ir. Elige a otra persona.</p>':'')+'<div class="tecs">'+N.tecnicos.map(t=>{const x=r.tec[t.id],B=x.aviso&&el(x.aviso),no=rep&&A.tec!==t.id?K.puedeIr(S,cfg,A,t.id,Date.now()):'';
-  return'<button class="tec'+(no?' no':'')+'" data-a="asignar" data-id="'+A.id+'" data-tec="'+t.id+'" aria-pressed="'+(A.tec===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n)+' '+esc(t.ap)+'</b><small>'+(no&&NOVA[no]?NOVA[no](A):x.e==='curso'?'Trabajando en '+esc(barrio(B))+', lleva '+dur(K.minutos(B,Date.now())):x.e==='camino'?'De camino a '+esc(barrio(B)):'Libre ahora')+' · '+(x.hoy+x.hechos)+' hoy</small></span>'+(A.tec===t.id?'<span class="va">Asignado</span>':'')+'</button>'}).join('')+'</div></section>'}
+  return'<button class="tec'+(no?' no':'')+'" data-a="asignar" data-id="'+A.id+'" data-tec="'+t.id+'" aria-pressed="'+(A.tec===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n)+' '+esc(t.ap)+'</b><small>'+(no&&NOVA[no]?NOVA[no](A):x.e==='curso'?'Trabajando en '+esc(barrio(B))+', lleva '+dur(K.minutos(B,Date.now())):x.e==='camino'?'De camino a '+esc(barrio(B)):'Libre ahora')+' · '+(x.hoy+x.hechos)+' hoy'+(no?'':eta(t.id))+'</small></span>'+(A.tec===t.id?'<span class="va">Asignado</span>':'')+'</button>'}).join('')+'</div></section>'}
 function bCita(A){const c=A.cita,hoy=K.madrid().date,otras=c&&A.vale?A.vale.filter(v=>!(v.dia===c.dia&&v.fr===c.fr)&&v.dia>=hoy):[];
- return'<section class="blq"><h2>Cuándo</h2><div class="cita"><p>'+(c?'Cita '+diaTxt(c.dia)+', '+frTxt(c.fr)+'. Tarifa normal.':'Urgente: cuanto antes.'+(K.tarifaDe(cfg,A)?' Tarifa de urgencia.':' Tarifa normal.'))+'</p><button class="btn peq" data-a="cita" data-id="'+A.id+'">'+(c?'Cambiar':'Dar cita')+'</button></div>'+
+ return'<section class="blq"><h2>Cuándo</h2><div class="cita"><p>'+(c?'Cita '+diaTxt(c.dia)+', '+frTxt(c.fr)+'. Tarifa normal.':'Urgente: cuanto antes.'+(K.tarifaDe(cfg,A)?' Tarifa de urgencia.':' Tarifa normal.')+(cfg.urge&&A.av!==K.REV?(K.gratisDe(A).includes(cfg.urge)?' Sin suplemento de urgencia: va en su contrato.':' Suplemento de urgencia de '+K.eur(cfg.cat[cfg.urge].p10)+', en el presupuesto.'):''))+'</p><button class="btn peq" data-a="cita" data-id="'+A.id+'">'+(c?'Cambiar':'Dar cita')+'</button></div>'+
   (c&&c.ok===false?'<p class="ojo" id="porConf">Pendiente de confirmar con el cliente: esta franja no la eligió él. <button class="txt" data-a="confirma" data-id="'+A.id+'">Ya está hablado</button></p>':'')+
   (c&&c.of&&PORA[c.of]?'<p class="mnota" style="margin-top:8px">'+PORA[c.of]+'</p>':'')+
   (otras.length?'<p class="mnota" style="margin-top:8px">Al cliente también le va bien: '+otras.map(v=>diaCorto(v.dia)+', '+frTxt(v.fr)).join(' · ')+'.</p>':'')+'</section>'}
@@ -595,8 +602,11 @@ function vCobros(){const r=K.resumen(S,cfg,Date.now()),L=S.avisos.filter(a=>a.e=
  h+=sec('Por cobrar',L,'','Todo lo terminado está cobrado.');
  const PF=K.porFacturar(S,Date.now()).map(x=>el(x.id)).filter(Boolean);
  h+=sec('Por facturar',PF,'','Todo lo terminado está facturado.')+(PF.length?'<p class="mnota" style="margin:-4px 0 14px">Ábrelo, copia los datos, haz la factura con tu programa y toca «Facturada».</p>':'');
- h+='<section class="sec"><h2>Caja de hoy</h2><dl class="cifras">'+['efectivo','tarjeta','bizum','transferencia'].map(k=>'<div><dt>'+PAGO[k]+'</dt><dd class="num">'+K.eur(r.caja[k])+'</dd></div>').join('')+'</dl><p class="mnota" style="margin-top:8px">Total cobrado hoy: '+K.eur(r.caja.total)+'. Las facturas las emite el programa de facturas del negocio, no esta app.</p></section>'+(U.length?sec('Últimos cobros',U,'',''):'')+bMes()+bDeja();
+ h+='<section class="sec"><h2>Caja de hoy</h2><dl class="cifras">'+['efectivo','tarjeta','bizum','transferencia'].map(k=>'<div><dt>'+PAGO[k]+'</dt><dd class="num">'+K.eur(r.caja[k])+'</dd></div>').join('')+'</dl><p class="mnota" style="margin-top:8px">Total cobrado hoy: '+K.eur(r.caja.total)+'. Las facturas las emite el programa de facturas del negocio, no esta app.</p></section>'+(U.length?sec('Últimos cobros',U,'',''):'')+bMes()+bUrgMes()+bDeja();
  return h}
+/* las urgencias con suplemento cobradas este mes, y lo que es de OOOX por ellas */
+function bUrgMes(){if(!cfg.urge)return'';const u=K.urgenciasMes(S,cfg,K.madrid().date.slice(0,7)),pc=Math.round(u.pct*100);
+ return'<section class="sec" id="urgMes"><h2>Urgencias de este mes</h2><p>'+(u.n?(u.n===1?'1 urgencia cobrada':u.n+' urgencias cobradas')+' con suplemento: '+K.eur(u.base)+' sin IVA. La parte de OOOX ('+pc+' %): <b class="num">'+K.eur(u.oox)+'</b>.':'Este mes todavía no se ha cobrado ninguna urgencia con suplemento.')+'</p><p class="mnota">El suplemento lo cobra el negocio; OOOX lo factura a final de mes. Las urgencias de clientes con contrato van sin suplemento y no cuentan.</p></section>'}
 
 /* ===== centralita: aviso nuevo, de una llamada ===== */
 const B={av:N.averias[0].id,or:'llamada',cuando:'urg',dia:'',fr:'',nombre:'',apellidos:'',tel:'',dir:'',cp:'',nota:'',err:''};
@@ -619,16 +629,17 @@ function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true);if(!dias.find(x=>
    La oficina los da de alta (con la firma del cliente o su sí por mensaje), apunta el cobro, da la cita de la revisión,
    renueva si el cliente dice que sí y apunta la baja. Los avisos del cliente lo saben solos. */
 const PLANES=Object.keys(cfg.planes||{}),HAY_CON=()=>pro()&&PLANES.length>0,contrato=id=>(S.contratos||[]).find(c=>c.id===id);
-const incluye=x=>{const P=cfg.planes[x];if(!P)return'';return[(P.revisiones===1?'Una revisión':P.revisiones+' revisiones')+' al año, con el desplazamiento',P.desp?'sin desplazamiento en las urgencias':'',P.prioridad?'y sus avisos van primero':''].filter(Boolean).join(', ')+'. IVA del '+P.iva+' % incluido.'};
+const incluye=x=>{const P=cfg.planes[x];if(!P)return'';return[(P.revisiones===1?'Una revisión':P.revisiones+' revisiones')+' al año, con el desplazamiento',P.desp||cfg.urge?'en las urgencias sin '+[P.desp?'desplazamiento':'',cfg.urge?'suplemento de urgencia':''].filter(Boolean).join(' ni '):'',P.prioridad?'y sus avisos van primero':''].filter(Boolean).join(', ')+'. IVA del '+P.iva+' % incluido.'};
 function bContrato(A){
  /* la oficina lo ofrece en cualquier aviso abierto; el técnico, en el suyo, en casa del cliente (trabajando o recién acabado) */
- const puede=Q.rol==='centralita'?!['hecho','cancelado'].includes(A.e):Q.rol==='tecnico'&&A.tec===Q.id&&(A.e==='curso'||(A.e==='hecho'&&A.fin&&K.madrid(A.fin).date===K.madrid().date));
+ const puede=Q.rol==='centralita'?A.e!=='cancelado':Q.rol==='tecnico'&&A.tec===Q.id&&(A.e==='curso'||(A.e==='hecho'&&A.fin&&K.madrid(A.fin).date===K.madrid().date));
  if(!A.con)return puede&&HAY_CON()&&A.cli.tel&&A.cli.dir&&!K.contratoDe(S,A.cli,K.madrid().date)?'<div class="acts" id="conOf"><button class="btn peq" data-a="conAlta" data-id="'+A.id+'">Ofrecer el contrato de mantenimiento</button></div>':'';
  return'<p class="ojo con" id="conB">Cliente con contrato de mantenimiento '+(Q.rol==='centralita'?'<a href="#/contratos">'+esc(A.con.id)+'</a>':esc(A.con.id))+': '+(A.con.rev?'la revisión y el desplazamiento van incluidos':A.con.desp&&A.urg&&A.av!==K.REV?'en esta urgencia no se cobra el desplazamiento':'sus avisos van primero')+'.</p>'}
 function vContratos(){const ahora=Date.now(),hoy=K.madrid().date,Pd=K.pendientesContratos(S,cfg,ahora),L=(S.contratos||[]).slice().sort((a,b)=>(a.e==='activo'?0:1)-(b.e==='activo'?0:1)||b.t-a.t);
  const act=L.filter(c=>c.e==='activo').length,nom=id=>{const C=contrato(id);return C?esc(K.nomCli(C.cli)):''};
  const al=Pd.renovar.map(x=>'<li><span><b>Renovar '+esc(x.id)+'</b> ('+nom(x.id)+'): '+(x.vencido?'acabó':'acaba')+' el '+K.fechaCorta(x.a)+'.</span><button class="btn peq" data-a="conRen" data-c="'+x.id+'">Renovar</button></li>')
-  .concat(Pd.revision.map(x=>'<li><span><b>Revisión de '+esc(x.id)+'</b> ('+nom(x.id)+'): falta darle cita.</span><button class="btn peq" data-a="conRev" data-c="'+x.id+'">Crear el aviso</button></li>'))
+  .concat(Pd.revision.map(x=>{const C=contrato(x.id),ab=C&&S.avisos.find(a=>['nuevo','asignado','camino','ausente'].includes(a.e)&&a.av!==K.REV&&K.tel9(a.cli.tel)===K.tel9(C.cli.tel));
+   return'<li><span><b>Revisión de '+esc(x.id)+'</b> ('+nom(x.id)+'): falta darle cita.'+(ab?' Tiene abierto el aviso <a href="#/aviso/'+ab.id+'">'+ab.id+'</a>: se puede hacer en esa misma visita y ahorrar un viaje.':'')+'</span><button class="btn peq" data-a="conRev" data-c="'+x.id+'">Crear el aviso</button></li>'}))
   .concat(Pd.cobrar.map(x=>'<li><span><b>'+esc(x.id)+' por cobrar</b> ('+nom(x.id)+'): '+K.eur(x.precio)+'.</span><button class="btn peq" data-a="conCob" data-c="'+x.id+'">Cobrado</button></li>'));
  let h='<div class="cab"><div><h1>Contratos</h1><p class="sub">'+(act?(act===1?'1 contrato de mantenimiento en marcha.':act+' contratos de mantenimiento en marcha.'):'Todavía no hay ningún contrato de mantenimiento.')+'</p></div><button class="btn pri peq" data-a="conAlta">'+I.mas+'Nuevo contrato</button></div>';
  if(al.length)h+='<ul class="alertas" id="conAl" aria-label="Lo que piden los contratos">'+al.join('')+'</ul>';
@@ -917,7 +928,7 @@ const DES={cita:'Tienes 14 días para echarte atrás de este trabajo. Si quieres
 
 /* el presupuesto que firma el cliente y, con otra forma, la ampliación */
 function hPrecio(A,ampliar){const av=cfg.av[A.av],urg=ampliar?A.tot.urg:K.tarifaDe(cfg,A),GR=K.gratisDe(A);
- let lin=ampliar?[]:av.ini.map(l=>({k:l.k,q:l.q||cfg.cat[l.k].min})),local=ampliar?A.local:false,pad,otro=false,pide=false;
+ let lin=ampliar?[]:K.iniDe(cfg,A).map(l=>({k:l.k,q:l.q||cfg.cat[l.k].min})),local=ampliar?A.local:false,pad,otro=false,pide=false;
  const base=ampliar?A.lin.map(l=>Object.assign({},l)):[],hayMo=base.some(l=>cfg.cat[l.k]&&cfg.cat[l.k].un==='h'),PASO=HIT?HIT.paso:.25,minMo=ampliar&&hayMo?PASO:(HIT?HIT.min:1);
  const junto=()=>{const J=base.map(l=>Object.assign({},l));lin.forEach(l=>{const ya=l.k!=='otro'&&J.find(x=>x.k===l.k);if(ya)ya.q+=l.q;else J.push(Object.assign({},l))});return J};
  const d=hoja(hc(ampliar?'Añadir al trabajo':'Presupuesto')+'<div class="hb"><p class="dn">'+A.id+' · '+esc(av.n)+' · '+esc(A.cli.dir)+'</p>'+

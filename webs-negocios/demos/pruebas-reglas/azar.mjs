@@ -106,6 +106,17 @@ function paso(W, a, q, t) {
     else if (A.e !== e0 && !SALTOS.has(e0 + '>' + A.e)) rota('salto-permitido', e0 + ' → ' + A.e + ' con ' + tipo);
     unAviso(W, A, t);
   }
+  // --- los tiempos de llegada a una urgencia y el suplemento (15-11-2026), mirados en un barrio y un aviso cualquiera
+  { const dises = Object.keys(cfg.zonas.dis), dis = dises[W.leyes % dises.length], av = W.N.averias[W.leyes % W.N.averias.length].id, hoy = K.madrid(t).date;
+    const L = K.llegadas(S, cfg, dis, t, av), vistos = new Set(), pen = x => (x.choca || x.fuera) ? 1 : 0;
+    L.forEach((x, i) => { if (vistos.has(x.tec)) rota('llegadas-sin-repetir', x.tec); vistos.add(x.tec);
+      if (!(x.libre >= 0 && x.viaje === cfg.zonas.banda[cfg.zonas.dis[dis][1]] && x.llega === x.libre + x.viaje && Number.isInteger(x.llega))) rota('llegadas-cuadran', JSON.stringify(x));
+      if ((S.ausencias || []).some(u => u.tec === x.tec && u.de <= hoy && u.a >= hoy)) rota('llegadas-sin-ausentes', x.tec);
+      if (i && (pen(L[i - 1]) > pen(x) || (pen(L[i - 1]) === pen(x) && L[i - 1].llega > x.llega))) rota('llegadas-en-orden', JSON.stringify(L)) });
+    const ok = L.filter(x => !pen(x)), u = K.urgenciaAhora(S, cfg, dis, t, av);
+    if (!ok.length ? u !== null : !(u && u.tec === ok[0].tec && u.de % 5 === 0 && u.de >= ok[0].llega && u.de < ok[0].llega + 15 && u.a === u.de + 15)) rota('lo-que-se-promete-sale-de-las-llegadas', JSON.stringify(u));
+    const X = S.avisos.length ? S.avisos[W.leyes % S.avisos.length] : null;
+    if (X) { const lleva = K.iniDe(cfg, X).some(l => l.k === cfg.urge); if (lleva !== (!!cfg.urge && !X.cita && X.av !== K.REV)) rota('suplemento-solo-en-urgencias', X.id) } }
   // --- nadie en dos sitios, y ninguna franja pasa de su cupo
   const enMarcha = {}, porFranja = {};
   for (const x of S.avisos) {

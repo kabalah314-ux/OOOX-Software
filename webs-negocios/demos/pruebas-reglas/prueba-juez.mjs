@@ -134,6 +134,13 @@ let idW, llaveW;
   const S = { esq: K.ESQ, n: crudo('ramirez').cab.n, nu: 0, ausencias: [], v: crudo('ramirez').v, avisos: [...crudo('ramirez').avisos.values()].map(f => f.datos) }, D = K.diasDe(S, cfg, reloj.t, TOPES.dias);
   es(h.ok && h.dias.length === D.length && h.dias.every((d, i) => d.dia === D[i].dia && d.hoy === !!D[i].hoy && d.franjas.every((f, j) => f.id === D[i].franjas[j].id && f.ok === !!D[i].franjas[j].ok)), 'los huecos que se enseñan son los que dicen las reglas');
   es(h.dias.every(d => igual(Object.keys(d).sort(), ['dia', 'franjas', 'hoy']) && d.franjas.every(f => igual(Object.keys(f).sort(), ['id', 'ok']))) && !/Montse|Pere|6123|6987/.test(JSON.stringify(h)), 'y no llevan cifras de la casa ni datos de nadie');
+  // para una urgencia: en cuánto se llegaría ahora, sin decir quién va
+  const dis0 = Object.keys(cfg.zonas.dis)[0], hu = await J.atiende({ que: 'huecos', negocio: 'ramirez', dis: dis0, av: NR.averias[0].id }), uR = K.urgenciaAhora(S, cfg, dis0, reloj.t, NR.averias[0].id);
+  const hx = await J.atiende({ que: 'huecos', negocio: 'ramirez', dis: 'constructor', av: 7 }), ux = K.urgenciaAhora(S, cfg, null, reloj.t, '');
+  es(hu.ok && igual(hu.urg, uR ? { de: uR.de, a: uR.a } : null) && hx.ok && igual(hx.urg, ux ? { de: ux.de, a: ux.a } : null) && (h.urg === null || igual(Object.keys(h.urg).sort(), ['a', 'de'])),
+    'para una urgencia, el tiempo de llegada a su barrio (o al más lejano si no lo dice), sin decir quién va');
+  reloj.t = Date.parse('2026-11-17T23:30:00+01:00'); const hn = await J.atiende({ que: 'huecos', negocio: 'ramirez', dis: dis0 }), un = K.urgenciaAhora(S, cfg, dis0, reloj.t, '');
+  es(hn.ok && igual(hn.urg, un ? { de: un.de, a: un.a } : null), 'de noche, lo mismo que dicen las reglas con quien esté de guardia'); reloj.t = Date.parse('2026-11-17T10:30:00+01:00');
   const dia = h.dias.find(d => !d.hoy && d.franjas.some(f => f.ok)), fr = dia.franjas.find(f => f.ok).id;
   const no = await J.atiende({ que: 'pedir', negocio: 'ramirez', red: 'red-1', accion: { tipo: 'cancelar', id: id2 } }), no2 = await J.atiende({ que: 'pedir', negocio: 'ramirez', red: 'red-1', accion: { tipo: 'asignar', id: id2, tec: tecR[0] } });
   es(!no.ok && no.err === 'permiso' && !no2.ok && no2.err === 'permiso' && crudo('ramirez').avisos.get(id2).datos.e === 'nuevo', 'por la puerta de la web solo se puede pedir: ni cancelar ni asignar');
