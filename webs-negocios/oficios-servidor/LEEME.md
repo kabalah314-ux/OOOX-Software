@@ -192,8 +192,8 @@ Con navegador:
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
 GitHub las pasa en cada cambio: reglas y datos en una máquina, y las pantallas en Chromium, Firefox y WebKit. En verde
-el 15-11-2026 con el commit `89edd8f` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va y
-rentabilidad).
+el 15-11-2026 con el commit `bf15cb2` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
+rentabilidad y el material que falta).
 
 En vivo (14-11-2026), contra la función desplegada y sin navegador: entrar bien y mal, crear, asignar, leer como cada
 técnico, enlace del cliente bueno y malo, cita desde la web con el origen y el técnico forzados, acción repetida,
@@ -208,7 +208,9 @@ Claude» por nombre).
 El 15-11-2026, la función pasó a la versión 6, con las reglas `2026.11.15a` del commit `89edd8f` (la de
 arriba): lo comprobado desde la base de datos con `pg_net` es que responde con esa versión. Las reglas nuevas que mira
 el servidor: solo la oficina marca «Facturada», y un trabajo con cita o con algo añadido no se empieza sin la petición
-del cliente. Los dos avisos de prueba de Voltio son de antes y siguen valiendo.
+del cliente. Los dos avisos de prueba de Voltio son de antes y siguen valiendo. Esa misma noche pasó a la versión 7, con las reglas `2026.11.15b` del commit `bf15cb2`: lo nuevo es el material que
+falta, que el servidor deja apuntar solo a la oficina y al técnico del aviso, y que no sale en la página del cliente.
+Comprobado igual, desde la base de datos: responde con esa versión.
 
 ## Lo que falta
 
