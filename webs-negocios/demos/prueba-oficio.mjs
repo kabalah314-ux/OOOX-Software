@@ -936,6 +936,11 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   const imp = A(u4).tot.lineas.find(l => l.k === cfg.urge).imp, b = Math.round(imp / (1 + A(u4).tot.tipo / 100));
   es(um1.n === 0 && um2.n === 1 && um2.base === b && um2.oox === Math.round(b * K.COMISION_URG) && K.urgenciasMes(S, cfg, '2026-01').n === 0 && K.urgenciasMes(S, Object.assign({}, cfg, { urge: '' }), mes).n === 0,
     'la parte de OOOX: solo del suplemento que se ha cobrado (el del contrato va incluido y no cuenta), sin IVA, y en el mes del cobro');
+  { const SB = K.nuevo(); let tb = MAR; const hb = (a, q) => K.aplicar(SB, cfg, a, q, tb += M);   // a igual tiempo, el que menos trabajos lleva hoy
+    const x = hb({ tipo: 'pedir', av: 'grifo', cli: cli(20) }, C).id; hb({ tipo: 'asignar', id: x, tec: 'jordi' }, C); hb({ tipo: 'voy', id: x }, T('jordi'));
+    hb({ tipo: 'empezar', id: x, pres: { lineas: [{ k: 'grifo' }], firma: F } }, T('jordi')); hb({ tipo: 'terminar', id: x, modo: 'efectivo', firma: F }, T('jordi'));
+    const L = K.llegadas(SB, cfg, dis, tb, 'fuga');
+    es(L[0].llega === L[1].llega && L[0].tec === 'laia' && L.find(y => y.tec === 'jordi').hoy === 1, 'a igual tiempo, va antes quien menos trabajos lleva hoy: así se reparte') }
 }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);

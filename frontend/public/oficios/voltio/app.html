@@ -394,7 +394,7 @@ function tira(){const r=K.resumen(S,cfg,Date.now());
   return'<li class="'+(x.e!=='libre'?'on':'')+'">'+ava(t.id)+'<span>'+esc(t.n)+'<small>'+(x.e==='curso'?'trabajando en '+esc(barrio(A))+fin:x.e==='camino'?'de camino a '+esc(barrio(A))+fin:lib?'con urgencias en cola'+fin:'libre')+'</small></span></li>'}).join('')+'</ul>'+bUrgAhora()}
 /* para una urgencia que entre ahora: quién llega antes y en cuánto, o que no hay nadie sin dejar tirada una cita */
 function bUrgAhora(){const L=K.llegadas(S,cfg,null,Date.now(),'').filter(x=>!x.choca&&!x.fuera);
- return'<p class="ojo" id="urgAhora">'+(L.length?'Para una urgencia ahora: '+esc(cfg.tec[L[0].tec].n)+(L[0].libre?', libre hacia las '+K.hora(Date.now()+L[0].libre*60000):', libre ya')+'. Llega en '+(L[0].libre?'unos '+L[0].llega+' min':'lo que se tarde hasta el barrio')+'.':'Para una urgencia ahora no hay nadie libre sin llegar tarde a una cita o salirse de su horario.')+'</p>'}
+ return'<p class="ojo" id="urgAhora">'+(L.length?'Para una urgencia ahora: '+esc(cfg.tec[L[0].tec].n)+(L[0].libre?', libre hacia las '+K.hora(Date.now()+L[0].libre*60000):', libre ya')+'. Llega en '+(L[0].libre?'unos '+L[0].llega+' min':'lo que se tarde hasta el barrio (de '+Math.min.apply(null,Object.values(cfg.zonas.banda))+' a '+cfg.etaMax+' min)')+'.':'Para una urgencia ahora no hay nadie libre sin llegar tarde a una cita o salirse de su horario.')+'</p>'}
 
 /* ===== centralita: la bandeja ===== */
 function vBandeja(sel){const r=K.resumen(S,cfg,Date.now()),hoy=K.madrid().date,H=sel?'p class="h1"':'h1',Hc=sel?'p':'h1';
@@ -634,7 +634,7 @@ function bContrato(A){
  /* la oficina lo ofrece en cualquier aviso abierto; el técnico, en el suyo, en casa del cliente (trabajando o recién acabado) */
  const puede=Q.rol==='centralita'?A.e!=='cancelado':Q.rol==='tecnico'&&A.tec===Q.id&&(A.e==='curso'||(A.e==='hecho'&&A.fin&&K.madrid(A.fin).date===K.madrid().date));
  if(!A.con)return puede&&HAY_CON()&&A.cli.tel&&A.cli.dir&&!K.contratoDe(S,A.cli,K.madrid().date)?'<div class="acts" id="conOf"><button class="btn peq" data-a="conAlta" data-id="'+A.id+'">Ofrecer el contrato de mantenimiento</button></div>':'';
- return'<p class="ojo con" id="conB">Cliente con contrato de mantenimiento '+(Q.rol==='centralita'?'<a href="#/contratos">'+esc(A.con.id)+'</a>':esc(A.con.id))+': '+(A.con.rev?'la revisión y el desplazamiento van incluidos':A.con.desp&&A.urg&&A.av!==K.REV?'en esta urgencia no se cobra el desplazamiento':'sus avisos van primero')+'.</p>'}
+ return'<p class="ojo con" id="conB">Cliente con contrato de mantenimiento '+(Q.rol==='centralita'?'<a href="#/contratos">'+esc(A.con.id)+'</a>':esc(A.con.id))+': '+(A.con.rev?'la revisión y el desplazamiento van incluidos':A.urg&&A.av!==K.REV&&K.gratisDe(A).length?'en esta urgencia no se cobra '+K.gratisDe(A).map(k=>k===cfg.urge?'el suplemento de urgencia':'el desplazamiento').join(' ni '):'sus avisos van primero')+'.</p>'}
 function vContratos(){const ahora=Date.now(),hoy=K.madrid().date,Pd=K.pendientesContratos(S,cfg,ahora),L=(S.contratos||[]).slice().sort((a,b)=>(a.e==='activo'?0:1)-(b.e==='activo'?0:1)||b.t-a.t);
  const act=L.filter(c=>c.e==='activo').length,nom=id=>{const C=contrato(id);return C?esc(K.nomCli(C.cli)):''};
  const al=Pd.renovar.map(x=>'<li><span><b>Renovar '+esc(x.id)+'</b> ('+nom(x.id)+'): '+(x.vencido?'acabó':'acaba')+' el '+K.fechaCorta(x.a)+'.</span><button class="btn peq" data-a="conRen" data-c="'+x.id+'">Renovar</button></li>')

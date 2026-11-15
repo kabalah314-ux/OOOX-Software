@@ -163,6 +163,7 @@ const M = [
   ["no se mira si acabaría fuera de su horario", "fuera=ft==null||!laborable(cfg,n.date)||n.min+llega+nueva>ft", "fuera=ft==null||!laborable(cfg,n.date)"],
   ["quien llegaría tarde a su cita no va al final", "((a.choca||a.fuera)?1:0)-((b.choca||b.fuera)?1:0)||", ""],
   ["al cliente se le promete un tiempo que deja tirada una cita", ".filter(x=>!x.choca&&!x.fuera)", ""],
+  ["a igual tiempo no se reparte", "a.llega-b.llega||a.hoy-b.hoy||", "a.llega-b.llega||"],
   ["el tiempo que se dice no se redondea", "Math.ceil(Math.max(L[0].llega,10)/5)*5", "L[0].llega"],
   ["el suplemento va también en las citas", "if(cfg.urge&&!A.cita&&A.av!==REV&&", "if(cfg.urge&&A.av!==REV&&"],
   ["el suplemento va también en la revisión del contrato", "&&A.av!==REV&&!L.some(l=>l.k===cfg.urge))", "&&!L.some(l=>l.k===cfg.urge))"],

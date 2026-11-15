@@ -32,7 +32,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.15e';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.15f';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -216,8 +216,10 @@ function llegadas(S,cfg,dis,t,av){const n=madrid(t),d=durDe(cfg,av),nueva=Math.r
  Object.keys(cfg.tec).forEach(tec=>{if(puedeIr(S,cfg,{urg:true,cli:{dis}},tec,t))return;
   const libre=ocupacion(S,cfg,tec,t),llega=libre+viaje,pc=proximaCita(S,cfg,tec,t),gu=!!cfg.tec[tec].guardia;
   let fuera=false;if(cfg.conHorario&&horarioDe(cfg,tec)&&!gu){const ft=finTurno(cfg,tec,n);fuera=ft==null||!laborable(cfg,n.date)||n.min+llega+nueva>ft}
-  out.push({tec,libre,viaje,llega,choca:pc&&n.min+llega+nueva>pc.de?pc.id:'',fuera})});
- return out.sort((a,b)=>((a.choca||a.fuera)?1:0)-((b.choca||b.fuera)?1:0)||a.llega-b.llega||(a.tec<b.tec?-1:1))}
+  const hoy=S.avisos.filter(A=>A.tec===tec&&A.e!=='cancelado'&&((A.cita&&A.cita.dia===n.date)||madrid(A.fin||A.ini||A.t).date===n.date)).length;
+  out.push({tec,libre,viaje,llega,choca:pc&&n.min+llega+nueva>pc.de?pc.id:'',fuera,hoy})});
+ /* a igual tiempo, el que menos trabajos lleva hoy: así se reparte */
+ return out.sort((a,b)=>((a.choca||a.fuera)?1:0)-((b.choca||b.fuera)?1:0)||a.llega-b.llega||a.hoy-b.hoy||(a.tec<b.tec?-1:1))}
 /* lo que se le puede decir a quien pide una urgencia: llegamos en unos «de» a «a» minutos (de cinco en cinco), con
    el que antes llega sin dejar tirada una cita ni salirse de su horario; null si ahora no hay nadie así */
 function urgenciaAhora(S,cfg,dis,t,av){const L=llegadas(S,cfg,dis,t,av).filter(x=>!x.choca&&!x.fuera);if(!L.length)return null;
