@@ -243,7 +243,9 @@ los datos de Voltio en el servidor ya llevan `citas.porTiempo` (iguales letra po
 commit `cf2290f`: con citas por tiempo, una cita que ya existe va en su sitio al mirar si cabe, y al cambiarla de franja
 se compara con su día sin ella (lo encontró la demo «en uso»). Y la versión 16, con las reglas `2026.11.15k` del commit `50bb60d`: las
 revisiones de un contrato repartidas por su año, la reserva para urgencias que el dueño puede no guardar los días que
-falta alguien, y la visita en la que no había nadie, que queda apuntada (quién fue y cuándo) para el tablero.
+falta alguien, y la visita en la que no había nadie, que queda apuntada (quién fue y cuándo) para el tablero. Y la versión 17, con las reglas `2026.11.15l`
+del commit `64cda6a`: los mensajes de después del trabajo (seguimiento, presupuesto sin respuesta, cuándo toca volver),
+«descartar» y «escribir» (quien no quiere estos mensajes); el alta de un contrato solo toca los avisos de su cliente.
 
 ## Lo que falta
 
