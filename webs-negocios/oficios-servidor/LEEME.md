@@ -4,7 +4,7 @@ Sin servidor, cada navegador guarda sus avisos. Con servidor, la oficina, los t�
 aparatos distintos. El diseño para Oscar, con lo que cuesta y los pasos, está en la guía, pestaña «El servidor»:
 https://claude.ai/artifact/AHLx7anfXkAhZUVP51FyrY
 
-**Estado a 14-11-2026: funciona de punta a punta para la copia de prueba Voltio Sur.** El servidor está desplegado en
+**Estado a 15-11-2026: funciona de punta a punta para la copia de prueba Voltio Sur.** El servidor está desplegado en
 Supabase (proyecto `neuron-staging`, plan gratis, región de Irlanda) y la app ya habla con él: se entra con un código por
 persona, lo que se hace se ve al momento y se manda, y cada aparato se pone al día solo. Desde el 14-11 por la noche, el
 cliente también entra en su zona (`cliente.html`) con su teléfono y un código que le manda la oficina por WhatsApp. Ningún
@@ -192,7 +192,8 @@ Con navegador:
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
 GitHub las pasa en cada cambio: reglas y datos en una máquina, y las pantallas en Chromium, Firefox y WebKit. En verde
-el 14-11-2026 con el commit `a3a3b9e` (la zona del cliente con servidor).
+el 15-11-2026 con el commit `89edd8f` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va y
+rentabilidad).
 
 En vivo (14-11-2026), contra la función desplegada y sin navegador: entrar bien y mal, crear, asignar, leer como cada
 técnico, enlace del cliente bueno y malo, cita desde la web con el origen y el técnico forzados, acción repetida,
@@ -203,6 +204,11 @@ códigos, un teléfono sin avisos tampoco, la oficina recibe uno y al pedirlo ot
 (escrito en mayúsculas y con espacios) y recibe solo su aviso con su llave, con otro teléfono no vale, y al cambiarlo el
 viejo deja de valer y el nuevo entra. El código de prueba (del aviso `VS-0001`) quedó dado de baja. Quedan en el servidor dos avisos de prueba de Voltio (`VS-0001` y `VS-0002`, con «Prueba de
 Claude» por nombre).
+
+El 15-11-2026, la función pasó a la versión 6, con las reglas `2026.11.15a` del commit `89edd8f` (la de
+arriba): lo comprobado desde la base de datos con `pg_net` es que responde con esa versión. Las reglas nuevas que mira
+el servidor: solo la oficina marca «Facturada», y un trabajo con cita o con algo añadido no se empieza sin la petición
+del cliente. Los dos avisos de prueba de Voltio son de antes y siguen valiendo.
 
 ## Lo que falta
 
