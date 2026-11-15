@@ -654,5 +654,47 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(K.urgente(cfg, A(cn).t) && K.tarifaDe(cfg, A(cn)) === false, 'una cita pedida de noche se cobra con la tarifa normal');
 }
 
+// 39. los papeles (js/oficio-papeles.js), sin navegador: lo que dicen del desistimiento, el formulario, el correo del
+//     negocio si lo tiene, y que el parte no es una factura (15-11-2026)
+{
+  require(path.join(sitio, 'js/oficio-papeles.js'));
+  const P = globalThis.OficioPapeles, svg = () => '<svg></svg>', o = { K, N, cfg, firmaSvg: svg };
+  const conCorreo = { K, N: Object.assign({}, N, { email: 'avisos@ramirez.example' }), cfg, firmaSvg: svg };
+  empieza();
+  const u = ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({}, montse, { nombre: '<b>Mon</b>' }) }, CLI).id;
+  ap({ tipo: 'asignar', id: u, tec: 'omar' }, C);
+  ap({ tipo: 'empezar', id: u, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], firma: F } }, T('omar'));
+  let h = P.doc(A(u), 'presupuesto', o);
+  es(h.includes('<h2>Desistimiento</h2>') && h.includes('no tiene derecho de desistimiento (artículo 103 h') && !h.includes('Formulario de desistimiento') && !h.includes('Pediste que'), 'urgencia sola: el papel dice que no hay desistimiento, sin formulario');
+  es(!h.includes('<b>Mon</b>') && h.includes('&lt;b&gt;Mon&lt;/b&gt;'), 'lo que escribe el cliente sale tal cual, sin colarse como código');
+  ap({ tipo: 'ampliar', id: u, lineas: [{ k: 'termo80' }], firma: F, pide: true }, T('omar'));
+  h = P.doc(A(u), 'presupuesto', o);
+  es(h.includes('Lo añadido que no es la reparación sí lo tiene: 14 días naturales') && h.includes('Formulario de desistimiento') && h.includes('desisto de lo añadido en el aviso ' + u + ': Termo eléctrico de 80 litros, instalado, firmado el ' + K.fechaCorta(K.madrid(A(u).amp[0].t).date) + '.') && h.includes('Pidió que se hiciera ya, sabiendo que, hecho, ya no podrá desistir'), 'urgencia con un aparato nuevo: los 14 días para lo añadido, el formulario y la petición en la ampliación');
+  es(h.includes('A ' + N.razon + ', ' + N.dir + ', teléfono ' + N.tel + ':') && !h.includes(', correo '), 'sin correo, el formulario va con la dirección y el teléfono');
+  const hc = P.doc(A(u), 'presupuesto', conCorreo);
+  es(hc.includes('teléfono ' + N.tel + ', correo avisos@ramirez.example:') && hc.includes(N.tel + ' · avisos@ramirez.example</p>'), 'con correo, va en el formulario y en la cabecera');
+  // urgencia con el aparato nuevo ya en el presupuesto: lo añadido, con la fecha del presupuesto, y la petición en su sitio
+  const u2 = ap({ tipo: 'pedir', av: 'termo', cli: Object.assign({}, montse, { tel: '600000148' }) }, CLI).id;
+  ap({ tipo: 'asignar', id: u2, tec: 'jordi' }, C);
+  ap({ tipo: 'empezar', id: u2, pres: { lineas: [{ k: 'desp' }, { k: 'termo80' }], firma: F, pide: true } }, T('jordi'));
+  h = P.doc(A(u2), 'presupuesto', o);
+  es(h.includes('La reparación urgente que pediste no tiene derecho de desistimiento') && h.includes('Lo añadido que no es la reparación sí lo tiene') && h.includes('desisto de lo añadido en el aviso ' + u2 + ': Termo eléctrico de 80 litros, instalado, firmado el ' + K.fechaCorta(K.madrid(A(u2).pres.t).date) + '.') && h.includes('Pediste que lo hiciéramos ya'), 'urgencia con el aparato nuevo en el presupuesto: lo añadido en el formulario, con su fecha, y la petición');
+  const dia = K.diasDe(S, cfg, t, 3).find(d => d.franjas.some(f => f.ok)).dia, fr = K.franjasDe(S, cfg, dia, t).find(f => f.ok).id;
+  const c = ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, montse, { tel: '600000147' }), cita: { dia, fr } }, CLI).id;
+  ap({ tipo: 'asignar', id: c, tec: 'laia' }, C);
+  ap({ tipo: 'empezar', id: c, pres: { lineas: [{ k: 'grifo' }], firma: F, pide: true } }, T('laia'));
+  h = P.doc(A(c), 'presupuesto', o);
+  es(h.includes('Tienes 14 días naturales desde la firma para desistir') && h.includes('Formulario de desistimiento') && h.includes('a las ' + K.hora(A(c).pres.des.pide) + ', sabiendo que, cuando esté hecho, ya no podrás desistir') && h.includes('pagas la parte hecha') && h.includes('desisto del contrato del servicio del aviso ' + c + ', firmado el '), 'con cita: los 14 días, la petición con su hora y lo que se paga si se desiste a medias');
+  ap({ tipo: 'terminar', id: c, modo: 'bizum' }, T('laia'));
+  h = P.doc(A(c), 'parte', o);
+  es(h.includes('Este parte no es una factura') && h.includes('con su programa de facturas.') && !h.includes('factura n.º'), 'el parte dice que no es una factura');
+  ap({ tipo: 'facturar', id: c, num: 'F-7' }, C);
+  es(P.doc(A(c), 'parte', o).includes('(factura n.º F-7)'), 'y, ya facturado, lleva el número de la factura');
+  // un aviso de antes del 15-11, sin nada del desistimiento guardado: el papel sale igual, sin ese apartado
+  const viejo = JSON.parse(JSON.stringify(A(c))); delete viejo.pres.des; delete viejo.fac;
+  h = P.doc(viejo, 'presupuesto', o);
+  es(!h.includes('Desistimiento') && h.includes('<h1>Presupuesto</h1>'), 'un presupuesto de antes, sin el apartado nuevo, sale sin romperse');
+}
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

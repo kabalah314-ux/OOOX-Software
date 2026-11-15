@@ -18,7 +18,7 @@ function doc(A,tipo,o){const K=o.K,N=o.N,cfg=o.cfg,firmaSvg=o.firmaSvg,f=K.fecha
  tipo=elige(A,tipo);if(!tipo)return'';
  const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
  const c=A.cli,av=cfg.av[A.av]||{n:''},t=cfg.tec[A.tec]||{n:'',ap:''};
- const cab='<div class="dh"><span class="wm">'+MARCA+'</span><p>'+esc(N.razon)+' · NIF '+N.nif+'<br>'+esc(N.dir)+' · '+N.tel+'</p></div>';
+ const cab='<div class="dh"><span class="wm">'+MARCA+'</span><p>'+esc(N.razon)+' · NIF '+N.nif+'<br>'+esc(N.dir)+' · '+N.tel+(N.email?' · '+esc(N.email):'')+'</p></div>';
  const cli='<div class="dos"><div><h2>Cliente</h2><p><b>'+esc(K.nomCli(c))+'</b><br>'+esc(c.dir)+'<br>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(c.tel)+'</p></div><div><h2>Trabajo</h2><p>'+esc(av.n)+'<br>Técnico: '+esc((t.n+' '+t.ap).trim())+'<br>'+(A.cita?'Con cita':'Aviso urgente')+' · '+(A.tot.urg?'tarifa de urgencia':'tarifa normal')+'</p></div></div>';
  const lin=L=>L.map(l=>'<div class="lin"><span>'+esc(l.t)+'</span><b>'+K.eur(l.imp)+'</b>'+(lq(l)||l.u?'<small>'+[lq(l),l.u?'con el '+PCT+' % de urgencia':''].filter(Boolean).join(' · ')+'</small>':'')+'</div>').join('');
  const tot=T=>'<div class="tot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+(T.motivo==='material'?'. El material pasa del 40 % del trabajo.':T.motivo==='local'?'. Local o vivienda de menos de dos años.':'')+'</p>';
@@ -27,9 +27,16 @@ function doc(A,tipo,o){const K=o.K,N=o.N,cfg=o.cfg,firmaSvg=o.firmaSvg,f=K.fecha
  const ley=c=>c==='cita'?'Tienes 14 días naturales desde la firma para desistir de este trabajo sin dar ningún motivo, con el formulario de abajo o como prefieras.'
   :c==='urgente+'?'La reparación urgente que pediste no tiene derecho de desistimiento (artículo 103 h de la ley de consumidores). Lo añadido que no es la reparación sí lo tiene: 14 días naturales desde la firma, con el formulario de abajo o como prefieras.'
   :'La reparación urgente que pediste no tiene derecho de desistimiento (artículo 103 h de la ley de consumidores).';
- const desist=X=>{const P=X.pres&&X.pres.des;if(!P)return'';const conForm=K.pideYa(P.c)||(X.amp||[]).some(m=>m.des&&K.pideYa(m.des.c));
-  return'<h2>Desistimiento</h2><p>'+ley(P.c)+'</p>'+(P.pide?'<p>Pediste que lo hiciéramos ya, el '+f(K.madrid(P.pide).date)+' a las '+K.hora(P.pide)+', sabiendo que, cuando esté hecho, ya no podrás desistir. Si desistes antes de que acabemos, pagas la parte hecha.</p>':'')+
-   (conForm?'<div class="fdes"><h3>Formulario de desistimiento</h3><p>Rellénalo y envíalo solo si quieres desistir del contrato.</p><p>A '+esc(N.razon)+', '+esc(N.dir)+', teléfono '+esc(N.tel)+':<br>Por la presente te comunico que desisto del contrato del servicio del aviso '+esc(X.id)+', firmado el '+f(K.madrid(X.pres.t).date)+'.<br>Nombre del cliente: …………<br>Dirección del cliente: …………<br>Firma (solo si se envía en papel): …………<br>Fecha: …………</p></div>':'')};
+ /* el apartado vale para todo el aviso: si lo añadido llegó en una ampliación, también cuenta (antes del 15-11 no había nada) */
+ const desist=X=>{const P=X.pres&&X.pres.des;if(!P)return'';const amps=(X.amp||[]).filter(m=>m&&m.des),extra=l=>!!(l&&cfg.cat[l.k]&&cfg.cat[l.k].extra);
+  const c=P.c==='cita'?'cita':P.c==='urgente+'||amps.some(m=>m.des.c==='urgente+')?'urgente+':'urgente';
+  const grupos=c!=='urgente+'?[]:[].concat(P.c==='urgente+'?[{t:X.pres.t,l:X.pres.lineas}]:[],amps.filter(m=>m.des.c==='urgente+').map(m=>({t:m.t,l:m.lineas})))
+   .map(g=>({t:g.t,l:(g.l||[]).filter(extra)})).filter(g=>g.l.length);
+  const que=c==='cita'?'del contrato del servicio del aviso '+esc(X.id)+', firmado el '+f(K.madrid(X.pres.t).date)
+   :grupos.length?'de lo añadido en el aviso '+esc(X.id)+': '+grupos.map(g=>g.l.map(l=>esc(l.t)).join(', ')+', firmado el '+f(K.madrid(g.t).date)).join('; ')
+   :'de lo añadido en el aviso '+esc(X.id)+' que no es la reparación urgente';
+  return'<h2>Desistimiento</h2><p>'+ley(c)+'</p>'+(P.pide?'<p>Pediste que lo hiciéramos ya, el '+f(K.madrid(P.pide).date)+' a las '+K.hora(P.pide)+', sabiendo que, cuando esté hecho, ya no podrás desistir. Si desistes antes de que acabemos, pagas la parte hecha.</p>':'')+
+   (K.pideYa(c)?'<div class="fdes"><h3>Formulario de desistimiento</h3><p>Rellénalo y envíalo solo si quieres desistir del contrato.</p><p>A '+esc(N.razon)+', '+esc(N.dir)+', teléfono '+esc(N.tel)+(N.email?', correo '+esc(N.email):'')+':<br>Por la presente te comunico que desisto '+que+'.<br>Nombre del cliente: …………<br>Dirección del cliente: …………<br>Firma (solo si se envía en papel): …………<br>Fecha: …………</p></div>':'')};
  let d='';
  if(tipo==='presupuesto')d='<h1>Presupuesto</h1><p class="dn">N.º P-'+A.id+' · '+f(K.madrid(A.pres.t).date)+', '+K.hora(A.pres.t)+'</p>'+cli+'<h2>Lo que se va a hacer</h2>'+lin(A.pres.lineas)+tot(A.pres)+'<h2>Aceptado por el cliente</h2>'+fir(A.pres,'Firmado en el móvil del técnico')+
   (A.amp?'<h2>Ampliaciones firmadas después</h2>'+A.amp.map(m=>'<div class="lin"><span>'+m.lineas.map(l=>esc(l.t)+(lq(l)?', '+lq(l):'')).join(' · ')+'</span><b>+ '+K.eur(m.dif)+'</b><small>Firmada a las '+K.hora(m.t)+(m.des&&m.des.pide?'. Pidió que se hiciera ya, sabiendo que, hecho, ya no podrá desistir':'')+(m.dif!==m.lineas.reduce((s,l)=>s+l.imp,0)?'. Incluye el cambio de IVA de todo el trabajo':'')+'</small></div>').join(''):'')+

@@ -16,7 +16,7 @@ const palabra = t => new RegExp('(?<![\\p{L}\\p{N}])' + esc(t) + '(?![\\p{L}\\p{
 // 1) lo que identifica al negocio: no puede salir en ningún sitio, ni en un comentario
 const textos = new Map();
 const pon = (que, t) => { if (typeof t === 'string' && t.trim().length >= 4) textos.set(t.trim(), que) };
-pon('nombre', N.nombre); pon('razón social', N.razon); pon('NIF', N.nif); pon('dirección', N.dir); pon('ciudad', N.ciudad); pon('reseñas', N.resenas);
+pon('nombre', N.nombre); pon('razón social', N.razon); pon('NIF', N.nif); pon('dirección', N.dir); pon('ciudad', N.ciudad); pon('reseñas', N.resenas); pon('correo', N.email);
 (N.marca || []).forEach(m => pon('rótulo', m));
 N.tecnicos.forEach(t => { pon('técnico', t.n); pon('técnico', t.ap) });
 Object.values(N.zonas.dis).forEach(d => { pon('zona', d[0]); pon('zona', d[2]) });

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor'];
+const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor'];
 const esTexto = (x, min = 1, max = 200) => typeof x === 'string' && x.trim().length >= min && x.length <= max;
 const esNum = x => typeof x === 'number' && Number.isFinite(x);
 const esEntero = x => Number.isInteger(x);
@@ -33,6 +33,9 @@ export function valida(N, K, hoy) {
   if (!esTexto(N.dir, 5, 120)) E('dir: falta la dirección que sale en los papeles.');
   if (!esTexto(N.ciudad, 2, 40)) E('ciudad: falta la ciudad (sale junto al código postal del cliente y en los mensajes de «ahí no llegamos»).');
   if (!K.tel9(N.tel)) E('tel: el teléfono del negocio tiene que tener 9 cifras.');
+  if (N.email != null && (typeof N.email !== 'string' || N.email.length > 120 || !/^[^\s@]{1,64}@[^\s@]+\.[A-Za-z]{2,}$/.test(N.email))) E('email: no tiene forma de correo (ejemplo: avisos@minegocio.es).');
+  else if (N.email == null) A('email: el negocio no tiene correo puesto. Si lo tiene, conviene ponerlo: la ley de consumidores lo pide en el formulario de desistimiento, junto a la dirección y el teléfono.');
+  if (esTexto(N.dir, 5, 120) && !/\d/.test(N.dir)) A('dir: no lleva número. En el presupuesto y en el formulario de desistimiento tiene que ir la dirección completa (calle, número, código postal y ciudad).');
   if (!esTexto(N.resenas, 8, 200) || /\s/.test(N.resenas)) E('resenas: falta el enlace para pedir reseñas (sin espacios).');
   if (!['pro', 'asistente'].includes(N.pack)) E('pack: tiene que ser «pro» o «asistente» (desde el 13-11-2026 hay dos planes: Pro, y Pro con asistente de llamadas).');
   else if (N.pack === 'asistente') A('pack «asistente»: la app lo trata hoy igual que Pro; el asistente de llamadas todavía no está hecho.');
@@ -74,6 +77,10 @@ export function valida(N, K, hoy) {
       if (!x || !esTexto(x.n, 2, 20)) E(quien + ': falta el nombre de pila (n), que es el que lee el cliente en los mensajes.');
       if (!x || !esTexto(x.ap, 2, 30)) E(quien + ': falta el apellido (ap).');
       if (!x || !esEntero(x.tono) || x.tono < 0 || x.tono > 360) E(quien + ': tono es el color del técnico, de 0 a 360.');
+      if (x && x.coche != null && !esTexto(x.coche, 3, 80)) E(quien + ': coche es lo que ve el cliente cuando va de camino, de 3 a 80 letras (ejemplo: «Furgoneta blanca con el logo»).');
+      if (x && x.foto != null && (typeof x.foto !== 'string' || x.foto.includes('..') || !/^assets\/[\w.\/-]{1,120}\.(jpe?g|png|webp)$/i.test(x.foto))) E(quien + ': foto tiene que ser una imagen de la carpeta assets (.jpg, .png o .webp), como «assets/tec/jordi.jpg».');
+      else if (x && x.foto && x.fotoOk !== 1) A(quien + ': su foto no se enseña al cliente hasta que el técnico dé su permiso por escrito y se ponga fotoOk: 1.');
+      if (x && x.fotoOk != null && x.fotoOk !== 1) E(quien + ': fotoOk solo puede ser 1 (el técnico ha dado su permiso por escrito para enseñar su foto).');
     });
     const jefes = tecs.filter(x => x && x.jefe).length;
     if (jefes > 1) A('tecnicos: hay ' + jefes + ' marcados como jefe; lo normal es uno.');

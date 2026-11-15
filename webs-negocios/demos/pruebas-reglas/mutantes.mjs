@@ -12,6 +12,7 @@ const aqui = path.dirname(fileURLToPath(import.meta.url));
 const sitio = process.argv[2], rapido = process.argv.includes('--rapido');
 if (!sitio) { console.log('Uso: node mutantes.mjs <carpeta del sitio> [--rapido]'); process.exit(2) }
 const NUCLEO = fs.readFileSync(path.join(sitio, 'js/oficio-nucleo.js'), 'utf8'), DATOS = fs.readFileSync(path.join(sitio, 'js/oficio-datos.js'), 'utf8');
+const PAPELES = fs.readFileSync(path.join(sitio, 'js/oficio-papeles.js'), 'utf8');   // los papeles: solo los miran las pruebas de ejemplos
 
 // [qué regla se estropea, texto que hay, texto que se pone]
 const M = [
@@ -129,9 +130,19 @@ const M = [
   ['quién va enseña la foto sin permiso', "foto:x.fotoOk===1&&typeof x.foto==='string'", "foto:typeof x.foto==='string'"],
   ['quién va acepta una ruta rara para la foto', "&&!x.foto.includes('..')", ''],
   ['quién va se sigue enseñando al terminar', "quien:A.e!=='hecho'&&A.e!=='cancelado'?quienDe(tec):null", 'quien:quienDe(tec)'],
+  // los papeles (js/oficio-papeles.js), desde el 15-11-2026: lo que dicen del desistimiento y de la factura
+  ['el papel no cuenta lo añadido en una ampliación', "P.c==='urgente+'||amps.some(m=>m.des.c==='urgente+')?'urgente+'", "P.c==='urgente+'?'urgente+'", 'papeles'],
+  ['el formulario de desistimiento sale aunque no haya derecho', "(K.pideYa(c)?'<div class=\"fdes\">", "(c?'<div class=\"fdes\">", 'papeles'],
+  ['el formulario de desistimiento no sale con cita', "(K.pideYa(c)?'<div class=\"fdes\">", "(c==='urgente+'?'<div class=\"fdes\">", 'papeles'],
+  ['el formulario sin el correo del negocio', "+(N.email?', correo '+esc(N.email):'')+':<br>Por la presente", "+':<br>Por la presente", 'papeles'],
+  ['la petición de empezar ya, sin su hora', "' a las '+K.hora(P.pide)+', sabiendo que, cuando esté hecho", "', sabiendo que, cuando esté hecho", 'papeles'],
+  ['un presupuesto de antes del 15-11 sale con el apartado nuevo', "const P=X.pres&&X.pres.des;if(!P)return'';", "const P=X.pres.des||{};", 'papeles'],
+  ['el nombre del cliente se cuela como código en el papel', "<p><b>'+esc(K.nomCli(c))+'</b>", "<p><b>'+K.nomCli(c)+'</b>", 'papeles'],
+  ['el parte no dice que no es una factura', '<p class="pie">Este parte no es una factura.', '<p class="pie">Este parte.', 'papeles'],
+  ['el parte sin el número de la factura', "(A.fac?(A.fac.num?' (factura n.º '+esc(A.fac.num)+')'", "(A.fac?(A.fac.num?' (ya está hecha)'", 'papeles'],
 ];
 
-// una copia del sitio donde solo cambia el archivo de reglas (lo demás, enlazado)
+// una copia del sitio donde solo cambian las reglas o los papeles (lo demás, enlazado)
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mutantes-')); fs.mkdirSync(path.join(tmp, 'js'));
 for (const f of fs.readdirSync(sitio)) if (f !== 'js') fs.symlinkSync(path.resolve(sitio, f), path.join(tmp, f));
 for (const f of fs.readdirSync(path.join(sitio, 'js'))) if (f !== 'oficio-nucleo.js') fs.copyFileSync(path.join(sitio, 'js', f), path.join(tmp, 'js', f));
@@ -142,12 +153,14 @@ const azar = () => corre([path.join(aqui, 'azar.mjs'), tmp, '--negocio', path.jo
 fs.writeFileSync(path.join(tmp, 'js/oficio-nucleo.js'), NUCLEO);
 if (ejemplos() !== 0) { console.log('Las pruebas ya fallan sin estropear nada: arregla eso primero.'); process.exit(2) }
 let cazados = 0, vivos = [], rotos = [], porEjemplos = 0;
-for (const [que, hay, pongo] of M) {
-  const n = NUCLEO.split(hay).length - 1;
+for (const [que, hay, pongo, donde] of M) {
+  const pap = donde === 'papeles', base = pap ? PAPELES : NUCLEO, archivo = pap ? 'js/oficio-papeles.js' : 'js/oficio-nucleo.js';
+  const n = base.split(hay).length - 1;
   if (n !== 1) { rotos.push(que + ' (el texto aparece ' + n + ' veces)'); continue }
-  fs.writeFileSync(path.join(tmp, 'js/oficio-nucleo.js'), NUCLEO.replace(hay, pongo));
+  fs.writeFileSync(path.join(tmp, 'js/oficio-nucleo.js'), NUCLEO); fs.writeFileSync(path.join(tmp, 'js/oficio-papeles.js'), PAPELES);
+  fs.writeFileSync(path.join(tmp, archivo), base.replace(hay, pongo));
   if (ejemplos() !== 0) { cazados++; porEjemplos++; continue }
-  if (!rapido && azar() !== 0) { cazados++; continue }
+  if (!rapido && !pap && azar() !== 0) { cazados++; continue }
   vivos.push(que);
 }
 fs.rmSync(tmp, { recursive: true, force: true });

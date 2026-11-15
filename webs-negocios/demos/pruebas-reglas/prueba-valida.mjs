@@ -69,6 +69,13 @@ const ROTOS = [
   ['un servidor con otra función mal escrita', N => { N.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', funcion: 'Oficio 2' } }],
   ['un servidor al que se pregunta demasiado a menudo', N => { N.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', cada: 200 } }],
   ['«prueba» con un texto', N => { N.prueba = 'sí' }],
+  ['un correo sin arroba', N => { N.email = 'avisos.minegocio.es' }],
+  ['un correo con un espacio', N => { N.email = 'avisos @minegocio.es' }],
+  ['un correo que no es texto', N => { N.email = 7 }],
+  ['el coche del técnico vacío', N => { N.tecnicos[0].coche = '' }],
+  ['la foto del técnico fuera de assets', N => { N.tecnicos[0].foto = 'https://ejemplo.es/jordi.jpg'; N.tecnicos[0].fotoOk = 1 }],
+  ['la foto del técnico subiendo de carpeta', N => { N.tecnicos[0].foto = 'assets/../app.html.jpg'; N.tecnicos[0].fotoOk = 1 }],
+  ['el permiso de la foto con un sí escrito', N => { N.tecnicos[0].foto = 'assets/tec/jordi.jpg'; N.tecnicos[0].fotoOk = 'sí' }],
 ];
 for (const [que, rompe, base] of ROTOS) {
   const N = clon(base || R); let r;
@@ -83,6 +90,14 @@ for (const [que, rompe, base] of ROTOS) {
 { const M3 = clon(V); M3.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', cada: 2000 }; const M4 = clon(V); M4.servidor = { url: 'https://abc.supabase.co', llave: 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.abcdefghijkl' };
   es(valida(M3, K, HOY).errores.length === 0 && !valida(M3, K, HOY).avisos.some(t => /servidor/.test(t)) && valida(M4, K, HOY).avisos.some(t => /PÚBLICA/.test(t)),
     'un servidor bien puesto vale sin avisos, y con una llave que no parece la pública se avisa') }
+// lo que pide el formulario de desistimiento: el correo, si lo hay, y la dirección completa
+{ const C = clon(R); C.email = 'avisos@ramirez.example'; C.dir = 'Carrer de Sants 100, 08014 Barcelona';
+  es(valida(R, K, HOY).avisos.some(t => /^email:/.test(t)) && valida(R, K, HOY).avisos.some(t => /^dir:/.test(t)) && valida(C, K, HOY).errores.length === 0 && !valida(C, K, HOY).avisos.some(t => /^(email|dir):/.test(t)),
+    'sin correo y con una dirección sin número se avisa, sin parar nada; con los dos bien, ni error ni aviso') }
+// la foto del técnico: sin su permiso no se enseña, y se avisa
+{ const F = clon(R); F.tecnicos[0].foto = 'assets/tec/jordi.jpg'; const G = clon(F); G.tecnicos[0].fotoOk = 1;
+  es(valida(F, K, HOY).errores.length === 0 && valida(F, K, HOY).avisos.some(t => /permiso/.test(t)) && valida(G, K, HOY).errores.length === 0 && !valida(G, K, HOY).avisos.some(t => /permiso/.test(t)),
+    'una foto sin permiso vale pero se avisa de que no se enseña; con fotoOk: 1, sin aviso') }
 // las caducidades: lo mismo que hoy pasa, dentro de un año tiene que fallar
 es(valida(R, K, '2027-08-01').errores.some(t => /festivos/.test(t)), 'con la fecha de dentro de nueve meses, avisa de que hay que renovar los festivos');
 es(valida(R, K, '2026-12-28').avisos.some(t => /festivos/.test(t)) && valida(R, K, '2026-12-28').errores.length === 0, 'cuando queda menos de un año, lo dice como aviso, sin parar nada');
