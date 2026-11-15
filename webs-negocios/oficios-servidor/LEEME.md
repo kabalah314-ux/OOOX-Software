@@ -195,8 +195,8 @@ Con navegador:
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
 GitHub las pasa en cada cambio: reglas y datos en una máquina, y las pantallas en Chromium, Firefox y WebKit. En verde
-el 15-11-2026 con el commit `9e08a26` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
-rentabilidad, el material que falta y los contratos de mantenimiento, también los que da de alta el técnico).
+el 15-11-2026 con el commit `93cefa7` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
+rentabilidad, el material que falta y los contratos de mantenimiento, también los que da de alta el técnico, y la urgencia como extra con sus tiempos de llegada).
 
 En vivo (14-11-2026), contra la función desplegada y sin navegador: entrar bien y mal, crear, asignar, leer como cada
 técnico, enlace del cliente bueno y malo, cita desde la web con el origen y el técnico forzados, acción repetida,
@@ -225,6 +225,13 @@ archivo y en `oficios.estados.datos` (comprobado que son el mismo texto, letra p
 `pg_net`: la función responde con esa versión, da los huecos, y una cita pedida como cliente (`VS-0005`, «Prueba de
 Claude») se guardó bien. Dar de alta un contrato con el servidor de verdad necesita entrar con un código: queda para la
 prueba de Oscar.
+
+Después, la versión 10, con las reglas `2026.11.15e` del commit `93cefa7`: la urgencia como extra (el suplemento va en el
+presupuesto de partida de una urgencia) y los tiempos de llegada. Los huecos traen `urg: {de, a}`, los minutos en que se
+llegaría ahora a una urgencia en el barrio que se pida (`dis`, y `av` para lo que tarda), o `null` si ahora no hay nadie
+que pueda ir sin dejar tirada una cita ni salirse de su horario; nunca dicen quién va. Los datos de Voltio en el servidor
+llevan ya su suplemento (25 €) y lo que tarda cada avería, iguales letra por letra al archivo. Comprobado desde la base
+de datos: responde con esa versión, y los huecos de Voltio para Ciutat Vella dan `urg` con los avisos de verdad.
 
 ## Lo que falta
 
