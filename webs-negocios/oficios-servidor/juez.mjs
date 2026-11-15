@@ -42,7 +42,9 @@ export function limpiaCodigo(c) {
 
 const texto = (x, max) => typeof x === 'string' && x.length > 0 && x.length <= max;
 const R = (err, mas) => Object.assign({ ok: false, err }, mas);
-const cabDe = S => ({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0 });   // solo para la oficina
+const cabDe = S => ({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc: S.vc || 0 });   // solo para la oficina
+// «vc» es la versión en la que cambiaron por última vez los contratos: la oficina los recibe solo si han cambiado desde lo
+// que ya tiene, porque pueden ser muchos y llevar firmas, y la cabecera viaja con cada cambio
 
 /** Lo que una persona puede recibir de un aviso guardado: entero, «ya no es tuyo» o nada. */
 export function paraQuien(q, fila) {
@@ -70,15 +72,17 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
   /* el estado con el que trabajan las reglas, tal como está guardado ahora */
   async function carga(neg) {
     const filas = (await almacen.vivos(neg.id)).slice().sort((a, b) => (a.datos.n || 0) - (b.datos.n || 0));
-    const S = Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0 }, neg.cab || {}, { v: neg.v || 0, avisos: filas.map(f => f.datos) });
+    const S = Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0 }, neg.cab || {}, { v: neg.v || 0, avisos: filas.map(f => f.datos) });
     return { S, filas: new Map(filas.map(f => [f.id, f])) };
   }
 
   /* lo cambiado desde una versión, ya recortado para quien lo pide */
   async function cambios(neg, q, desde) {
     const d = Number.isInteger(desde) && desde > 0 && desde <= (neg.v || 0) ? desde : 0;
-    const c = await almacen.cambios(neg.id, d), esC = q.rol === 'centralita';
-    return { v: c.v, entero: d === 0, cab: esC ? c.cab : { esq: (c.cab || {}).esq }, avisos: c.avisos.map(f => paraQuien(q, f)).filter(Boolean) };
+    const c = await almacen.cambios(neg.id, d), esC = q.rol === 'centralita', cb = c.cab || {};
+    let cab = { esq: cb.esq };
+    if (esC) { cab = Object.assign({}, cb); if (d > 0 && !((cb.vc || 0) > d)) delete cab.contratos; }   // los contratos, solo si han cambiado
+    return { v: c.v, entero: d === 0, cab, avisos: c.avisos.map(f => paraQuien(q, f)).filter(Boolean) };
   }
 
   /* pasa una acción por las reglas y la guarda. Si alguien se adelanta, vuelve a leer y lo intenta sobre lo nuevo.
@@ -90,9 +94,10 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       const neg = i ? await negocio(neg0.id) : neg0; if (!neg) return { res: R('clave') };
       if (clave) { const ya = await almacen.hecha(neg.id, clave); if (ya) return { res: Object.assign({}, ya.res, { repetida: true }), nuevos: ya.nuevos || [] }; }
       const cfg = K.cfgDe(neg.datos), { S, filas } = await carga(neg), t = ahora();
-      const antes = new Map(S.avisos.map(a => [a.id, JSON.stringify(a)]));
+      const antes = new Map(S.avisos.map(a => [a.id, JSON.stringify(a)])), contAntes = JSON.stringify(S.contratos || []);
       const r = K.aplicar(S, cfg, accion, q, t);
       if (!r.ok) return { res: R(r.err, { v: neg.v || 0 }) };
+      if (JSON.stringify(S.contratos || []) !== contAntes) S.vc = S.v;
       const tocados = S.avisos.filter(a => antes.get(a.id) !== JSON.stringify(a)), nuevos = [];
       for (const a of tocados) if (!antes.has(a.id)) { a.llave = llave(); nuevos.push({ id: a.id, llave: a.llave }); }
       const guardar = tocados.map(a => { const f = filas.get(a.id), de = new Set((f && f.de) || []); if (a.tec) de.add(a.tec);

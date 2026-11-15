@@ -39,7 +39,9 @@ function mezcla(B,ver,c){
  B.avisos=[...por.values()].sort((a,b)=>(a.n||0)-(b.n||0));
  B.v=c.v;const cab=c.cab||{};
  if(Number.isInteger(cab.esq))B.esq=cab.esq;
- if('n' in cab){B.n=cab.n||0;B.nu=cab.nu||0;B.ausencias=Array.isArray(cab.ausencias)?cab.ausencias:[];B.contratos=Array.isArray(cab.contratos)?cab.contratos:[];B.nc=cab.nc||0}
+ if('n' in cab){B.n=cab.n||0;B.nu=cab.nu||0;B.ausencias=Array.isArray(cab.ausencias)?cab.ausencias:[];B.nc=cab.nc||0;
+  /* los contratos llegan solo cuando han cambiado: si no vienen, se quedan los que ya había (salvo al recibirlo todo) */
+  if(Array.isArray(cab.contratos))B.contratos=cab.contratos;else if(c.entero)B.contratos=[]}
  return true}
 
 /* Lo que se escribe en el aparato cuando hay varias pestañas: nadie pisa lo que otra tiene por enviar.

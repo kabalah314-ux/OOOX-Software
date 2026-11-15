@@ -46,12 +46,18 @@ g.OFICIO_NEGOCIO={
   cable:{t:'Cable, tramo hasta 5 m',p10:12,mat:1},
   caja:{t:'Caja de empalmes',p10:6,mat:1},
   regleta:{t:'Regletas y bornes',p10:5,mat:1},
-  cuadro:{t:'Cuadro eléctrico de 12 módulos, instalado',p21:290,mat:1}},
+  cuadro:{t:'Cuadro eléctrico de 12 módulos, instalado',p21:290,mat:1},
+  revinst:{t:'Revisión de la instalación eléctrica',p21:40}},
  averias:[
   {id:'salta',n:'Salta el diferencial',c:'Diferencial',d:'Se va la luz de toda la casa.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:2},{k:'diferencial'}],ini:[{k:'visita'},{k:'horas',q:1}],chips:['diferencial','magneto','cable','cuadro']},
   {id:'sinluz',n:'Sin luz en una zona',c:'Sin luz',d:'Una habitación o varios enchufes.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:1.5},{k:'magneto'},{k:'cable'}],ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','cable','caja','regleta']},
   {id:'enchufe',n:'Enchufe o interruptor',c:'Enchufe',d:'Suelto, quemado o que no funciona.',min:[{k:'enchufe'}],max:[{k:'enchufe'},{k:'mecanismo'},{k:'caja'}],ini:[{k:'enchufe'}],chips:['mecanismo','caja','cable']},
   {id:'lampara',n:'Instalar una lámpara',c:'Lámpara',d:'Colgar y conectar una lámpara o un plafón.',min:[{k:'lampara'}],max:[{k:'lampara'},{k:'regleta'},{k:'cable'}],ini:[{k:'lampara'}],chips:['regleta','cable']},
-  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'visita'},{k:'horas',q:.5}],max:null,ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','mecanismo','cable','caja','regleta']}]
+  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'visita'},{k:'horas',q:.5}],max:null,ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','mecanismo','cable','caja','regleta']}],
+ /* el mantenimiento, para probar los contratos con el servidor: la revisión anual del cuadro y la instalación, y en las
+    urgencias no se cobra la visita */
+ mantenimiento:{
+  revision:{n:'Revisión del contrato',c:'Revisión',d:'La revisión de la instalación eléctrica que lleva el contrato.',ini:[{k:'visita'},{k:'revinst'}],chips:['diferencial','magneto','mecanismo','regleta']},
+  planes:[{id:'anual',n:'Mantenimiento anual',precio:95,iva:21,revisiones:1,desp:'visita',rev:'revinst',prioridad:1}]}
 };
 })(typeof globalThis!=='undefined'?globalThis:this);

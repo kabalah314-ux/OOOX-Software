@@ -831,6 +831,20 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   ap({ tipo: 'asignar', id: pre2, tec: 'laia' }, C); es(ap({ tipo: 'empezar', id: pre2, pres: { lineas: [{ k: 'mo', q: 1 }], firma: F } }, T('laia')).ok, 'el otro aviso empieza con su precio');
   const re = ap({ tipo: 'contrato', plan: P, cli: { nombre: 'Eva', apellidos: 'Gil', tel: '600000214', dir: 'C/ Sants 12', cp: '08014' }, acepta: 'mensaje' }, C);
   es(re.ok && A(pre).con && A(pre).con.id === re.id && A(pre).h[A(pre).h.length - 1].txt.includes(re.id) && !A(pre2).con, 'al dar de alta el contrato, el aviso abierto del cliente sin precio pasa a llevarlo; el que ya tiene precio, no');
+  // el técnico, en casa del cliente: desde un aviso suyo, mientras trabaja o recién acabado, y para ese teléfono
+  const cT = { nombre: 'Iu', apellidos: 'Serra', tel: '600000216', dir: 'C/ Blai 4, 3.º', cp: '08004' }, avT = ap({ tipo: 'pedir', av: 'fuga', cli: cT }, CLI).id;
+  ap({ tipo: 'asignar', id: avT, tec: 'jordi' }, C);
+  const alT = x => Object.assign({ tipo: 'contrato', plan: P, cli: cT, acepta: 'firma', firma: F, aviso: avT }, x || {}), nT = S.contratos.length;
+  es(ap(alT(), T('jordi')).err === 'estado' && ap(alT({ aviso: undefined }), T('jordi')).err === 'permiso', 'el técnico no lo da de alta antes de estar en casa del cliente, ni sin su aviso');
+  es(ap({ tipo: 'empezar', id: avT, pres: { lineas: [{ k: 'mo', q: 1 }], firma: F } }, T('jordi')).ok && ap(alT(), T('omar')).err === 'permiso' && ap(alT(), CLI).err === 'permiso', 'otro técnico, o el cliente, no lo dan de alta');
+  es(ap(alT({ cli: Object.assign({}, cT, { tel: '600000217' }) }), T('jordi')).err === 'telAviso' && ap(alT({ aviso: pre2 }), T('jordi')).err === 'permiso' && S.contratos.length === nT, 'el técnico solo lo da para el teléfono del cliente de su aviso, y desde un aviso suyo');
+  const hT = A(avT).h.length, rT = ap(alT({ modo: 'bizum', cli: Object.assign({}, cT, { dir: 'C/ Blai 4, 3.º 1.ª' }) }), T('jordi')), XT = S.contratos.find(c => c.id === rT.id);
+  es(rT.ok && XT && XT.cli.tel === '600000216' && XT.per[0].pago.cobrado && XT.per[0].pago.modo === 'bizum' && XT.h[0].q === cfg.tec.jordi.n && XT.h[0].txt.includes(avT) && A(avT).h.length === hT + 1 && A(avT).h[hT].txt.includes(rT.id) && !A(avT).con,
+    'en casa del cliente, el técnico da de alta el contrato y cobra la cuota; queda apuntado en el contrato y en su aviso, y este trabajo, que ya tenía precio, sigue igual');
+  es(ap(alT(), T('jordi')).err === 'ya' && ap({ tipo: 'terminar', id: avT, modo: 'efectivo', firma: F }, T('jordi')).ok, 'el mismo cliente no tiene dos, y el trabajo se acaba como siempre');
+  { const avH = ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({}, cT, { tel: '600000218' }) }, CLI).id; ap({ tipo: 'asignar', id: avH, tec: 'jordi' }, C);
+    ap({ tipo: 'empezar', id: avH, pres: { lineas: [{ k: 'mo', q: 1 }], firma: F } }, T('jordi')); ap({ tipo: 'terminar', id: avH, modo: 'efectivo', firma: F }, T('jordi'));
+    es(ap(alT({ aviso: avH, cli: Object.assign({}, cT, { tel: '600000218' }), acepta: 'mensaje' }), T('jordi')).ok, 'recién acabado el trabajo, también') }
   es(t0 > 0, 'fin de la sección');
 }
 

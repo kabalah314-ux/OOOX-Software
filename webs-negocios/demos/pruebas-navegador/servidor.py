@@ -238,6 +238,18 @@ async def main():
         es(await pasa(z, "/no van juntos/.test(document.querySelector('#fE').textContent)") and await z.locator('#salir').count() == 0, 'el enlace viejo tampoco entra')
         await z.goto(B + f'cliente.html#/entra/612345678/{C2}')
         es(await pasa(z, "!!document.querySelector('#salir')"), 'con el código nuevo, sí')
+        # ---------- 10 ter. los contratos con servidor: la oficina los da de alta; los técnicos no los reciben; el cliente los ve ----------
+        if await o.evaluate('Object.keys(Oficio.cfg.planes||{}).length>0'):
+            await o.goto(B + 'app.html#/contratos'); await o.wait_for_selector('.cab [data-a=conAlta]')
+            await o.click('.cab [data-a=conAlta]'); await o.wait_for_selector('#caF')
+            for cam, val in (('nombre', 'Marta'), ('apellidos', 'Prueba'), ('tel', '612345678'), ('dir', 'C/ del Contrato 1'), ('cp', list(N['zonas']['cp'].keys())[0])):
+                await o.fill('#ca_' + cam, val)
+            await o.click('[data-ca=mensaje]'); await o.click('#caM [data-modo=tarjeta]'); await o.click('button[form=caF]')
+            es(await pasa(o, "!!document.querySelector('.papel.doc')&&/Contrato de mantenimiento/.test(document.querySelector('.papel.doc').textContent)", 9000), 'la oficina da de alta un contrato por el servidor y ve su papel')
+            st = estado(); cs = st['cab'].get('contratos') or []
+            es(len(cs) == 1 and cs[0]['cli']['tel'] == '612345678' and cs[0]['per'][0]['pago']['cobrado'] and st['cab'].get('vc') == st['v'], 'el servidor lo guarda con lo de la oficina')
+            es(await pasa(t1, "Oficio.estado().contratos.length===0") and await pasa(t2, "Oficio.estado().contratos.length===0"), 'los técnicos no reciben los contratos')
+            await z.reload(); es(await pasa(z, "!!document.querySelector('#cons a.tj')", 9000), 'el cliente lo ve en su zona')
         # un técnico no da códigos
         await t1.goto(B + f'app.html#/aviso/{A2}'); await t1.wait_for_selector('#nav a', state='attached'); await pasa(t1, f"document.querySelector('#v').textContent.includes('{A2}')")
         es(await t1.locator('[data-a=zona]').count() == 0 and await t1.evaluate("Oficio.acceso('698765432').then(r=>r.err)") == 'permiso', 'un técnico no tiene «Su zona» y, si lo pide igualmente, el servidor no le da el código')

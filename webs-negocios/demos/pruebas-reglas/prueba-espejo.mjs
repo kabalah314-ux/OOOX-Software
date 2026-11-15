@@ -173,6 +173,13 @@ if (cfg.mapa || true) {
   Y.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ }, avisos: [] });
   es(X.E.estado().contratos.length === 1 && X.E.estado().contratos[0].id === 'RM-0001' && X.E.estado().nc === 1 && X.E.guardado().B.contratos.length === 1 && Y.E.estado().contratos.length === 0 && (Y.E.estado().nc || 0) === 0,
     'la oficina recibe los contratos y se le quedan guardados; un técnico no tiene ninguno');
+  X.E.llega({ v: 2, entero: false, cab: { esq: K.ESQ, n: 1, nu: 0, ausencias: [], nc: 1, vc: 1 }, avisos: [] });
+  es(X.E.estado().contratos.length === 1 && X.E.estado().contratos[0].id === 'RM-0001' && X.E.estado().n === 1, 'si los contratos no han cambiado no vienen, y la oficina se queda con los que tenía');
+  X.E.llega({ v: 3, entero: false, cab: { esq: K.ESQ, n: 1, nu: 0, ausencias: [], contratos: [], nc: 1, vc: 3 }, avisos: [] });
+  es(X.E.estado().contratos.length === 0, 'si vienen, aunque sea la lista vacía, se cambian');
+  X.E.llega({ v: 4, entero: false, cab: { esq: K.ESQ, n: 1, nu: 0, ausencias: [], contratos: CC, nc: 1, vc: 4 }, avisos: [] });
+  X.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, avisos: [] });
+  es(X.E.estado().contratos.length === 0, 'al recibirlo todo de nuevo sin contratos, no queda ninguno de antes');
 }
 // 14. respuestas viejas y respuestas enteras
 { const B = Object.assign(K.nuevo(), { v: 5, avisos: [{ id: 'A', n: 1, x: 'nuevo' }] }), ver = { A: 5 };

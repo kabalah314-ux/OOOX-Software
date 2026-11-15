@@ -32,7 +32,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.15c';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.15d';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -374,18 +374,22 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   if(A.fac)return R('estado');if(a.num!=null&&typeof a.num!=='string'&&typeof a.num!=='number')return R('num');
   const num=txt(a.num).trim().replace(/\s+/g,' ').slice(0,30);A.fac={t,num};log(A,'Facturado'+(num?' con el número '+num:''));return ok()}
 
- /* ---- los contratos de mantenimiento: solo la oficina ----
+ /* ---- los contratos de mantenimiento: la oficina; el alta, también el técnico en casa del cliente ----
     El alta: el plan, los datos del cliente y cómo dijo que sí: firmando en el aparato («firma») o por mensaje («mensaje»).
-    «pide»: quiere la revisión antes de que pasen sus 14 días para desistir. «modo»: si ya lo ha pagado. */
+    «pide»: quiere la revisión antes de que pasen sus 14 días para desistir. «modo»: si ya lo ha pagado.
+    El técnico la da desde un aviso suyo («aviso») mientras trabaja o recién acabado, y para el teléfono de ese cliente. */
  case 'contrato':{
-  if(!esC)return R('permiso');const P=planDe(cfg,a.plan);if(!P)return R('plan');
-  const d=datosCli(a.cli,false);if(d.err)return R(d.err);const hoy=madrid(t).date;if(contratoDe(S,d.cli,hoy))return R('ya');
+  let Av=null;if(!esC){if(!esT)return R('permiso');Av=typeof a.aviso==='string'?S.avisos.find(x=>x.id===a.aviso):null;
+   if(!Av||Av.tec!==q.id)return R('permiso');if(Av.e!=='curso'&&Av.e!=='hecho')return R('estado')}
+  const P=planDe(cfg,a.plan);if(!P)return R('plan');
+  const d=datosCli(a.cli,false);if(d.err)return R(d.err);if(Av&&d.cli.tel!==Av.cli.tel)return R('telAviso');const hoy=madrid(t).date;if(contratoDe(S,d.cli,hoy))return R('ya');
   if(a.acepta!=='firma'&&a.acepta!=='mensaje')return R('acepta');if(a.acepta==='firma'&&(typeof a.firma!=='string'||a.firma.length<12))return R('firma');
   if(a.modo!=null&&!PAGOS.includes(a.modo))return R('modo');
   S.contratos=Array.isArray(S.contratos)?S.contratos:[];const n=(S.nc||0)+1;S.nc=n;const id=cfg.N.serie+'M-'+String(n).padStart(4,'0');
   const X={id,n,v:0,plan:P.id,cli:d.cli,t,acepta:a.acepta,des:{pide:a.pide===true?t:0},e:'activo',per:[{de:hoy,a:masDias(masMeses(hoy,12),-1),precio:P.precio,pago:pagoDe(a.modo,t)}],h:[]};
   if(a.acepta==='firma')X.firma=a.firma;
-  S.contratos.push(X);logC(X,'Alta: '+P.n+', '+eur(P.precio)+' al año'+(X.per[0].pago.cobrado?', cobrado ('+a.modo+')':''));
+  S.contratos.push(X);logC(X,'Alta: '+P.n+', '+eur(P.precio)+' al año'+(X.per[0].pago.cobrado?', cobrado ('+a.modo+')':'')+(Av?', en el aviso '+Av.id:''));
+  if(Av)log(Av,'Contrato de mantenimiento '+id+' dado de alta'+(X.per[0].pago.cobrado?', cuota cobrada ('+a.modo+')':''));
   /* los avisos abiertos de ese cliente que aún no tienen precio pasan a llevar el contrato */
   S.avisos.forEach(x=>{if(['nuevo','asignado','camino','ausente'].includes(x.e)&&!x.pres&&!x.tot){const c=conDe(S,cfg,x,t);if(c&&(!x.con||x.con.id!==c.id)){x.con=c;log(x,'Ahora con el contrato de mantenimiento '+id)}}});
   return ok({id})}

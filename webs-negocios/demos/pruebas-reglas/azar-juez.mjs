@@ -48,7 +48,10 @@ async function tanda(semilla) {
       () => ({ tipo: 'anotar', id, obs: 'Nota ' + Math.floor(rnd() * 1000) }), () => ({ tipo: 'cancelar', id, motivo: 'prueba' }),
       () => ({ tipo: 'mover', id, cita: null }), () => ({ tipo: 'ausencia', tec: uno(d.N.tecnicos).id, de: K.madrid(reloj.t).date, a: K.masDias(K.madrid(reloj.t).date, Math.floor(rnd() * 3)), motivo: 'baja' }),
       () => ({ tipo: 'cobrar', id, modo: 'efectivo' }),
-    ])();
+    ].concat(Object.keys(cfg.planes || {}).length ? [   // los contratos de mantenimiento, si el negocio tiene planes
+      () => ({ tipo: 'contrato', plan: uno(Object.keys(cfg.planes)), cli: x && rnd() < .5 ? Object.assign({}, x.cli) : cli(d.N), acepta: 'mensaje', modo: uno(['efectivo', 'tarjeta', 'pendiente']) }),
+      () => { const L = (d.cab && d.cab.contratos) || [], C = L.length ? uno(L) : null; return { tipo: uno(['cobroContrato', 'bajaContrato']), id: C ? C.id : d.N.serie + 'M-0001', modo: 'bizum', motivo: 'prueba' }; },
+    ] : []))();
     return uno([
       () => ({ tipo: 'voy', id }), () => ({ tipo: 'voy', id }), () => ({ tipo: 'ausente', id }),
       () => ({ tipo: 'empezar', id, pres: { lineas: [{ k: uno(Object.keys(cfg.cat)), q: 1 }], firma: 'M1 1L20 20L40 10L60 30L80 12L100 40' } }),
@@ -77,9 +80,11 @@ async function tanda(semilla) {
       else ley(!!x.datos, 'la-oficina-recibe-entero');
     }
     if (d.q.rol === 'tecnico') ley(igual(c.cab, { esq: K.ESQ }), 'el-tecnico-no-recibe-la-cabecera');
+    else if (!c.entero) ley(('contratos' in (c.cab || {})) === (((c.cab || {}).vc || 0) > d.v), 'los-contratos-solo-cuando-cambian', d.persona + ' desde ' + d.v);
     if (c.entero) d.avisos.clear();
     for (const x of c.avisos) { if (x.fuera) d.avisos.delete(x.id); else d.avisos.set(x.id, x.datos); }
-    d.v = c.v; d.cab = c.cab;
+    const prev = d.cab || {}; d.v = c.v; d.cab = Object.assign({}, c.cab);
+    if (d.q.rol === 'centralita' && !('contratos' in d.cab)) d.cab.contratos = c.entero ? [] : (prev.contratos || []);   // como el espejo: si no vienen, los de antes
   }
   async function manda(d, a, clave) {
     const r = await J.atiende({ que: 'hacer', negocio: d.neg, persona: d.persona, codigo: d.codigo, accion: a, desde: d.v, clave });
@@ -93,10 +98,11 @@ async function tanda(semilla) {
     for (const [id, N] of Object.entries(NEG)) {
       const n = A.crudo(id), cfg = cfgs[id], S = K.nuevo();
       ley(n.diario.every((x, i) => x.v === i + 1) && n.v === n.diario.length, 'versiones-seguidas', id);
-      for (const x of n.diario) { const r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(x.accion)), x.q, x.t); ley(r.ok && S.v === x.v, 'el-diario-se-puede-repetir', id + ' v' + x.v); }
+      let vc = 0;
+      for (const x of n.diario) { const c0 = JSON.stringify(S.contratos || []), r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(x.accion)), x.q, x.t); ley(r.ok && S.v === x.v, 'el-diario-se-puede-repetir', id + ' v' + x.v); if (JSON.stringify(S.contratos || []) !== c0) vc = x.v; }
       const guardado = [...n.avisos.values()].map(f => f.datos).sort((a, b) => a.n - b.n), sin = a => { const y = Object.assign({}, a); delete y.llave; return y; };
       ley(igual(S.avisos, guardado.map(sin)), 'lo-guardado-es-el-diario', id);
-      ley(igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0 }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0 }, n.cab)), 'la-cabecera-es-el-diario', id);
+      ley(igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0 }, n.cab)), 'la-cabecera-es-el-diario', id);
       const Sg = Object.assign({}, S, { avisos: guardado });
       for (const f of n.avisos.values()) {
         ley(igual(f.vista, K.vistaCliente(Sg, cfg, f.id)), 'lo-que-ve-el-cliente-esta-al-dia', f.id);
@@ -113,7 +119,8 @@ async function tanda(semilla) {
     ley(r.ok, 'leer-con-su-codigo'); recibe(d, r.cambios);
     const n = A.crudo(d.neg), espera = [...n.avisos.values()].filter(f => d.q.rol === 'centralita' || f.datos.tec === d.q.id).map(f => f.datos).sort((a, b) => a.n - b.n);
     ley(d.v === n.v && igual([...d.avisos.values()].sort((a, b) => a.n - b.n), espera), 'el-aparato-al-dia-tiene-lo-que-le-toca', d.persona + ' de ' + d.neg);
-    if (d.q.rol === 'centralita') ley(igual(d.cab, n.cab), 'la-oficina-tiene-la-cabecera');
+    const orden = o => Object.fromEntries(Object.entries(Object.assign({}, o, { contratos: (o && o.contratos) || [] })).sort(([x], [y]) => x < y ? -1 : 1));   // sin contratos guardados es como una lista vacía
+    if (d.q.rol === 'centralita') ley(igual(orden(d.cab), orden(n.cab)), 'la-oficina-tiene-la-cabecera', Object.keys(Object.assign({}, d.cab, n.cab)).filter(k => !igual(d.cab[k], n.cab[k])).map(k => k + ': ' + String(JSON.stringify(d.cab[k])).slice(0, 80) + ' / ' + String(JSON.stringify(n.cab[k])).slice(0, 80)).join(' · '));
   }
 
   for (pasos = 0; pasos < PASOS; pasos++) {
@@ -174,16 +181,17 @@ async function tanda(semilla) {
   }
   for (const d of D) await leyAparato(d);
   const estados = {}; for (const id of Object.keys(NEG)) for (const f of A.crudo(id).avisos.values()) estados[f.datos.e] = (estados[f.datos.e] || 0) + 1;
-  return { pasos, aceptadas, rechazadas, adelantos, repetidas, zonas, estados };
+  const contratos = Object.keys(NEG).reduce((s, id) => s + ((A.crudo(id).cab || {}).contratos || []).length, 0);
+  return { pasos, aceptadas, rechazadas, adelantos, repetidas, zonas, estados, contratos };
 }
 
-const t0 = Date.now(); let tot = { pasos: 0, aceptadas: 0, rechazadas: 0, adelantos: 0, repetidas: 0, zonas: 0 }; const est = {};
+const t0 = Date.now(); let tot = { pasos: 0, aceptadas: 0, rechazadas: 0, adelantos: 0, repetidas: 0, zonas: 0, contratos: 0 }; const est = {};
 for (let i = 0; i < TANDAS; i++) {
   try { const r = await tanda(SEMILLA + i); for (const k of Object.keys(tot)) tot[k] += r[k]; for (const [k, n] of Object.entries(r.estados)) est[k] = (est[k] || 0) + n; }
   catch (e) { console.log(`ROTA en la tanda ${i} (semilla ${SEMILLA + i}): ${e instanceof Rota ? e.message : e.stack}`); console.log('Para repetirla: node azar-juez.mjs <sitio> --tandas 1 --semilla ' + (SEMILLA + i)); process.exit(1); }
 }
-console.log(`BIEN juez  ${tot.pasos} pasos con ${TANDAS * (Object.values(NEG).reduce((s, N) => s + N.tecnicos.length + 3, 0))} aparatos · ${tot.aceptadas} aceptadas, ${tot.rechazadas} rechazadas · ${tot.adelantos} veces se adelantó otro · ${tot.repetidas} repetidas · ${tot.zonas} veces en la zona del cliente · ${comprobaciones} comprobaciones · ${((Date.now() - t0) / 1000).toFixed(1)} s · semilla ${SEMILLA}`);
+console.log(`BIEN juez  ${tot.pasos} pasos con ${TANDAS * (Object.values(NEG).reduce((s, N) => s + N.tecnicos.length + 3, 0))} aparatos · ${tot.aceptadas} aceptadas, ${tot.rechazadas} rechazadas · ${tot.adelantos} veces se adelantó otro · ${tot.repetidas} repetidas · ${tot.zonas} veces en la zona del cliente · ${tot.contratos} contratos · ${comprobaciones} comprobaciones · ${((Date.now() - t0) / 1000).toFixed(1)} s · semilla ${SEMILLA}`);
 console.log('          cómo acaban los avisos: ' + Object.entries(est).sort((a, b) => b[1] - a[1]).map(([k, n]) => k + ' ' + n).join(' · '));
 /* si los recorridos no llegan a todas partes, no prueban lo que dicen */
 const faltan = ['nuevo', 'asignado', 'camino', 'curso', 'hecho', 'cancelado', 'ausente'].filter(k => !est[k]);
-if (TANDAS >= 20 && (faltan.length || tot.adelantos < TANDAS || tot.repetidas < TANDAS || tot.zonas < TANDAS)) { console.log('MAL: los recorridos no llegan a todo (faltan estados: ' + (faltan.join(', ') || 'ninguno') + '; adelantos ' + tot.adelantos + '; repetidas ' + tot.repetidas + '; zona del cliente ' + tot.zonas + ')'); process.exit(1); }
+if (TANDAS >= 20 && (faltan.length || tot.adelantos < TANDAS || tot.repetidas < TANDAS || tot.zonas < TANDAS || tot.contratos < TANDAS)) { console.log('MAL: los recorridos no llegan a todo (faltan estados: ' + (faltan.join(', ') || 'ninguno') + '; adelantos ' + tot.adelantos + '; repetidas ' + tot.repetidas + '; zona del cliente ' + tot.zonas + ')'); process.exit(1); }

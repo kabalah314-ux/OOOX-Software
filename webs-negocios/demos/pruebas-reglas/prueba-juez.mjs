@@ -32,11 +32,11 @@ const leer = (quien, desde) => J.atiende(Object.assign({ que: 'leer', desde }, q
 const crudo = id => A.crudo(id);
 /* lo guardado tiene que ser igual a repetir el diario desde cero (la llave del enlace la pone el juez, no las reglas) */
 function repite(id, N) {
-  const n = crudo(id), cfg = K.cfgDe(N), S = K.nuevo();
-  for (const d of n.diario) { const r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(d.accion)), d.q, d.t); if (!r.ok || S.v !== d.v) return false; }
+  const n = crudo(id), cfg = K.cfgDe(N), S = K.nuevo(); let vc = 0;
+  for (const d of n.diario) { const c0 = JSON.stringify(S.contratos || []), r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(d.accion)), d.q, d.t); if (!r.ok || S.v !== d.v) return false; if (JSON.stringify(S.contratos || []) !== c0) vc = d.v; }
   const sin = a => { const x = Object.assign({}, a); delete x.llave; return x; };
   const guardado = [...n.avisos.values()].map(f => f.datos).sort((a, b) => a.n - b.n);
-  return S.v === n.v && igual(S.avisos, guardado.map(sin)) && igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0 }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0 }, n.cab))
+  return S.v === n.v && igual(S.avisos, guardado.map(sin)) && igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0 }, n.cab))
     && [...n.avisos.values()].every(f => igual(f.vista, K.vistaCliente(Object.assign({}, S, { avisos: guardado }), cfg, f.id)));
 }
 
@@ -286,6 +286,9 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
     'el contrato lo da de alta la oficina por el servidor, y se guarda con lo de la oficina');
   const lo = await leer(OF, 0), lt = await leer(T(tecR[0]), 0);
   es(lo.cambios.cab.contratos.some(c => c.id === al.r.id) && !('contratos' in lt.cambios.cab) && !JSON.stringify(lt).includes('Clara'), 'la oficina recibe los contratos; un técnico, no');
+  const v1 = crudo('ramirez').v, antes = await leer(OF, v1 - 1), ya = await leer(OF, v1);
+  es(cab.vc === v1 && antes.cambios.cab.contratos.some(c => c.id === al.r.id) && !('contratos' in ya.cambios.cab) && ya.cambios.cab.nc === cab.nc,
+    'la oficina que ya está al día no vuelve a recibir los contratos: solo los recibe quien va por detrás de su último cambio');
   const acc = await acceso(OF, TC);
   es(acc.ok && acc.nuevo === true, 'un cliente que solo tiene el contrato también recibe el código de su zona');
   const z1 = await perfil(TC, acc.codigo, 'red-contrato');
@@ -295,8 +298,21 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   const pw = await J.atiende({ que: 'pedir', negocio: 'ramirez', accion: { tipo: 'pedir', av: NR.averias[0].id, origen: 'web', cli: cliC }, red: 'red-contrato' });
   const fila = pw.ok ? crudo('ramirez').avisos.get(pw.id) : null;
   es(pw.ok && fila.datos.con && fila.datos.con.id === al.r.id && fila.vista && !('con' in fila.vista), 'el aviso que pide el cliente desde la web lleva su contrato; su página no lo enseña');
+  const tras = await leer(OF, v1);
+  es(tras.cambios.avisos.some(f => f.id === pw.id) && !('contratos' in tras.cambios.cab) && crudo('ramirez').cab.vc === v1, 'un aviso nuevo no vuelve a mandar los contratos, que no han cambiado');
   const z2 = await perfil(TC, acc.codigo, 'red-contrato');
   es(z2.ok && z2.perfil.avisos.length === 1 && z2.perfil.avisos[0].con.id === al.r.id, 'en su zona, el aviso dice que va con su contrato');
+  // el técnico, en casa del cliente, por el servidor: el contrato le llega a la oficina; al técnico, solo su aviso
+  const cliT = Object.assign(cliDe(NR), { nombre: 'Pol', apellidos: 'Mas', tel: '622334466', dir: 'Calle del Técnico 5' });
+  const avT = (await hacer(OF, { tipo: 'pedir', av: NR.averias[0].id, origen: 'llamada', cli: cliT })).r.id;
+  await hacer(OF, { tipo: 'asignar', id: avT, tec: tecR[0] });
+  const emp = await hacer(T(tecR[0]), { tipo: 'empezar', id: avT, pres: { lineas: [{ k: Object.keys(K.cfgDe(NR).cat)[0], q: 1 }], firma: 'M1 1L20 20L40 10L60 30' } });
+  const vT = crudo('ramirez').v, alT = await hacer(T(tecR[0]), { tipo: 'contrato', plan: P.id, cli: cliT, acepta: 'mensaje', aviso: avT, modo: 'efectivo' }, { desde: vT });
+  const otroT = await hacer(T(tecR[1]), { tipo: 'contrato', plan: P.id, cli: Object.assign({}, cliT, { tel: '622334467' }), acepta: 'mensaje', aviso: avT });
+  const ofT = await leer(OF, vT);
+  es(emp.ok && alT.ok && /M-\d{4}$/.test(alT.r.id) && !('contratos' in alT.cambios.cab) && alT.cambios.avisos.some(f => f.id === avT && f.datos.h.some(h => h.txt.includes(alT.r.id))) && !otroT.ok && otroT.err === 'permiso'
+    && ofT.cambios.cab.contratos.some(c => c.id === alT.r.id && c.per[0].pago.cobrado) && crudo('ramirez').cab.vc === vT + 1,
+    'el técnico da de alta el contrato desde su aviso: le llega a la oficina, y él solo recibe su aviso con la nota; otro técnico no puede');
   es(repite('ramirez', NR), 'con los contratos, lo guardado sigue siendo igual a repetir el diario'); }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);

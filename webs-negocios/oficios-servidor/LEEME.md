@@ -170,18 +170,18 @@ bloque solo).
 
 Sin navegador:
 
-- `pruebas-reglas/prueba-juez.mjs`: el juez, con ejemplos escritos a mano. 91 (26 de la zona del cliente; los contratos,
-  desde el 15-11).
+- `pruebas-reglas/prueba-juez.mjs`: el juez, con ejemplos escritos a mano. 94 (26 de la zona del cliente; los contratos,
+  desde el 15-11, también los que da de alta el técnico y que solo viajan cuando cambian).
 - `pruebas-reglas/azar-juez.mjs`: dos negocios, once aparatos cada tanda, acciones al azar, otros aparatos que se
   adelantan entre que el juez lee y guarda, y acciones mandadas dos veces; y la oficina que da o cambia códigos de la zona
   y el cliente que entra con ellos. 9.000 pasos y 1,29 millones de comprobaciones.
-- `pruebas-reglas/mutantes-juez.mjs`: se quita adrede cada protección del juez y se mira que alguna prueba lo note. 51 de 51.
-- `pruebas-reglas/prueba-espejo.mjs`: el espejo de la app contra el juez de verdad, con ejemplos. 72.
+- `pruebas-reglas/mutantes-juez.mjs`: se quita adrede cada protección del juez y se mira que alguna prueba lo note. 55 de 55.
+- `pruebas-reglas/prueba-espejo.mjs`: el espejo de la app contra el juez de verdad, con ejemplos. 75.
 - `pruebas-reglas/azar-espejo.mjs`: varios aparatos con su espejo, red que falla (peticiones que no llegan, respuestas
   que se pierden, aparatos sin cobertura), la app que se cierra y se abre, códigos que se retiran. Leyes: lo que se ve es
   siempre lo último del servidor más lo pendiente, en orden; al calmarse todo, cada aparato ve lo que le toca; cada
   acción acaba una sola vez en el diario o rechazada y avisada. 45.000 pasos y 256.000 comprobaciones.
-- `pruebas-reglas/mutantes-espejo.mjs`: lo mismo que con el juez, para el espejo. 30 de 30.
+- `pruebas-reglas/mutantes-espejo.mjs`: lo mismo que con el juez, para el espejo. 32 de 32.
 - `oficios-servidor/pruebas-almacen.sql`: el almacén de verdad, en la base de datos. 31, en verde el 14-11-2026.
 
 Con navegador:

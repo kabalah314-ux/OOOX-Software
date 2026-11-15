@@ -147,7 +147,12 @@ const M = [
   ["el texto del material no dice de quién es", "(g.n?', '+g.n:', sin técnico')", "''"],
   ["el perfil del cliente lleva el material", "'fac','cli','con'];", "'fac','cli','con','falta'];"],
   // los contratos de mantenimiento (15-11-2026)
-  ["el contrato lo da de alta cualquiera", "case 'contrato':{\n  if(!esC)return R('permiso');const P=planDe(cfg,a.plan);", "case 'contrato':{\n  const P=planDe(cfg,a.plan);"],
+  ["el contrato lo da de alta cualquiera", "let Av=null;if(!esC){if(!esT)return R('permiso');Av=typeof a.aviso==='string'?S.avisos.find(x=>x.id===a.aviso):null;\n   if(!Av||Av.tec!==q.id)return R('permiso');if(Av.e!=='curso'&&Av.e!=='hecho')return R('estado')}", "let Av=null;"],
+  ["el técnico da de alta contratos sin su aviso", "if(!Av||Av.tec!==q.id)return R('permiso');", "if(Av&&Av.tec!==q.id)return R('permiso');"],
+  ["un técnico da de alta desde el aviso de otro", "if(!Av||Av.tec!==q.id)return R('permiso');", "if(!Av)return R('permiso');"],
+  ["el técnico da de alta antes de llegar a casa del cliente", "if(Av.e!=='curso'&&Av.e!=='hecho')return R('estado')", ""],
+  ["el técnico da de alta para otro teléfono", "if(Av&&d.cli.tel!==Av.cli.tel)return R('telAviso');", ""],
+  ["el alta del técnico no queda en su aviso", "if(Av)log(Av,'Contrato de mantenimiento '+id+' dado de alta'+(X.per[0].pago.cobrado?', cuota cobrada ('+a.modo+')':''));", ""],
   ["dos contratos a la vez en la misma finca", "if(contratoDe(S,d.cli,hoy))return R('ya');", ""],
   ["el contrato sin el sí del cliente", "if(a.acepta!=='firma'&&a.acepta!=='mensaje')return R('acepta');", ""],
   ["firmado sin firma", "if(a.acepta==='firma'&&(typeof a.firma!=='string'||a.firma.length<12))return R('firma');", ""],

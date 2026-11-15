@@ -31,7 +31,7 @@ const clon = o => JSON.parse(JSON.stringify(o));
 class Rota extends Error { constructor(ley, detalle) { super(ley + ': ' + detalle); this.ley = ley; this.detalle = detalle } }
 const rota = (ley, detalle) => { throw new Rota(ley, detalle) };
 const SALTOS = new Set(['asignado>nuevo', 'nuevo>asignado', 'nuevo>cancelado', 'asignado>camino', 'asignado>curso', 'asignado>hecho', 'asignado>cancelado', 'camino>curso', 'camino>ausente', 'camino>hecho', 'curso>hecho', 'ausente>asignado', 'ausente>nuevo', 'ausente>cancelado']);
-const SOLO_CENTRALITA = ['asignar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia', 'facturar', 'contrato', 'cobroContrato', 'renovar', 'bajaContrato'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado', 'falta'];
+const SOLO_CENTRALITA = ['asignar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia', 'facturar', 'cobroContrato', 'renovar', 'bajaContrato'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado', 'falta'];
 const CON_TIPOS = ['contrato', 'cobroContrato', 'renovar', 'bajaContrato'];
 const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'pos', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo', 'quien'];
 const PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'fac', 'cli', 'con', 'vista'];   // lo que puede llevar cada aviso del perfil del cliente
@@ -68,6 +68,7 @@ function paso(W, a, q, t) {
   const tipo = a && typeof a === 'object' ? a.tipo : undefined, idA = a && typeof a === 'object' ? a.id : undefined;
   const A0 = typeof idA === 'string' ? S.avisos.find(x => x.id === idA) : null, e0 = A0 ? A0.e : '', tec0 = A0 ? A0.tec : '';
   const otros0 = new Map(S.avisos.filter(x => x !== A0).map(x => [x.id, JSON.stringify(x)]));
+  const Av0 = tipo === 'contrato' && a && typeof a.aviso === 'string' ? S.avisos.find(x => x.id === a.aviso) : null, Av0j = Av0 ? JSON.stringify(Av0) : '';
   let r;
   try { r = K.aplicar(S, cfg, a, q, t) } catch (e) { rota('no-revienta', (tipo || '¿?') + ' → ' + e.message) }
   W.leyes++;
@@ -85,12 +86,15 @@ function paso(W, a, q, t) {
   if (SOLO_SU_TECNICO.includes(tipo) && !suyo) rota('cada-uno-lo-suyo', tipo + ' hecho por ' + rol + ' ' + (q && q.id) + ' sobre un aviso de «' + tec0 + '»');
   if (LOS_DOS.includes(tipo) && rol !== 'centralita' && !suyo) rota('cada-uno-lo-suyo', tipo + ' hecho por ' + rol);
   if (tipo === 'ausencia' || tipo === 'quitarAusencia') { if (rol !== 'centralita') rota('cada-uno-lo-suyo', tipo + ' hecho por ' + rol) }
-  if (!['pedir'].concat(SOLO_CENTRALITA, SOLO_SU_TECNICO, LOS_DOS).includes(tipo)) rota('acciones-conocidas', 'se ha aceptado «' + tipo + '»');
+  if (tipo === 'contrato' && rol !== 'centralita') { const C1 = (S.contratos || []).find(c => c.id === r.id);   // el técnico: desde un aviso suyo, en casa del cliente y para ese teléfono
+    if (rol !== 'tecnico' || !Av0 || Av0.tec !== q.id || !['curso', 'hecho'].includes(JSON.parse(Av0j).e) || !C1 || C1.cli.tel !== JSON.parse(Av0j).cli.tel) rota('cada-uno-lo-suyo', 'contrato dado de alta por ' + rol + ' ' + (q && q.id)) }
+  if (!['pedir', 'contrato'].concat(SOLO_CENTRALITA, SOLO_SU_TECNICO, LOS_DOS).includes(tipo)) rota('acciones-conocidas', 'se ha aceptado «' + tipo + '»');
   // --- contador, y nada cambia fuera del aviso tocado
   if (S.v !== v0 + 1) rota('version-sube-de-uno-en-uno', v0 + ' → ' + S.v);
   if (S.avisos.length !== n0 + (tipo === 'pedir' ? 1 : 0)) rota('nadie-desaparece', n0 + ' → ' + S.avisos.length);
   if (tipo !== 'ausencia' && tipo !== 'contrato') for (const x of S.avisos) { const j = otros0.get(x.id); if (j !== undefined && x.id !== idA && JSON.stringify(x) !== j) rota('solo-cambia-el-aviso-tocado', tipo + ' sobre ' + idA + ' ha cambiado ' + x.id) }
   if (tipo === 'contrato') for (const x of S.avisos) { const j = otros0.get(x.id); if (j === undefined || JSON.stringify(x) === j) continue; const y = JSON.parse(j), sin = o => { const c = Object.assign({}, o); delete c.con; delete c.h; delete c.v; return JSON.stringify(c) };
+    if (Av0 && x.id === Av0.id) { if (sin(x) !== sin(y) || JSON.stringify(x.con) !== JSON.stringify(y.con) || x.h.length !== y.h.length + 1) rota('el-alta-del-tecnico-solo-lo-apunta-en-su-aviso', x.id); continue }
     if (sin(x) !== sin(y) || !x.con || x.con.id !== r.id || x.h.length !== y.h.length + 1 || y.pres || y.tot) rota('el-alta-solo-pone-el-contrato', x.id) }
   numerosLimpios(S, 'S');
   const ids = new Set();
@@ -321,6 +325,13 @@ function generador(G) {
   const planes = Object.keys(cfg.planes || {});
   function contrato(S, t) {
     const Cs = S.contratos || [];
+    /* el técnico en casa del cliente: casi siempre desde su aviso y con ese teléfono; a veces, no */
+    const enCasa = S.avisos.filter(x => x.tec && (x.e === 'curso' || x.e === 'hecho'));
+    if (enCasa.length && r() < .3) {
+      const A = pick(enCasa), u = r(), cli = Object.assign({}, A.cli, u < .1 ? { tel: '699' + String(Math.floor(r() * 1e6)).padStart(6, '0') } : {});
+      const quien = u > .9 ? T(pick(tecs)) : T(A.tec), aviso = u > .85 && u <= .9 ? pick(S.avisos).id : A.id;
+      return [{ tipo: 'contrato', plan: pick(planes.length ? planes : ['anual']), cli, acepta: pick(['firma', 'mensaje']), firma: FIRMA, aviso, modo: r() < .5 ? pick(['efectivo', 'tarjeta', 'bizum']) : undefined }, quien];
+    }
     if (r() < .5 || !Cs.length) {
       const de = S.avisos.length && r() < .7 ? pick(S.avisos).cli : cliente(), cli = r() < .1 ? pick([null, 'x', {}, Object.assign({}, de, { tel: '12' })]) : Object.assign({}, de);
       return [{ tipo: 'contrato', plan: r() < .08 ? pick(RAROS) : pick(planes.length ? planes : ['anual']), cli, acepta: r() < .06 ? pick(['sí', '', null, 7]) : pick(['firma', 'mensaje']), firma: r() < .9 ? FIRMA : pick(['', 'M1', null]), pide: r() < .3 ? pick([true, 'sí', 1]) : undefined, modo: r() < .4 ? modo() : undefined },
