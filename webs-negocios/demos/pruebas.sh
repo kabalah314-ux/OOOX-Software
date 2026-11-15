@@ -52,6 +52,7 @@ if [ "$QUE" != reglas ]; then
   # la misma batería a otras horas: lo que funciona un martes por la mañana tiene que funcionar de noche, en fin de semana,
   # al cambiar de año y al cambiar la hora. Sin esto, un fallo así solo sale cuando alguien lanza las pruebas a esa hora.
   for h in ${HORAS:-2026-11-14T23:30:00+01:00 2026-12-31T23:58:30+01:00}; do paso "App a otra hora ($h)" env AHORA="$h" python3 app.py; done
+  paso "Lo del 15-11: desistimiento, «Facturada», el mes para la gestoría, fincas y quién va" python3 novedades.py
   paso "Web y página de los tres móviles" python3 web.py
   paso "Muestra de la demo" python3 muestra.py
   paso "Zona del cliente: entrar con el teléfono y ver lo suyo" python3 cliente.py

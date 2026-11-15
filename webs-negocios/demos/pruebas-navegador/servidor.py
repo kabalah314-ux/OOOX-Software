@@ -146,7 +146,9 @@ async def main():
 
         # ---------- 7. el servidor no contesta: se sigue trabajando y sale cuando vuelve ----------
         api('__prueba/red', {'modo': 'cae'})
-        await t2.click('[data-a=empezar]'); await t2.wait_for_selector('#pF'); await t2.wait_for_timeout(250); await firma(t2, '#pF'); await t2.click('#pOk')
+        await t2.click('[data-a=empezar]'); await t2.wait_for_selector('#pF'); await t2.wait_for_timeout(250); await firma(t2, '#pF')
+        if await t2.locator('#pPide').count(): await t2.click('#pPide')   # con cita, el cliente marca que quiere que se haga ya
+        await t2.click('#pOk')
         es(await pasa(t2, tiene(A1, 'curso')) and aviso(A1)['e'] == 'camino', 'con el servidor caído, el técnico firma el presupuesto y empieza: en su móvil ya está «trabajando»')
         es(await pasa(t2, "Oficio.red().cola>=1&&!document.querySelector('#red').hidden"), 'y la app avisa de que queda por enviar')
         await t2.reload(); await t2.wait_for_selector('#nav a', state='attached')

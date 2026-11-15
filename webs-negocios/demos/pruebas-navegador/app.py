@@ -196,7 +196,9 @@ async def main():
         A = await aviso(c, 'R-0139')
         es(A['pago']['cobrado'] and A['pago']['modo'] == 'transferencia', 'cobros: R-0139 cobrado por transferencia')
         await c.goto(B + 'app.html#/cobros'); await c.wait_for_selector('.cifras')
-        es('Andreu Soler' not in (await c.locator('main').inner_text()).split('Caja de hoy')[0], 'cobros: ya no está entre los pendientes')
+        tc = await c.locator('main').inner_text()
+        es('Andreu Soler' not in tc.split('Por facturar')[0], 'cobros: ya no está entre los pendientes')
+        es('Andreu Soler' in tc.split('Por facturar')[1].split('Caja de hoy')[0], 'cobros: cobrado, pasa a «Por facturar» hasta que se haga su factura')
 
         # ---------- 3. el técnico ----------
         tl = await oye(await ctx.new_page(), 'laia')

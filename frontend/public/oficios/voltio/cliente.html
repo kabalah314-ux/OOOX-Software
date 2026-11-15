@@ -48,6 +48,8 @@ a.tj:hover{border-color:var(--control)}
 @media print{.top,.noimp,#toast{display:none!important}main{max-width:none;margin:0;padding:0}}
 @media (min-width:560px){h1,.doc h1{font-size:2rem}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.finca{font-size:1rem;margin:16px 0 8px}
+.fac{margin-top:6px}
 </style>
 </head>
 <body>
@@ -141,16 +143,22 @@ function tjHecho(a,hoy){const gar=a.gar?(a.gar.hasta>=hoy?' · garantía hasta e
  return'<a class="tj" href="#/aviso/'+esc(a.id)+'"><span class="k"><span>'+esc(a.id)+' · '+K.fechaCorta(K.madrid(a.fin||a.t).date)+'</span><span class="pill hecho">Terminado</span></span><b>'+esc(avN(a))+'</b><small>'+
   (a.tot?K.eur(a.tot.total)+' · '+(a.pago&&a.pago.cobrado?'pagado':'pendiente de pago'):'')+gar+'</small></a>'}
 
-function vPerfil(Pf){const c=Pf.cli,hoy=K.madrid().date,n=(c.nombre||'').split(' ')[0];
+function vPerfil(Pf){const c=Pf.cli,hoy=K.madrid().date,n=(c.nombre||'').split(' ')[0],F=Pf.fincas||[];
+ /* un administrador de fincas: lo suyo, agrupado por dirección */
+ const grupo=(L,fn)=>{if(F.length<2)return'<div class="tarjetas">'+L.map(fn).join('')+'</div>';let g='';const ya=new Set();
+  F.forEach(f=>{const M=L.filter(a=>K.fincaDe(a.cli&&a.cli.dir)===f.k);M.forEach(a=>ya.add(a.id));if(M.length)g+='<h3 class="finca">'+esc(f.dir)+'</h3><div class="tarjetas">'+M.map(fn).join('')+'</div>'});
+  const R=L.filter(a=>!ya.has(a.id));return g+(R.length?'<div class="tarjetas">'+R.map(fn).join('')+'</div>':'')};
  const ahora=Pf.avisos.filter(a=>a.e!=='hecho'&&a.e!=='cancelado'),hechos=Pf.avisos.filter(a=>a.e==='hecho'),canc=Pf.avisos.filter(a=>a.e==='cancelado');
  let h='<h1>Hola'+(n?', '+esc(n):'')+'.</h1><p class="lead">Lo tuyo con '+esc(N.nombre)+': tus avisos, tus presupuestos, tus partes y tus garantías.</p>'+
   (SRV&&Z.err?'<p class="ojo" role="status">'+(Z.err==='red'?'Sin conexión: ves lo último que llegó.':'No se ha podido poner al día: ves lo último que llegó.')+'</p>':'')+
   '<div class="acciones"><button class="btn pri" id="otra">Pedir otra cita</button><button class="btn" id="salir">Salir</button></div>';
- h+='<section class="sec"><h2>Ahora</h2>'+(ahora.length?'<div class="tarjetas">'+ahora.map(tjAhora).join('')+'</div>':'<p class="vacio">No tienes ningún aviso abierto.</p>')+'</section>';
- h+='<section class="sec"><h2>Tus trabajos</h2>'+(hechos.length?'<div class="tarjetas">'+hechos.map(a=>tjHecho(a,hoy)).join('')+'</div>':'<p class="vacio">Todavía no hay ningún trabajo terminado.</p>')+
+ h+='<section class="sec"><h2>Ahora</h2>'+(ahora.length?grupo(ahora,tjAhora):'<p class="vacio">No tienes ningún aviso abierto.</p>')+'</section>';
+ h+='<section class="sec"><h2>Tus trabajos</h2>'+(hechos.length?grupo(hechos,a=>tjHecho(a,hoy)):'<p class="vacio">Todavía no hay ningún trabajo terminado.</p>')+
   (canc.length?'<p class="vacio" style="margin-top:10px">'+(canc.length===1?'Un aviso cancelado':canc.length+' avisos cancelados')+': '+canc.map(a=>esc(a.id)).join(', ')+'.</p>':'')+'</section>';
- h+='<section class="sec"><h2>Tus facturas</h2><p class="vacio">Las facturas las hace '+esc(N.razon)+' con su programa de facturas. Cuando las suba, las tendrás aquí.</p></section>';
- h+='<section class="sec datos"><h2>Tus datos</h2><p><b>'+esc(K.nomCli(c))+'</b></p><p>'+esc(c.dir)+'</p><p>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(Pf.tel)+'</p><p class="vacio" style="margin-top:8px">Si algo no está bien, díselo a '+esc(N.nombre)+' al '+esc(N.tel)+'.</p></section>';
+ const fac=hechos.filter(a=>a.fac);
+ h+='<section class="sec"><h2>Tus facturas</h2>'+(fac.length?fac.map(a=>'<p class="fac">'+(a.fac.num?'Factura '+esc(a.fac.num):'Factura hecha')+' · trabajo '+esc(a.id)+(a.tot?' · '+K.eur(a.tot.total):'')+'</p>').join('')+'<p class="vacio" style="margin-top:8px">Las hace '+esc(N.razon)+' con su programa de facturas. Si no te ha llegado alguna, pídesela.</p>'
+  :'<p class="vacio">Las facturas las hace '+esc(N.razon)+' con su programa de facturas. Cuando las suba, las tendrás aquí.</p>')+'</section>';
+ h+='<section class="sec datos"><h2>Tus datos</h2><p><b>'+esc(K.nomCli(c))+'</b></p>'+(F.length>1?'<p>'+F.map(f=>esc(f.dir)).join('<br>')+'</p><p>'+K.telBonito(Pf.tel)+'</p>':'<p>'+esc(c.dir)+'</p><p>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(Pf.tel)+'</p>')+'<p class="vacio" style="margin-top:8px">Si algo no está bien, díselo a '+esc(N.nombre)+' al '+esc(N.tel)+'.</p></section>';
  if(Oficio.DEMO)h+='<p class="vacio" style="margin-top:28px">Demo de OOOX Oficios: los clientes, los avisos y los importes son inventados.</p>';
  return h}
 

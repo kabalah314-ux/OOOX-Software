@@ -31,9 +31,9 @@ const clon = o => JSON.parse(JSON.stringify(o));
 class Rota extends Error { constructor(ley, detalle) { super(ley + ': ' + detalle); this.ley = ley; this.detalle = detalle } }
 const rota = (ley, detalle) => { throw new Rota(ley, detalle) };
 const SALTOS = new Set(['asignado>nuevo', 'nuevo>asignado', 'nuevo>cancelado', 'asignado>camino', 'asignado>curso', 'asignado>hecho', 'asignado>cancelado', 'camino>curso', 'camino>ausente', 'camino>hecho', 'curso>hecho', 'ausente>asignado', 'ausente>nuevo', 'ausente>cancelado']);
-const SOLO_CENTRALITA = ['asignar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado'];
-const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'pos', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo'];
-const PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'cli', 'vista'];   // lo que puede llevar cada aviso del perfil del cliente
+const SOLO_CENTRALITA = ['asignar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia', 'facturar'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado'];
+const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'pos', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo', 'quien'];
+const PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'fac', 'cli', 'vista'];   // lo que puede llevar cada aviso del perfil del cliente
 const FEO = /undefined|NaN|\bnull\b|\[object|Invalid|Infinity/;
 function numerosLimpios(o, donde) {
   if (typeof o === 'number') { if (!Number.isFinite(o)) rota('numeros-limpios', donde + ' = ' + o) }
@@ -124,6 +124,14 @@ function paso(W, a, q, t) {
   numerosLimpios(R, 'resumen');
   if (Object.keys(R.canal).join() !== K.ORIGEN.join() || Object.values(R.canal).some(n => !Number.isInteger(n) || n < 0) || Object.values(R.canal).reduce((a, b) => a + b, 0) > S.avisos.length) rota('cifras-por-canal', JSON.stringify(R.canal));
   if (A) { let V; try { V = K.vistaCliente(S, cfg, A.id) } catch (e) { rota('vista-no-revienta', e.message) } for (const k of Object.keys(V)) if (!VISTA.includes(k)) rota('el-cliente-ve-lo-justo', 've «' + k + '»') }
+  // --- el desistimiento: lo que lo necesita queda firmado con la petición del cliente; lo facturado está terminado y cobra algo
+  for (const x of S.avisos) {
+    if (x.pres && x.pres.des) { const d = x.pres.des; if (x.cita && d.c !== 'cita') rota('desistimiento-con-cita', x.id); if (K.pideYa(d.c) && !(d.pide > 0)) rota('desistimiento-con-peticion', x.id) }
+    for (const m of x.amp || []) if (m.des && K.pideYa(m.des.c) && !(m.des.pide > 0)) rota('desistimiento-con-peticion', x.id + ', ampliación');
+    if (x.fac && !(x.e === 'hecho' && x.tot && x.tot.total > 0)) rota('facturado-solo-lo-terminado', x.id) }
+  { const pf = K.porFacturar(S, t).map(x => x.id).sort().join(), deben = S.avisos.filter(x => x.e === 'hecho' && x.tot && x.tot.total > 0 && !x.fac).map(x => x.id).sort().join();
+    if (pf !== deben) rota('por-facturar-cuadra', pf + ' / ' + deben); if (R.porFac.n !== K.porFacturar(S, t).length || R.porFac.viejos > R.porFac.n) rota('por-facturar-cuadra', JSON.stringify(R.porFac)) }
+  W.leyes += 4;
   // --- el perfil del cliente: todo lo suyo, nada de otro, nada interno, lo último primero; y es una copia
   if (A && A.cli && K.tel9(A.cli.tel)) {
     let P; try { P = K.perfilCliente(S, cfg, A.cli.tel) } catch (e) { rota('perfil-no-revienta', e.message) }
@@ -285,7 +293,7 @@ function generador(G) {
     const pueden = tecs.filter(x => !K.puedeIr(S, cfg, A, x, t));
     const asignar = () => [{ tipo: 'asignar', id: A.id, tec: r() < .05 ? pick(RAROS) : pueden.length && r() < .7 ? pick(pueden) : pick(tecs) }, C];
     const cancelar = () => [{ tipo: 'cancelar', id: A.id, motivo: pick(['', 'Ya lo ha arreglado', 'x'.repeat(200)]) }, C];
-    const empezar = () => [{ tipo: 'empezar', id: A.id, pres: { lineas: lineas(A, 0), firma: firma(), local: r() < .15 } }, suyo];
+    const empezar = () => [{ tipo: 'empezar', id: A.id, pres: { lineas: lineas(A, 0), firma: firma(), local: r() < .15, pide: r() < .85 ? true : pick([undefined, false, 'sí', 1]) } }, suyo];
     const noacepta = () => [{ tipo: 'noacepta', id: A.id, modo: modo(), local: r() < .15 }, suyo];
     const posicion = () => r() < .2 ? [{ tipo: 'sinPosicion', id: A.id }, r() < .85 ? suyo : pick([C, T(pick(tecs)), { rol: 'cliente' }])]
       : [{ tipo: 'posicion', id: A.id, lat: r() < .1 ? pick([91, -200, '41.3', null, NaN, undefined]) : 41.3 + r() * .2, lon: r() < .05 ? pick([181, 'x', null]) : 2.05 + r() * .2, prec: pick([5, 30, 800, -1, 'x', undefined]) }, r() < .85 ? suyo : pick([C, T(pick(tecs)), { rol: 'cliente' }])];
@@ -294,9 +302,10 @@ function generador(G) {
         return u < .6 ? asignar() : u < .75 ? mover() : u < .83 ? cancelar() : u < .9 ? anotar() : enviado();
       case 'asignado': return u < .45 ? [{ tipo: 'voy', id: A.id }, suyo] : u < .55 ? empezar() : u < .65 ? asignar() : u < .75 ? mover() : u < .8 ? cancelar() : u < .85 ? noacepta() : u < .9 ? anotar() : enviado();
       case 'camino': return u < .35 ? posicion() : u < .7 ? empezar() : u < .8 ? [{ tipo: 'ausente', id: A.id }, suyo] : u < .87 ? noacepta() : u < .93 ? anotar() : enviado();
-      case 'curso': return u < .35 ? [{ tipo: 'terminar', id: A.id, modo: modo(), firma: r() < .5 ? FIRMA : undefined }, suyo] : u < .55 ? [{ tipo: 'pausa', id: A.id }, suyo] : u < .75 ? [{ tipo: 'ampliar', id: A.id, lineas: lineas(A, 1), firma: firma() }, suyo] : u < .9 ? anotar() : enviado();
+      case 'curso': return u < .35 ? [{ tipo: 'terminar', id: A.id, modo: modo(), firma: r() < .5 ? FIRMA : undefined }, suyo] : u < .55 ? [{ tipo: 'pausa', id: A.id }, suyo] : u < .75 ? [{ tipo: 'ampliar', id: A.id, lineas: lineas(A, 1), firma: firma(), pide: r() < .85 ? true : pick([undefined, 'sí']) }, suyo] : u < .9 ? anotar() : enviado();
       case 'ausente': return u < .5 ? asignar() : u < .75 ? mover() : u < .9 ? cancelar() : enviado();
-      case 'hecho': return u < .5 ? [{ tipo: 'cobrar', id: A.id, modo: r() < .1 ? 'pendiente' : pick(K.PAGOS.filter(m => m !== 'pendiente')) }, r() < .5 ? C : suyo] : enviado();
+      case 'hecho': return u < .45 ? [{ tipo: 'cobrar', id: A.id, modo: r() < .1 ? 'pendiente' : pick(K.PAGOS.filter(m => m !== 'pendiente')) }, r() < .5 ? C : suyo]
+        : u < .75 ? [{ tipo: 'facturar', id: A.id, num: pick(['', 'F-1', '  F  2 ', { x: 1 }, 12, undefined]), quitar: A.fac && r() < .3 ? true : undefined }, r() < .85 ? C : suyo] : enviado();
       default: return enviado();
     }
   }

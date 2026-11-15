@@ -115,13 +115,15 @@ async def main():
         es(esperado in await tl.locator('#pT').inner_text(), f'presupuesto: el total sale del catálogo del negocio ({esperado})')
         es(all(N['catalogo'][l['k']]['t'] in t for l in av['ini']), 'presupuesto: las líneas llevan los nombres del catálogo')
         es('Tarifa normal' in t, 'presupuesto: con cita, tarifa normal')
-        await firma(tl, '#pF'); await tl.click('#pOk'); await tl.wait_for_timeout(400)
+        await firma(tl, '#pF')
+        es(await tl.locator('#pOk').is_disabled() and '14 días' in await tl.locator('#pDes').inner_text(), 'presupuesto con cita: el cliente ve sus 14 días y, sin marcar la casilla, no se empieza')
+        await tl.click('#pPide'); await tl.click('#pOk'); await tl.wait_for_timeout(400)
         # ampliar con «más tiempo»: sube justo un paso del concepto por horas del negocio
         horas = await tl.evaluate('Oficio.cfg.horas')
         if horas and any(l['k'] == horas for l in av['ini']):
             antes = (await tl.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}').tot.total"))
             await tl.click('[data-a=ampliar]'); await tl.wait_for_selector('#pC'); await tl.click(f'#pC [data-add={horas}]'); await tl.wait_for_timeout(150)
-            await firma(tl, '#pF'); await tl.click('#pOk'); await tl.wait_for_timeout(400)
+            await firma(tl, '#pF'); await tl.click('#pPide'); await tl.click('#pOk'); await tl.wait_for_timeout(400)
             paso = await tl.evaluate(f"(()=>{{const c=Oficio.cfg,it=c.cat[c.horas];return Math.round(it.p10*it.paso)}})()")
             ahora = (await tl.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}').tot.total"))
             es(ahora - antes == paso, f'ampliar: «más tiempo» suma un paso de mano de obra ({antes} → {ahora}, paso {paso})')

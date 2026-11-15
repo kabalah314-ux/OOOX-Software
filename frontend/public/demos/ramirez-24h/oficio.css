@@ -155,3 +155,7 @@ dialog.hoja.llena{max-height:100svh;height:100svh;border-radius:0}
  .doc{max-width:none;border-radius:0}
  .doc,.doc *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* el formulario de desistimiento del presupuesto */
+.papel .fdes{margin-top:10px;padding:10px 12px;border:1px dashed currentColor;border-radius:8px}
+.papel .fdes h3{font-size:1em;margin:0 0 4px}

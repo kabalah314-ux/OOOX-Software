@@ -72,6 +72,9 @@ form>.btn{margin-top:16px}
 .tras .txt{justify-self:center;display:inline-flex;align-items:center}
 @media (min-width:560px){.avs{grid-template-columns:repeat(3,minmax(0,1fr))}h1,.doc h1{font-size:2rem}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.quien{display:flex;gap:12px;align-items:center;margin:16px 0}
+.quien .ava{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:700;color:#fff;background:hsl(var(--h) 45% 36%);object-fit:cover}
+.quien .coche{opacity:.8}
 </style>
 </head>
 <body>
@@ -156,6 +159,9 @@ function bMapa(v,T){const M=cfg.mapa;if(!M||v.e!=='camino'||!v.pos)return'';cons
   '<p class="mapa-l"><b>Última posición de '+esc(T)+'</b>: '+haceMin(v.pos.t)+'.'+(viejo?' Puede que tenga la app cerrada mientras conduce.':'')+
   (ok?'':' <a href="https://www.openstreetmap.org/?mlat='+v.pos.lat+'&amp;mlon='+v.pos.lon+'#map=16/'+v.pos.lat+'/'+v.pos.lon+'" target="_blank" rel="noopener noreferrer">Abrirla en un mapa</a>')+'</p>'+
   (ok&&M.firma?'<p class="mapa-f">'+(typeof M.firmaUrl==='string'&&/^https:\/\//.test(M.firmaUrl)?'<a href="'+esc(M.firmaUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(M.firma)+'</a>':esc(M.firma))+'</p>':'')+'</section>'}
+/* quién va: su nombre, la inicial de su apellido, su furgoneta y, si dio permiso, su foto */
+function bQuien(v){const q=v.quien;if(!q||!['asignado','camino','curso'].includes(v.e))return'';
+ return'<div class="quien">'+(q.foto?'<img class="ava" src="'+esc(q.foto)+'" alt="">':'<span class="ava" style="--h:'+(+q.tono||0)+'" aria-hidden="true">'+esc((q.n||'?').slice(0,1)+(q.ap||''))+'</span>')+'<p><b>'+esc(q.n)+(q.ap?' '+esc(q.ap)+'.':'')+'</b>'+(q.coche?'<br><span class="coche">'+esc(q.coche)+'</span>':'')+'</p></div>'}
 function vAviso(id){const X=SRV?Oficio.vista(id):null,v=SRV?(X&&X.v):K.vistaCliente(S,cfg,id);
  if(SRV&&!v&&(!X||X.err==='red'))return'<h1>Tu aviso '+esc(id)+'</h1><p class="lead" role="status">'+(X?'No hay conexión. Lo vuelvo a intentar solo en unos segundos.':'Buscando tu aviso…')+'</p>';
  if(!v)return'<h1>No encuentro ese aviso.</h1><p class="lead">'+(Oficio.DEMO?'Puede que la demo se haya reiniciado. ':'')+'<a href="#/">Pedir una cita</a></p>';
@@ -169,7 +175,7 @@ function vAviso(id){const X=SRV?Oficio.vista(id):null,v=SRV?(X&&X.v):K.vistaClie
   ausente:'Hemos ido y no hemos encontrado a nadie. Escríbenos y volvemos cuando te vaya bien.',cancelado:'Si quieres, pide otra cuando te vaya bien.'}[v.e];
  const p=[['Recibido',v.t],['Asignado',0],['De camino',v.sal],['En casa',v.ini],['Hecho',v.fin]];
  return'<article class="papel doc"><div class="dh"><span class="wm">'+MARCA+'</span><p>Aviso '+v.id+'<br>'+esc(av.n)+'</p></div><h1 tabindex="-1" id="tit">'+tit+'</h1><p class="frase">'+frase+'</p>'+
-  (v.e==='cancelado'?'':'<ol class="pista" aria-label="Cómo va tu aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>')+bMapa(v,T)+
+  (v.e==='cancelado'?'':'<ol class="pista" aria-label="Cómo va tu aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>')+bQuien(v)+bMapa(v,T)+
   '<p class="pie">'+(v.e==='hecho'?'El parte y la garantía te llegan por WhatsApp.':'Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga.')+' ¿Algo no cuadra? Llama al '+N.tel+'.</p></article>'+
   '<div class="tras">'+(Oficio.DEMO?'<a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">Ver cómo le llega a '+esc(N.marca[0])+'</a>':'')+'<a class="txt" href="#/">Pedir otra cita</a></div>'}
 

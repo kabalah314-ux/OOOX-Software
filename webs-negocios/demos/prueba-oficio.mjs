@@ -575,5 +575,84 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(K.CLIENTE_DEMO === '2468-1357', 'el código de los clientes de muestra en la demo');
 }
 
+// 38. lo del 15-11-2026: el desistimiento en el presupuesto, «Facturada», el mes para la gestoría, lo que deja cada trabajo,
+//     las fincas de un administrador y quién va
+{
+  empieza(); let r;
+  const u = ap({ tipo: 'pedir', av: 'fuga', cli: montse }, CLI).id;            // una urgencia que pide el cliente
+  ap({ tipo: 'asignar', id: u, tec: 'omar' }, C);
+  es(K.desiste(cfg, A(u), [{ k: 'desp' }, { k: 'mo' }]) === 'urgente' && !K.pideYa('urgente'), 'la reparación urgente que pide el cliente no tiene desistimiento');
+  es(K.desiste(cfg, A(u), [{ k: 'desp' }, { k: 'termo80' }]) === 'urgente+' && K.pideYa('urgente+'), 'si se añade un aparato nuevo, eso sí lo tiene');
+  es(K.desiste(cfg, A(u), [{ k: 'otro', t: 'Pieza', p: 9 }, { k: 'nada' }, null]) === 'urgente' && K.desiste(cfg, null, []) === '', 'el material suelto o una clave que no existe no cuentan como añadido');
+  es(ap({ tipo: 'empezar', id: u, pres: { lineas: [{ k: 'desp' }, { k: 'termo80' }], firma: F } }, T('omar')).err === 'pide' && A(u).e === 'asignado', 'urgencia con un aparato nuevo: sin la petición del cliente no se empieza');
+  r = ap({ tipo: 'empezar', id: u, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], firma: F } }, T('omar'));
+  es(r.ok && A(u).pres.des.c === 'urgente' && A(u).pres.des.pide === 0, 'la reparación urgente sola empieza sin petición');
+  es(ap({ tipo: 'ampliar', id: u, lineas: [{ k: 'termo80' }], firma: F }, T('omar')).err === 'pide' && !A(u).amp, 'ampliar con un aparato nuevo necesita la petición');
+  r = ap({ tipo: 'ampliar', id: u, lineas: [{ k: 'termo80' }], firma: F, pide: true }, T('omar'));
+  es(r.ok && A(u).amp[0].des.c === 'urgente+' && A(u).amp[0].des.pide === t, 'con la petición, la ampliación queda firmada con su hora');
+  es(ap({ tipo: 'ampliar', id: u, lineas: [{ k: 'juntas' }], firma: F }, T('omar')).ok && A(u).amp[1].des.c === 'urgente' && A(u).amp[1].des.pide === 0, 'añadir piezas para la reparación no la necesita');
+  const dia = K.diasDe(S, cfg, t, 3).find(d => d.franjas.some(f => f.ok)).dia, fr = K.franjasDe(S, cfg, dia, t).find(f => f.ok).id;
+  const c = ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, montse, { tel: '600000144' }), cita: { dia, fr } }, CLI).id;
+  ap({ tipo: 'asignar', id: c, tec: 'laia' }, C);
+  es(ap({ tipo: 'empezar', id: c, pres: { lineas: [{ k: 'grifo' }], firma: F } }, T('laia')).err === 'pide' && A(c).e === 'asignado', 'con cita: sin la petición del cliente no se empieza');
+  es(ap({ tipo: 'empezar', id: c, pres: { lineas: [{ k: 'grifo' }], firma: F, pide: 'sí' } }, T('laia')).err === 'pide', 'la petición tiene que ser un sí de verdad, no un texto');
+  r = ap({ tipo: 'empezar', id: c, pres: { lineas: [{ k: 'grifo' }], firma: F, pide: true } }, T('laia'));
+  es(r.ok && A(c).pres.des.c === 'cita' && A(c).pres.des.pide === t, 'con la petición empieza, y queda la hora en que la pidió');
+  es(ap({ tipo: 'ampliar', id: c, lineas: [{ k: 'latig' }], firma: F }, T('laia')).err === 'pide', 'con cita, cada ampliación la vuelve a pedir');
+  // «Facturada»: la factura la hace el programa del negocio; aquí solo se apunta
+  ap({ tipo: 'terminar', id: u, modo: 'tarjeta' }, T('omar'));
+  es(ap({ tipo: 'facturar', id: u }, T('omar')).err === 'permiso', 'solo la oficina apunta lo facturado');
+  es(ap({ tipo: 'facturar', id: c }, C).err === 'estado', 'lo que no está terminado no se factura');
+  es(K.porFacturar(S, t).map(x => x.id).join() === u && K.porFacturar(S, t)[0].dias === 0, 'lo terminado y sin facturar sale en «Por facturar»');
+  es(ap({ tipo: 'facturar', id: u, num: { a: 1 } }, C).err === 'num' && !A(u).fac, 'el número tiene que ser un texto');
+  r = ap({ tipo: 'facturar', id: u, num: '  F-2026   0012 ' }, C);
+  es(r.ok && A(u).fac.num === 'F-2026 0012' && A(u).fac.t === t && !K.porFacturar(S, t).length, 'facturado, con su número limpio, deja de salir');
+  es(ap({ tipo: 'facturar', id: u }, C).err === 'estado', 'no se apunta dos veces');
+  es(ap({ tipo: 'facturar', id: u, quitar: true }, C).ok && !A(u).fac && K.porFacturar(S, t).length === 1, 'si se apuntó por error, se quita');
+  es(ap({ tipo: 'facturar', id: c, quitar: true }, C).err === 'estado', 'quitar lo que no estaba apuntado, no');
+  es(K.resumen(S, cfg, t).porFac.n === 1 && K.resumen(S, cfg, t).porFac.viejos === 0 && K.resumen(S, cfg, t + 8 * D).porFac.viejos === 1, 'la oficina ve cuántos llevan más de una semana sin facturar');
+  ap({ tipo: 'facturar', id: u, num: 'F-12' }, C);
+  es(K.perfilCliente(S, cfg, montse.tel).avisos.find(a => a.id === u).fac.num === 'F-12', 'el cliente ve el número de su factura');
+  const df = K.datosFactura(cfg, A(u));
+  es(df.includes('Cliente: Montse Vila') && df.includes('aviso ' + u) && df.includes('Total: ' + K.eur(A(u).tot.total)) && df.includes('Termo eléctrico') && df.includes('cobrado el') && K.datosFactura(cfg, null) === '', 'los datos para la factura llevan el cliente, las líneas, el total y el pago');
+  // el mes para la gestoría
+  const mes = K.madrid(A(u).fin).date.slice(0, 7), filas = K.trabajosMes(S, cfg, mes);
+  es(filas.length === 1 && filas[0][1] === u && filas[0][10] === (A(u).tot.total / 100).toFixed(2).replace('.', ',') && filas[0][12] === 'Sí' && filas[0][13] === 'F-12', 'el mes para la gestoría: una fila por trabajo, con su pago y su factura');
+  es(K.trabajosMes(S, cfg, '2020-01').length === 0, 'otro mes, nada');
+  const x = K.csv([['=HIPERVINCULO("x")', 'a;b', 'dice "hola"', '-1', '@x', 'normal']]);
+  es(x.startsWith('﻿' + K.CSV_CAB.join(';') + '\r\n') && x.includes(`"'=HIPERVINCULO(""x"")"`) && x.includes('"a;b"') && x.includes('"dice ""hola"""') && x.includes("'-1") && x.includes("'@x") && x.endsWith(';normal\r\n'), 'el archivo se abre bien, y lo escrito en la web no se convierte en una fórmula');
+  // lo que deja cada trabajo
+  ap({ tipo: 'terminar', id: c, modo: 'bizum' }, T('laia'));
+  const R0 = K.rentabilidad(S, cfg, mes + '-01', mes + '-31'), g = R0.av.find(z => z.k === 'grifo');
+  es(R0.av.length === 2 && R0.urg.n === 1 && R0.cita.n === 1 && R0.tec.length === 2 && R0.solo.n === 0, 'lo que deja cada trabajo: por avería, por técnico, urgencias y citas');
+  es(g.n === 1 && g.base === A(c).tot.base && g.min === A(c).min && g.hora === Math.round(A(c).tot.base * 60 / A(c).min), 'por hora: lo cobrado sin IVA entre el tiempo de trabajo');
+  es(K.rentabilidad(S, cfg, '2020-01-01', '2020-01-31').av.length === 0, 'fuera de las fechas, nada');
+  const s1 = ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({}, montse, { tel: '600000145' }) }, CLI).id; ap({ tipo: 'asignar', id: s1, tec: 'omar' }, C); ap({ tipo: 'noacepta', id: s1, modo: 'efectivo' }, T('omar'));
+  const R1 = K.rentabilidad(S, cfg, mes + '-01', mes + '-31');
+  es(R1.solo.n === 1 && R1.solo.total === A(s1).tot.total && R1.av.find(z => z.k === 'fuga').n === 1, 'lo que es solo el desplazamiento va aparte y no cuenta en lo que deja cada trabajo');
+  // un administrador de fincas: el mismo teléfono en varias direcciones
+  const adm = '611222333', fin0 = { nombre: 'Fincas', apellidos: 'Puig', tel: adm };
+  const f1 = ap({ tipo: 'pedir', av: 'atasco', cli: Object.assign({ dir: 'C/ Sants 100', cp: '08014' }, fin0) }, C).id;
+  ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({ dir: 'C/ de Sants, 100', cp: '08014' }, fin0) }, C);
+  ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({ dir: 'Av. de Madrid 7', cp: '08028' }, fin0) }, C);
+  const PA = K.perfilCliente(S, cfg, adm);
+  es(PA.avisos.length === 3 && PA.fincas.length === 2 && PA.fincas[0].dir === 'Av. de Madrid 7' && K.perfilCliente(S, cfg, montse.tel).fincas.length === 1, 'un administrador ve sus avisos y sus fincas, sin repetir una dirección escrita de otra forma');
+  ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({ dir: 'Av. de Madrid 7, bajos', cp: '08028' }, fin0) }, C); ap({ tipo: 'pedir', av: 'fuga', cli: Object.assign({ dir: 'Av. de Madrid 7, 3.º 2.ª', cp: '08028' }, fin0) }, C);
+  const PB = K.perfilCliente(S, cfg, adm);
+  es(PB.fincas.length === 2 && PB.fincas[0].dir === 'Av. de Madrid 7' && K.fincaDe('C/ Verdi 28, 2.º 1.ª') === K.fincaDe('Carrer de Verdi, 28, bajos') && K.fincaDe('Pza. Real') === 'pza real', 'los pisos de un mismo edificio son la misma finca, y la finca se enseña sin el piso');
+  // quién va
+  es(K.vistaCliente(S, cfg, f1).quien === null, 'sin técnico, no hay a quién enseñar');
+  ap({ tipo: 'asignar', id: f1, tec: 'jordi' }, C);
+  const q2 = K.vistaCliente(S, cfg, f1).quien;
+  es(q2.n === 'Jordi' && q2.ap === 'R' && q2.coche.includes('Furgoneta') && q2.foto === '' && q2.tono === 95, 'quién va: su nombre, la inicial del apellido y la furgoneta; la foto, solo con su permiso');
+  const conFoto = K.cfgDe(Object.assign({}, N, { tecnicos: N.tecnicos.map(z => z.id === 'jordi' ? Object.assign({}, z, { foto: 'assets/tec/jordi.jpg', fotoOk: 1 }) : z.id === 'omar' ? Object.assign({}, z, { foto: 'assets/../x.jpg', fotoOk: 1 }) : z.id === 'laia' ? Object.assign({}, z, { foto: 'assets/tec/laia.jpg' }) : z) }));
+  es(K.vistaCliente(S, conFoto, f1).quien.foto === 'assets/tec/jordi.jpg' && K.quienDe(conFoto.tec.omar).foto === '' && K.quienDe(conFoto.tec.laia).foto === '', 'con su permiso y en la web del negocio sale su foto; sin permiso o con una ruta rara, nunca');
+  es(K.vistaCliente(S, cfg, u).quien === null, 'acabado el trabajo, ya no se enseña');
+  // una cita pedida de noche va con la tarifa normal (antes solo lo cazaban los recorridos al azar)
+  t = Date.parse('2026-11-10T22:30:00Z'); const dn = K.diasDe(S, cfg, t, 3).find(d => d.franjas.some(f => f.ok));
+  const cn = ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, montse, { tel: '600000146' }), cita: { dia: dn.dia, fr: dn.franjas.find(f => f.ok).id } }, CLI).id;
+  es(K.urgente(cfg, A(cn).t) && K.tarifaDe(cfg, A(cn)) === false, 'una cita pedida de noche se cobra con la tarifa normal');
+}
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);
