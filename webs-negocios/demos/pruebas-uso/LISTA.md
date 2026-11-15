@@ -96,7 +96,7 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | U41 | F1 | La zona del cliente | Enseña el estado de su aviso y sus papeles | P | Bien |
 | U42 | Todos | Volver a abrir | Los datos siguen ahí y no se rehacen | P | Bien |
 | U43 | Todos | Móvil y ordenador | En 390 y en 1280 píxeles de ancho, ninguna pantalla se sale por los lados | P | Bien |
-| U44 | Todos | Firefox y Safari | Todo igual que en Chrome | Antes (en GitHub) | En GitHub, al subirlo |
+| U44 | Todos | Firefox y Safari | Todo igual que en Chrome | Antes (en GitHub) | Bien: las 25 pantallas en Chromium, Firefox y WebKit (el motor de Safari), en GitHub |
 | U45 | Todos | Las reglas, caso a caso | Los 457 ejemplos pasan | Antes | Bien: 458 |
 | U46 | Todos | Las reglas estropeadas a propósito | Las pruebas cazan las 230 | Antes | Bien: 232 de 232 |
 | U47 | Todos | Los recorridos al azar | 140 000 pasos sin romper ninguna ley | Antes | Bien: 140 000 pasos, y 14 000 más con el negocio en uso |
@@ -159,8 +159,9 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 - **M6. Años de datos.** Con nueve semanas, la demo ocupa 1,1 MB en el navegador y tarda 1,5 segundos en hacerse la
   primera vez. Con años de trabajo, cada móvil no puede guardarlo todo: para un negocio de verdad va el servidor (ya
   está) y el móvil solo guarda lo reciente.
-- **M8. La reserva cuando falta alguien.** Mañana, con Laia de médico, trabajan dos y se guarda uno para urgencias: el
-  cliente no puede pedir ninguna cita por la web, solo la oficina. Propuesta: que la reserva baje a cero los días que
-  solo trabajan dos, o que la decida el dueño. Lo decide Oscar.
 - **M7. Crear una copia de demo.** `copias.mjs nueva` saca un código de soporte y la orden para el servidor también
   cuando la copia es una demo sin servidor. No hace falta: se puede quitar en ese caso.
+- **M8. La reserva cuando falta alguien.** El día siguiente, con Laia de médico, trabajan dos, se guarda uno para
+  urgencias y las citas ya pedidas llenan al otro: el cliente no puede pedir ninguna cita por la web (la oficina aún
+  puede poner seis). Propuesta: que la reserva baje a cero los días que
+  solo trabajan dos, o que la decida el dueño. Lo decide Oscar.
