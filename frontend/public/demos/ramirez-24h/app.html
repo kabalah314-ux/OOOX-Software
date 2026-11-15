@@ -391,7 +391,7 @@ const PORL={margen:'Queda a menos de dos horas. El cliente ya no puede pedirla; 
 const PORA={margen:'La puso la oficina con menos de dos horas de margen.',reserva:'La puso la oficina en el hueco que se guarda para urgencias.','reserva+margen':'La puso la oficina hoy mismo, en el hueco que se guarda para urgencias.'};
 const frOf=f=>f.ok?(f.libres===1?'queda 1':'quedan '+f.libres):f.okOf?POR[f.por]:!f.tope?'nadie trabaja':!f.libresOf?'llena':'ya ha pasado';
 const abiertos=['nuevo','asignado','ausente'];
-const NOVA={ausente_tec:()=>'Ausente ese día',lleno:()=>'Ya tiene esa franja ocupada',horario:A=>A.cita?'No trabaja en esa franja':'Ahora no trabaja y no hace guardias'};
+const NOVA={ausente_tec:()=>'Ausente ese día',lleno:()=>cfg.porTiempo?'No le da tiempo en esa franja':'Ya tiene esa franja ocupada',horario:A=>A.cita?'No trabaja en esa franja':'Ahora no trabaja y no hace guardias'};
 const ava=id=>{const t=cfg.tec[id];return t?'<i class="av" style="--h:'+t.tono+'" aria-hidden="true">'+t.n[0]+'</i>':'<i class="av c" aria-hidden="true">C</i>'};
 const lq=l=>l.un==='h'?dur(Math.round(l.q*60)):l.q>1?l.q+' unidades':'';
 const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
@@ -635,7 +635,7 @@ function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
  N.tecnicos.forEach(t=>{const u=(S.ausencias||[]).find(x=>x.tec===t.id&&x.de<=d&&x.a>=d),hor=t.horario||N.horario||null,tr=hor?(hor[ds]||[]):null;
   const linea=u?'Ausente'+(u.motivo?': '+esc(u.motivo.toLowerCase()):'')+(u.a>d?'. Hasta '+diaTxt(u.a):'')+'.':!tr?'Sin horario puesto: cuenta para todas las franjas.':tr.length?tr.map(x=>K.franjaTxt({de:x[0],a:x[1]})).join(' y ').replace(/^d/,'D')+'.':'No trabaja este día.';
   h+='<section class="tecd'+(u?' aus':'')+'" data-tec="'+t.id+'"><h2>'+ava(t.id)+esc(t.n)+' '+esc(t.ap)+'</h2><p class="ln">'+linea+'</p>'+(u?'':textoDia(diaTec(t.id,d)))+'<ul class="tfr">'+fr.map(f=>{const C=L.filter(a=>a.tec===t.id&&a.cita.fr===f.id),si=!u&&K.trabaja(cfg,t.id,d,f.de,f.a);
-   return'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+C.map(chip).join('')+(u?'<p class="eqn">Ausente</p>':!si?'<p class="eqn">No trabaja</p>':C.length<cfg.porFranja||!cfg.conHorario&&!C.length?'<p class="hueco">Libre</p>':'')+'</div></li>'}).join('')+'</ul>'+bMat(MAT.find(g=>g.tec===t.id),d)+
+   return'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+C.map(chip).join('')+(u?'<p class="eqn">Ausente</p>':!si?'<p class="eqn">No trabaja</p>':cfg.porTiempo?(K.cabeTec(S,cfg,t.id,{id:'_x',av:'',cli:{dis:''},cita:{dia:d,fr:f.id}})?'<p class="hueco">'+(C.length?'Cabe otra':'Libre')+'</p>':''):C.length<cfg.porFranja||!cfg.conHorario&&!C.length?'<p class="hueco">Libre</p>':'')+'</div></li>'}).join('')+'</ul>'+bMat(MAT.find(g=>g.tec===t.id),d)+
    '<div class="acts">'+(u?'<button class="btn peq" data-a="quitaAus" data-aus="'+u.id+'">Quitar la ausencia</button>':'<button class="btn peq" data-a="ausencia" data-tec="'+t.id+'" data-dia="'+d+'">No viene</button>')+'</div></section>'});
  h+='</div><section class="sec"><h2>Ausencias apuntadas <span class="n">'+aus.length+'</span></h2>'+(aus.length?'<ul class="lista">'+aus.map(u=>'<li class="filau"><span><b>'+esc(cfg.tec[u.tec]?cfg.tec[u.tec].n:u.tec)+'</b><small>'+(u.de===u.a?diaTxt(u.de).replace(/^e/,'E').replace(/^h/,'H').replace(/^m/,'M'):'Del '+K.fechaLarga(u.de)+' al '+K.fechaLarga(u.a))+(u.motivo?' · '+esc(u.motivo):'')+'</small></span><button class="btn peq" data-a="quitaAus" data-aus="'+u.id+'">Quitar</button></li>').join('')+'</ul>':'<p class="hueco">Nadie tiene bajas ni vacaciones apuntadas.</p>')+
   '<p class="mpie">'+(cfg.conHorario?'¿Cambia el horario de alguien?':'Este negocio no tiene horarios puestos: cuando falta alguien, los huecos que ve el cliente no cambian.')+(SOP?' <a class="txt" href="#/mejoras">Pídelo en Mejoras</a>':'')+'</p></section>';
@@ -671,7 +671,7 @@ function bUrgMes(){if(!cfg.urge)return'';const u=K.urgenciasMes(S,cfg,K.madrid()
 
 /* ===== centralita: aviso nuevo, de una llamada ===== */
 const B={av:N.averias[0].id,or:'llamada',cuando:'urg',dia:'',fr:'',nombre:'',apellidos:'',tel:'',dir:'',cp:'',nota:'',err:''};
-function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true);if(!dias.find(x=>x.dia===B.dia))B.dia=dias.length?dias[0].dia:'';const fr=(dias.find(x=>x.dia===B.dia)||{franjas:[]}).franjas;if(!fr.find(f=>f.id===B.fr&&f.okOf))B.fr='';
+function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true,B.av?{av:B.av,cli:{dis:cfg.zonas.cp[B.cp]||''}}:null);if(!dias.find(x=>x.dia===B.dia))B.dia=dias.length?dias[0].dia:'';const fr=(dias.find(x=>x.dia===B.dia)||{franjas:[]}).franjas;if(!fr.find(f=>f.id===B.fr&&f.okOf))B.fr='';
  const fS=fr.find(f=>f.id===B.fr);
  const c=(id,lb,v,o)=>'<div class="campo'+(B.err===id?' mal':'')+'"><label for="n_'+id+'">'+lb+'</label><input id="n_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(B.err===id?' aria-invalid="true" aria-describedby="e_'+id+'"':'')+'>'+(B.err===id?'<p class="err" id="e_'+id+'">'+ERR[id]+'</p>':'')+'</div>';
  const con=B.tel&&K.tel9(B.tel)?S.avisos.filter(a=>K.tel9(a.cli.tel)===K.tel9(B.tel)):[];
@@ -935,7 +935,7 @@ function hMenu(){if(SRV)return hSesion();const esT=Q.rol==='tecnico';
 function hCita(A){let dia=A.cita?A.cita.dia:'',fr=A.cita?A.cita.fr:'',conf=!['cita','web'].includes(A.origen);
  const leVa=(x,f)=>(A.vale||[]).some(v=>v.dia===x&&v.fr===f);
  const d=hoja(hc(A.cita?'Cambiar la cita':'Dar cita')+'<div class="hb" id="cB"></div><div class="hp"><button class="btn pri ancho" id="cOk">Guardar la cita</button>'+(A.cita?'<button class="txt" id="cUr" style="justify-self:center">Pasar a urgente</button>':'')+'</div>');
- const p=()=>{const dias=K.diasDe(S,cfg,Date.now(),6,true);if(!dias.find(x=>x.dia===dia))dia=dias[0].dia;const F=K.franjasDe(S,cfg,dia,Date.now(),A.id),fS=F.find(f=>f.id===fr&&f.okOf);if(!fS)fr='';
+ const p=()=>{const dias=K.diasDe(S,cfg,Date.now(),6,true,A);if(!dias.find(x=>x.dia===dia))dia=dias[0].dia;const F=K.franjasDe(S,cfg,dia,Date.now(),A.id,A),fS=F.find(f=>f.id===fr&&f.okOf);if(!fS)fr='';
   $('#cB',d).innerHTML='<div class="campo"><span class="lb">Día</span><div class="ops">'+dias.map(x=>'<button class="op" data-d="'+x.dia+'" aria-pressed="'+(x.dia===dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div></div><div class="campo"><span class="lb">Franja</span><div class="ops">'+F.map(f=>'<button class="op" data-f="'+f.id+'" aria-pressed="'+(f.id===fr)+'"'+(f.okOf?'':' disabled')+'>'+f.txt+'<small>'+(leVa(dia,f.id)?'le va bien · ':'')+frOf(f)+'</small></button>').join('')+'</div></div>'+
    (fS&&fS.por?'<p class="dn" id="c_por">'+PORL[fS.por]+'</p>':'')+
    (fS&&!leVa(dia,fr)?'<label class="chk"><input type="checkbox" id="cConf"'+(conf?' checked':'')+'>Ya lo he hablado con el cliente</label><p class="dn">Si no, la cita queda «pendiente de confirmar».</p>':'')+

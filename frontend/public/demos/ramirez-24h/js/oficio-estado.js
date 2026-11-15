@@ -124,7 +124,7 @@ const R=SV?(function(){
   if(r.ok&&typeof r.id==='string'){olvida(a);ponLlave(r.id,r.llave);return{ok:true,id:r.id}}
   if(!['red','lleno','servidor'].includes(r.err))olvida(a);
   return{ok:false,err:r.err||'red'}}
- const huecos=()=>juez({que:'huecos',negocio:N.id},15000);
+ const huecos=q=>juez(Object.assign({que:'huecos',negocio:N.id},q&&typeof q==='object'?{av:typeof q.av==='string'?q.av:'',dis:typeof q.dis==='string'?q.dis:''}:{}),15000);   // con su avería y su barrio, los huecos y el tiempo de llegada son los de ese trabajo
  /* la zona del cliente: entra con su teléfono y el código que le mandó la oficina, y el servidor le da solo lo suyo */
  const perfil=(tel,codigo)=>juez({que:'perfil',negocio:N.id,tel,codigo},20000);
  /* la oficina: el código de la zona de un cliente, el que ya tiene o uno nuevo si se pide cambiarlo */

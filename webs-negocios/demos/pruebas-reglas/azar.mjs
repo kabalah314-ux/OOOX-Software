@@ -214,14 +214,15 @@ function horarios(W, tipo, A, a, q, t) {
     const cap = capI(N, S, d.dia, frDe(f.id)), libres = cap - enFr(S, d.dia, f.id);
     if (f.ok && !(libres > 0)) rota('hueco-ofrecido-hueco-real', d.dia + ' ' + f.id + ': se ofrece y caben ' + cap + ' con ' + enFr(S, d.dia, f.id) + ' ya dadas');
     if (f.ok && d.dia === hoy && f.de < min + 120) rota('dos-horas-de-margen', d.dia + ' ' + f.id);
-    if (f.libres !== Math.max(0, libres)) rota('huecos-bien-contados', d.dia + ' ' + f.id + ': dice ' + f.libres + ' y son ' + Math.max(0, libres)) }) });
+    // por tiempo, el número de citas por técnico es solo el máximo: lo que cabe puede ser menos, nunca más
+    if (cfg.porTiempo ? !(Number.isInteger(f.libres) && f.libres >= 0 && f.libres <= Math.max(0, libres) && f.libres <= f.libresOf) : f.libres !== Math.max(0, libres)) rota('huecos-bien-contados', d.dia + ' ' + f.id + ': dice ' + f.libres + ' y son ' + Math.max(0, libres)) }) });
   // 1b. lo que puede poner la oficina: todo lo del cliente y, además, el hueco de urgencias y las franjas de hoy sin acabar. Nunca donde no cabe
   K.diasDe(S, cfg, t, 6, true).forEach(d => { if (!laborI(N, d.dia)) rota('oficina-solo-dias-laborables', d.dia); d.franjas.forEach(f => {
     const tope = topeI(N, S, d.dia, frDe(f.id)), n = enFr(S, d.dia, f.id);
     if (f.ok && !f.okOf) rota('lo-del-cliente-lo-puede-la-oficina', d.dia + ' ' + f.id);
     if (f.okOf && !(tope > n)) rota('la-oficina-no-fuerza-donde-no-cabe', d.dia + ' ' + f.id + ': caben ' + tope + ' y hay ' + n);
     if (f.okOf && d.dia === hoy && f.a <= min) rota('la-oficina-no-pone-en-franja-acabada', d.dia + ' ' + f.id);
-    if (f.tope !== tope || f.libresOf !== Math.max(0, tope - n)) rota('tope-bien-contado', d.dia + ' ' + f.id + ': dice ' + f.tope + '/' + f.libresOf + ' y son ' + tope + '/' + Math.max(0, tope - n));
+    if (cfg.porTiempo ? f.libresOf > Math.max(0, tope - n) || f.tope !== n + f.libresOf : f.tope !== tope || f.libresOf !== Math.max(0, tope - n)) rota('tope-bien-contado', d.dia + ' ' + f.id + ': dice ' + f.tope + '/' + f.libresOf + ' y son ' + tope + '/' + Math.max(0, tope - n));
     if ((f.por !== '') !== (f.okOf && !f.ok)) rota('se-dice-por-que-solo-la-oficina', d.dia + ' ' + f.id + ': «' + f.por + '»');
     if (f.por.includes('margen') && !(d.dia === hoy && f.de < min + 120)) rota('margen-bien-dicho', d.dia + ' ' + f.id);
     if (f.por.includes('reserva') && capI(N, S, d.dia, frDe(f.id)) - n > 0) rota('reserva-bien-dicha', d.dia + ' ' + f.id) }) });
@@ -244,7 +245,11 @@ function horarios(W, tipo, A, a, q, t) {
   // 5. el aviso de «sobran citas» es exacto
   const esperado = {}; S.avisos.forEach(x => { if (x.cita && x.cita.dia >= hoy && ['nuevo', 'asignado', 'ausente'].includes(x.e)) { const k = x.cita.dia + ' ' + x.cita.fr, n = enFr(S, x.cita.dia, x.cita.fr) - topeI(N, S, x.cita.dia, frDe(x.cita.fr)); if (n > 0) esperado[k] = n } });
   const dicho = {}; K.sobran(S, cfg, t).forEach(x => { dicho[x.dia + ' ' + x.fr] = x.sobran });
-  if (JSON.stringify(Object.entries(esperado).sort()) !== JSON.stringify(Object.entries(dicho).sort())) rota('sobran-exacto', 'dice ' + JSON.stringify(dicho) + ' y son ' + JSON.stringify(esperado));
+  if (cfg.porTiempo) {   // por tiempo, lo que sobra no se puede contar por número: lo que se sabe seguro
+    const pend = {}; S.avisos.forEach(x => { if (x.cita && x.cita.dia >= hoy && ['nuevo', 'asignado', 'ausente'].includes(x.e)) { const k = x.cita.dia + ' ' + x.cita.fr; pend[k] = (pend[k] || 0) + 1 } });
+    Object.entries(dicho).forEach(([k, n]) => { if (!(n >= 1 && n <= (pend[k] || 0))) rota('sobran-por-tiempo', k + ': dice ' + n + ' y quedan ' + (pend[k] || 0) + ' por hacer') });
+    Object.entries(pend).forEach(([k, n]) => { const [dia, fr] = k.split(' '); if (!topeI(N, S, dia, frDe(fr)) && dicho[k] !== n) rota('sobran-por-tiempo', k + ': nadie trabaja esa franja y dice ' + (dicho[k] || 0) + ' de ' + n) });
+  } else if (JSON.stringify(Object.entries(esperado).sort()) !== JSON.stringify(Object.entries(dicho).sort())) rota('sobran-exacto', 'dice ' + JSON.stringify(dicho) + ' y son ' + JSON.stringify(esperado));
   // 6. ausencias bien formadas
   const vistas = new Set(); (S.ausencias || []).forEach(u => { if (vistas.has(u.id) || !cfg.tec[u.tec] || !K.esFecha(u.de) || !K.esFecha(u.a) || u.a < u.de) rota('ausencias-bien-formadas', JSON.stringify(u)); vistas.add(u.id) });
   // 7. lo que el cliente dio por bueno

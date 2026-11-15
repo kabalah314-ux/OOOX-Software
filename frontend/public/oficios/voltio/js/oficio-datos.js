@@ -26,7 +26,7 @@ g.OFICIO_NEGOCIO={
   '2027-01-01','2027-01-06','2027-01-22','2027-03-19','2027-03-26','2027-03-29','2027-05-01','2027-06-24','2027-08-16','2027-10-09','2027-10-12','2027-11-01','2027-12-06','2027-12-08','2027-12-25'],
  /* horarios: Inés, de lunes a viernes, mañana y tarde; Pau, de lunes a jueves solo por la mañana, y es quien hace las guardias.
     Cada uno lleva una cita por franja y no se guarda a nadie para urgencias. */
- citas:{porFranja:1,reserva:0},
+ citas:{porFranja:3,reserva:0,porTiempo:true},
  tecnicos:[
   {id:'ines',n:'Inés',ap:'Marqués',tono:30,jefe:1,horario:{1:[[510,810],[930,1080]],2:[[510,810],[930,1080]],3:[[510,810],[930,1080]],4:[[510,810],[930,1080]],5:[[510,810],[930,1080]]}},
   {id:'pau',n:'Pau',ap:'Ferri',tono:210,guardia:1,horario:{1:[[510,810]],2:[[510,810]],3:[[510,810]],4:[[510,810]]}}],

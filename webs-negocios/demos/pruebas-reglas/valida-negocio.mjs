@@ -145,6 +145,8 @@ export function valida(N, K, hoy) {
     const ct = N.citas || {};
     if (N.citas != null && (!esEntero(ct.porFranja) || ct.porFranja < 1 || ct.porFranja > 6)) { E('citas.porFranja: cuántas citas lleva un técnico en una franja, de 1 a 6.'); mal = true }
     if (N.citas != null && ct.reserva != null && (!esEntero(ct.reserva) || ct.reserva < 0 || ct.reserva > 8)) { E('citas.reserva: a cuántos técnicos se deja libres para urgencias en cada franja, de 0 a 8.'); mal = true }
+    if (N.citas != null && ct.porTiempo != null && typeof ct.porTiempo !== 'boolean') { E('citas.porTiempo: true para repartir las citas por lo que tarda cada trabajo; si no, false o nada.'); mal = true }
+    if (ct.porTiempo === true && !N.horario && !tecs.some(x => x && x.horario)) A('citas.porTiempo: sin horarios no se puede; las citas van por número (citas.porFranja).');
     if (!mal) {
       const cubre = (x, d, f) => ((x.horario || N.horario)[d] || []).some(t => t[0] <= f.de && t[1] >= f.a);
       const corta = (x, d, f) => ((x.horario || N.horario)[d] || []).some(t => t[0] < f.a && t[1] > f.de) && !cubre(x, d, f);

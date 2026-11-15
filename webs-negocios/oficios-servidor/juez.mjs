@@ -141,7 +141,7 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       const { S } = await carga(neg), t = ahora(), q = p && typeof p === 'object' ? p : {};
       const dis = typeof q.dis === 'string' && Object.prototype.hasOwnProperty.call(cfg.zonas.dis, q.dis) ? q.dis : null, av = typeof q.av === 'string' && Object.prototype.hasOwnProperty.call(cfg.av, q.av) ? q.av : '';
       const u = K.urgenciaAhora(S, cfg, dis, t, av);
-      return { ok: true, dias: K.diasDe(S, cfg, t, TOPES.dias).map(d => ({ dia: d.dia, hoy: !!d.hoy, franjas: d.franjas.map(f => ({ id: f.id, ok: !!f.ok })) })), urg: u ? { de: u.de, a: u.a } : null };
+      return { ok: true, dias: K.diasDe(S, cfg, t, TOPES.dias, false, av ? { av, cli: { dis: dis || '' } } : null).map(d => ({ dia: d.dia, hoy: !!d.hoy, franjas: d.franjas.map(f => ({ id: f.id, ok: !!f.ok })) })), urg: u ? { de: u.de, a: u.a } : null };
     },
 
     /* lo que ve el cliente con el enlace de su aviso */

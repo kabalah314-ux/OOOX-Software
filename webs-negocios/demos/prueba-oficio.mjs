@@ -1003,5 +1003,46 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(JSON.stringify(K.libresDe(ca, 'laia', dia, K.agendaDe(SA, ca, 'laia', dia)).libres) === JSON.stringify([{ de: f('f1').de + de(x1), a: 840 }, { de: 900, a: 1200 }]), 'con una cita a primera hora, libre desde que acaba hasta la hora de comer, y toda la tarde');
 }
 
+// 45. las citas por lo que tarda cada trabajo (15-11-2026): con citas.porTiempo, cabe una cita más si alguien llega a ella
+//     dentro de su franja sin llegar tarde a otra; se guarda gente para urgencias; y lo que sobra si alguien falta
+{
+  const NT = JSON.parse(JSON.stringify(PUB)); NT.citas = { porFranja: 3, reserva: 1, porTiempo: true }; const ct = K.cfgDe(NT);
+  const NS = JSON.parse(JSON.stringify(NT)); NS.tecnicos.forEach(x => { delete x.horario }); delete NS.horario;
+  es(ct.porTiempo === true && K.cfgDe(NS).porTiempo === false && K.cfgDe(PUB).porTiempo === false, 'las citas por tiempo, solo si el negocio lo pide y tiene horarios');
+  const d0 = Object.keys(ct.zonas.dis)[0], dia = '2026-11-11', cp0 = Object.keys(ct.zonas.cp).find(c => ct.zonas.cp[c] === d0);
+  const X = av => ({ av, cli: { dis: d0 } }), F = (S, av, c) => K.franjasDe(S, c || ct, dia, MAR, null, X(av)), fr = (L, id) => L.find(f => f.id === id);
+  const S0 = K.nuevo(), g = fr(F(S0, 'grifo'), 'f1'), te = fr(F(S0, 'termo'), 'f1'), g4 = fr(F(S0, 'grifo'), 'f4'), t4 = fr(F(S0, 'termo'), 'f4');
+  es(g.tope === 9 && g.libres === 6 && te.tope === 6 && te.libres === 4, 'en una mañana libre de tres horas caben tres grifos por técnico, pero solo dos termos; al cliente se le guarda un técnico para urgencias');
+  es(g4.tope === 4 && g4.libres === 2 && t4.tope === 2 && t4.libres === 1, 'en la última franja, de dos horas y con dos técnicos: dos grifos por técnico, un termo');
+  const N2 = JSON.parse(JSON.stringify(NT)); N2.citas.porFranja = 2;
+  es(fr(F(S0, 'grifo', K.cfgDe(N2)), 'f1').tope === 6 && fr(F(S0, 'fuga'), 'f2').tope === 6, 'el máximo de citas por técnico y franja sigue valiendo; y dos fugas en una franja caben aunque la segunda acabe unos minutos después de su hora');
+  // dos grifos pedidos por clientes en la primera franja: se juntan en el mismo técnico, y los demás quedan libres
+  const SB = K.nuevo(); let tb = MAR; const hb = (a, q) => K.aplicar(SB, ct, a, q, tb += M);
+  const cl = n => ({ nombre: 'Tiempo', apellidos: 'Prueba', tel: '6000005' + String(n).padStart(2, '0'), dir: 'C/ Tiempo ' + n, cp: cp0 });
+  const pide = (n, av, f, q) => hb({ tipo: 'pedir', av, cli: cl(n), cita: { dia, fr: f } }, q || CLI);
+  const r1 = pide(1, 'grifo', 'f1'), r2 = pide(2, 'grifo', 'f1'), R1 = K.repartoDia(SB, ct, dia), ta = R1.S.avisos.map(a => a.tec);
+  es(r1.ok && r2.ok && ta.length === 2 && ta[0] && ta[0] === ta[1] && !R1.fuera.length && SB.avisos.every(a => !a.tec), 'dos citas sin técnico en la misma franja se juntan, sobre el papel, en el mismo técnico: así quedan libres los demás');
+  const g1 = fr(K.franjasDe(SB, ct, dia, tb, null, X('grifo')), 'f1');
+  es(g1.tope === 9 && g1.libres === 4, 'y caben siete más: una en ese técnico y tres en cada uno de los otros dos; al cliente, guardando uno, cuatro');
+  // la última franja: dos grifos de clientes llenan lo que se ofrece; el tercero ya no se le ofrece al cliente, la oficina sí puede
+  const r3 = pide(3, 'grifo', 'f4'), r4 = pide(4, 'grifo', 'f4'), r5 = pide(5, 'grifo', 'f4'), r6 = pide(6, 'grifo', 'f4', C), f4 = fr(K.franjasDe(SB, ct, dia, tb, null, X('grifo')), 'f4');
+  es(r3.ok && r4.ok && r5.err === 'franja' && r6.ok && f4.libres === 0 && f4.libresOf === 1 && f4.por === 'reserva', 'en la última franja, el tercer grifo ya no se le ofrece al cliente (se guarda un técnico para urgencias); la oficina sí puede ponerlo');
+  const ft = fr(K.franjasDe(SB, ct, dia, tb, null, X('termo')), 'f4');
+  es(ft.libresOf === 0, 'en el hueco que queda en la última franja cabe un grifo, pero no un termo: acabaría mucho después de su hora');
+  const rc = hb({ tipo: 'mover', id: r1.id, cita: { dia, fr: 'f4' } }, C);
+  es(rc.ok, 'cambiar de franja una cita mira lo que tarda ese trabajo: un grifo sí cabe en ese hueco');
+  // por tiempo, a un técnico ya no se le puede dar un trabajo al que no llegaría
+  const SC = K.nuevo(); let tc = MAR; const hc = (a, q) => K.aplicar(SC, ct, a, q, tc += M);
+  const ids = ['termo', 'termo', 'grifo'].map((av, i) => hc({ tipo: 'pedir', av, cli: cl(20 + i), cita: { dia, fr: 'f1' } }, C).id), as = ids.map(id => hc({ tipo: 'asignar', id, tec: 'omar' }, C));
+  es(as[0].ok && as[1].ok && as[2].err === 'lleno' && K.puedeIr(SC, ct, SC.avisos.find(a => a.id === ids[2]), 'laia', tc) === '', 'con dos termos en su mañana, a un tercer trabajo ya no llegaría a tiempo: «lleno», aunque el máximo sea tres; a otro técnico sí se le puede dar');
+  // si alguien falta, sus citas vuelven sin técnico; las que ya no le caben a nadie, sobran
+  const SD = K.nuevo(); let td = MAR; const hd = (a, q) => K.aplicar(SD, ct, a, q, td += M);
+  [['omar', 30], ['omar', 31], ['laia', 32], ['laia', 33]].forEach(([tec, n]) => { const id = hd({ tipo: 'pedir', av: 'grifo', cli: cl(n), cita: { dia, fr: 'f4' } }, C).id; hd({ tipo: 'asignar', id, tec }, C) });
+  es(K.sobran(SD, ct, td).length === 0 && SD.avisos.every(a => a.tec), 'cuatro grifos en la última franja, dos para cada uno: no sobra nada');
+  hd({ tipo: 'ausencia', tec: 'laia', de: dia, a: dia, motivo: 'médico' }, C);
+  const so = K.sobran(SD, ct, td);
+  es(so.length === 1 && so[0].dia === dia && so[0].fr === 'f4' && so[0].sobran === 2 && K.resumen(SD, ct, td).sobran.length === 1, 'si Laia falta ese día, sus dos citas no le caben a Omar (ya tiene dos y no llegaría): sobran dos, y la oficina lo ve');
+}
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

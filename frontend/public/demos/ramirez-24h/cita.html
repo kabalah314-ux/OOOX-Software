@@ -108,7 +108,7 @@ const ERR={av:'Elige qué te pasa.',franja:'Elige un día y una franja.',llena:'
 /* con servidor: los huecos los da él (días y franjas libres, sin cifras) y el aviso se sigue con la llave del enlace */
 const SRV=Oficio.SRV,H={dias:null,err:'',t:0,va:false};
 Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al '+N.tel+'.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al '+N.tel+' y te damos cita.',red:'No hay conexión. Tu cita no se ha enviado: prueba otra vez.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',grande:'Esa foto pesa demasiado. Quítala y prueba otra vez.'});
-function traeHuecos(){if(!SRV||H.va)return;H.va=true;Oficio.huecos().then(r=>{H.va=false;H.t=Date.now();
+function traeHuecos(){if(!SRV||H.va)return;H.va=true;Oficio.huecos({av:B.av||'',dis:cfg.zonas.cp[B.cp]||''}).then(r=>{H.va=false;H.t=Date.now();
  if(r.ok&&Array.isArray(r.dias)){H.err='';H.urg=r.urg&&Number.isInteger(r.urg.de)&&Number.isInteger(r.urg.a)?{de:r.urg.de,a:r.urg.a}:null;H.dias=r.dias.map(d=>({dia:d.dia,hoy:!!d.hoy,franjas:cfg.franjas.map(f=>{const x=(d.franjas||[]).find(y=>y.id===f.id);return{id:f.id,txt:K.franjaTxt(f),ok:!!(x&&x.ok),libres:null}})}))}else H.err=r.err||'red';
  const a=document.activeElement;if(ruta().v!=='aviso'&&!(a&&a.closest&&a.closest('#f input,#f textarea')))pinta()})}
 const D3=['dom','lun','mar','mié','jue','vie','sáb'];
@@ -119,7 +119,7 @@ const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cf
 
 function vPedir(){
  if(SRV&&!H.dias)return'<h1>Pide cita sin prisa.</h1><p class="lead" id="hEsp" role="status">'+(H.err?'No he podido mirar los huecos libres. <button class="txt" type="button" id="hOtra">Probar otra vez</button> o llama al '+esc(N.tel)+'.':'Mirando los huecos libres…')+'</p>';
- const dias=SRV?H.dias:K.diasDe(S,cfg,Date.now(),5);
+ const dias=SRV?H.dias:K.diasDe(S,cfg,Date.now(),5,false,B.av?{av:B.av,cli:{dis:cfg.zonas.cp[B.cp]||''}}:null);
  if(!dias.length)return'<h1>Pide cita sin prisa.</h1><p class="lead">Ahora mismo no quedan huecos en los próximos días. Llama al '+esc(N.tel)+' y lo miramos.</p>';
  if(!dias.find(x=>x.dia===B.dia))B.dia=(dias.find(x=>!x.hoy)||dias[0]).dia;
  const fr=dias.find(x=>x.dia===B.dia).franjas;if(!fr.find(f=>f.id===B.fr&&f.ok))B.fr='';
@@ -199,7 +199,7 @@ if(SRV){setInterval(alDia,5000);document.addEventListener('visibilitychange',()=
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.b){B[i.dataset.b]=i.value;
  if(i.dataset.b==='cp'&&i.value.replace(/\D/g,'').length===5){B.err=zonaDe(i.value)?'':'zona';pinta();const n=$('#c_cp');n.focus();n.setSelectionRange(5,5)}}});
 document.addEventListener('change',e=>{const i=e.target;
- if(i.name==='av'){B.av=i.value;mem.set('ramirez:av',B.av);if(B.err==='av')B.err='';pinta();const n=$('input[name=av]:checked');if(n)n.focus()}
+ if(i.name==='av'){B.av=i.value;mem.set('ramirez:av',B.av);if(B.err==='av')B.err='';if(SRV&&cfg.porTiempo){H.t=0;traeHuecos()}pinta();const n=$('input[name=av]:checked');if(n)n.focus()}
  if(i.id==='c_foto'&&i.files[0])Oficio.foto(i.files[0]).then(f=>{B.foto=f;pinta()}).catch(()=>toast('No he podido leer esa foto.'))});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-dia],[data-fr],[data-alt],#llama');if(!b)return;
  if(b.dataset.alt){const k=b.dataset.alt,i=B.alt.indexOf(k);if(i>=0)B.alt.splice(i,1);else if(B.alt.length>=4)return toast('Con cuatro nos basta.');else B.alt.push(k);pinta();const n=$('[data-alt="'+k+'"]');if(n)n.focus();return}
