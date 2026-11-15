@@ -195,7 +195,7 @@ Con navegador:
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
 GitHub las pasa en cada cambio: reglas y datos en una máquina, y las pantallas en Chromium, Firefox y WebKit. En verde
-el 15-11-2026 con el commit `b06734f` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
+el 15-11-2026 con el commit `846eb54` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
 rentabilidad, el material que falta y los contratos de mantenimiento, también los que da de alta el técnico, y la urgencia como extra con sus tiempos de llegada).
 
 En vivo (14-11-2026), contra la función desplegada y sin navegador: entrar bien y mal, crear, asignar, leer como cada
@@ -232,7 +232,10 @@ llegaría ahora a una urgencia en el barrio que se pida (`dis`, y `av` para lo q
 que pueda ir sin dejar tirada una cita ni salirse de su horario; nunca dicen quién va. Los datos de Voltio en el servidor
 llevan ya su suplemento (25 €) y lo que tarda cada avería, iguales letra por letra al archivo. Comprobado desde la base
 de datos: responde con esa versión, y los huecos de Voltio para Ciutat Vella dan `urg` con los avisos de verdad. Y la versión 11,
-con las reglas `2026.11.15f` del commit `b06734f`: a igual tiempo de llegada, va quien menos trabajos lleva hoy.
+con las reglas `2026.11.15f` del commit `b06734f`: a igual tiempo de llegada, va quien menos trabajos lleva hoy. Y la
+versión 12, con las reglas `2026.11.15g` del commit `846eb54`: lo que tarda cada servicio del catálogo cuenta en lo que dura
+un trabajo; los datos de Voltio en el servidor llevan ya lo que tarda cada servicio y su servicio de la base, iguales letra
+por letra al archivo.
 
 ## Lo que falta
 
