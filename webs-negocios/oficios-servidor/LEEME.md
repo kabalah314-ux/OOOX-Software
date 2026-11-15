@@ -194,8 +194,8 @@ Con navegador:
 - Ninguna batería llega al servidor de verdad: `buzon_falso.py` lo impide en todas.
 
 GitHub las pasa en cada cambio: reglas y datos en una máquina, y las pantallas en Chromium, Firefox y WebKit. En verde
-el 15-11-2026 con el commit `bf15cb2` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
-rentabilidad y el material que falta).
+el 15-11-2026 con el commit `7afa18f` (desistimiento, «Facturada», el mes para la gestoría, fincas, quién va,
+rentabilidad, el material que falta y los contratos de mantenimiento).
 
 En vivo (14-11-2026), contra la función desplegada y sin navegador: entrar bien y mal, crear, asignar, leer como cada
 técnico, enlace del cliente bueno y malo, cita desde la web con el origen y el técnico forzados, acción repetida,
@@ -213,6 +213,12 @@ el servidor: solo la oficina marca «Facturada», y un trabajo con cita o con al
 del cliente. Los dos avisos de prueba de Voltio son de antes y siguen valiendo. Esa misma noche pasó a la versión 7, con las reglas `2026.11.15b` del commit `bf15cb2`: lo nuevo es el material que
 falta, que el servidor deja apuntar solo a la oficina y al técnico del aviso, y que no sale en la página del cliente.
 Comprobado igual, desde la base de datos: responde con esa versión.
+
+Y esa madrugada, la versión 8, con las reglas `2026.11.15c` del commit `7afa18f`: los contratos de mantenimiento. El
+juez los guarda en la cabecera del negocio (`contratos` y su contador `nc`), así que la base de datos no cambia, y solo
+la oficina los recibe; el técnico sigue recibiendo solo `esq`. Comprobado desde la base de datos con `pg_net`: responde
+con esa versión y da los huecos de Voltio leyendo sus avisos de verdad. Voltio aún no tiene ningún plan en sus datos,
+así que los contratos todavía no se han probado contra el servidor de verdad.
 
 ## Lo que falta
 
