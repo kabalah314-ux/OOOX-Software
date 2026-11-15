@@ -20,6 +20,8 @@
      garantía y cobros).
    - El desistimiento (ley de consumidores): en una urgencia que pide el cliente, la reparación no lo tiene; lo que se
      añade y no es la reparación, y cualquier trabajo con cita, sí. Para empezar ya, el cliente tiene que pedirlo.
+   - El material que falta en un aviso lo apuntan su técnico o la oficina, y se junta por día y por técnico para
+     mandarlo por WhatsApp. El cliente no lo ve.
    - Todo lo que llega de fuera se trata como sospechoso: claves que no
      existen, textos que no son texto y cantidades imposibles se rechazan
      sin cambiar nada.
@@ -28,7 +30,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.15a';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.15b';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -305,6 +307,20 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   if(conFoto){A.fotos=A.fotos||[];A.fotos.push(a.foto)}
   A.v++;return ok()}
 
+ /* lo que falta para el aviso (una pieza, un grifo): del catálogo (solo material) o escrito a mano, con cuántos.
+    Se quita por lo que es, no por su sitio en la lista: así dos aparatos a la vez no se llevan lo que no era. */
+ case 'falta':{
+  if(!mio&&!esC)return R('permiso');if(A.e==='hecho'||A.e==='cancelado')return R('estado');
+  const L=Array.isArray(A.falta)?A.falta:[];
+  if(a.vaciar===true){if(!L.length)return R('estado');delete A.falta;log(A,'Material: ya está todo');return ok()}
+  const it=typeof a.k==='string'?cfg.cat[a.k]:null;if(a.k!=null&&(!it||!it.mat))return R('falta');
+  const t=it?it.t:txt(a.t).replace(/[\u0000-\u001f]/g,' ').trim().replace(/\s+/g,' ').slice(0,60);if(!t)return R('falta');
+  const i=L.findIndex(x=>it?x.k===a.k:!x.k&&x.t.toLowerCase()===t.toLowerCase());
+  if(a.quitar===true){if(i<0)return R('estado');L.splice(i,1);if(L.length)A.falta=L;else delete A.falta;log(A,'Material: quitado '+t);return ok()}
+  const q=a.q===undefined?1:a.q;if(!Number.isInteger(q)||q<1||q>20)return R('falta');
+  if(i>=0)L[i].q=Math.min(20,L[i].q+q);else{if(L.length>=12)return R('falta');L.push(it?{k:a.k,t,q}:{t,q})}
+  A.falta=L;log(A,'Material que falta: '+q+' × '+t);return ok()}
+
  case 'terminar':{
   if(!mio)return R('permiso');if(A.e!=='curso'||!A.tot)return R('estado');
   if(!PAGOS.includes(a.modo))return R('modo');
@@ -423,5 +439,15 @@ function rentabilidad(S,cfg,de,a){const g0=()=>({n:0,base:0,total:0,min:0}),suma
  const fin=(k,g)=>({k,n:g.n,base:g.base,total:g.total,min:g.n?Math.round(g.min/g.n):0,media:g.n?Math.round(g.total/g.n):0,hora:g.min?Math.round(g.base*60/g.min):0});
  return{de,a,av:Object.keys(av).map(k=>fin(k,av[k])).sort((x,y)=>x.hora-y.hora||y.n-x.n),tec:Object.keys(tec).map(k=>fin(k,tec[k])).sort((x,y)=>y.base-x.base),urg:fin('urg',urg),cita:fin('cita',cita),solo}}
 
-g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+/* ---------- el material que falta, juntado: los avisos con cita ese día (dia '' = los abiertos sin cita), por técnico ----------
+   Lo mismo se suma (del catálogo, por su clave; escrito a mano, por el texto sin mayúsculas) y cada cosa dice de qué avisos es. */
+function material(S,cfg,dia){const out=Object.create(null);
+ (S.avisos||[]).forEach(A=>{if(!Array.isArray(A.falta)||!A.falta.length||A.e==='hecho'||A.e==='cancelado')return;if((A.cita?A.cita.dia:'')!==dia)return;
+  const k=A.tec&&cfg.tec[A.tec]?A.tec:'',g=out[k]=out[k]||{tec:k,n:k?cfg.tec[k].n:'',cosas:[]};
+  A.falta.forEach(x=>{const c=g.cosas.find(y=>x.k?y.k===x.k:!y.k&&y.t.toLowerCase()===x.t.toLowerCase());if(c){c.q+=x.q;if(!c.av.includes(A.id))c.av.push(A.id)}else g.cosas.push({k:x.k||'',t:x.t,q:x.q,av:[A.id]})})});
+ return Object.keys(out).map(k=>out[k]).sort((a,b)=>(a.tec?0:1)-(b.tec?0:1)||a.n.localeCompare(b.n))}
+function textoMaterial(cfg,g,dia){if(!g||!g.cosas||!g.cosas.length)return'';
+ return'Material '+(dia?'para el '+fechaLarga(dia):'de los avisos sin día')+(g.n?', '+g.n:', sin técnico')+':\n'+g.cosas.map(c=>'- '+c.q+' × '+c.t+' ('+c.av.join(', ')+')').join('\n')+'\n'+cfg.N.nombre}
+
+g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

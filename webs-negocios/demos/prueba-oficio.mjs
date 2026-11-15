@@ -696,5 +696,46 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(!h.includes('Desistimiento') && h.includes('<h1>Presupuesto</h1>'), 'un presupuesto de antes, sin el apartado nuevo, sale sin romperse');
 }
 
+// 40. el material que falta (15-11-2026): lo apuntan su técnico o la oficina, se junta por día y por técnico para
+//     mandarlo por WhatsApp, y el cliente no lo ve
+{
+  empieza(); let r;
+  const mat = Object.keys(cfg.cat).find(k => cfg.cat[k].mat), mat2 = Object.keys(cfg.cat).filter(k => cfg.cat[k].mat)[1], noMat = Object.keys(cfg.cat).find(k => !cfg.cat[k].mat);
+  const u = ap({ tipo: 'pedir', av: 'fuga', cli: montse }, CLI).id; ap({ tipo: 'asignar', id: u, tec: 'omar' }, C);
+  es(ap({ tipo: 'falta', id: u, k: mat }, T('laia')).err === 'permiso' && ap({ tipo: 'falta', id: u, k: mat }, CLI).err === 'permiso', 'el material lo apuntan su técnico o la oficina, nadie más');
+  es(ap({ tipo: 'falta', id: u, k: noMat }, C).err === 'falta' && ap({ tipo: 'falta', id: u, k: 'nada' }, C).err === 'falta' && ap({ tipo: 'falta', id: u, k: 'otro', t: 'x' }, C).err === 'falta', 'del catálogo, solo lo que es material');
+  es(ap({ tipo: 'falta', id: u, t: '   ' }, C).err === 'falta' && ap({ tipo: 'falta', id: u, t: { a: 1 } }, C).err === 'falta' && ap({ tipo: 'falta', id: u }, C).err === 'falta' && !A(u).falta, 'escrito a mano, tiene que decir algo');
+  es([0, 21, 1.5, '2', -1, null].every(q => ap({ tipo: 'falta', id: u, k: mat, q }, C).err === 'falta') && !A(u).falta, 'cuántos: de 1 a 20, en números enteros');
+  r = ap({ tipo: 'falta', id: u, k: mat, q: 2 }, T('omar'));
+  es(r.ok && A(u).falta.length === 1 && A(u).falta[0].k === mat && A(u).falta[0].t === cfg.cat[mat].t && A(u).falta[0].q === 2 && A(u).h[A(u).h.length - 1].txt.includes('2 × ' + cfg.cat[mat].t), 'su técnico apunta material del catálogo, y queda en el historial');
+  es(ap({ tipo: 'falta', id: u, k: mat, q: 19 }, C).ok && A(u).falta.length === 1 && A(u).falta[0].q === 20, 'lo mismo se suma, hasta 20');
+  es(ap({ tipo: 'falta', id: u, t: '  Latiguillo\n de   40 cm ', q: 1 }, C).ok && A(u).falta[1].t === 'Latiguillo de 40 cm' && !('k' in A(u).falta[1]), 'escrito a mano, queda limpio');
+  es(ap({ tipo: 'falta', id: u, t: 'LATIGUILLO DE 40 CM' }, C).ok && A(u).falta.length === 2 && A(u).falta[1].q === 2, 'lo escrito igual, aunque cambien las mayúsculas, se suma');
+  for (let i = 0; i < 10; i++) ap({ tipo: 'falta', id: u, t: 'Cosa ' + i }, C);
+  es(A(u).falta.length === 12 && ap({ tipo: 'falta', id: u, t: 'Una más' }, C).err === 'falta' && ap({ tipo: 'falta', id: u, k: mat }, C).err === undefined, 'hasta 12 cosas por aviso; a una que ya está se le puede sumar');
+  es(ap({ tipo: 'falta', id: u, t: 'No está', quitar: true }, C).err === 'estado' && ap({ tipo: 'falta', id: u, t: 'cosa 3', quitar: true }, T('omar')).ok && A(u).falta.length === 11 && !A(u).falta.some(x => x.t === 'Cosa 3'), 'se quita por lo que es; lo que ya no está, no');
+  es(ap({ tipo: 'falta', id: u, k: mat, quitar: 'sí' }, C).ok && A(u).falta.find(x => x.k === mat).q === 20, 'quitar es un sí de verdad: con otra cosa, suma uno (y se queda en 20)');
+  es(!('falta' in K.vistaCliente(S, cfg, u)) && !('falta' in K.perfilCliente(S, cfg, montse.tel).avisos[0]), 'el cliente no lo ve, ni en su página ni en su zona');
+  const g0 = K.material(S, cfg, '');
+  es(g0.length === 1 && g0[0].tec === 'omar' && g0[0].n === 'Omar' && g0[0].cosas.length === 11 && g0[0].cosas[0].av.join() === u && K.material(S, cfg, '2026-11-11').length === 0, 'una urgencia sin cita va en «sin día», con su técnico');
+  const dia = K.diasDe(S, cfg, t, 3).find(d => d.franjas.some(f => f.ok)).dia, fr = K.franjasDe(S, cfg, dia, t).find(f => f.ok).id;
+  const c1 = ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, montse, { tel: '600000150' }), cita: { dia, fr } }, CLI).id;
+  const c2 = ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, montse, { tel: '600000151' }), cita: { dia, fr } }, CLI).id;
+  ap({ tipo: 'asignar', id: c1, tec: 'laia' }, C);
+  ap({ tipo: 'falta', id: c1, k: mat }, C); ap({ tipo: 'falta', id: c2, k: mat, q: 3 }, C); ap({ tipo: 'falta', id: c2, t: 'Grifo monomando' }, C);
+  const gd = K.material(S, cfg, dia);
+  es(gd.length === 2 && gd[0].tec === 'laia' && gd[1].tec === '' && gd[1].n === '' && gd[0].cosas[0].q === 1 && gd[1].cosas.find(x => x.k === mat).q === 3, 'con cita, va en su día: por técnico, y lo que no tiene técnico al final');
+  ap({ tipo: 'asignar', id: c2, tec: 'laia' }, C);
+  const gl = K.material(S, cfg, dia)[0];
+  es(K.material(S, cfg, dia).length === 1 && gl.cosas.length === 2 && gl.cosas[0].q === 4 && gl.cosas[0].av.join() === c1 + ',' + c2, 'lo mismo de dos avisos se suma, y dice de cuáles es');
+  const tx = K.textoMaterial(cfg, gl, dia);
+  es(tx === 'Material para el ' + K.fechaLarga(dia) + ', Laia:\n- 4 × ' + cfg.cat[mat].t + ' (' + c1 + ', ' + c2 + ')\n- 1 × Grifo monomando (' + c2 + ')\n' + N.nombre && K.textoMaterial(cfg, null, dia) === '' && K.textoMaterial(cfg, g0[0], '').startsWith('Material de los avisos sin día, Omar:'), 'el texto para mandar por WhatsApp');
+  if (mat2) { ap({ tipo: 'falta', id: c1, k: mat2, q: 2 }, C); es(K.material(S, cfg, dia)[0].cosas.length === 3, 'cada cosa distinta, en su línea') }
+  es(ap({ tipo: 'falta', id: c1, vaciar: 'sí' }, C).err === 'falta' && A(c1).falta.length > 0, 'vaciar es un sí de verdad, no un texto');
+  es(ap({ tipo: 'falta', id: c1, vaciar: true }, T('laia')).ok && !A(c1).falta && ap({ tipo: 'falta', id: c1, vaciar: true }, C).err === 'estado', '«Ya está todo» lo vacía; vacío, no hay nada que vaciar');
+  ap({ tipo: 'cancelar', id: c2, motivo: 'Ya no hace falta' }, C);
+  es(K.material(S, cfg, dia).length === 0 && ap({ tipo: 'falta', id: c2, k: mat }, C).err === 'estado', 'lo cancelado ya no sale en la lista ni se apunta');
+}
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

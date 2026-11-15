@@ -287,6 +287,9 @@ body.conred main.dos{padding-top:0}
 .solo .doc{max-width:none;border-radius:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .des{display:grid;gap:8px;padding:12px 14px;border:1px solid var(--linea);border-radius:12px}
+.mfal{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px}.mfal li{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mq{display:flex;align-items:center;gap:14px}.mq .num{font-size:1.25rem;min-width:2ch}
+.mat{margin-top:10px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}.mat ul{list-style:none;margin:4px 0 8px;padding:0;display:grid;gap:4px}.mat small a{color:inherit}
 </style>
 </head>
 <body>
@@ -345,7 +348,7 @@ const ORIG={llamada:'por teléfono',web:'desde la web',cita:'cita en la web',wha
 const EST={nuevo:'Sin asignar',asignado:'Asignado',camino:'De camino',curso:'Trabajando',hecho:'Terminado',ausente:'No había nadie',cancelado:'Cancelado'};
 const PAGO={efectivo:'Efectivo',tarjeta:'Tarjeta',bizum:'Bizum',transferencia:'Transferencia',pendiente:'Lo paga después'};
 const ERR={nombre:'Escribe el nombre del cliente.',apellidos:'Escribe los apellidos del cliente.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
- datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',pide:'Falta que el cliente marque «Quiero que lo hagáis ya».',num:'Ese número de factura no vale.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
+ datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',pide:'Falta que el cliente marque «Quiero que lo hagáis ya».',falta:'Eso no vale como material: elige uno de la lista o escríbelo, de 1 a 20 unidades y hasta 12 cosas por aviso.',num:'Ese número de factura no vale.',modo:'Elige cómo paga.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
  horario:'Ese técnico no trabaja a esa hora. Elige a otro.',ausente_tec:'Ese técnico está ausente ese día.',lleno:'Ese técnico ya tiene esa franja ocupada.',
  red:'Sin conexión con el servidor. No se ha creado: mira si aparece antes de repetirlo.',lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.',sesion:'Tu sesión se ha cerrado. Entra otra vez.',espera:'Eso tiene que confirmarlo el servidor.',
  fechas:'Revisa las fechas de la ausencia.',mapa:'Este negocio no tiene activado el mapa.',posicion:'Esa posición no vale.',ausencia:'Esa ausencia ya no está apuntada.',aviso:'Ese aviso ya no existe.'};
@@ -421,6 +424,8 @@ function bAlertas(){const r=K.resumen(S,cfg,Date.now()),rea=S.avisos.filter(a=>a
  const L=r.sobran.map(x=>'<li><span><b>'+(x.sobran===1?'Sobra 1 cita':'Sobran '+x.sobran+' citas')+'</b> '+diaTxt(x.dia)+', '+frTxt(x.fr)+': no hay técnicos para todas.</span><a class="btn peq" href="#/equipo/'+x.dia+'">Ver el día</a></li>');
  if(rea.length)L.push('<li><span><b>'+(rea.length===1?'1 aviso por reasignar':rea.length+' avisos por reasignar')+'</b>: quien lo llevaba ya no puede ir.</span><a class="btn peq" href="#/aviso/'+rea[0].id+'">'+(rea.length===1?'Abrirlo':'Abrir el primero')+'</a></li>');
  if(conf.length)L.push('<li><span><b>'+(conf.length===1?'1 cita pendiente de confirmar':conf.length+' citas pendientes de confirmar')+'</b> con el cliente.</span><a class="btn peq" href="#/aviso/'+conf[0].id+'">'+(conf.length===1?'Abrirla':'Abrir la primera')+'</a></li>');
+ {const hoy=K.madrid().date;let dm=K.masDias(hoy,1);for(let i=0;i<7&&!K.laborable(cfg,dm);i++)dm=K.masDias(dm,1);const n=new Set([].concat(...K.material(S,cfg,dm).map(g=>[].concat(...g.cosas.map(c=>c.av))))).size;
+  if(n)L.push('<li><span><b>'+(n===1?'1 aviso':n+' avisos')+' de '+diaTxt(dm)+' con material por preparar</b>: mándalo o cárgalo antes.</span><a class="btn peq" href="#/equipo/'+dm+'">Ver el día</a></li>')}
  if(pro()&&r.porFac.viejos)L.push('<li><span><b>'+(r.porFac.viejos===1?'1 trabajo lleva':r.porFac.viejos+' trabajos llevan')+' más de una semana sin facturar</b>.</span><a class="btn peq" href="#/cobros">Verlos</a></li>');
  return L.length?'<ul class="alertas" aria-label="Lo primero que hay que atender">'+L.join('')+'</ul>':''}
 function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
@@ -438,6 +443,26 @@ function bTrabajo(A){const p=K.enPausa(A);
  if(A.fotos&&A.fotos.length)h+='<div class="fotos">'+A.fotos.map(f=>'<img src="'+f+'" alt="Foto del trabajo">').join('')+'</div>';
  h+='<div class="campo" style="margin-top:12px"><label for="obs">Nota para el parte</label><textarea id="obs" data-obs="'+A.id+'" placeholder="Opcional. Lo que deba saber quien vuelva a esta casa.">'+esc(A.obs||'')+'</textarea></div>';
  return h+'</section>'}
+/* ===== el material que falta: lo apuntan su técnico o la oficina; en «Equipo» se junta por día para mandarlo por WhatsApp ===== */
+function bFalta(A){const L=A.falta||[],puede=!['hecho','cancelado'].includes(A.e)&&(Q.rol==='centralita'||A.tec===Q.id);if(!L.length&&!puede)return'';
+ return'<section class="blq" id="falta"><h2>Material que falta</h2>'+(L.length?'<ul class="mfal">'+L.map(x=>'<li><span><b class="num">'+x.q+' ×</b> '+esc(x.t)+'</span>'+(puede?'<button class="txt" data-a="quitaFalta" data-id="'+A.id+'" data-k="'+esc(x.k||'')+'" data-t="'+esc(x.t)+'">Quitar</button>':'')+'</li>').join('')+'</ul>'
+  :'<p class="ln">Si hace falta una pieza que no hay en la furgoneta, apúntala: sale en la lista del día, para comprarla o cargarla antes de ir.</p>')+
+  (puede?'<div class="acts"><button class="btn peq" data-a="falta" data-id="'+A.id+'">'+I.mas+'Apuntar material</button>'+(L.length?'<button class="btn peq" data-a="faltaListo" data-id="'+A.id+'">Ya está todo</button>':'')+'</div>':'')+'</section>'}
+function hFalta(A){const mats=Object.keys(cfg.cat).filter(x=>cfg.cat[x].mat);let k='',q=1;
+ const d=hoja(hc('Apuntar material')+'<form class="hb" id="faF" novalidate>'+(mats.length?'<div class="campo"><span class="lb" id="fa_l">¿Qué falta?</span><div class="ops" role="group" aria-labelledby="fa_l">'+mats.map(x=>'<button type="button" class="op" data-fk="'+x+'" aria-pressed="false">'+esc(cfg.cat[x].t)+'</button>').join('')+'</div></div>':'')+
+  '<div class="campo"><label for="fa_t">'+(mats.length?'O escríbelo':'¿Qué falta?')+'</label><input id="fa_t" maxlength="60" placeholder="Por ejemplo, un latiguillo de 40 cm" autocomplete="off"></div>'+
+  '<div class="campo"><span class="lb" id="fa_ql">Cuántos</span><div class="mq"><span class="st" role="group" aria-labelledby="fa_ql"><button type="button" data-fq="-1" aria-label="Uno menos">−</button><button type="button" data-fq="1" aria-label="Uno más">+</button></span><b class="num" id="fa_q">1</b></div></div>'+
+  '<p class="err" id="fa_err" style="color:var(--mal)" hidden></p></form><div class="hp"><button class="btn pri ancho" form="faF">Apuntar</button></div>');
+ const marca=()=>$$('[data-fk]',d).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.fk===k)));
+ d.addEventListener('click',e=>{const b=e.target.closest('[data-fk]');if(b){k=k===b.dataset.fk?'':b.dataset.fk;marca();if(k)$('#fa_t',d).value='';$('#fa_err',d).hidden=true;return}
+  const m=e.target.closest('[data-fq]');if(m){q=Math.max(1,Math.min(20,q+ +m.dataset.fq));$('#fa_q',d).textContent=q}});
+ $('#fa_t',d).addEventListener('input',e=>{$('#fa_err',d).hidden=true;if(e.target.value.trim()&&k){k='';marca()}});
+ $('#faF',d).onsubmit=e=>{e.preventDefault();const t=$('#fa_t',d).value.trim(),m=$('#fa_err',d);if(!k&&!t){m.textContent='Elige qué falta o escríbelo.';m.hidden=false;return}
+  const r=Oficio.hacer(k?{tipo:'falta',id:A.id,k,q}:{tipo:'falta',id:A.id,t,q},Q);if(!r.ok){m.textContent=ERR[r.err]||'No se ha podido apuntar.';m.hidden=false;return}
+  d.close();toast('Apuntado. Sale en la lista del día.')}}
+/* lo que falta de un técnico (o sin técnico) para un día, con el WhatsApp ya escrito: se elige a quién mandarlo */
+const bMat=(g,d,tit)=>!g||!g.cosas.length?'':'<div class="mat"><p class="ln"><b>'+(tit||'Material que falta')+'</b></p><ul>'+g.cosas.map(c=>'<li><b class="num">'+c.q+' ×</b> '+esc(c.t)+' <small>'+c.av.map(id=>'<a href="#/aviso/'+id+'">'+id+'</a>').join(', ')+'</small></li>').join('')+'</ul>'+
+ '<div class="acts"><a class="btn peq" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(K.textoMaterial(cfg,g,d))+'">Mandar por WhatsApp</a><button class="btn peq" data-a="copiaMat" data-dia="'+d+'" data-tec="'+g.tec+'">Copiar</button></div></div>';
 const bHist=A=>'<details class="hist"><summary>Historial</summary><ol>'+A.h.map(x=>'<li><time>'+cuandoT(x.t)+'</time><span>'+esc(x.txt)+' ('+esc(x.q)+')</span></li>').join('')+'</ol></details>';
 function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
  if(!A)return'<div class="cab"><div><h1>Aviso</h1><p class="sub">No encuentro el aviso '+esc(id)+'.'+(Oficio.DEMO?' Puede que la demo se haya reiniciado.':'')+'</p></div></div><p class="fin"><a class="txt" href="#/">Volver al inicio</a></p>';
@@ -446,6 +471,7 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
  h+='<div class="cab"><div><h1>'+esc(av.n)+'</h1><p class="sub">'+A.id+(barrio(A)?' · '+esc(barrio(A)):'')+' · '+(A.cita?'cita '+diaTxt(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente')+'</p></div><span class="pill '+A.e+'">'+EST[A.e]+'</span></div>'+pista(A)+bGar(A);
  if(esT){h+=bCliente(A,true);
   if(mio&&A.e==='curso')h+=bTrabajo(A);
+  h+=bFalta(A);
   if(mio)h+=bGeo(A);
   if(pro())h+=bDinero(A);
   if(mio)h+=bMensajes(A);
@@ -456,7 +482,7 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
  }else{h+=bCliente(A,false);
   if(A.e==='camino'&&A.pos&&t)h+='<p class="mnota" id="posOf" style="margin-top:12px">'+esc(t.n)+' compartió su posición '+hace(A.pos.t)+'. El cliente la ve en su página.</p>';
   if(abierto&&A.cli.tel)h+=bReparto(A)+bCita(A);
-  h+=bDinero(A);
+  h+=bDinero(A)+bFalta(A);
   h+=bMensajes(A)+bHist(A);
   if(abierto)h+='<p class="fin"><button class="txt mal" data-a="cancelar" data-id="'+A.id+'">Cancelar el aviso</button></p>'}
  return h}
@@ -498,6 +524,8 @@ function vHoy(){const hoy=K.madrid().date,M=S.avisos.filter(a=>a.tec===Q.id&&['a
  else h+='<p class="hueco" style="margin-top:16px">Cuando la centralita te pase un aviso, aparece aquí al momento.</p>';
  if(dia.length>1)h+=sec('Después',dia.slice(1),'','');
  if(lue.length)h+=sec('Próximos días',lue,'','');
+ const ds=[...new Set(M.filter(a=>a.falta&&a.falta.length).map(a=>a.cita?a.cita.dia:''))].sort((a,b)=>a===''?1:b===''?-1:a<b?-1:a>b?1:0);
+ if(ds.length)h+='<section class="sec" id="mHoy"><h2>Material que te falta</h2>'+ds.map(x=>bMat(K.material(S,cfg,x).find(g=>g.tec===Q.id),x,x?diaTxt(x).replace(/^./,c=>c.toUpperCase()):'Sin día')).join('')+'</section>';
  return h}
 function vHechos(){const hoy=K.madrid().date,L=S.avisos.filter(a=>a.tec===Q.id&&a.e==='hecho').sort((a,b)=>b.fin-a.fin),h=L.filter(a=>K.madrid(a.fin).date===hoy),o=L.filter(a=>!h.includes(a)).slice(0,10);
  return'<div class="cab"><div><h1>Hechos</h1><p class="sub">'+(h.length?(h.length===1?'1 trabajo terminado hoy.':h.length+' trabajos terminados hoy.'):'Hoy todavía no has terminado ninguno.')+'</p></div></div>'+sec('Hoy',h,'','Aquí salen los trabajos que termines hoy.')+(o.length?sec('Antes',o,'',''):'')}
@@ -529,14 +557,14 @@ function vAgenda(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
 function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora);if(!dias.includes(d))d=dias[0];
  const fr=K.franjasDe(S,cfg,d,ahora),L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),sin=L.filter(a=>!a.tec),ds=new Date(d+'T12:00:00Z').getUTCDay();
  const chip=a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+(barrio(a)?' · '+esc(barrio(a)):'')+'</b><small>'+esc(K.nomCli(a.cli)||'Aún sin nombre')+(a.cita.ok===false?' · por confirmar':'')+'</small></a>';
- const aus=(S.ausencias||[]).filter(u=>u.a>=hoy).sort((a,b)=>a.de<b.de?-1:a.de>b.de?1:0);
+ const aus=(S.ausencias||[]).filter(u=>u.a>=hoy).sort((a,b)=>a.de<b.de?-1:a.de>b.de?1:0),MAT=K.material(S,cfg,d);
  let h='<div class="cab"><div><h1>Equipo</h1><p class="sub">Quién trabaja '+diaTxt(d)+' y qué lleva cada uno.</p></div><button class="btn pri peq" data-a="ausencia" data-dia="'+d+'">'+I.mas+'Ausencia</button></div>'+segAg('equipo',d)+bAlertas();
  h+=navDias('equipo',dias,d,x=>{const n=N.tecnicos.filter(t=>K.ausente(S,t.id,x)).length;return n?(n===1?'falta 1':'faltan '+n):'todos'})+'<div class="tecds">';
- if(sin.length)h+='<section class="tecd"><h2>Sin asignar</h2><p class="ln">'+(sin.length===1?'1 cita espera técnico.':sin.length+' citas esperan técnico.')+'</p><ul class="tfr">'+fr.filter(f=>sin.some(a=>a.cita.fr===f.id)).map(f=>'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+sin.filter(a=>a.cita.fr===f.id).map(chip).join('')+'</div></li>').join('')+'</ul></section>';
+ if(sin.length)h+='<section class="tecd"><h2>Sin asignar</h2><p class="ln">'+(sin.length===1?'1 cita espera técnico.':sin.length+' citas esperan técnico.')+'</p><ul class="tfr">'+fr.filter(f=>sin.some(a=>a.cita.fr===f.id)).map(f=>'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+sin.filter(a=>a.cita.fr===f.id).map(chip).join('')+'</div></li>').join('')+'</ul>'+bMat(MAT.find(g=>!g.tec),d)+'</section>';
  N.tecnicos.forEach(t=>{const u=(S.ausencias||[]).find(x=>x.tec===t.id&&x.de<=d&&x.a>=d),hor=t.horario||N.horario||null,tr=hor?(hor[ds]||[]):null;
   const linea=u?'Ausente'+(u.motivo?': '+esc(u.motivo.toLowerCase()):'')+(u.a>d?'. Hasta '+diaTxt(u.a):'')+'.':!tr?'Sin horario puesto: cuenta para todas las franjas.':tr.length?tr.map(x=>K.franjaTxt({de:x[0],a:x[1]})).join(' y ').replace(/^d/,'D')+'.':'No trabaja este día.';
   h+='<section class="tecd'+(u?' aus':'')+'" data-tec="'+t.id+'"><h2>'+ava(t.id)+esc(t.n)+' '+esc(t.ap)+'</h2><p class="ln">'+linea+'</p><ul class="tfr">'+fr.map(f=>{const C=L.filter(a=>a.tec===t.id&&a.cita.fr===f.id),si=!u&&K.trabaja(cfg,t.id,d,f.de,f.a);
-   return'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+C.map(chip).join('')+(u?'<p class="eqn">Ausente</p>':!si?'<p class="eqn">No trabaja</p>':C.length<cfg.porFranja||!cfg.conHorario&&!C.length?'<p class="hueco">Libre</p>':'')+'</div></li>'}).join('')+'</ul>'+
+   return'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+C.map(chip).join('')+(u?'<p class="eqn">Ausente</p>':!si?'<p class="eqn">No trabaja</p>':C.length<cfg.porFranja||!cfg.conHorario&&!C.length?'<p class="hueco">Libre</p>':'')+'</div></li>'}).join('')+'</ul>'+bMat(MAT.find(g=>g.tec===t.id),d)+
    '<div class="acts">'+(u?'<button class="btn peq" data-a="quitaAus" data-aus="'+u.id+'">Quitar la ausencia</button>':'<button class="btn peq" data-a="ausencia" data-tec="'+t.id+'" data-dia="'+d+'">No viene</button>')+'</div></section>'});
  h+='</div><section class="sec"><h2>Ausencias apuntadas <span class="n">'+aus.length+'</span></h2>'+(aus.length?'<ul class="lista">'+aus.map(u=>'<li class="filau"><span><b>'+esc(cfg.tec[u.tec]?cfg.tec[u.tec].n:u.tec)+'</b><small>'+(u.de===u.a?diaTxt(u.de).replace(/^e/,'E').replace(/^h/,'H').replace(/^m/,'M'):'Del '+K.fechaLarga(u.de)+' al '+K.fechaLarga(u.a))+(u.motivo?' · '+esc(u.motivo):'')+'</small></span><button class="btn peq" data-a="quitaAus" data-aus="'+u.id+'">Quitar</button></li>').join('')+'</ul>':'<p class="hueco">Nadie tiene bajas ni vacaciones apuntadas.</p>')+
   '<p class="mpie">'+(cfg.conHorario?'¿Cambia el horario de alguien?':'Este negocio no tiene horarios puestos: cuando falta alguien, los huecos que ve el cliente no cambian.')+(SOP?' <a class="txt" href="#/mejoras">Pídelo en Mejoras</a>':'')+'</p></section>';
@@ -888,6 +916,10 @@ const ACC={
  copiaFac:A=>copia(K.datosFactura(cfg,A),'Copiado. Pégalo en tu programa de facturas.'),
  mes:(A,b)=>bajaMes(b.dataset.m),
  ampliar:A=>hPrecio(A,true),
+ falta:A=>hFalta(A),
+ quitaFalta:(A,b)=>{const k=b.dataset.k,r=hacer(k?{tipo:'falta',id:A.id,k,quitar:true}:{tipo:'falta',id:A.id,t:b.dataset.t,quitar:true});if(r.ok)toast('Quitado de lo que falta.')},
+ faltaListo:A=>{if(hacer({tipo:'falta',id:A.id,vaciar:true}).ok)toast('Hecho: ya no falta nada en este aviso.')},
+ copiaMat:(A,b)=>{const d=b.dataset.dia||'',g=K.material(S,cfg,d).find(x=>x.tec===(b.dataset.tec||''));if(g)copia(K.textoMaterial(cfg,g,d),'Copiado. Pégalo donde quieras.')},
  asignar:(A,b)=>{const otraVez=A.e==='ausente';if(A.tec===b.dataset.tec&&!otraVez)return;const antes=A.tec&&A.tec!==b.dataset.tec;if(hacer({tipo:'asignar',id:A.id,tec:b.dataset.tec}).ok)toast((otraVez&&!antes?'Vuelve a ir ':antes?'Cambiado: ahora va ':'Asignado a ')+cfg.tec[b.dataset.tec].n+'.'+(A.cita?' Queda escrito el mensaje de la cita.':''))},
  voy:A=>{const r=hacer({tipo:'voy',id:A.id});if(r.ok){toast('De camino. Llegas sobre las '+K.hora(r.eta)+'.');if(ruta().v!=='aviso')location.hash='#/aviso/'+A.id}},
  ausente:A=>{if(hacer({tipo:'ausente',id:A.id}).ok){toast('Apuntado: no había nadie. Vuelve a la centralita.');location.hash='#/hoy'}},

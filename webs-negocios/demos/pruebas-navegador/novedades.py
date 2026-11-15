@@ -1,9 +1,10 @@
 # Lo del 15-11-2026, en pantalla: el desistimiento al firmar el presupuesto, «Facturada», el mes para la gestoría, lo que
-# deja cada trabajo, la zona de un administrador de fincas y quién va en la página del aviso.
+# deja cada trabajo, la zona de un administrador de fincas, quién va en la página del aviso y el material que falta.
 # Uso: python3 novedades.py [puerto]   (por defecto 8765) · NAVEGADOR=chromium|firefox|webkit
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')
 import asyncio, sys, json
+from urllib.parse import unquote
 from playwright.async_api import async_playwright
 import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
 import buzon_falso     # el buzón de mejoras no sale a internet en las pruebas: ver buzon_falso.py
@@ -124,6 +125,29 @@ async def main():
         await c.evaluate(f"Oficio.hacer({{tipo:'noacepta',id:'{qid}',modo:'efectivo'}},{{rol:'tecnico',id:'{qtec}'}})")
         await k.reload(); await k.wait_for_selector('.doc'); await k.wait_for_timeout(300)
         es(await k.locator('.quien').count() == 0, 'quién va: acabado el aviso, ya no se enseña')
+
+        # ---------- 7. el material que falta: lo apunta el técnico, la oficina lo ve en su día y lo manda por WhatsApp ----------
+        r = await c.evaluate(CREA + "('grifo',true,'611000004','C/ Verdi 11')"); mid, mtec = r.get('id'), r.get('tec')
+        es('id' in r, f'se crea otra cita, para el material ({r})')
+        t3 = oye(await ctx.new_page(), 'técnico, material'); await t3.goto(B + f'app.html?papel=tecnico&tec={mtec}#/aviso/{mid}'); await t3.wait_for_selector('#falta')
+        await t3.click('#falta [data-a=falta]'); await t3.wait_for_selector('#faF')
+        primero = await t3.locator('[data-fk]').first.get_attribute('data-fk')
+        await t3.locator('[data-fk]').first.click(); await t3.click('[data-fq="1"]'); await t3.click('button[form=faF]')
+        es(await toast(t3, 'Apuntado') and '2 ×' in await texto(t3, '#falta'), 'el técnico apunta material del catálogo, con cuántos')
+        await t3.click('#falta [data-a=falta]'); await t3.wait_for_selector('#faF'); await t3.fill('#fa_t', 'Latiguillo de 40 cm'); await t3.click('button[form=faF]')
+        es(await toast(t3, 'Apuntado') and 'Latiguillo de 40 cm' in await texto(t3, '#falta'), 'y lo que no está en el catálogo, escrito a mano')
+        A = await c.evaluate(AV + f"('{mid}')"); es(A and len(A.get('falta', [])) == 2 and A['falta'][0]['k'] == primero and A['falta'][0]['q'] == 2, 'queda guardado en el aviso')
+        await t3.goto(B + f'app.html?papel=tecnico&tec={mtec}#/hoy'); await t3.wait_for_selector('#mHoy')
+        es('Material que te falta' in await t3.locator('main').inner_text() and 'Latiguillo de 40 cm' in await texto(t3, '#mHoy'), 'en «Hoy», el técnico ve lo que le falta, por día')
+        dia = A['cita']['dia']
+        await c.goto(B + f'app.html#/equipo/{dia}'); await c.wait_for_selector('.tecds')
+        caja = c.locator(f'.tecd[data-tec="{mtec}"] .mat')
+        href = (await caja.locator('a[href^="https://wa.me/?text="]').get_attribute('href')) if await caja.count() else ''
+        es(await caja.count() == 1 and 'Latiguillo de 40 cm' in await caja.inner_text() and mid in await caja.inner_text(), 'en «Equipo», ese día, el material de cada técnico con sus avisos')
+        es(bool(href) and 'Material para el' in unquote(href) and f'Latiguillo de 40 cm ({mid})' in unquote(href), 'y el WhatsApp ya escrito, para mandarlo a quien haga falta')
+        await c.goto(B + f'app.html#/aviso/{mid}'); await c.wait_for_selector('#falta [data-a=faltaListo]')
+        await c.click('#falta [data-a=faltaListo]')
+        es(await toast(c, 'ya no falta nada') and 'falta' not in (await c.evaluate(AV + f"('{mid}')")), '«Ya está todo» lo vacía')
 
         es(not errores, 'sin errores en la consola ni archivos que falten: ' + '; '.join(errores[:4]))
         await br.close()

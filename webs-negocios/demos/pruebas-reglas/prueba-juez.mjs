@@ -174,6 +174,14 @@ let idW, llaveW;
     es((await J.atiende({ que: 'ver', negocio: 'ramirez', aviso: idW, llave: llaveW })).vista.pos === null, 'y deja de verla en cuanto el técnico deja de compartirla');
   } else { es(true, 'negocio sin mapa'); es(true, 'negocio sin mapa'); } }
 
+// 9 bis. el material que falta (15-11-2026): por el servidor lo apuntan la oficina o su técnico, otro técnico no, y el cliente no lo ve
+{ const mat = Object.keys(NR.catalogo).find(k => NR.catalogo[k].mat), suyo = crudo('ramirez').avisos.get(idW).datos.tec, otro = tecR.find(x => x !== suyo);
+  const r1 = await hacer(OF, { tipo: 'falta', id: idW, k: mat, q: 2 }), r2 = await hacer(T(otro), { tipo: 'falta', id: idW, t: 'Racor de 3/4' });
+  const r3 = suyo ? await hacer(T(suyo), { tipo: 'falta', id: idW, t: 'Racor de 3/4' }) : { ok: true };
+  const v = await J.atiende({ que: 'ver', negocio: 'ramirez', aviso: idW, llave: llaveW }), f = crudo('ramirez').avisos.get(idW).datos.falta;
+  es(r1.ok && !r2.ok && r2.err === 'permiso' && r3.ok && f[0].k === mat && f[0].q === 2 && (!suyo || f[1].t === 'Racor de 3/4') && v.ok && !('falta' in v.vista) && !JSON.stringify(v).includes('Racor'),
+    'el material que falta: lo apuntan la oficina y su técnico por el servidor, otro técnico no puede, y el cliente no lo ve con su enlace'); }
+
 // 10. dos negocios en el mismo almacén no se tocan
 { const vr = crudo('ramirez').v;
   const r = await J.atiende({ que: 'hacer', negocio: 'voltio', persona: 'oficina', codigo: 'codigo-oficina-v', accion: { tipo: 'pedir', av: NV.averias[0].id, origen: 'llamada', cli: cliDe(NV) }, desde: 0 });
