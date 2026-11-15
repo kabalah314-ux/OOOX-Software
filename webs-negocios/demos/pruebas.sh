@@ -33,6 +33,8 @@ if [ "$QUE" != navegador ]; then
     paso "Copias: todas al día y con datos que valen" node "$AQUI/copias.mjs" comprueba --plantilla "$SITIO" --destino "$COPIAS"
     for d in "$COPIAS"/*/js/oficio-datos.js; do [ -f "$d" ] && paso "Copia $(basename "$(dirname "$(dirname "$d")")"): recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$d" --tandas "${TANDAS_COPIA:-20}" --semilla "${SEMILLA:-20261113}"; done
   fi
+  # la demo «en uso»: el negocio de nueve semanas, hecho con las reglas, a ocho horas distintas y con sus cuentas (pruebas-uso/LISTA.md)
+  [ -f "$COPIAS/ramirez-uso/js/oficio-datos.js" ] && paso "Uso real: el negocio en marcha, a ocho horas distintas y con sus cuentas" node "$R/uso-real.mjs" "$SITIO" "$COPIAS/ramirez-uso/js/oficio-datos.js"
   if [ -n "$JUEZ" ]; then
     paso "El juez (servidor), con ejemplos" env OFICIOS_SERVIDOR="$JUEZ" node "$R/prueba-juez.mjs" "$SITIO"
     paso "El juez, con varios aparatos a la vez y al azar" env OFICIOS_SERVIDOR="$JUEZ" node "$R/azar-juez.mjs" "$SITIO" --tandas "${TANDAS_JUEZ:-60}" --semilla "${SEMILLA:-20261114}"
@@ -73,6 +75,12 @@ if [ "$QUE" != reglas ]; then
       kill $S4 2>/dev/null; wait $S4 2>/dev/null
     fi
   done; fi
+  # la demo «en uso», en el navegador: cada pantalla con nueve semanas de datos, y cada persona haciendo su trabajo
+  if [ -f "$COPIAS/ramirez-uso/js/oficio-datos.js" ]; then
+    ( cd "$COPIAS/ramirez-uso" && exec python3 -m http.server 8769 >/dev/null 2>&1 ) & S5=$!; sleep 1
+    paso "Uso real en el navegador: la demo en uso, pantalla a pantalla" python3 uso.py 8769
+    kill $S5 2>/dev/null; wait $S5 2>/dev/null
+  fi
   # el modo servidor con los archivos de la plantilla y los datos del otro negocio, contra un servidor local con el mismo juez
   if [ -n "$JUEZ" ]; then
     OFICIOS_SERVIDOR="$JUEZ" node "$AQUI/pruebas-navegador/servidor_local.mjs" "$SITIO" 8768 --datos "$OTRO" >/dev/null 2>&1 & S4=$!; sleep 1.5

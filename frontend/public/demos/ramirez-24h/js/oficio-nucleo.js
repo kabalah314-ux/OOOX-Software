@@ -32,7 +32,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.15i';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.15j';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -249,7 +249,8 @@ function urgenciaAhora(S,cfg,dis,t,av){const L=llegadas(S,cfg,dis,t,av).filter(x
    se espera que dure (durEst). «tarde»: llegaría cuando su franja ya ha acabado.
    Con «t», si el día es hoy, se mira desde ahora: lo ya hecho va a la hora en que pasó; el trabajo de ahora sigue hasta
    que se espera que acabe, y detrás van las urgencias que tiene en cola y las citas que le quedan.
-   «extra»: un aviso de más (una cita que se está pidiendo, por ejemplo), el último de su franja: para saber si cabría.
+   «extra»: un aviso de más, para saber si cabría: una cita que ya existe (para dársela a alguien o cambiarla de franja)
+   va en su sitio, por la hora a la que se pidió; una que se está pidiendo (sin hora), la última de su franja.
    Cada trabajo: {id, av, urg, fr, viaje, llega, acaba, tarde, hecho}, en minutos del día. */
 function agendaDe(S,cfg,tec,dia,t,extra){const n=t==null?null:madrid(t),hoy=!!n&&n.date===dia,out=[];let cur=-1440;
  const fi=A=>cfg.franjas.findIndex(x=>x.id===A.cita.fr),mi=x=>{const m=madrid(x);return m.date===dia?m.min:null};
@@ -262,7 +263,7 @@ function agendaDe(S,cfg,tec,dia,t,extra){const n=t==null?null:madrid(t),hoy=!!n&
   mio.filter(A=>A.e==='asignado'&&!A.cita).sort((a,b)=>a.t-b.t).forEach(A=>{const v=etaMin(cfg,A.cli&&A.cli.dis),l=cur+v,d=durEst(cfg,A);pon(A,l,l+d,v);cur=l+d})}
  const C=mio.filter(A=>A.cita&&A.cita.dia===dia&&fi(A)>=0&&(!hoy||A.e==='nuevo'||A.e==='asignado'));
  if(extra&&extra.cita&&extra.cita.dia===dia&&fi(extra)>=0)C.push(extra);
- C.sort((a,b)=>fi(a)-fi(b)||(a===extra)-(b===extra)||a.t-b.t||(a.id<b.id?-1:1));
+ const tt=A=>A===extra&&typeof A.t!=='number'?9e15:A.t;C.sort((a,b)=>fi(a)-fi(b)||tt(a)-tt(b)||(a.id<b.id?-1:1));
  C.forEach(A=>{const f=cfg.franjas[fi(A)],v=etaMin(cfg,A.cli&&A.cli.dis),l=Math.max(f.de,cur+v),d=durEst(cfg,A);pon(A,l,l+d,v,{tarde:l>f.a});cur=l+d});
  return out.sort((a,b)=>a.llega-b.llega||a.acaba-b.acaba)}
 /* las horas en que trabaja ese día, en tramos [de, a]: las de su horario; sin horarios, de la primera franja a la última */
@@ -287,9 +288,11 @@ function libresDe(cfg,tec,dia,L,desde){const T=turnosDe(cfg,tec,dia),occ=(L||[])
 function cabeTec(S,cfg,tec,X){const dia=X.cita.dia,f=cfg.franjas.find(x=>x.id===X.cita.fr);
  if(!f||!trabaja(cfg,tec,dia,f.de,f.a)||ausente(S,tec,dia)||citasDe(S,tec,dia,f.id,X.id)>=cfg.porFranja)return false;
  /* no cabe si por ella llegaría tarde a alguna cita (la suya incluida) o acabaría alguna más de un cuarto de hora
-    después de su tramo de trabajo; lo que ya pasaba sin ella no cuenta */
+    después de su tramo de trabajo; lo que ya pasaba sin ella no cuenta (sin ella de verdad: si ya está en su día, por
+    ejemplo al cambiarla de franja, se mira cómo estaba ese día sin ella) */
  const T=turnosDe(cfg,tec,dia),fin=m=>{const b=T.find(x=>x[0]<=m&&m<x[1])||T.filter(x=>x[1]<=m).pop()||T[0];return b?b[1]:1440};
- const mal=L=>new Set(L.filter(x=>x.tarde||x.acaba>fin(x.llega)+15).map(x=>x.id)),antes=mal(agendaDe(S,cfg,tec,dia));
+ const sin=Object.assign({},S,{avisos:S.avisos.filter(a=>a.id!==X.id)});
+ const mal=L=>new Set(L.filter(x=>x.tarde||x.acaba>fin(x.llega)+15).map(x=>x.id)),antes=mal(agendaDe(sin,cfg,tec,dia));
  return![...mal(agendaDe(S,cfg,tec,dia,null,Object.assign({},X,{tec})))].some(id=>!antes.has(id))}
 /* a quién le iría la cita «X»: antes a quien ya tiene citas en esa franja (así quedan libres los demás) y después a quien
    antes llegaría. Con «guarda», solo si siguen quedando tantos técnicos sin ninguna cita en la franja. '' si a nadie */
@@ -305,7 +308,7 @@ function repartoDia(S,cfg,dia,menos){let V=S.avisos.filter(a=>a.id!==menos&&a.ci
  return{S:Object.assign({},S,{avisos:V}),fuera}}
 /* cuántas citas como «Y» caben aún en su franja (hasta nueve) */
 function cuantasCaben(S,cfg,Y,guarda){let V=S.avisos,k=0;
- for(;k<9;k++){const Z=Object.assign({},Y,{id:k?Y.id+'~'+k:Y.id,t:9e15+k}),tec=eligeTec(Object.assign({},S,{avisos:V}),cfg,Z,guarda);if(!tec)break;V=V.concat([Object.assign({},Z,{tec})])}
+ for(;k<9;k++){const Z=Object.assign({},Y,{id:k?Y.id+'~'+k:Y.id,t:k||typeof Y.t!=='number'?9e15+k:Y.t}),tec=eligeTec(Object.assign({},S,{avisos:V}),cfg,Z,guarda);if(!tec)break;V=V.concat([Object.assign({},Z,{tec})])}
  return k}
 /* lo que sobra con citas por tiempo: las citas que no le caben a nadie y las que su técnico ya no llega a tiempo */
 function sobranTiempo(S,cfg,t){const hoy=madrid(t).date,P=['nuevo','asignado','ausente'],out=[];

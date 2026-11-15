@@ -139,14 +139,19 @@ export function valida(N, K, hoy) {
     return mal;
   };
   const conHorario = !!(N.horario || (Array.isArray(tecs) && tecs.some(x => x && x.horario)));
+  // las citas por lo que tarda cada trabajo (15-11-2026): sí o no, y solo con horarios
+  if (N.citas && N.citas.porTiempo != null && typeof N.citas.porTiempo !== 'boolean') E('citas.porTiempo: true para repartir las citas por lo que tarda cada trabajo; si no, false o nada.');
+  if (N.citas && N.citas.porTiempo === true && !conHorario) A('citas.porTiempo: sin horarios no se puede; las citas van por número (cupo).');
   if (conHorario && Array.isArray(tecs) && Array.isArray(fr)) {
     let mal = N.horario ? horarioMal(N.horario, 'horario') : false;
     tecs.forEach(x => { if (x && x.horario) mal = horarioMal(x.horario, 'tecnicos (' + x.id + ').horario') || mal; else if (x && !N.horario) { E('tecnicos (' + x.id + '): falta su horario (o un horario general del negocio).'); mal = true } });
     const ct = N.citas || {};
     if (N.citas != null && (!esEntero(ct.porFranja) || ct.porFranja < 1 || ct.porFranja > 6)) { E('citas.porFranja: cuántas citas lleva un técnico en una franja, de 1 a 6.'); mal = true }
     if (N.citas != null && ct.reserva != null && (!esEntero(ct.reserva) || ct.reserva < 0 || ct.reserva > 8)) { E('citas.reserva: a cuántos técnicos se deja libres para urgencias en cada franja, de 0 a 8.'); mal = true }
-    if (N.citas != null && ct.porTiempo != null && typeof ct.porTiempo !== 'boolean') { E('citas.porTiempo: true para repartir las citas por lo que tarda cada trabajo; si no, false o nada.'); mal = true }
-    if (ct.porTiempo === true && !N.horario && !tecs.some(x => x && x.horario)) A('citas.porTiempo: sin horarios no se puede; las citas van por número (citas.porFranja).');
+    if (ct.porTiempo === true && (ct.reserva || 0) > 0 && Array.isArray(N.franjas)) {   // por tiempo, la reserva guarda técnicos enteros: donde trabajan pocos, el cliente no puede pedir
+      const flojas = []; [1, 2, 3, 4, 5, 6].forEach(w => N.franjas.forEach(f => { const n = tecs.filter(x => { const h = (x && x.horario) || N.horario; return h && (h[w] || h[String(w)] || []).some(r => r[0] <= f.de && r[1] >= f.a) }).length;
+        if (n > 0 && n <= ct.reserva) flojas.push(['', 'lu', 'ma', 'mi', 'ju', 'vi', 'sá'][w] + ' ' + f.id) }));
+      if (flojas.length) A('citas.reserva: con citas por tiempo se guardan técnicos enteros para urgencias, y en ' + flojas.slice(0, 6).join(', ') + (flojas.length > 6 ? '…' : '') + ' no trabajan más que los que se guardan: ahí el cliente no podrá pedir cita, solo la oficina.') }
     if (!mal) {
       const cubre = (x, d, f) => ((x.horario || N.horario)[d] || []).some(t => t[0] <= f.de && t[1] >= f.a);
       const corta = (x, d, f) => ((x.horario || N.horario)[d] || []).some(t => t[0] < f.a && t[1] > f.de) && !cubre(x, d, f);

@@ -109,6 +109,12 @@ for (const [que, rompe, base] of ROTOS) {
 { const F = clon(R); F.tecnicos[0].foto = 'assets/tec/jordi.jpg'; const G = clon(F); G.tecnicos[0].fotoOk = 1;
   es(valida(F, K, HOY).errores.length === 0 && valida(F, K, HOY).avisos.some(t => /permiso/.test(t)) && valida(G, K, HOY).errores.length === 0 && !valida(G, K, HOY).avisos.some(t => /permiso/.test(t)),
     'una foto sin permiso vale pero se avisa de que no se enseña; con fotoOk: 1, sin aviso') }
+// citas por tiempo (15-11-2026): «porTiempo» tiene que ser sí o no; sin horarios no vale; y la reserva guarda técnicos enteros
+{ const P1 = clon(R); P1.citas = { porFranja: 3, reserva: 1, porTiempo: true }; const P2 = clon(P1); P2.citas.porTiempo = 'sí';
+  const P3 = clon(P1); P3.tecnicos.forEach(x => { delete x.horario }); delete P3.horario; P3.cupo = 2; const P4 = clon(P1); P4.citas.reserva = 2;
+  es(valida(P1, K, HOY).errores.length === 0 && !valida(P1, K, HOY).avisos.some(t => /porTiempo|reserva/.test(t)) && valida(P2, K, HOY).errores.some(t => /porTiempo/.test(t))
+    && valida(P3, K, HOY).avisos.some(t => /sin horarios/.test(t)) && valida(P4, K, HOY).avisos.some(t => /citas.reserva/.test(t) && / f4/.test(t)),
+    'citas por tiempo: vale con horarios; «porTiempo» que no es sí o no, error; sin horarios, aviso; y si la reserva guarda a todos los de una franja (aquí, de 18 a 20), aviso') }
 // las caducidades: lo mismo que hoy pasa, dentro de un año tiene que fallar
 es(valida(R, K, '2027-08-01').errores.some(t => /festivos/.test(t)), 'con la fecha de dentro de nueve meses, avisa de que hay que renovar los festivos');
 es(valida(R, K, '2026-12-28').avisos.some(t => /festivos/.test(t)) && valida(R, K, '2026-12-28').errores.length === 0, 'cuando queda menos de un año, lo dice como aviso, sin parar nada');

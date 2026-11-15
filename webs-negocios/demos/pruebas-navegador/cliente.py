@@ -24,7 +24,10 @@ async def main():
         b = await getattr(p, NAV).launch()
         ctx = await b.new_context(viewport={'width': 390, 'height': 844}, timezone_id='Europe/Madrid', has_touch=True, is_mobile=NAV != 'firefox'); await pon_hora(ctx)
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
-        if COPIA:
+        DEMO = False
+        if COPIA:   # una copia que trae su propia muestra (la demo «en uso») es una demo: se prueba como la demo
+            await pg.goto(B + 'cliente.html'); await pg.wait_for_selector('main h1'); DEMO = await pg.evaluate('Oficio.DEMO')
+        if COPIA and not DEMO:
             await pg.goto(B + 'cliente.html'); await pg.wait_for_selector('main h1')
             t = await pg.locator('main').inner_text(); N = await pg.evaluate('Oficio.N'); SRV = await pg.evaluate('Oficio.SRV')
             es(N['nombre'] in t and N['nombre'] in await pg.title(), 'copia: con el nombre del negocio')
@@ -107,7 +110,7 @@ async def main():
             es(pg.url.endswith('#/') and COD not in pg.url and 'Hola' in await pg.locator('main').inner_text(), 'el enlace del mensaje entra solo y el código no se queda en la barra')
             # la web lleva a la zona
             w = await ctx.new_page(); await w.goto(B + 'index.html'); await w.wait_for_timeout(400)
-            es(await w.locator('a[href="cliente.html"]').count() >= 1, 'la web tiene «Tu zona»')
+            if not COPIA: es(await w.locator('a[href="cliente.html"]').count() >= 1, 'la web tiene «Tu zona»')   # una copia no lleva la web del negocio, solo la portada de pedir cita
             await w.close()
             es(not errs, f'sin errores {errs[:2]}')
         await b.close()

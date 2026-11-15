@@ -971,8 +971,8 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(Lx.length === L.length + 1 && ix.llega === Lx.find(x => x.id === a3).acaba + v && L.every(y => Lx.find(x => x.id === y.id).llega === y.llega),
     'una cita que se está pidiendo va la última de su franja: no mueve las que ya había');
   const Lm = K.agendaDe(SA, ca, 'omar', dia, null, Object.assign({}, g(a2), { cita: { dia, fr: 'f2' } }));
-  es(Lm.filter(x => x.id === a2).length === 1 && Lm.find(x => x.id === a2).fr === 'f2' && Lm.find(x => x.id === a4).llega === i1.acaba + v && Lm.find(x => x.id === a2).llega === Lm.find(x => x.id === a3).acaba + v,
-    'para cambiar una cita de franja se mira como si ya estuviera en la nueva: deja su sitio en la de antes');
+  es(Lm.filter(x => x.id === a2).length === 1 && Lm.find(x => x.id === a2).fr === 'f2' && Lm.find(x => x.id === a4).llega === i1.acaba + v && Lm.find(x => x.id === a3).llega === Lm.find(x => x.id === a2).acaba + v,
+    'para cambiar una cita de franja se mira como si ya estuviera en la nueva: deja su sitio en la de antes y, en la nueva, va por la hora a la que se pidió (antes que la que se pidió después)');
   es(ha({ tipo: 'cancelar', id: a5, motivo: 'Ya no hace falta' }, C).ok && !K.agendaDe(SA, ca, 'omar', dia).some(x => x.id === a5) && K.agendaDe(SA, ca, 'omar', '2026-11-11').length === 0
     && K.agendaDe(SA, ca, 'laia', dia).map(x => x.id).join() === x1, 'no cuentan las citas canceladas, las de otro día ni las de otro técnico');
   // hoy, desde ahora: lo hecho va donde pasó; el trabajo de ahora sigue hasta que se espera que acabe; detrás, la cola y las citas
@@ -1031,6 +1031,13 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(ft.libresOf === 0, 'en el hueco que queda en la última franja cabe un grifo, pero no un termo: acabaría mucho después de su hora');
   const rc = hb({ tipo: 'mover', id: r1.id, cita: { dia, fr: 'f4' } }, C);
   es(rc.ok, 'cambiar de franja una cita mira lo que tarda ese trabajo: un grifo sí cabe en ese hueco');
+  // cambiar de franja una cita que ya tiene técnico: si con ella su día ya no cuadra, se queda sin técnico (visto con la demo en uso, 15-11-2026)
+  { const SM = K.nuevo(); let tm = MAR; const hm = (a, q) => K.aplicar(SM, ct, a, q, tm += M);
+    const vieja = hm({ tipo: 'pedir', av: 'atasco', cli: cl(40), cita: { dia, fr: 'f1' } }, C).id; hm({ tipo: 'asignar', id: vieja, tec: 'jordi' }, C);
+    const dos = ['termo', 'cisterna'].map((av, i) => { const id = hm({ tipo: 'pedir', av, cli: cl(41 + i), cita: { dia, fr: 'f2' } }, C).id; hm({ tipo: 'asignar', id, tec: 'jordi' }, C); return id });
+    const tarde0 = K.agendaDe(SM, ct, 'jordi', dia).filter(x => x.tarde).length, rm = hm({ tipo: 'mover', id: vieja, cita: { dia, fr: 'f2' } }, C), V = SM.avisos.find(a => a.id === vieja);
+    es(dos.every(id => SM.avisos.find(a => a.id === id).tec === 'jordi') && tarde0 === 0 && rm.ok && !V.tec && V.e === 'nuevo' && !K.agendaDe(SM, ct, 'jordi', dia).some(x => x.tarde),
+      'una cita de Jordi pedida antes, pasada a una franja donde ya tiene dos: iría la primera y él ya no llegaría a las otras, así que se queda sin técnico') }
   // por tiempo, a un técnico ya no se le puede dar un trabajo al que no llegaría
   const SC = K.nuevo(); let tc = MAR; const hc = (a, q) => K.aplicar(SC, ct, a, q, tc += M);
   const ids = ['termo', 'termo', 'grifo'].map((av, i) => hc({ tipo: 'pedir', av, cli: cl(20 + i), cita: { dia, fr: 'f1' } }, C).id), as = ids.map(id => hc({ tipo: 'asignar', id, tec: 'omar' }, C));

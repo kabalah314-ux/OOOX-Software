@@ -61,6 +61,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .fila{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;min-height:68px;padding:11px 14px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2);text-decoration:none}
 .fila .f1{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fila .f2{grid-column:1;font-size:.9375rem;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fila .f3{grid-column:1;font-size:.9375rem;font-weight:600;color:var(--senal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fila .fd{grid-column:2;grid-row:1/3;display:grid;justify-items:end;gap:3px;font-weight:600}
 .fila .mini{font-size:.875rem;font-weight:400;color:var(--suave)}
 .fila.urg{padding-left:24px}
@@ -408,16 +409,18 @@ const waHtml=(txt,a)=>'<div class="wa"><div class="wa-hd"><i>'+esc((a||'C')[0])+
 
 /* ===== piezas ===== */
 function pista(A){const p=[['Recibido',A.t],['Asignado',A.tec&&A.e!=='nuevo'?1:0],['De camino',A.sal],['En casa',A.ini],['Hecho',A.fin]],orden={nuevo:0,ausente:0,cancelado:0,asignado:1,camino:2,curso:3,hecho:4}[A.e];
- return'<ol class="pista" aria-label="Recorrido del aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]>1&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>'}
-function fila(A,sel){const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=K.nomCli(A.cli)||'Aún sin nombre';let f2,fd;
+ /* la hora de cada paso; si un paso fue otro día que el último (una cita pedida días antes), también el día */
+ const ult=p.reduce((m,x,i)=>x[1]>1&&i<=orden?x[1]:m,0),ref=ult?K.madrid(ult).date:'',cuando=t=>{const d=K.madrid(t).date;return(d!==ref?diaCorto(d)+', ':'')+K.hora(t)};
+ return'<ol class="pista" aria-label="Recorrido del aviso">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]>1&&i<=orden?'<time>'+cuando(x[1])+'</time>':'')+'</li>').join('')+'</ol>'}
+function fila(A,sel){const av=cfg.av[A.av],t=cfg.tec[A.tec],quien=K.nomCli(A.cli)||'Aún sin nombre';let f2,fd,f3='';
  const cita=A.cita?'cita '+diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'';
  const pc=A.cita&&A.cita.ok===false?' · por confirmar':'';
  if(A.e==='nuevo'||A.e==='ausente'){const ua=!cita&&A.e==='nuevo'&&A.cli.tel?K.urgenciaAhora(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):null;
-  f2=cita?quien+' · '+cita+pc:hace(A.t).replace(/^h/,'H').replace(/^a/,'A')+' · '+quien+' · '+ORIG[A.origen]+(ua?' · antes llega '+cfg.tec[ua.tec].n+', en ~'+ua.de+' min':'');fd='<span class="pill '+(A.e==='ausente'?'ausente':'nuevo')+'">'+(A.e==='ausente'?'No había nadie':!A.cli.tel?'Faltan datos':A.reasignar?'Reasignar':'Sin asignar')+'</span>'}
+  f2=cita?quien+' · '+cita+pc:hace(A.t).replace(/^h/,'H').replace(/^a/,'A')+' · '+quien+' · '+ORIG[A.origen];if(ua)f3='Antes llega '+cfg.tec[ua.tec].n+', en ~'+ua.de+' min';fd='<span class="pill '+(A.e==='ausente'?'ausente':'nuevo')+'">'+(A.e==='ausente'?'No había nadie':!A.cli.tel?'Faltan datos':A.reasignar?'Reasignar':'Sin asignar')+'</span>'}
  else if(A.e==='hecho'){f2=(t?t.n+' · ':'')+quien;fd=A.tot&&A.pago&&pro()?'<span class="num">'+K.eur(A.tot.total)+'</span>'+(A.pago.cobrado?'<span class="mini">'+(A.tot.total?PAGO[A.pago.modo]:'En su contrato')+'</span>':'<span class="pill cobro">Por cobrar</span>'):'<span class="pill hecho">Terminado</span>'}
  else if(A.e==='cancelado'){f2=quien;fd='<span class="pill">Cancelado</span>'}
  else{f2=(t?t.n+' · ':'')+(A.e==='camino'?'llega sobre las '+K.hora(A.eta):A.e==='curso'?'lleva '+dur(K.minutos(A,Date.now())):cita?cita+pc:'urgente, '+hace(A.t));fd='<span class="pill '+A.e+'">'+EST[A.e]+'</span>'}
- return'<li><a class="fila'+(A.urg&&(A.e==='nuevo'||A.e==='ausente')?' urg':'')+'" href="#/aviso/'+A.id+'"'+(sel===A.id?' aria-current="true"':'')+'><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(f2)+(A.con&&A.e!=='hecho'&&A.e!=='cancelado'?' · con contrato':'')+'</span><span class="fd">'+fd+'</span></a></li>'}
+ return'<li><a class="fila'+(A.urg&&(A.e==='nuevo'||A.e==='ausente')?' urg':'')+'" href="#/aviso/'+A.id+'"'+(sel===A.id?' aria-current="true"':'')+'><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(f2)+(A.con&&A.e!=='hecho'&&A.e!=='cancelado'?' · con contrato':'')+'</span>'+(f3?'<span class="f3">'+esc(f3)+'</span>':'')+'<span class="fd">'+fd+'</span></a></li>'}
 const sec=(tit,L,sel,vacio)=>'<section class="sec"><h2>'+tit+' <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(a=>fila(a,sel)).join('')+'</ul>':'<p class="hueco">'+vacio+'</p>')+'</section>';
 function tira(){const r=K.resumen(S,cfg,Date.now());
  return'<ul class="tira" aria-label="Dónde está cada técnico">'+N.tecnicos.map(t=>{const x=r.tec[t.id],A=x.aviso&&el(x.aviso);
@@ -462,14 +465,15 @@ function bCita(A){const c=A.cita,hoy=K.madrid().date,otras=c&&A.vale?A.vale.filt
   (c&&c.of&&PORA[c.of]?'<p class="mnota" style="margin-top:8px">'+PORA[c.of]+'</p>':'')+
   (otras.length?'<p class="mnota" style="margin-top:8px">Al cliente también le va bien: '+otras.map(v=>diaCorto(v.dia)+', '+frTxt(v.fr)).join(' · ')+'.</p>':'')+'</section>'}
 /* lo que hay que atender antes que nada: citas que no caben, avisos sin técnico porque el suyo falta y citas sin confirmar */
-function bAlertas(){const r=K.resumen(S,cfg,Date.now()),rea=S.avisos.filter(a=>a.reasignar&&a.e==='nuevo'),conf=S.avisos.filter(a=>a.cita&&a.cita.ok===false&&abiertos.includes(a.e));
+function bAlertas(ag){const r=K.resumen(S,cfg,Date.now()),rea=S.avisos.filter(a=>a.reasignar&&a.e==='nuevo'),conf=S.avisos.filter(a=>a.cita&&a.cita.ok===false&&abiertos.includes(a.e));
  const L=r.sobran.map(x=>'<li><span><b>'+(x.sobran===1?'Sobra 1 cita':'Sobran '+x.sobran+' citas')+'</b> '+diaTxt(x.dia)+', '+frTxt(x.fr)+': no hay técnicos para todas.</span><a class="btn peq" href="#/equipo/'+x.dia+'">Ver el día</a></li>');
  if(rea.length)L.push('<li><span><b>'+(rea.length===1?'1 aviso por reasignar':rea.length+' avisos por reasignar')+'</b>: quien lo llevaba ya no puede ir.</span><a class="btn peq" href="#/aviso/'+rea[0].id+'">'+(rea.length===1?'Abrirlo':'Abrir el primero')+'</a></li>');
  if(conf.length)L.push('<li><span><b>'+(conf.length===1?'1 cita pendiente de confirmar':conf.length+' citas pendientes de confirmar')+'</b> con el cliente.</span><a class="btn peq" href="#/aviso/'+conf[0].id+'">'+(conf.length===1?'Abrirla':'Abrir la primera')+'</a></li>');
  {const hoy=K.madrid().date;let dm=K.masDias(hoy,1);for(let i=0;i<7&&!K.laborable(cfg,dm);i++)dm=K.masDias(dm,1);const n=new Set([].concat(...K.material(S,cfg,dm).map(g=>[].concat(...g.cosas.map(c=>c.av))))).size;
   if(n)L.push('<li><span><b>'+(n===1?'1 aviso':n+' avisos')+' de '+diaTxt(dm)+' con material por preparar</b>: mándalo o cárgalo antes.</span><a class="btn peq" href="#/equipo/'+dm+'">Ver el día</a></li>')}
- if(HAY_CON()){const pc=K.pendientesContratos(S,cfg,Date.now()),n=pc.renovar.length+pc.revision.length;if(n)L.push('<li><span><b>'+(n===1?'1 contrato pide algo':n+' contratos piden algo')+'</b>: '+[pc.renovar.length?(pc.renovar.length===1?'una renovación':pc.renovar.length+' renovaciones'):'',pc.revision.length?(pc.revision.length===1?'una revisión sin cita':pc.revision.length+' revisiones sin cita'):''].filter(Boolean).join(' y ')+'.</span><a class="btn peq" href="#/contratos">Verlos</a></li>')}
- if(pro()&&r.porFac.viejos)L.push('<li><span><b>'+(r.porFac.viejos===1?'1 trabajo lleva':r.porFac.viejos+' trabajos llevan')+' más de una semana sin facturar</b>.</span><a class="btn peq" href="#/cobros">Verlos</a></li>');
+ /* contratos y facturas son cosa de la oficina: en la agenda y en el equipo solo sale lo del reparto («ag») */
+ if(!ag&&HAY_CON()){const pc=K.pendientesContratos(S,cfg,Date.now()),n=pc.renovar.length+pc.revision.length;if(n)L.push('<li><span><b>'+(n===1?'1 contrato pide algo':n+' contratos piden algo')+'</b>: '+[pc.renovar.length?(pc.renovar.length===1?'una renovación':pc.renovar.length+' renovaciones'):'',pc.revision.length?(pc.revision.length===1?'una revisión sin cita':pc.revision.length+' revisiones sin cita'):''].filter(Boolean).join(' y ')+'.</span><a class="btn peq" href="#/contratos">Verlos</a></li>')}
+ if(!ag&&pro()&&r.porFac.viejos)L.push('<li><span><b>'+(r.porFac.viejos===1?'1 trabajo lleva':r.porFac.viejos+' trabajos llevan')+' más de una semana sin facturar</b>.</span><a class="btn peq" href="#/cobros">Verlos</a></li>');
  return L.length?'<ul class="alertas" aria-label="Lo primero que hay que atender">'+L.join('')+'</ul>':''}
 function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
  let h='<section class="blq"><h2>'+(A.e==='hecho'?(A.sinTrabajo?'Solo el desplazamiento':'Total del trabajo'):'Presupuesto firmado')+'</h2><p class="gordo num">'+K.eur(T.total)+'</p><p class="ln">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+(p?' · '+(p.cobrado?(T.total?'cobrado, '+PAGO[p.modo].toLowerCase():'nada que cobrar: va en su contrato'):'pendiente de pago'):'')+'</p>';
@@ -587,11 +591,11 @@ function vAgenda(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
  const L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),fr=K.franjasDe(S,cfg,d,ahora);
  const todas=S.avisos.filter(a=>a.cita&&a.e!=='cancelado'&&a.e!=='hecho'&&a.cita.dia>=hoy),prox=todas.filter(a=>a.cita.dia>d).sort((a,b)=>a.cita.dia<b.cita.dia?-1:1)[0];
  if(ANCHO.matches){const n=todas.filter(a=>dias.includes(a.cita.dia)).length;
-  return'<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(n?(n===1?'1 cita':n+' citas')+' en los próximos días.':'Sin citas en los próximos días.')+' '+CABEN+'; con cita, tarifa normal.</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+segAg('agenda',d)+bAlertas()+
+  return'<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(n?(n===1?'1 cita':n+' citas')+' en los próximos días.':'Sin citas en los próximos días.')+' '+CABEN+'; con cita, tarifa normal.</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+segAg('agenda',d)+bAlertas(1)+
    '<div class="sem" role="table" aria-label="Citas de los próximos días"><div class="semc" role="row"><span role="columnheader">Día</span>'+cfg.franjas.map(f=>'<span role="columnheader">'+K.franjaTxt(f).replace(/^d/,'D')+'</span>').join('')+'</div>'+
    dias.map(x=>'<div class="semf" role="row"><span class="semd" role="rowheader">'+(x===hoy?'hoy':D3[new Date(x+'T12:00:00Z').getUTCDay()])+'<b class="num">'+(+x.slice(8))+'</b></span>'+K.franjasDe(S,cfg,x,ahora).map(f=>{const C=todas.filter(a=>a.cita.dia===x&&a.cita.fr===f.id);
     return'<div role="cell">'+C.map(a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+' · '+esc(barrio(a))+'</b><small>'+esc(K.nomCli(a.cli))+' · '+(a.tec?esc(cfg.tec[a.tec].n):'sin asignar')+'</small></a>').join('')+huecoAg(f,false)+'</div>'}).join('')+'</div>').join('')+'</div>'}
- let h='<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(L.length?(L.length===1?'1 cita ':L.length+' citas ')+diaTxt(d)+'.':'Sin citas '+diaTxt(d)+'.'+(prox?' La próxima, '+diaTxt(prox.cita.dia)+'.':''))+' '+CABEN+'.</p></div></div>'+segAg('agenda',d)+bAlertas();
+ let h='<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(L.length?(L.length===1?'1 cita ':L.length+' citas ')+diaTxt(d)+'.':'Sin citas '+diaTxt(d)+'.'+(prox?' La próxima, '+diaTxt(prox.cita.dia)+'.':''))+' '+CABEN+'.</p></div></div>'+segAg('agenda',d)+bAlertas(1);
  h+=navDias('agenda',dias,d,x=>(n=>n?(n===1?'1 cita':n+' citas'):'libre')(todas.filter(a=>a.cita.dia===x).length))+'<div class="tabla">';
  fr.forEach(f=>{const C=L.filter(a=>a.cita.fr===f.id);h+='<section class="fr"><h3 class="num">'+K.franjaTxt(f).replace(/^d/,'D')+' <small>'+C.length+' de '+f.tope+'</small></h3>'+(C.length?'<ul class="lista" style="margin-bottom:8px">'+C.map(a=>fila(a,'')).join('')+'</ul>':'')+'<div style="display:grid;gap:6px">'+huecoAg(f,true)+'</div></section>'});
  return h+'</div>'}
@@ -629,7 +633,7 @@ function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
  const fr=K.franjasDe(S,cfg,d,ahora),L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),sin=L.filter(a=>!a.tec),ds=new Date(d+'T12:00:00Z').getUTCDay();
  const chip=a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+(barrio(a)?' · '+esc(barrio(a)):'')+'</b><small>'+esc(K.nomCli(a.cli)||'Aún sin nombre')+(a.cita.ok===false?' · por confirmar':'')+'</small></a>';
  const aus=(S.ausencias||[]).filter(u=>u.a>=hoy).sort((a,b)=>a.de<b.de?-1:a.de>b.de?1:0),MAT=K.material(S,cfg,d);
- let h='<div class="cab"><div><h1>Equipo</h1><p class="sub">Quién trabaja '+diaTxt(d)+' y qué lleva cada uno.</p></div><button class="btn pri peq" data-a="ausencia" data-dia="'+d+'">'+I.mas+'Ausencia</button></div>'+segAg('equipo',d)+bAlertas();
+ let h='<div class="cab"><div><h1>Equipo</h1><p class="sub">Quién trabaja '+diaTxt(d)+' y qué lleva cada uno.</p></div><button class="btn pri peq" data-a="ausencia" data-dia="'+d+'">'+I.mas+'Ausencia</button></div>'+segAg('equipo',d)+bAlertas(1);
  h+=navDias('equipo',dias,d,x=>{const n=N.tecnicos.filter(t=>K.ausente(S,t.id,x)).length;return n?(n===1?'falta 1':'faltan '+n):'todos'})+bTablero(d)+'<div class="tecds">';
  if(sin.length)h+='<section class="tecd"><h2>Sin asignar</h2><p class="ln">'+(sin.length===1?'1 cita espera técnico.':sin.length+' citas esperan técnico.')+'</p><ul class="tfr">'+fr.filter(f=>sin.some(a=>a.cita.fr===f.id)).map(f=>'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+sin.filter(a=>a.cita.fr===f.id).map(chip).join('')+'</div></li>').join('')+'</ul>'+bMat(MAT.find(g=>!g.tec),d)+'</section>';
  N.tecnicos.forEach(t=>{const u=(S.ausencias||[]).find(x=>x.tec===t.id&&x.de<=d&&x.a>=d),hor=t.horario||N.horario||null,tr=hor?(hor[ds]||[]):null;

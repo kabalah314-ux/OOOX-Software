@@ -239,7 +239,7 @@ async def main():
         await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('#urgAhora')
         hay = await c.evaluate(f"(()=>{{const K=OficioNucleo,S=Oficio.estado(),A=S.avisos.find(a=>a.id==='{ru.get('id')}');return !!K.urgenciaAhora(Object.assign({{}},S,{{avisos:S.avisos.filter(x=>x.id!==A.id)}}),K.cfgDe(OFICIO_NEGOCIO),A.cli.dis,Date.now(),A.av)}})()")
         fu = await c.locator(f'a[href="#/aviso/{ru.get("id")}"]').first.inner_text()
-        es(('antes llega' in fu) == hay, 'en la bandeja, cada urgencia sin repartir dice quién llegaría antes y en cuánto (si ahora hay alguien)')
+        es(('antes llega' in fu.lower()) == hay, 'en la bandeja, cada urgencia sin repartir dice quién llegaría antes y en cuánto (si ahora hay alguien)')
 
         es(not errores, 'sin errores en la consola ni archivos que falten: ' + '; '.join(errores[:4]))
         await br.close()

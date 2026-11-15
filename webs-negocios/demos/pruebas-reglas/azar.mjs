@@ -208,7 +208,7 @@ function paso(W, a, q, t) {
 /* ---- las leyes de los horarios: el cliente solo ve huecos reales y la oficina solo asigna a quien puede ---- */
 function horarios(W, tipo, A, a, q, t) {
   const { S, cfg, N } = W, hoy = K.madrid(t).date, min = K.madrid(t).min, pf = (N.citas && N.citas.porFranja) || 1;
-  const frDe = id => N.franjas.find(f => f.id === id);
+  const frDe = id => N.franjas.find(f => f.id === id); S_ = S; cfg_ = cfg; N_ = N;
   // 1. lo que se ofrece al cliente existe de verdad
   K.diasDe(S, cfg, t, 6).forEach(d => { if (!laborI(N, d.dia)) rota('solo-dias-laborables', d.dia); d.franjas.forEach(f => {
     const cap = capI(N, S, d.dia, frDe(f.id)), libres = cap - enFr(S, d.dia, f.id);
@@ -225,12 +225,16 @@ function horarios(W, tipo, A, a, q, t) {
     if (cfg.porTiempo ? f.libresOf > Math.max(0, tope - n) || f.tope !== n + f.libresOf : f.tope !== tope || f.libresOf !== Math.max(0, tope - n)) rota('tope-bien-contado', d.dia + ' ' + f.id + ': dice ' + f.tope + '/' + f.libresOf + ' y son ' + tope + '/' + Math.max(0, tope - n));
     if ((f.por !== '') !== (f.okOf && !f.ok)) rota('se-dice-por-que-solo-la-oficina', d.dia + ' ' + f.id + ': «' + f.por + '»');
     if (f.por.includes('margen') && !(d.dia === hoy && f.de < min + 120)) rota('margen-bien-dicho', d.dia + ' ' + f.id);
-    if (f.por.includes('reserva') && capI(N, S, d.dia, frDe(f.id)) - n > 0) rota('reserva-bien-dicha', d.dia + ' ' + f.id) }) });
+    // la reserva para urgencias: por número, solo cuando ya no quedan huecos para el cliente; por tiempo, solo cuando los
+    // técnicos de esa franja sin ninguna cita no pasan de los que se guardan (si hubiera más, el cliente cabría en uno libre)
+    if (f.por.includes('reserva') && (cfg.porTiempo ? sinCitaEn(d.dia, f) > cfg.reserva : capI(N, S, d.dia, frDe(f.id)) - n > 0)) rota('reserva-bien-dicha', d.dia + ' ' + f.id + ' · libres ' + f.libres + '/' + f.libresOf + ', sin cita ' + (cfg.porTiempo ? sinCitaEn(d.dia, f) : '-'))}) });
   // 2. una cita nueva o cambiada nunca pasa de lo que cabe en ese momento: para el cliente, lo que se le ofrece; para la oficina, el tope
   if ((tipo === 'pedir' || tipo === 'mover') && A && A.cita) { const esOf = !!q && q.rol === 'centralita', f = frDe(A.cita.fr), cap = esOf ? topeI(N, S, A.cita.dia, f) : capI(N, S, A.cita.dia, f), n = enFr(S, A.cita.dia, A.cita.fr);
     if (n > cap) rota('cita-nueva-cabe', A.cita.dia + ' ' + A.cita.fr + ': ' + n + ' citas y caben ' + cap + (esOf ? ' (oficina)' : ''));
     if (!laborI(N, A.cita.dia) || A.cita.dia < hoy || (A.cita.dia === hoy && (esOf ? f.a <= min : f.de < min + 120))) rota('cita-nueva-a-tiempo', A.cita.dia + ' ' + A.cita.fr + (esOf ? ' (oficina)' : ''));
-    const debe = [cap0(N, S, A, f) ? '' : 'reserva', A.cita.dia === hoy && f.de < min + 120 ? 'margen' : ''].filter(Boolean).join('+');
+    // por tiempo, si era la reserva lo dice la ley «reserva-bien-dicha» de las franjas: aquí solo el margen
+    const res = cfg.porTiempo ? (A.cita.of || '').includes('reserva') : !cap0(N, S, A, f);
+    const debe = [res ? 'reserva' : '', A.cita.dia === hoy && f.de < min + 120 ? 'margen' : ''].filter(Boolean).join('+');
     if ((A.cita.of || '') !== debe) rota('queda-escrito-por-que-la-puso-la-oficina', A.id + ': dice «' + (A.cita.of || '') + '» y es «' + debe + '»') }
   // 3. al asignar: alguien que trabaja esa franja, que no está ausente y que la tiene libre
   if (tipo === 'asignar' && A && !A.cita) { if (ausI(S, A.tec, hoy)) rota('urgencia-a-quien-esta', A.id + ' a ' + A.tec + ', ausente hoy');
@@ -478,6 +482,11 @@ function fijas(cfg, N) {
   juntos.forEach(x => juntos.forEach(y => { const antes = JSON.stringify(S); let R2; try { R2 = K.aplicar(S, cfg, { tipo: 'pedir', av: x, cli: { nombre: y, tel: x, dir: y, cp: x } }, { rol: y }, t) } catch (e) { rota('no-revienta', 'pedir con ' + String(x && x.constructor && x.constructor.name) + ': ' + e.message) } es(R2 && R2.ok === false && JSON.stringify(S) === antes, 'rechazo-limpio', 'pedir con datos imposibles') }));
   return n;
 }
+
+/* por tiempo: cuántos técnicos que trabajan toda la franja, y no faltan ese día, no tienen ninguna cita en ella (con las
+   citas sin técnico ya repartidas sobre el papel) */
+let S_ = null, cfg_ = null, N_ = null;
+function sinCitaEn(dia, f) { const R = K.repartoDia(S_, cfg_, dia).S; return Object.keys(cfg_.tec).filter(tec => trabI(N_, tec, dia, f.de, f.a) && !K.ausente(S_, tec, dia) && !R.avisos.some(a => a.tec === tec && a.cita && a.cita.fr === f.id && a.e !== 'cancelado')).length }
 
 /* ---------- variantes extremas de un negocio ---------- */
 function variantes(N) {
