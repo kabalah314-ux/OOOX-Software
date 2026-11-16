@@ -147,7 +147,7 @@ create or replace function oficios.hacer_copia()
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   k oficios.copias_llave; doc jsonb; tablas jsonb := '{}'; cuentas jsonb := '{}'; filas jsonb; tabla text; c bytea; nuevo bigint;
-  lista text[] := array['negocios','estados','avisos','diario','personas','clientes','peticiones','cambios','novedades','novedades_vistas','errores','olvidos'];
+  lista text[] := array['negocios','estados','avisos','diario','personas','accesos','clientes','peticiones','cambios','novedades','novedades_vistas','errores','olvidos'];
 begin
   select * into k from oficios.copias_llave where id = 1;
   if not found then raise exception 'falta la llave pública de las copias (oficios.copias_llave)'; end if;

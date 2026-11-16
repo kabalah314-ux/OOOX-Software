@@ -57,6 +57,7 @@ insert into oficios.diario(negocio, v, t, q, accion, clave, res, nuevos) values
   ('sim-uno', 3, 1794700120000, '{"rol":"cliente"}', '{"tipo":"pedir"}', '', '{"ok":true}', '[{"id":"S-2","llave":"llavedeprueba12345678902"}]'),
   ('sim-dos', 1, 1794700000000, '{"rol":"cliente"}', '{"tipo":"pedir"}', '', '{"ok":true}', '[]');
 insert into oficios.personas(negocio, persona, rol, quien, clave_hash) values ('sim-uno', 'oficina', 'centralita', 'oficina', oficios.huella('sim-uno:oficina', 'x'));
+insert into oficios.accesos(negocio, quien, que, a) values ('sim-uno', 'oficina', 'codigo', 'omar'), ('sim-uno', 'oficina', 'baja', 'omar');
 insert into oficios.clientes(negocio, tel, codigo) values ('sim-uno', '600111222', 'abcd-efgh');
 insert into oficios.peticiones(negocio, tipo, texto) values ('sim-uno', 'fallo', 'Algo falla en el simulacro de restaurar.');
 insert into oficios.errores(negocio, huella, pagina, tipo, mensaje, aparatos) values ('sim-uno', 'h1', 'app', 'js', 'Error del simulacro', '{"iPhone · Safari"}');
@@ -78,7 +79,7 @@ gpg --batch --quiet --decrypt "$T/copia.pgp" > "$T/copia.json" && ok "se descifr
 echo "── Restaurarla en un esquema aparte y compararla con lo de verdad"
 node "$AQUI/restaurar.mjs" "$T/copia.json" > "$T/restaurar.sql"
 PB -f "$T/restaurar.sql" >/dev/null && ok "restaurada en oficios_restaurada" || malo "no se restaura"
-for t in negocios estados avisos diario personas clientes peticiones errores olvidos; do
+for t in negocios estados avisos diario personas accesos clientes peticiones errores olvidos; do
   a=$(PB -At -c "select md5(coalesce(string_agg(x::text, '|' order by x::text), '')) from (select to_jsonb(f) x from oficios.$t f) q")
   b=$(PB -At -c "select md5(coalesce(string_agg(x::text, '|' order by x::text), '')) from (select to_jsonb(f) x from oficios_restaurada.$t f) q")
   [ "$a" = "$b" ] && ok "$t: igual fila a fila" || malo "$t: distinta"

@@ -313,7 +313,8 @@ async def main():
 
         # ---------- 13 bis. el equipo y sus accesos, desde la app (la oficina o el técnico que es el dueño) ----------
         async def abre_equipo(pg):
-            await pg.goto(B + 'app.html#/'); await pg.wait_for_selector('[data-a=menu]'); await pg.click('[data-a=menu]'); await pg.wait_for_selector('#mEq'); await pg.wait_for_timeout(250); await pg.click('#mEq')
+            # sin recargar la página: un goto a la misma dirección la recarga y WebKit da por error lo que estaba pidiendo
+            await pg.evaluate("location.hash='#/'"); await pg.wait_for_selector('[data-a=menu]'); await pg.click('[data-a=menu]'); await pg.wait_for_selector('#mEq'); await pg.wait_for_timeout(250); await pg.click('#mEq')
             return await pasa(pg, "document.querySelectorAll('.eqf').length>0", 8000)
         fila = lambda p: f".eqf[data-p='{p}']"
         es(await abre_equipo(o) and await o.locator('.eqf').count() == len(N['tecnicos']) + 1, 'la oficina abre «Equipo y accesos» y ve a la centralita y a cada técnico')

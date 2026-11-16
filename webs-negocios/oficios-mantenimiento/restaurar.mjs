@@ -60,7 +60,7 @@ for (const [t, filas] of Object.entries(doc.tablas)) {
   if (doc.cuentas && doc.cuentas[t] !== filas.length) { console.error(`La tabla ${t} trae ${filas.length} filas y la copia dice ${doc.cuentas[t]}: no está entera`); process.exit(1); }
 }
 // el orden importa si hay claves ajenas: primero lo que no depende de nada
-const ORDEN = ['negocios', 'estados', 'personas', 'clientes', 'avisos', 'diario', 'cambios', 'peticiones', 'novedades', 'novedades_vistas', 'errores', 'olvidos'];
+const ORDEN = ['negocios', 'estados', 'personas', 'accesos', 'clientes', 'avisos', 'diario', 'cambios', 'peticiones', 'novedades', 'novedades_vistas', 'errores', 'olvidos'];
 const tablas = Object.keys(doc.tablas).sort((a, b) => (ORDEN.indexOf(a) + 1 || 99) - (ORDEN.indexOf(b) + 1 || 99));
 let marca; do { marca = '$copia' + Math.random().toString(36).slice(2, 8) + '$'; } while (texto.includes(marca));
 const lit = t => marca + crudo[t] + marca + '::jsonb';
@@ -71,7 +71,9 @@ sql.push(volcar
   ? '-- ¡OJO! Esto VACÍA las tablas de oficios y pone las de la copia. Solo ante un desastre y con el visto bueno de Oscar.'
   : `-- Se pone en el esquema «${destino}», aparte: no toca nada de lo que hay. Para quitarlo después: drop schema ${destino} cascade;`);
 sql.push('begin;', "set local timezone = 'UTC';");
-if (volcar) sql.push(`truncate ${tablas.map(t => 'oficios.' + t).join(', ')};`);
+// «cascade»: una tabla nueva que apunta a otras (como «accesos», 16-11) y que no venga en una copia vieja se vacía también;
+// si no, el truncate falla y no se puede volcar
+if (volcar) sql.push(`truncate ${tablas.map(t => 'oficios.' + t).join(', ')} cascade;`);
 else sql.push(`create schema ${destino};`, `revoke all on schema ${destino} from public;`);
 for (const t of tablas) {
   if (!volcar) sql.push(`create table ${destino}.${t} (like oficios.${t} including all);`, `alter table ${destino}.${t} enable row level security;`);
