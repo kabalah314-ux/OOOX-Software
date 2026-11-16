@@ -1,0 +1,109 @@
+# El vigilante de OOOX Oficios. Cada 5 minutos mira que contestan:
+#  - cada web de webs-negocios/oficios-mantenimiento/vigilar.json (200 y con su texto dentro);
+#  - la base de datos (public.oficios_salud), que además así no se duerme en el plan gratis;
+#  - la función del servidor (GET …/functions/v1/oficio).
+# Lo que falla se vuelve a mirar al minuto. Si sigue fallando, abre una incidencia con la etiqueta «caida» en este
+# repositorio: GitHub avisa a Oscar por correo (y en el móvil, si tiene la app de GitHub). Si está puesto el secreto
+# NTFY_TEMA, avisa también con ntfy (una app gratis para el móvil). Mientras siga caído, recuerda cada hora. Cuando
+# vuelve, lo apunta en la incidencia con lo que ha durado, la cierra y avisa.
+# La revisión diaria de Claude lee estas incidencias para el resumen. No llevan datos de nadie.
+#
+# GitHub solo lo lanza solo desde la rama principal. Un cambio en este archivo o en vigilar.json lo lanza una vez en la
+# rama donde se suba, solo para ver que funciona: así no abre incidencias ni avisa.
+# El repositorio es público: las máquinas estándar de GitHub no cuestan nada. No usar máquinas «grandes».
+name: Vigilante de OOOX Oficios
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  push:
+    paths:
+      - '.github/workflows/vigilante.yml'
+      - 'webs-negocios/oficios-mantenimiento/vigilar.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: vigilante
+  cancel-in-progress: false
+jobs:
+  mira:
+    name: Mirar que todo contesta
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: webs-negocios/oficios-mantenimiento/vigilar.json
+          sparse-checkout-cone-mode: false
+      - name: Mirar, y avisar si algo no contesta
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NTFY_TEMA: ${{ secrets.NTFY_TEMA }}
+          PRUEBA: ${{ github.event_name == 'push' && '1' || '' }}
+        run: |
+          set -u
+          C=webs-negocios/oficios-mantenimiento/vigilar.json
+          SRV=$(jq -r .servidor "$C"); LLAVE=$(jq -r .llave "$C"); FUN=$(jq -r .funcion "$C")
+          ahora() { TZ=Europe/Madrid date '+%H:%M'; }
+          # una web: 200 y con su texto dentro
+          web() { local url="$1" txt="$2" cod
+            cod=$(curl -sS -L -o /tmp/cuerpo -w '%{http_code}' --max-time 25 -A 'OOOX-vigilante' "$url" 2>/dev/null) || cod=000
+            [ "$cod" = 200 ] && grep -qiF -- "$txt" /tmp/cuerpo && return 0
+            echo "HTTP $cod"; return 1; }
+          # la base de datos: oficios_salud contesta {ok:true, datos:true}
+          base() { local cod
+            cod=$(curl -sS -o /tmp/salud -w '%{http_code}' --max-time 20 -X POST "$SRV/rest/v1/rpc/oficios_salud" \
+                  -H "apikey: $LLAVE" -H 'Content-Type: application/json' -d '{}' 2>/dev/null) || cod=000
+            [ "$cod" = 200 ] && [ "$(jq -r '.ok and .datos' /tmp/salud 2>/dev/null)" = true ] && return 0
+            echo "HTTP $cod"; return 1; }
+          # la función del servidor: GET dice qué reglas lleva
+          funcion() { local cod
+            cod=$(curl -sS -o /tmp/funcion -w '%{http_code}' --max-time 25 "$SRV/functions/v1/$FUN" 2>/dev/null) || cod=000
+            [ "$cod" = 200 ] && [ "$(jq -r '.ok' /tmp/funcion 2>/dev/null)" = true ] && { echo "reglas $(jq -r '.oficio.reglas' /tmp/funcion)" >> "$GITHUB_STEP_SUMMARY"; return 0; }
+            echo "HTTP $cod"; return 1; }
+          # cada cosa se mira; si falla, otra vez al minuto: un fallo suelto no es una caída
+          caidas=()
+          mira() { local nombre="$1"; shift; local r
+            if r=$("$@"); then echo "✅ $nombre"; return; fi
+            echo "… $nombre: $r. Lo vuelvo a mirar en un minuto."; sleep 60
+            if r=$("$@"); then echo "✅ $nombre (a la segunda)"; return; fi
+            echo "❌ $nombre: $r"; caidas+=("$nombre ($r)"); }
+          n=$(jq '.web|length' "$C")
+          for i in $(seq 0 $((n-1))); do mira "$(jq -r ".web[$i].nombre" "$C")" web "$(jq -r ".web[$i].url" "$C")" "$(jq -r ".web[$i].contiene" "$C")"; done
+          mira "Base de datos" base
+          mira "Función del servidor" funcion
+          { echo "### $(ahora) (hora de Madrid)"; if [ ${#caidas[@]} -eq 0 ]; then echo "Todo contesta."; else printf -- '- ❌ %s\n' "${caidas[@]}"; fi; } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -n "$PRUEBA" ]; then echo "Prueba en una rama: no abro incidencias ni aviso."; [ ${#caidas[@]} -eq 0 ]; exit $?; fi
+
+          # el móvil, con ntfy (si Oscar lo ha puesto): título y mensaje van en JSON para que lleguen bien las tildes
+          avisa() { [ -n "${NTFY_TEMA:-}" ] || return 0
+            jq -n --arg t "$NTFY_TEMA" --arg ti "$1" --arg m "$2" --argjson p "$3" '{topic:$t,title:$ti,message:$m,priority:$p,tags:["rotating_light"]}' \
+              | curl -sS --max-time 20 -H 'Content-Type: application/json' -d @- https://ntfy.sh/ >/dev/null || true; }
+          gh label create caida --color B60205 --description "El vigilante ha visto algo caído" -R "$GITHUB_REPOSITORY" 2>/dev/null || true
+          abierta=$(gh issue list -R "$GITHUB_REPOSITORY" --label caida --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ ${#caidas[@]} -gt 0 ]; then
+            lista=$(printf -- '- %s\n' "${caidas[@]}")
+            if [ -z "$abierta" ]; then
+              gh issue create -R "$GITHUB_REPOSITORY" --label caida --title "Caída desde las $(ahora): ${caidas[0]%% (*}" --body "$(printf '%s\n\n%s\n\n%s\n\n%s' \
+                "@kabalah314-ux, el vigilante ve esto sin contestar desde las $(ahora) (hora de Madrid), mirado dos veces con un minuto entre medias:" \
+                "$lista" \
+                "Qué hacer: mira la guía de mantenimiento (webs-negocios/oficios-mantenimiento/MANTENIMIENTO.md, «Si algo se cae»). Si es la base de datos o la función, el negocio puede seguir por teléfono: la app abierta guarda lo que se hace y lo manda al volver." \
+                "Esta incidencia se cierra sola cuando todo vuelva a contestar.")"
+              avisa "OOOX: algo no contesta" "$(printf '%s\n' "${caidas[@]}")" 5
+            else
+              # recordatorio cada hora, mientras siga
+              ult=$(gh issue view "$abierta" -R "$GITHUB_REPOSITORY" --json comments,createdAt --jq '([.createdAt] + [.comments[].createdAt]) | max')
+              if [ $(( $(date +%s) - $(date -d "$ult" +%s) )) -ge 3300 ]; then
+                gh issue comment "$abierta" -R "$GITHUB_REPOSITORY" --body "$(printf 'Sigue sin contestar a las %s:\n\n%s' "$(ahora)" "$lista")"
+                avisa "OOOX: sigue sin contestar" "$(printf '%s\n' "${caidas[@]}")" 4
+              fi
+            fi
+          elif [ -n "$abierta" ]; then
+            desde=$(gh issue view "$abierta" -R "$GITHUB_REPOSITORY" --json createdAt --jq .createdAt)
+            min=$(( ($(date +%s) - $(date -d "$desde" +%s)) / 60 ))
+            gh issue comment "$abierta" -R "$GITHUB_REPOSITORY" --body "Todo vuelve a contestar a las $(ahora). Ha durado unos $min minutos."
+            gh issue close "$abierta" -R "$GITHUB_REPOSITORY"
+            avisa "OOOX: todo vuelve a funcionar" "Ha durado unos $min minutos." 3
+          fi
