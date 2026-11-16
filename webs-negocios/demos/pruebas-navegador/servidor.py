@@ -173,7 +173,7 @@ async def main():
         await k.locator('.avc').nth(1).click(); await k.set_input_files('#c_foto', foto.name); await k.wait_for_selector('.fotoz img')
         await k.locator('[data-fr]:not([disabled])').first.click(); DIA = await k.get_attribute('[data-dia][aria-checked=true]', 'data-dia'); FR = await k.get_attribute('[data-fr][aria-checked=true]', 'data-fr')
         await k.fill('#c_nombre', 'Lucía Cliente'); await k.fill('#c_apellidos', 'Prueba'); await k.fill('#c_tel', '698765432'); await k.fill('#c_dir', 'Avenida de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
-        await k.click('#f [type=submit]'); await pasa(k, "location.hash.startsWith('#/aviso/')", 9000)
+        await k.click('#f [type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await pasa(k, "location.hash.startsWith('#/aviso/')", 9000)
         A2 = (await k.evaluate('location.hash')).split('/')[-1]
         es(A2 == SER + '-0002' and aviso(A2) and aviso(A2)['origen'] == 'cita' and aviso(A2)['cita'] == {'dia': DIA, 'fr': FR, 'ok': True} and aviso(A2)['tec'] == '', f'la cita llega al servidor como cita de la web, sin asignar ({A2})')
         es(await pasa(k, "/Cita pedida/.test(document.querySelector('#v').textContent)") and A2 in await k.inner_text('#v'), 'y el cliente pasa a ver su aviso')

@@ -126,7 +126,9 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora,info){
   if(!A.sinTrabajo&&az()<(A.cita?.03:.04)){const c=A.cli;if(!(S.contratos||[]).some(x=>x.e==='activo'&&x.cli.tel===c.tel))
    haz({tipo:'contrato',plan:'anual',cli:{nombre:c.nombre,apellidos:c.apellidos,tel:c.tel,dir:c.dir,cp:c.cp},acepta:'firma',firma:FIRMA,modo:az()<.7?'tarjeta':'pendiente',aviso:id},T(tec),tf+2*M)}};
  /* un trabajo, de «voy» a «terminado»: llega a las «l» (minutos del día) y tiene hasta «tope» para acabar */
- const trabaja=(id,tec,d,l,v,tope,urg)=>{const A=el(id);if(!A)return;const tv=at(d,l-v),tl=at(d,l);
+ const trabaja=(id,tec,d,l,v,tope,urg)=>{const A=el(id);if(!A)return;
+  /* con cita, «Voy» no se puede decir hasta media hora antes de la franja (16-11): si el viaje es más largo, lo dice entonces (y llega a su hora) */
+  const vd=K.voyDesde?K.voyDesde(cfg,A):null,tv=Math.max(at(d,l-v),vd?at(vd.dia,vd.min):0),tl=Math.max(at(d,l),tv+M);
   if(!haz({tipo:'voy',id},T(tec),tv))return;
   const r=az();if(!urg&&r<.035){if(haz({tipo:'ausente',id},T(tec),tl+5*M))(el(id).msgs||[]).forEach(m=>{if(m.k==='ausente'&&!m.env)m.env=tl+7*M});const tm=at(sig(d,1),entre(600,700));tareas.push([tm,()=>{const B=el(id);if(!B||B.e!=='ausente')return;
     let dd=sigLab(K.madrid(tm).date,1);for(let k=0;k<6;k++,dd=sigLab(dd,1)){const f=K.franjasDe(S,cfg,dd,tm,id,B).filter(x=>x.okOf);if(f.length){haz({tipo:'mover',id,cita:{dia:dd,fr:elige(f).id},confirmado:true},C,tm);return}}}]);return}

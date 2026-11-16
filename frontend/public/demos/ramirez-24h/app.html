@@ -485,7 +485,7 @@ const ORIG={llamada:'por teléfono',web:'desde la web',cita:'cita en la web',wha
 const EST={nuevo:'Sin asignar',asignado:'Asignado',camino:'De camino',curso:'Trabajando',hecho:'Terminado',ausente:'No había nadie',cancelado:'Cancelado'};
 const PAGO={efectivo:'Efectivo',tarjeta:'Tarjeta',bizum:'Bizum',transferencia:'Transferencia',pendiente:'Lo paga después'};
 const ERR={nombre:'Escribe el nombre del cliente.',apellidos:'Escribe los apellidos del cliente.',tel:'El teléfono tiene que tener 9 cifras.',telAviso:'El contrato tiene que ser para el teléfono del cliente de este aviso.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
- datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',pide:'Falta que el cliente marque «Quiero que lo hagáis ya».',plan:'Elige un plan.',ya:'Ese cliente ya tiene un contrato en esa dirección.',acepta:'Falta que el cliente diga que sí: que firme o que lo diga por mensaje.',contrato:'No encuentro ese contrato.',fecha:'Aún no toca renovarlo: se renueva el último mes.',motivo:'El motivo tiene que ser un texto.',falta:'Eso no vale como material: elige uno de la lista o escríbelo, de 1 a 20 unidades y hasta 12 cosas por aviso.',furgo:'Eso no vale para la furgoneta: material del catálogo, de 0 a 999 de cada cosa.',num:'Ese número de factura no vale.',modo:'Elige cómo paga.',si:'Falta decir si quiere o no los mensajes de seguimiento.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
+ datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',pronto:'Todavía no puedes salir: «Voy» se activa media hora antes de la franja.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',pide:'Falta que el cliente marque «Quiero que lo hagáis ya».',plan:'Elige un plan.',ya:'Ese cliente ya tiene un contrato en esa dirección.',acepta:'Falta que el cliente diga que sí: que firme o que lo diga por mensaje.',contrato:'No encuentro ese contrato.',fecha:'Aún no toca renovarlo: se renueva el último mes.',motivo:'El motivo tiene que ser un texto.',falta:'Eso no vale como material: elige uno de la lista o escríbelo, de 1 a 20 unidades y hasta 12 cosas por aviso.',furgo:'Eso no vale para la furgoneta: material del catálogo, de 0 a 999 de cada cosa.',num:'Ese número de factura no vale.',modo:'Elige cómo paga.',si:'Falta decir si quiere o no los mensajes de seguimiento.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
  horario:'Ese técnico no trabaja a esa hora. Elige a otro.',ausente_tec:'Ese técnico está ausente ese día.',lleno:'Ese técnico ya tiene esa franja ocupada.',
  red:'Sin conexión con el servidor. No se ha creado: mira si aparece antes de repetirlo.',lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.',sesion:'Tu sesión se ha cerrado. Entra otra vez.',espera:'Eso tiene que confirmarlo el servidor.',
  fechas:'Revisa las fechas de la ausencia.',mapa:'Este negocio no tiene activado el mapa.',posicion:'Esa posición no vale.',ausencia:'Esa ausencia ya no está apuntada.',aviso:'Ese aviso ya no existe.'};
@@ -512,6 +512,17 @@ const hc=t=>'<div class="hc"><h2>'+t+'</h2><button class="x" data-x aria-label="
 const waHtml=(txt,a)=>'<div class="wa"><div class="wa-hd"><i>'+esc((a||'C')[0])+'</i><span>'+esc(a||'Cliente')+'<small>WhatsApp</small></span></div><div class="wa-chat"><div class="wa-b">'+esc(txt)+'<time>'+K.hora(Date.now())+'</time></div></div></div>';
 
 /* ===== piezas ===== */
+/* «Voy», con cita, desde media hora antes de su franja (la regla está en el núcleo y, con servidor, la decide él con su
+   reloj). Antes, el botón sale apagado y dice a qué hora se enciende; a esa hora la pantalla se vuelve a pintar sola */
+const hm=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
+function cuandoVoy(d){const h=K.madrid().date;return(d.dia===h?'':d.dia===K.masDias(h,1)?'mañana ':'el '+K.fechaLarga(d.dia)+' ')+'a las '+hm(d.min)}
+function bVoy(A,cl){const t=Date.now(),f=A.cita&&cfg.franjas.find(x=>x.id===A.cita.fr);
+ if(K.voyYa(cfg,A,t))return'<button class="'+cl+'" data-a="voy" data-id="'+A.id+'">Voy</button>'+(f&&K.voyTarde(cfg,A,t)?'<p class="ojo tarde" role="status">Vas tarde: la franja empezó a las '+hm(f.de)+'. Pulsa «Voy» al salir y el cliente lo verá.</p>':'');
+ const d=K.voyDesde(cfg,A);return'<button class="'+cl+'" disabled data-abre="'+d.dia+' '+d.min+'" aria-describedby="voyN">Disponible '+cuandoVoy(d)+'</button><p class="mnota" id="voyN">«Voy» se enciende media hora antes de la franja. Mientras, mira la dirección, la nota y la foto.</p>'}
+let voyT=0;
+function voyReloj(){clearTimeout(voyT);const b=$$('[data-abre]');if(!b.length)return;const n=K.madrid(),s=new Date().getSeconds();let min=1e9;
+ b.forEach(x=>{const[dia,m]=x.dataset.abre.split(' ');if(dia===n.date)min=Math.min(min,(+m-n.min)*60-s)});
+ if(min<3600)voyT=setTimeout(()=>{const a=document.activeElement;if(document.querySelector('dialog[open]')||(a&&a.closest&&a.closest('form')))return voyReloj();pinta()},Math.max(500,min*1000+400))}
 function pista(A){const p=[['Recibido',A.t],['Asignado',A.tec&&A.e!=='nuevo'?1:0],['De camino',A.sal],['En casa',A.ini],['Hecho',A.fin]],orden={nuevo:0,ausente:0,cancelado:0,asignado:1,camino:2,curso:3,hecho:4}[A.e];
  /* la hora de cada paso; si un paso fue otro día que el último (una cita pedida días antes), también el día */
  const ult=p.reduce((m,x,i)=>x[1]>1&&i<=orden?x[1]:m,0),ref=ult?K.madrid(ult).date:'',cuando=t=>{const d=K.madrid(t).date;return(d!==ref?diaCorto(d)+', ':'')+K.hora(t)};
@@ -525,9 +536,9 @@ function fila(A,sel,o){o=o||{};if(o.tec)return filaTec(A,o);const av=cfg.av[A.av
   fd=et||!o.sinPill?'<span class="pill '+(A.e==='ausente'?'ausente':'nuevo')+'">'+(et||'Sin asignar')+'</span>':''}
  else if(A.e==='hecho'){f2=o.cobro?'terminado '+hace(A.fin)+' · '+quien:(t?t.n+' · ':'')+quien;fd=o.cobro&&A.tot?'<span class="num">'+K.eur(A.tot.total)+'</span>':A.tot&&A.pago&&pro()?'<span class="num">'+K.eur(A.tot.total)+'</span>'+(A.pago.cobrado?'<span class="mini">'+(A.tot.total?PAGO[A.pago.modo]:'En su contrato')+'</span>':'<span class="pill cobro">Por cobrar</span>'):'<span class="pill hecho">Terminado</span>'}
  else if(A.e==='cancelado'){f2=quien;fd='<span class="pill">Cancelado</span>'}
- else{f2=(A.e==='camino'?'llega sobre las '+K.hora(A.eta):A.e==='curso'?'lleva '+dur(K.minutos(A,Date.now())):cita?cita+pc:'urgente, '+hace(A.t))+(t?' · '+t.n:'');fd='<span class="pill '+A.e+'">'+EST[A.e]+'</span>'}
- const dar=o.dar&&ua?'<button class="btn peq dar" data-a="asignar" data-id="'+A.id+'" data-tec="'+ua.tec+'">Dar a '+esc(cfg.tec[ua.tec].n)+'</button>':'';
- return'<li'+(dar?' class="cdar"':'')+'><a class="fila'+(A.urg&&(A.e==='nuevo'||A.e==='ausente')?' urg':'')+'" href="#/aviso/'+A.id+'"'+(sel===A.id?' aria-current="true"':'')+'><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(f2)+(A.con&&A.e!=='hecho'&&A.e!=='cancelado'?' · con contrato':'')+'</span>'+(f3?'<span class="f3">'+esc(f3)+'</span>':'')+(fd?'<span class="fd">'+fd+'</span>':'')+'</a>'+dar+'</li>'}
+ else{f2=(A.e==='camino'?'llega sobre las '+K.hora(A.eta):A.e==='curso'?'lleva '+dur(K.minutos(A,Date.now())):cita?cita+pc:'urgente, '+hace(A.t))+(t?' · '+t.n:'')+(A.e==='asignado'&&A.cita&&A.cita.dia===K.madrid().date&&!K.voyYa(cfg,A,Date.now())?' · aún no puede salir':'');fd='<span class="pill '+A.e+'">'+EST[A.e]+'</span>'}
+ const dar=o.dar&&ua?'<button class="btn peq dar" data-a="asignar" data-id="'+A.id+'" data-tec="'+ua.tec+'">Asignar a '+esc(cfg.tec[ua.tec].n)+'</button>':'';
+ return'<li'+(dar?' class="cdar"':'')+'><a class="fila'+(A.urg&&(A.e==='nuevo'||A.e==='ausente')?' urg':'')+'" href="#/aviso/'+A.id+'"'+(sel===A.id?' aria-current="true"':'')+'><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(f2)+(A.con&&A.e!=='hecho'&&A.e!=='cancelado'?' · con contrato':'')+(['nuevo','asignado','ausente'].includes(A.e)?(A.foto?' · con foto':A.nota?' · con nota':A.origen==='cita'||A.origen==='web'?' · sin detalle':''):'')+'</span>'+(f3?'<span class="f3">'+esc(f3)+'</span>':'')+(fd?'<span class="fd">'+fd+'</span>':'')+'</a>'+dar+'</li>'}
 /* la fila en «Hoy» del técnico: qué y dónde; a qué hora llegaría (o el día y la franja) y la calle */
 function filaTec(A,o){const av=cfg.av[A.av],ll=o.llega&&o.llega[A.id];
  const cuando=A.e==='camino'?'llegas sobre las '+K.hora(A.eta):A.e==='curso'?'trabajando':ll!=null?'hacia las '+K.hhmm(ll)+(A.cita?' ('+frTxt(A.cita.fr)+')':''):A.cita?diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente, '+hace(A.t);
@@ -594,17 +605,23 @@ function bCliente(A,esT){const c=A.cli;let h='<section class="blq"><h2>Cliente</
  h+=(esT?'<p class="dir">'+esc(c.dir)+'</p><p class="ln">'+esc(c.cp)+' '+esc(barrio(A))+' · '+esc(K.nomCli(c))+'</p>':'<p class="gr">'+esc(K.nomCli(c))+'</p><p class="ln">'+esc(c.dir)+' · '+esc(c.cp)+' '+esc(barrio(A))+'</p>');
  if(A.nota)h+='<p class="dice">'+esc(A.nota)+'</p>';
  if(!esT&&K.noEscribe(S,c.tel))h+='<p class="ln nomsg">No quiere mensajes de seguimiento. <button class="txt" data-a="escribirSi" data-id="'+A.id+'">Volver a escribirle</button></p>';
- if(A.foto)h+='<img class="fotoc" src="'+A.foto+'" alt="Foto que ha mandado el cliente">';
+ if(A.foto)h+=bFoto(A);
  h+='<div class="acts"><button class="btn peq" data-a="llamar" data-id="'+A.id+'">'+I.tel+K.telBonito(c.tel)+'</button><a class="btn peq" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.dir.split(',')[0]+', '+c.cp+' '+N.ciudad)+'">'+I.mapa+'Mapa</a>'+(esT?'':'<button class="btn peq" data-a="zona" data-id="'+A.id+'">Su zona</button>')+'</div>';
  return h+'</section>'}
-function bGar(A){const G=A.gar0&&el(A.gar0);if(!G)return'';return'<p class="ojo">Puede ser garantía: <a href="#/aviso/'+G.id+'">'+G.id+'</a>, '+esc(cfg.av[G.av].n.toLowerCase())+', terminado el '+K.fechaCorta(K.madrid(G.fin).date)+'.</p>'}
+/* la foto que manda el cliente al pedir cita: la ven la oficina y el técnico que lo lleva (a los demás no les llega el
+   aviso), en pequeño y, al tocarla, entera */
+const bFoto=A=>'<button type="button" class="fotob" data-a="verFoto" data-id="'+A.id+'" aria-label="Ampliar la foto que ha mandado el cliente"><img class="fotoc" src="'+esc(A.foto)+'" alt=""><span><b>1 foto del cliente</b><small>Toca para verla entera</small></span></button>';
+function hFoto(A){hoja(hc('Foto del cliente')+'<div class="hb"><img class="fotog" src="'+esc(A.foto)+'" alt="La foto que ha mandado el cliente, '+esc(cfg.av[A.av].n.toLowerCase())+'">'+(A.nota?'<p class="dice">'+esc(A.nota)+'</p>':'')+'<p class="mnota">Sirve para preparar el material y ver si hace falta llamar antes. No es un diagnóstico: lo que hay que hacer se decide allí.</p></div><div class="hp"><button class="btn ancho" data-x>Cerrar</button></div>',{llena:true})}
+function bGar(A){const G=A.gar0&&el(A.gar0);if(!G)return'';return'<p class="ojo">Revisar si puede ser garantía: <a href="#/aviso/'+G.id+'">'+G.id+'</a>, '+esc(cfg.av[G.av].n.toLowerCase())+', terminado el '+K.fechaCorta(K.madrid(G.fin).date)+'. Lo decide la oficina al verlo: al cliente no se le promete nada antes.</p>'}
 function bReparto(A){const r=K.resumen(S,cfg,Date.now()),rep=['nuevo','asignado','ausente'].includes(A.e);
  /* en una urgencia por repartir: en cuánto llegaría cada uno, y si llegaría tarde a su cita o se saldría de su horario */
  const LL=rep&&!A.cita&&!A.tec?K.llegadas(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):[],ll=id=>LL.find(x=>x.tec===id),pri=LL.find(x=>!x.choca&&!x.fuera);
  /* en una cita por repartir: a qué hora llegaría cada uno, con lo que ya lleva ese día */
  const enCita=id=>{if(!rep||!A.cita)return'';const x=K.agendaDe(S,cfg,id,A.cita.dia,A.cita.dia===K.madrid().date?Date.now():null,Object.assign({},A,{tec:id})).find(y=>y.id===A.id);return x?(x.tarde?' · no le da tiempo en esa franja':' · llegaría hacia las '+K.hhmm(x.llega)):''};
- const eta=id=>{const x=ll(id);if(!x)return'';return' · llega en ~'+x.llega+' min'+(x.choca?' (y llegaría tarde a su cita)':x.fuera?' (acabaría fuera de su horario)':pri&&pri.tec===id?' · el que antes llega':'')};
- return'<section class="blq"><h2>'+(A.tec?'Lo lleva':'¿Quién va?')+'</h2>'+(A.reasignar&&!A.tec?'<p class="ojo" style="margin:0 0 10px">Quien lo llevaba ya no puede ir. Elige a otra persona.</p>':'')+'<div class="tecs">'+N.tecnicos.map(t=>{const x=r.tec[t.id],B=x.aviso&&el(x.aviso),no=rep&&A.tec!==t.id?K.puedeIr(S,cfg,A,t.id,Date.now()):'';
+ const eta=id=>{const x=ll(id);if(!x)return'';return' · llega en ~'+x.llega+' min'+(x.choca?' (y llegaría tarde a su cita)':x.fuera?' (acabaría fuera de su horario)':pri&&pri.tec===id?' · recomendado: es el que antes llega':'')};
+ /* si nadie puede (todos fuera de horario, ausentes o con la franja llena), se dice claro y se da la salida: otra franja */
+ const nadie=rep&&!A.tec&&A.cita&&N.tecnicos.length>0&&N.tecnicos.every(t=>!!K.puedeIr(S,cfg,A,t.id,Date.now()));
+ return'<section class="blq"><h2>'+(A.tec?'Lo lleva':'¿Quién va?')+'</h2>'+(A.reasignar&&!A.tec?'<p class="ojo" style="margin:0 0 10px">Quien lo llevaba ya no puede ir. Elige a otra persona.</p>':'')+(nadie?'<p class="ojo" id="nadieFr" style="margin:0 0 10px">No hay técnico que cumpla la franja. Cambia la cita a otra («Cuándo», más abajo) y avisa al cliente.</p>':'')+'<div class="tecs">'+N.tecnicos.map(t=>{const x=r.tec[t.id],B=x.aviso&&el(x.aviso),no=rep&&A.tec!==t.id?K.puedeIr(S,cfg,A,t.id,Date.now()):'';
   return'<button class="tec'+(no?' no':'')+'" data-a="asignar" data-id="'+A.id+'" data-tec="'+t.id+'" aria-pressed="'+(A.tec===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n)+' '+esc(t.ap)+'</b><small>'+(no&&NOVA[no]?NOVA[no](A):x.e==='curso'?'Trabajando en '+esc(barrio(B))+', lleva '+dur(K.minutos(B,Date.now())):x.e==='camino'?'De camino a '+esc(barrio(B)):'Libre ahora')+' · '+(x.hoy+x.hechos)+' hoy'+(no?'':eta(t.id)+enCita(t.id))+'</small></span>'+(A.tec===t.id?'<span class="va">Asignado</span>':'')+'</button>'}).join('')+'</div></section>'}
 function bCita(A){const c=A.cita,hoy=K.madrid().date,otras=c&&A.vale?A.vale.filter(v=>!(v.dia===c.dia&&v.fr===c.fr)&&v.dia>=hoy):[];
  return'<section class="blq"><h2>Cuándo</h2><div class="cita"><p>'+(c?'Cita '+diaTxt(c.dia)+', '+frTxt(c.fr)+'. Tarifa normal.':'Urgente: cuanto antes.'+(K.tarifaDe(cfg,A)?' Tarifa de urgencia.':' Tarifa normal.')+(cfg.urge&&A.av!==K.REV?(K.gratisDe(A).includes(cfg.urge)?' Sin suplemento de urgencia: va en su contrato.':' Suplemento de urgencia de '+K.eur(cfg.cat[cfg.urge].p10)+', en el presupuesto.'):''))+'</p><button class="btn peq" data-a="cita" data-id="'+A.id+'">'+(c?'Cambiar':'Dar cita')+'</button></div>'+
@@ -646,7 +663,7 @@ function hMensajes(seg){const T=porMandar(Date.now()),M=T.filter(x=>esSeg(x)===!
 function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
  let h='<section class="blq"><h2>'+(A.e==='hecho'?(A.sinTrabajo?'Solo el desplazamiento':'Total del trabajo'):'Presupuesto firmado')+'</h2><p class="gordo num">'+K.eur(T.total)+'</p><p class="ln">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+(p?' · '+(p.cobrado?(T.total?'cobrado, '+PAGO[p.modo].toLowerCase():'nada que cobrar: va en su contrato'):'pendiente de pago'):'')+'</p>';
  h+='<ul class="lins">'+T.lineas.map(l=>'<li><span>'+esc(l.t)+(lq(l)?', '+lq(l):'')+(l.con?', en su contrato':'')+'</span><span class="num">'+(l.con?'Incluido':K.eur(l.imp))+'</span></li>').join('')+'</ul>';
- if(p&&!p.cobrado)h+='<div class="acts"><button class="btn pri" data-a="cobrar" data-id="'+A.id+'">Marcar como cobrado</button></div>';
+ if(p&&!p.cobrado)h+='<div class="acts"><button class="btn pri" data-a="cobrar" data-id="'+A.id+'">Apuntar cobro</button></div>';
  if(Q.rol==='centralita'&&A.e==='hecho'&&T.total>0)h+='<div class="acts" id="fac">'+(A.fac?'<span class="ln">Facturado'+(A.fac.num?': n.º '+esc(A.fac.num):'')+'.</span> <button class="txt" data-a="desfacturar" data-id="'+A.id+'">Quitar</button>':'<button class="btn peq" data-a="copiaFac" data-id="'+A.id+'">Copiar los datos de la factura</button><button class="btn peq pri" data-a="facturar" data-id="'+A.id+'">Marcar como facturada</button>')+'</div>';
  h+='<div class="docs">'+(A.pres?'<a class="btn peq" href="#/papel/'+A.id+'/presupuesto">Presupuesto</a>':'')+(A.e==='hecho'?'<a class="btn peq" href="#/papel/'+A.id+'/parte">Parte</a>':'')+(A.gar?'<a class="btn peq" href="#/papel/'+A.id+'/garantia">Garantía</a>':'')+'</div>';
  return h+'</section>'}
@@ -655,7 +672,7 @@ function bMensajes(A){const L=A.msgs.filter(m=>pro()||m.k!=='resena');if(!L.leng
 function bTrabajo(A){const p=K.enPausa(A);
  let h='<section class="blq"><h2>Trabajo</h2><div class="reloj"><div><b class="num" data-reloj="'+A.id+'">'+dur(K.minutos(A,Date.now()))+'</b><small>'+(p?'En pausa':'Empezó a las '+K.hora(A.ini))+'</small></div><button class="btn peq" data-a="pausa" data-id="'+A.id+'">'+(p?'Seguir':'Pausa')+'</button></div>';
  h+='<div class="acts">'+(pro()?'<button class="btn peq" data-a="ampliar" data-id="'+A.id+'">'+I.mas+'Añadir material o tiempo</button>':'')+'<label class="btn peq">Foto<input class="vh" type="file" accept="image/*" capture="environment" data-foto="'+A.id+'"></label></div>';
- if(A.fotos&&A.fotos.length)h+='<div class="fotos">'+A.fotos.map(f=>'<img src="'+f+'" alt="Foto del trabajo">').join('')+'</div>';
+ if(A.fotos&&A.fotos.length)h+='<div class="fotos">'+A.fotos.map(f=>'<img src="'+esc(f)+'" alt="Foto del trabajo">').join('')+'</div>';
  h+='<div class="campo" style="margin-top:12px"><label for="obs">Nota para el parte</label><textarea id="obs" data-obs="'+A.id+'" placeholder="Opcional. Lo que deba saber quien vuelva a esta casa.">'+esc(A.obs||'')+'</textarea></div>';
  return h+'</section>'}
 /* ===== el material que falta: lo apuntan su técnico o la oficina; en «Equipo» se junta por día para mandarlo por WhatsApp ===== */
@@ -752,12 +769,15 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
   if(pro())h+=bDinero(A);
   if(mio)h+=bMensajes(A);
   if(!mio)h+='<p class="hueco" style="margin-top:12px">'+(t?'Este aviso lo lleva '+esc(t.n)+'.':'Este aviso todavía no tiene técnico.')+'</p>';
-  else if(A.e==='asignado')h+='<div class="accion"><button class="btn pri ancho" data-a="voy" data-id="'+A.id+'">Voy</button></div>';
+  else if(A.e==='asignado')h+='<div class="accion">'+bVoy(A,'btn pri ancho')+'</div>';
   else if(A.e==='camino')h+='<div class="accion"><button class="btn pri ancho" data-a="empezar" data-id="'+A.id+'">Empezar</button><button class="txt" data-a="ausente" data-id="'+A.id+'">No había nadie</button></div>';
   else if(A.e==='curso')h+='<div class="accion"><button class="btn pri ancho" data-a="terminar" data-id="'+A.id+'">Terminado</button></div>';
  }else{const M=A.msgs.filter(m=>!m.env&&m.t<=Date.now()&&(pro()||m.k!=='resena'));
   if(M.length)h+='<p class="ojo" id="msgPend"><span>Falta mandar «'+K.MSG[M[0].k]+'»'+(M.length>1?' y '+(M.length-1)+' más':'')+'.</span><button class="btn peq" data-a="msg" data-id="'+A.id+'" data-k="'+M[0].k+'">Mandar</button></p>';
   /* lo principal según el estado: sin técnico, quién va y cuándo; con él en marcha o hecho, la ficha del cliente primero */
+  if(A.e==='asignado'&&A.cita&&t){const ahora=Date.now(),f=cfg.franjas.find(x=>x.id===A.cita.fr);
+   if(!K.voyYa(cfg,A,ahora))h+='<p class="mnota" id="salida" style="margin-top:12px">Asignado a '+esc(t.n)+' · aún no puede salir: «Voy» se le enciende '+cuandoVoy(K.voyDesde(cfg,A))+'.</p>';
+   else if(f&&K.voyTarde(cfg,A,ahora))h+='<p class="ojo" id="salida">'+esc(t.n)+' va tarde: su franja empezó a las '+hm(f.de)+' y todavía no ha dicho «Voy».</p>'}
   if(abierto&&A.cli.tel)h+=bReparto(A)+bCita(A);
   h+=bCliente(A,false)+bContrato(A);
   if(A.e==='camino'&&A.pos&&t)h+='<p class="mnota" id="posOf" style="margin-top:12px">'+esc(t.n)+' compartió su posición '+hace(A.pos.t)+'. El cliente la ve en su página.</p>';
@@ -798,8 +818,8 @@ function vHoy(){const hoy=K.madrid().date,M=S.avisos.filter(a=>a.tec===Q.id&&['a
  const p=dia[0],t=cfg.tec[Q.id];
  let h='<div class="cab"><div><h1>Hoy</h1><p class="sub">'+(p?(dia.length===1?'1 aviso. ':dia.length+' avisos. ')+(p.e==='curso'?'Estás con '+cfg.av[p.av].n.toLowerCase()+' en '+barrio(p)+'.':p.e==='camino'?'Vas de camino a '+barrio(p)+'.':'El siguiente, '+cfg.av[p.av].n.toLowerCase()+' en '+barrio(p)+'.'):'No tienes avisos ahora, '+esc(t.n)+'.')+'</p></div></div>';
  if(p){const av=cfg.av[p.av];
-  h+='<section class="sig'+(p.urg?' urg':'')+'"><p class="k"><span>'+p.id+' · '+(p.cita?'cita '+frTxt(p.cita.fr):'urgente, '+hace(p.t))+'</span><span class="pill '+p.e+'">'+EST[p.e]+'</span></p><h2>'+esc(av.n)+'</h2><p class="dir">'+esc(p.cli.dir)+'</p><p class="ln" style="color:var(--suave)">'+esc(barrio(p))+' · '+esc(K.nomCli(p.cli))+'</p>'+(p.nota?'<p class="dice" style="margin-top:0">'+esc(p.nota)+'</p>':'')+
-   (p.e==='asignado'?'<button class="btn pri ancho" data-a="voy" data-id="'+p.id+'">Voy</button><a class="txt" style="justify-self:center;display:inline-flex;align-items:center" href="#/aviso/'+p.id+'">Ver el aviso</a>':'<a class="btn pri ancho" href="#/aviso/'+p.id+'">'+(p.e==='camino'?'Abrir: he llegado':'Seguir con el trabajo')+'</a>')+'</section>'}
+  h+='<section class="sig'+(p.urg?' urg':'')+'"><p class="k"><span>'+p.id+' · '+(p.cita?'cita '+frTxt(p.cita.fr):'urgente, '+hace(p.t))+'</span><span class="pill '+p.e+'">'+EST[p.e]+'</span></p><h2>'+esc(av.n)+'</h2><p class="dir">'+esc(p.cli.dir)+'</p><p class="ln" style="color:var(--suave)">'+esc(barrio(p))+' · '+esc(K.nomCli(p.cli))+'</p>'+(p.nota?'<p class="dice" style="margin-top:0">'+esc(p.nota)+'</p>':'')+(p.foto?bFoto(p):'')+
+   (p.e==='asignado'?bVoy(p,'btn pri ancho')+'<a class="txt" style="justify-self:center;display:inline-flex;align-items:center" href="#/aviso/'+p.id+'">Ver el aviso</a>':'<a class="btn pri ancho" href="#/aviso/'+p.id+'">'+(p.e==='camino'?'Abrir: he llegado':'Seguir con el trabajo')+'</a>')+'</section>'}
  else h+='<p class="hueco" style="margin-top:16px">Cuando la centralita te pase un aviso, aparece aquí al momento.</p>';
  {const ll={};K.agendaDe(S,cfg,Q.id,hoy,Date.now()).forEach(x=>{ll[x.id]=x.llega});
   if(dia.length>1)h+=sec('Después',dia.slice(1),'','',{tec:1,llega:ll});
@@ -1100,7 +1120,7 @@ function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
  else{dos=true;const p0=ANCHO.matches&&(S.avisos.filter(a=>a.e==='nuevo'||a.e==='ausente').sort((a,b)=>(b.urg-a.urg)||(a.t-b.t))[0]||S.avisos.find(a=>['curso','camino','asignado'].includes(a.e)));
   h=p0?'<div class="col lst">'+vBandeja(p0.id)+'</div><div class="col">'+vAviso(p0.id)+'</div>':'<div class="col lst">'+vBandeja('')+'</div><div class="col sin">'+vElige()+'</div>'}
  const v=$('#v');v.className=(dos?'dos ':'')+(det?'det ':'')+(papel?'papelv ':'')+(!esT&&(r.v==='cobros'||r.v==='contratos'||r.v==='nuevo'||r.v==='furgo'||(r.v==='mejoras'&&SOP))?'estrecha ':'')+Q.rol;v.innerHTML=h;document.body.classList.toggle('det',det);
- CUR=dos||r.v==='nuevo'?'bandeja':(r.v==='equipo'||r.v==='furgo')&&!esT?'agenda':r.v;pNav();geoSync();
+ CUR=dos||r.v==='nuevo'?'bandeja':(r.v==='equipo'||r.v==='furgo')&&!esT?'agenda':r.v;pNav();geoSync();voyReloj();
  const t=cfg.tec[Q.id],quien=(esT?ava(Q.id):'<i class="av c" aria-hidden="true">C</i>')+'<span>'+(esT?esc(t.n):'Centralita')+'</span>';
  $('#quien').innerHTML=FIJO?'<span class="quien" style="border-color:transparent">'+quien+'</span>':'<button class="quien" data-a="menu" aria-haspopup="dialog" aria-label="'+(SRV?'Tu sesión':'Cambiar de papel o de pack')+'. Ahora: '+(esT?t.n:'centralita')+'">'+quien+I.baja+'</button>';
  document.title=(esT?t.n:'Centralita')+' · '+N.nombre+' por dentro'}
@@ -1253,7 +1273,7 @@ function hCancelar(A){const d=hoja(hc('¿Cancelar el aviso?')+'<div class="hb"><
 const modos=(L,sel)=>'<div class="ops" role="radiogroup" aria-label="Cómo paga">'+L.map(k=>'<button type="button" class="op" data-modo="'+k+'" role="radio" aria-checked="'+(sel===k)+'">'+PAGO[k]+'</button>').join('')+'</div>';
 function hCobrar(A){let modo='';const d=hoja(hc('Marcar como cobrado')+'<div class="hb"><p>'+A.id+' · '+esc(K.nomCli(A.cli))+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div id="oM">'+modos(['transferencia','bizum','efectivo','tarjeta'],'')+'</div></div><div class="hp"><button class="btn pri ancho" id="oOk" disabled>Apuntar cobro</button></div>');
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#oOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#oM',d).innerHTML=modos(['transferencia','bizum','efectivo','tarjeta'],modo);$('#oOk',d).disabled=false}
-  else if(hacer({tipo:'cobrar',id:A.id,modo}).ok){d.close();toast('Cobrado: '+K.eur(A.tot.total)+'.')}})}
+  else if(hacer({tipo:'cobrar',id:A.id,modo}).ok){d.close();toast('Cobro apuntado: '+K.eur(A.tot.total)+'.')}})}
 
 /* «Marcar como facturada»: la factura la hace el programa del negocio; aquí se apunta que ya está, con su número si se quiere */
 function hFacturar(A){const d=hoja(hc('Marcar como facturada')+'<div class="hb"><p>'+A.id+' · '+esc(K.nomCli(A.cli))+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div class="campo"><label for="fNum">Número de la factura, si quieres</label><input id="fNum" maxlength="30" autocomplete="off"></div><p class="dn">La factura la haces con tu programa de facturas. Aquí solo queda apuntado que ya está hecha, para que no se escape ninguna.</p></div><div class="hp"><button class="btn pri ancho" id="fOk">Marcar como facturada</button></div>');
@@ -1346,6 +1366,7 @@ const ACC={
  menu:()=>hMenu(),
  imprimir:()=>window.print(),
  llamar:A=>hLlamar(A),
+ verFoto:A=>{if(A.foto)hFoto(A)},
  zona:A=>hZona(A),
  msg:(A,b)=>hMsg(A,b.dataset.k),
  mensajes:()=>hMensajes(),

@@ -71,7 +71,7 @@ async def main():
         await k.fill('#c_nombre', 'Clara Prueba'); await k.fill('#c_apellidos', 'Prueba'); await k.fill('#c_tel', '611 22 33 44'); await k.fill('#c_dir', 'C/ de la Prueba 12, 3.º'); await k.fill('#c_cp', fuera); await k.wait_for_timeout(200)
         t = await guarda(k, 'cita fuera de zona')
         es(N['ciudad'] in t, 'cita: fuera de zona, el aviso nombra la ciudad del negocio')
-        await k.fill('#c_cp', cp); await k.click('button[type=submit]'); await k.wait_for_selector('.doc'); await k.wait_for_timeout(200)
+        await k.fill('#c_cp', cp); await k.click('button[type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await k.wait_for_selector('.doc'); await k.wait_for_timeout(200)
         t = await guarda(k, 'resguardo'); m = re.search(re.escape(N['serie']) + r'-\d{4}', t); idc = m.group(0) if m else ''
         es(bool(idc), f"cita: el aviso lleva la serie del negocio ({idc or 'no sale'})")
         A = await k.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}')")

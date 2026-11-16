@@ -286,8 +286,18 @@ es(ap({ tipo: 'anotar', id: c2, obs: 'x'.repeat(900) }, T('omar')).ok && A(c2).o
 for (let i = 0; i < 4; i++) ap({ tipo: 'anotar', id: c2, foto: 'data:image/jpeg;base64,AAAA' + i }, T('omar'));
 es(A(c2).fotos.length === 4 && ap({ tipo: 'anotar', id: c2, foto: 'data:image/jpeg;base64,BBBB' }, T('omar')).err === 'fotos', 'cuatro fotos como mucho');
 es(ap({ tipo: 'anotar', id: c2, foto: 'x'.repeat(150000) }, T('omar')).err === 'foto' && A(c2).fotos.length === 4, 'una foto demasiado grande se rechaza y lo dice');
-{ const antes = JSON.stringify(A(c2)); es(ap({ tipo: 'anotar', id: c2, obs: 'Otra nota', foto: 'f5' }, T('omar')).err === 'fotos' && JSON.stringify(A(c2)) === antes, 'con cuatro fotos, una quinta se rechaza sin cambiar la nota (antes la cambiaba)');
+{ const antes = JSON.stringify(A(c2)); es(ap({ tipo: 'anotar', id: c2, obs: 'Otra nota', foto: 'data:image/jpeg;base64,CCCC' }, T('omar')).err === 'fotos' && JSON.stringify(A(c2)) === antes, 'con cuatro fotos, una quinta se rechaza sin cambiar la nota (antes la cambiaba)');
   es(ap({ tipo: 'anotar', id: c2 }, T('omar')).err === 'vacio' && ap({ tipo: 'anotar', id: c2, obs: { a: 1 } }, T('omar')).err === 'obs', 'anotar nada, o algo que no es texto, se rechaza') }
+/* 16-11: una foto solo vale si es una imagen de verdad. Lo demás (código, enlaces, un SVG) se rechaza: la app de la
+   oficina pinta las fotos, y por la puerta de la web cualquiera podía mandar un texto en su lugar */
+{ const malas = ['f5', 'x" onerror="alert(1)', 'javascript:alert(1)', 'data:image/svg+xml;base64,PHN2Zz4=', 'data:text/html;base64,PGI+', 'data:image/jpeg;base64,AAA" onload="x', 'https://ejemplo.es/a.jpg'];
+  const ant = JSON.stringify(A(c2)); es(malas.every(m => ap({ tipo: 'anotar', id: c2, foto: m }, T('omar')).err === 'foto') && JSON.stringify(A(c2)) === ant, 'una «foto» que no es una imagen (código, un enlace, un SVG) se rechaza y no cambia nada');
+  const S0 = JSON.parse(JSON.stringify(S));
+  const okW = malas.map(m => K.aplicar(S, cfg, { tipo: 'pedir', av: 'fuga', origen: 'cita', foto: m, cli: { nombre: 'Prueba', apellidos: 'Foto', tel: '600111222', dir: 'Calle Mayor 1', cp: '08028' }, cita: null }, CLI, t += M));
+  es(okW.every(r => r.ok) && okW.every(r => A(r.id).foto === ''), 'desde la web: el aviso entra, pero sin esa «foto» (se queda vacía)');
+  const bueno = K.aplicar(S, cfg, { tipo: 'pedir', av: 'fuga', origen: 'cita', foto: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==', cli: { nombre: 'Prueba', apellidos: 'Foto', tel: '600111223', dir: 'Calle Mayor 2', cp: '08028' }, cita: null }, CLI, t += M);
+  es(bueno.ok && A(bueno.id).foto === 'data:image/jpeg;base64,/9j/4AAQSkZJRg==', 'una foto de verdad (JPEG en base64) sí entra');
+  S.avisos = S0.avisos; S.n = S0.n; Object.keys(S).forEach(k => { if (!(k in S0)) delete S[k] }); Object.assign(S, S0) }
 t = i2 + 40 * M; r = ap({ tipo: 'terminar', id: c2, modo: 'tarjeta' }, T('omar'));
 const trab = Math.round((A(c2).pausas[0][0] - i2) / M);
 es(r.ok && !K.enPausa(A(c2)) && A(c2).min === trab && trab < 15, 'terminar en pausa cierra la pausa: solo cuentan los ' + trab + ' minutos de antes de parar');
@@ -1298,6 +1308,52 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   // la demo: Laia lleva la cuenta y le toca reponer las llaves y el tubo
   const SM = globalThis.OFICIO_MUESTRA(K, cfg, Date.now()), rL = K.reponerDe(SM, cfg, 'laia');
   es(K.furgoDe(SM, 'laia') && !K.furgoDe(SM, 'omar') && !K.furgoDe(SM, 'jordi') && rL.map(x => x.k).join() === 'llave,tubo', 'en la demo, Laia lleva la cuenta de su furgoneta y le toca reponer');
+}
+
+// ---------- «Voy», solo cuando toca (16-11, auditoría UX-29): con cita, desde media hora antes de la franja ----------
+{ const hora = iso => Date.parse(iso);
+  /* un estado nuevo con una cita ya asignada: se pide el día antes a media mañana y se le da al primer técnico que puede */
+  const monta = (dia, fr, antes) => { const SV = K.nuevo(); let tv = hora(antes); const hv = (a, q, tt) => K.aplicar(SV, cfg, a, q, tt != null ? (tv = tt) : (tv += M));
+    const cp = Object.keys(cfg.zonas.cp)[0], cli = { nombre: 'Hora', apellidos: 'De Salir', tel: '600000990', dir: 'C/ Reloj 1', cp };
+    const r = hv({ tipo: 'pedir', av: 'grifo', cli, cita: { dia, fr } }, C); if (!r.ok) return { err: 'pedir ' + r.err };
+    const tec = Object.keys(cfg.tec).find(x => hv({ tipo: 'asignar', id: r.id, tec: x }, C).ok); return { SV, hv, id: r.id, tec, A: () => SV.avisos.find(a => a.id === r.id) } };
+  // invierno (hora +1): la franja de las 8:00 abre «Voy» a las 7:30 de Madrid, que son las 6:30 en UTC
+  { const X = monta('2026-11-17', 'f1', '2026-11-16T10:00:00+01:00');
+    const r1 = X.hv({ tipo: 'voy', id: X.id }, T(X.tec), hora('2026-11-17T07:29:00+01:00')), d = K.voyDesde(cfg, X.A());
+    es(!X.err && X.tec && r1.err === 'pronto' && X.A().e === 'asignado' && d.dia === '2026-11-17' && d.min === 450, `invierno: a las 7:29 todavía no puede decir «Voy» (abre a las 7:30) ${JSON.stringify({ err: X.err, r1, d })}`);
+    es(!K.voyYa(cfg, X.A(), hora('2026-11-17T06:29:59Z')) && K.voyYa(cfg, X.A(), hora('2026-11-17T06:30:00Z')), 'invierno: abre justo a las 6:30 en UTC (7:30 de Madrid), ni un minuto antes');
+    const r2 = X.hv({ tipo: 'voy', id: X.id }, T(X.tec), hora('2026-11-17T07:30:00+01:00'));
+    es(r2.ok && X.A().e === 'camino', 'invierno: a las 7:30 ya puede; el aviso pasa a «De camino»') }
+  // verano (hora +2): misma regla en hora de Madrid; con una hora fija de diferencia, fallaría
+  { const X = monta('2027-06-15', 'f2', '2027-06-14T10:00:00+02:00'), f2 = cfg.franjas.find(f => f.id === 'f2');
+    const ab = f2.de - 30, hh = String(Math.floor(ab / 60)).padStart(2, '0'), mm = String(ab % 60).padStart(2, '0'), menos = String(ab % 60 ? ab % 60 - 1 : 59).padStart(2, '0'), hm1 = ab % 60 ? hh : String(Math.floor(ab / 60) - 1).padStart(2, '0');
+    const r1 = X.hv({ tipo: 'voy', id: X.id }, T(X.tec), hora(`2027-06-15T${hm1}:${menos}:00+02:00`)), r2 = X.hv({ tipo: 'voy', id: X.id }, T(X.tec), hora(`2027-06-15T${hh}:${mm}:00+02:00`));
+    es(!X.err && r1.err === 'pronto' && r2.ok, `verano: abre a las ${hh}:${mm} de Madrid (media hora antes de la franja de las ${K.hhmm ? K.hhmm(f2.de) : f2.de}), con el horario de verano ${JSON.stringify({ err: X.err, r1, r2 })}`) }
+  // la semana del cambio de hora (28-3-2027): el martes siguiente, la franja de las 8:00 abre a las 5:30 en UTC
+  { const X = monta('2027-03-30', 'f1', '2027-03-29T12:00:00+02:00');
+    es(!X.err && !K.voyYa(cfg, X.A(), hora('2027-03-30T05:29:00Z')) && K.voyYa(cfg, X.A(), hora('2027-03-30T05:30:00Z')), `después del cambio de hora de primavera, la cuenta sigue en hora de Madrid ${X.err || ''}`) }
+  // el día antes, a cualquier hora (también festivo y a medianoche), no puede
+  { const X = monta('2026-12-09', 'f1', '2026-12-07T10:00:00+01:00');
+    es(!X.err && !K.voyYa(cfg, X.A(), hora('2026-12-08T22:00:00+01:00')) && !K.voyYa(cfg, X.A(), hora('2026-12-09T00:00:00+01:00')) && X.hv({ tipo: 'voy', id: X.id }, T(X.tec), hora('2026-12-08T23:59:00+01:00')).err === 'pronto',
+      `la víspera (festivo) y a medianoche, todavía no ${X.err || ''}`) }
+  // va tarde: la franja ya ha empezado (o es otro día): puede ir igual y se le avisa
+  { const X = monta('2026-11-17', 'f1', '2026-11-16T10:00:00+01:00'), Ax = X.A();
+    es(!K.voyTarde(cfg, Ax, hora('2026-11-17T07:59:00+01:00')) && K.voyTarde(cfg, Ax, hora('2026-11-17T08:00:00+01:00')) && K.voyTarde(cfg, Ax, hora('2026-11-18T09:00:00+01:00')), 'va tarde desde que empieza su franja (y al día siguiente, también)');
+    es(X.hv({ tipo: 'voy', id: X.id }, T(X.tec), hora('2026-11-18T09:00:00+01:00')).ok, 'si va tarde, «Voy» no se bloquea: tiene que poder salir') }
+  // si la oficina cambia la cita, la hora de salir se cuenta otra vez con la franja nueva
+  { const X = monta('2026-11-17', 'f1', '2026-11-16T10:00:00+01:00'), t0 = hora('2026-11-17T07:40:00+01:00');
+    es(!X.err && K.voyYa(cfg, X.A(), t0), 'con la franja de las 8:00, a las 7:40 ya podría');
+    const rm = X.hv({ tipo: 'mover', id: X.id, cita: { dia: '2026-11-17', fr: 'f3' } }, C, t0);
+    const r = X.hv({ tipo: 'voy', id: X.id }, T(X.tec), t0 + M);
+    es(rm.ok && X.A().e === 'asignado' && r.err === 'pronto' && K.voyDesde(cfg, X.A()).min === cfg.franjas.find(f => f.id === 'f3').de - 30, `al pasarla a la tarde, ya no puede salir a las 7:41: la hora se cuenta con la franja nueva ${JSON.stringify({ rm, r, e: X.A().e })}`) }
+  // una urgencia (sin cita) no espera a nada
+  { const SV = K.nuevo(); let tv = hora('2026-11-17T03:10:00+01:00'); const hv = (a, q) => K.aplicar(SV, cfg, a, q, tv += M);
+    const id = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: { nombre: 'Ya', apellidos: 'Mismo', tel: '600000991', dir: 'C/ Prisa 1', cp: Object.keys(cfg.zonas.cp)[0] } }, C).id;
+    const tec = Object.keys(cfg.tec).find(x => hv({ tipo: 'asignar', id, tec: x }, C).ok);
+    es(K.voyDesde(cfg, SV.avisos[0]) === null && hv({ tipo: 'voy', id }, T(tec)).ok, 'una urgencia sin franja: «Voy» en cuanto se asigna, de día o de noche') }
+  // una franja que empieza pasada la medianoche: abre la víspera, a las 23:45
+  { const NM = JSON.parse(JSON.stringify(N)); NM.franjas = [{ id: 'f0', de: 15, a: 120 }].concat(NM.franjas); const cm = K.cfgDe(NM), Ax = { e: 'asignado', cita: { dia: '2026-11-17', fr: 'f0' } }, d = K.voyDesde(cm, Ax);
+    es(d && d.dia === '2026-11-16' && d.min === 1425 && !K.voyYa(cm, Ax, hora('2026-11-16T23:44:00+01:00')) && K.voyYa(cm, Ax, hora('2026-11-16T23:45:00+01:00')), `a medianoche: la franja de las 00:15 abre el día antes a las 23:45 ${JSON.stringify(d)}`) }
 }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);

@@ -76,17 +76,20 @@ body[data-hdr="averias"] .top{background:#000}
 .langs button{min-width:40px;min-height:44px;font:600 var(--s-small)/1 var(--fb);color:var(--suave);border-radius:8px}
 .langs button[aria-pressed="true"]{color:var(--texto);text-decoration:underline 3px var(--senal);text-underline-offset:7px}
 .calltop{display:none;min-height:46px;font-family:var(--fd);font-weight:700;font-size:var(--s-lead);letter-spacing:.02em}
+.citatop{display:none;min-height:46px}
 .navb{display:grid;place-items:center;width:44px;height:44px;margin-right:-8px;border-radius:10px}
 .navb svg{width:26px;height:26px}
-@media (min-width:900px){.top{display:grid;grid-template-columns:1fr auto 1fr}.tlinks{display:flex}.tact{justify-self:end}.langs{display:flex}.calltop{display:inline-flex}.navb{display:none}}
+@media (min-width:900px){.top{display:grid;grid-template-columns:1fr auto 1fr}.tlinks{display:flex}.tact{justify-self:end}.langs{display:flex}.calltop,.citatop{display:inline-flex}.navb{display:none}}
+/* entre 900 y 1199 px no caben el número entero y los dos botones: el de llamar se queda en el icono */
+@media (min-width:900px) and (max-width:1199px){.calltop .ctn{display:none}.calltop{padding:0 .8em}.langs{display:none}}
 /* tabletas en horizontal (900–1099 px): el nombre no se parte en dos líneas; un poco más pequeño y los enlaces más juntos */
 @media (min-width:900px) and (max-width:1099px){.wm{white-space:nowrap;font-size:clamp(1.6rem,2.85vw,2.5rem)}.tlinks{gap:clamp(12px,1.6vw,22px)}}
 
-/* ===== llamar, siempre a mano del pulgar (móvil) ===== */
+/* ===== pedir cita (y llamar, si no puede esperar), siempre a mano del pulgar (móvil) ===== */
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:45;display:flex;gap:8px;padding:8px var(--m) calc(8px + var(--sb));background:var(--asfalto)}
 .bar .btn{min-height:52px;padding:0 .9em}
-.bar .pri{flex:1.7}
-.bar .wa{flex:1}
+.bar .pri{flex:1.6}
+.bar .tel{flex:1}
 @media (min-width:900px){.bar{display:none}}
 
 /* ===== entrada: al abrir, la furgoneta llega, el técnico baja y se planta delante; acaba en la portada ===== */
@@ -115,8 +118,10 @@ body[data-hdr="averias"] .top{background:#000}
 .hola b{color:var(--senal);font-weight:800;font-variant-numeric:tabular-nums}
 .guardia{display:flex;align-items:center;gap:10px;font-weight:500}
 .guardia i{width:10px;height:10px;border-radius:50%;background:var(--senal);flex:none}
-/* la otra puerta: lo que puede esperar va con cita (sin el suplemento de urgencia) */
-.espera{display:inline-flex;align-items:center;gap:.35em;min-height:44px;font-size:var(--s-body);color:#d8dbde;text-decoration:none}
+/* las dos puertas: lo que puede esperar va con cita (la principal, sin el suplemento); lo que no, se llama */
+.espera{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:.15em .35em;min-height:44px;font-size:var(--s-body);color:#d8dbde;text-decoration:none}
+.espera small{flex-basis:100%;font-size:var(--s-small);color:#b8bec4}
+.urge-l{font-size:var(--s-small);color:#b8bec4;max-width:40ch}
 .espera b{font-weight:700;color:var(--texto);text-decoration:underline 2px;text-underline-offset:5px;text-decoration-color:var(--senal)}
 @media (hover:hover) and (pointer:fine){.espera:hover b{text-decoration-thickness:3px}}
 @media (min-width:900px){.index{bottom:56px;max-width:66vw}}
@@ -142,34 +147,29 @@ html.snap{scroll-snap-type:y mandatory}
 .ln>span{display:block}
 .fig{font-family:var(--fd);font-weight:800;line-height:.86;font-variant-numeric:tabular-nums;letter-spacing:-.005em}
 
-/* ===== 1 · ¿qué te pasa? Una avería cada vez, sobre negro de estudio ===== */
+/* ===== 1 · ¿qué necesitas arreglar? Los servicios, cada uno con su foto, su precio y su reserva, sobre negro de estudio =====
+   Toda la tarjeta lleva a la cita con el servicio ya elegido (el enlace «Reservar» la cubre entera); «Qué incluye» abre el
+   desglose. En el móvil, dos columnas: la pantalla es más alta que el móvil y se recorre fila a fila (ver «stops») */
 .av{background:#000}
-.avg{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"t" "c" "o" "d";gap:14px}
-.avt{grid-area:t}
-.chips{grid-area:c;display:flex;flex-wrap:wrap;gap:6px}
-.chips button{flex:none;min-height:44px;padding:0 14px;border-radius:999px;border:2px solid var(--asfalto-3);font-weight:600;font-size:var(--s-body);color:#d4d8dc;transition:border-color var(--t-ui) var(--ease-out),background-color var(--t-ui) var(--ease-out),color var(--t-ui) var(--ease-out)}
-.chips button[aria-pressed="true"]{background:var(--senal);border-color:var(--senal);color:var(--negro)}
-.avobj{grid-area:o;position:relative;justify-self:center;width:min(70vw,30svh,560px);aspect-ratio:1;touch-action:pan-y;-webkit-user-select:none;user-select:none}
-.avobj img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none}
-.avd{grid-area:d;display:grid;gap:12px;justify-items:start}
-.avn{font:800 var(--s-h2)/.86 var(--fd);letter-spacing:-.01em}
-.avp{font:800 var(--s-mid)/1 var(--fd);color:var(--senal)}
-.avm{font-size:var(--s-lead);color:#d4d8dc}
-.avm b{font-weight:700;color:var(--texto)}
-.urg{display:none;align-items:center;gap:6px;font-size:var(--s-small);font-weight:600;color:var(--negro);background:var(--senal);border-radius:6px;padding:4px 8px;margin-top:2px}
-.is-urg .urg{display:inline-flex}
-.avl{color:#c9ced3;max-width:36ch}
-.flechas{display:flex;gap:6px}
-.flechas button{display:grid;place-items:center;width:52px;height:52px;border-radius:12px;border:2px solid var(--asfalto-3)}
-.flechas svg{width:22px;height:22px}
-@media (hover:hover) and (pointer:fine){.flechas button:hover{border-color:var(--texto)}.chips button:not([aria-pressed="true"]):hover{border-color:#5a626b}}
-@media (min-width:600px) and (max-width:899px){.avobj{width:min(60vw,38svh)}}
-@media (max-height:740px) and (max-width:899px){.avl{display:none}.avobj{width:min(62vw,26svh)}}
-@media (min-width:900px){
- .avg{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);grid-template-areas:". o" "t o" "c o" "d o" ". o";grid-template-rows:1fr auto auto auto 1fr;column-gap:4vw;row-gap:18px;align-items:start;min-height:calc(100svh - var(--top) - 48px)}
- .avobj{width:min(46vw,72svh,640px);align-self:center}
- .avd{margin-top:3svh}
-}
+.sv-in{display:grid;gap:18px}
+.svt{display:grid;gap:10px;justify-items:start}
+.svl{max-width:52ch;color:#c9ced3}
+.svs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.svc{position:relative;display:grid;grid-template-rows:auto auto 1fr auto auto;gap:6px;padding:0 12px 12px;border-radius:16px;border:1px solid var(--asfalto-3);background:#050607;transition:border-color var(--t-ui) var(--ease-out)}
+.svc img{width:calc(100% + 24px);max-width:none;height:auto;margin:0 -12px 4px;aspect-ratio:5/4;object-fit:contain;border-radius:15px 15px 0 0;background:#000;-webkit-user-drag:none}
+.svc h3{font:700 var(--s-mid)/.95 var(--fd);letter-spacing:.005em;text-wrap:balance}
+.svd{font-size:var(--s-small);line-height:1.3;color:#b8bec4}
+.svp{font:800 1.5rem/1 var(--fd);font-variant-numeric:tabular-nums;color:var(--texto);margin-top:4px}
+.sva{display:grid;gap:2px;margin-top:4px}
+.sva .btn{width:100%;min-height:48px;padding:0 .8em}
+.sva .btn::after{content:"";position:absolute;inset:0;border-radius:16px} /* toda la tarjeta reserva */
+.sva .txt{position:relative;z-index:1;justify-self:start;min-height:44px;font-size:var(--s-small);font-weight:600;color:#d4d8dc;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#5a626b}
+.svc:has(.btn:focus-visible){border-color:var(--senal)}
+.sva .btn:focus-visible{outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.svc:hover{border-color:#5a626b}.svc:hover .btn{border-color:var(--texto)}.sva .txt:hover{text-decoration-color:var(--texto)}}
+@media (max-width:360px){.svs{gap:8px}.svc{padding:0 10px 10px}.svc img{width:calc(100% + 20px);margin:0 -10px 2px}.sva .btn{font-size:1rem}}
+@media (min-width:600px){.svs{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}}
+@media (min-width:1200px){.svs{grid-template-columns:repeat(6,minmax(0,1fr))}.svc h3{font-size:clamp(1.5rem,1.9vw,2rem)}}
 
 /* ===== 2 · lo que cuesta: un parte de trabajo ===== */
 .cug{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;align-items:center}
@@ -276,7 +276,8 @@ html.snap{scroll-snap-type:y mandatory}
 .fin .ffoto img{width:100%;height:100%;object-fit:cover}
 .fin .ffoto::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,13,15,.94) 8%,rgba(11,13,15,.62) 48%,rgba(11,13,15,.2) 86%)} /* taste-skill-ignore: velo para leer el teléfono sobre la foto */
 .fin .in{position:relative;z-index:1;display:grid;gap:14px;justify-items:start}
-.num{display:block;font:800 clamp(4rem,19vw,13rem)/.84 var(--fd);letter-spacing:-.01em;color:var(--senal);text-decoration:none;white-space:nowrap}
+.num{display:block;font:800 clamp(3.4rem,15vw,9rem)/.84 var(--fd);letter-spacing:-.01em;color:var(--texto);text-decoration:none;white-space:nowrap}
+.fin .fur{font-size:var(--s-body);color:#c9ced3}
 .fpie{display:grid;gap:10px;margin-top:22px;width:100%;font-size:var(--s-small);color:#b8bec4}
 .fpie a{color:var(--texto)}
 .fpie .langs{display:flex}
@@ -294,7 +295,6 @@ html.snap{scroll-snap-type:y mandatory}
 .rb svg{width:22px;height:22px}
 .sbody{overflow-y:auto;overscroll-behavior:contain;padding:4px var(--m) calc(22px + var(--sb));display:grid;gap:14px}
 .drate{font-weight:600}
-.is-urg .drate{display:inline-block;background:var(--senal);padding:4px 8px;border-radius:6px}
 .drows li{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:10px 0;border-bottom:1px solid var(--raya)} /* taste-skill-ignore: filas de una tabla de precios */
 .drows b{font:700 var(--s-lead)/1 var(--fd);white-space:nowrap}
 .dtot{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding-top:4px}
@@ -319,7 +319,8 @@ html.snap{scroll-snap-type:y mandatory}
 .navsheet nav{display:grid;gap:4px}
 .navsheet nav a{font:800 var(--s-h2)/1.02 var(--fd);text-decoration:none}
 .navsheet .langs{display:flex}
-.navsheet .num-s{font:700 var(--s-mid)/1 var(--fd);color:var(--senal);text-decoration:none}
+.navsheet .num-s{font:700 var(--s-mid)/1 var(--fd);color:var(--texto);text-decoration:none}
+.navsheet .btn.pri{justify-self:start}
 
 /* ===== vistas previas de la demo (llamada y WhatsApp) ===== */
 .dlg{border:0;padding:0;margin:auto;width:min(92vw,420px);border-radius:20px;background:var(--papel);color:var(--tinta);overflow:hidden}
@@ -351,15 +352,16 @@ html.snap{scroll-snap-type:y mandatory}
 <header class="top" id="top">
   <a class="wm" href="#" id="home" aria-label="Ramírez 24 h: volver a la entrada" data-ta="aria-label:a.home">Ramírez<span>24 h</span></a>
   <nav class="tlinks" aria-label="Secciones" data-ta="aria-label:a.nav">
+    <a href="#averias" data-go="averias" data-t="nav.averias">Servicios</a>
     <a href="#cuesta" data-go="cuesta" data-t="nav.precio">Precio</a>
     <a href="#barrio" data-go="barrio" data-t="nav.barrio">Barrio</a>
     <a href="#garantia" data-go="garantia" data-t="nav.garantia">Garantía</a>
-     <a href="cita.html" data-t="nav.cita">Pedir cita</a>
-     <a href="cliente.html" data-t="nav.zona">Tu zona</a>
+    <a href="cliente.html" data-t="nav.zona">Tu zona</a>
   </nav>
   <div class="tact">
     <div class="langs" role="group" aria-label="Idioma" data-ta="aria-label:a.lang"><button data-lang="es" aria-pressed="true">ES</button><button data-lang="ca" aria-pressed="false">CA</button><button data-lang="en" aria-pressed="false">EN</button></div>
-    <a class="btn pri calltop" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span class="vh" data-t="b.llamar">Llamar</span>930 00 00 00</a>
+    <a class="btn pri citatop" href="cita.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14.5h3"/></svg><span data-t="nav.cita">Pedir cita</span></a>
+    <a class="btn calltop" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span class="vh" data-t="b.llamar">Llamar</span><span class="ctn">930 00 00 00</span></a>
     <button class="navb" id="navOpen" aria-label="Abrir el menú" data-ta="aria-label:a.menu" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 8.5h16M4 15.5h16"/></svg></button>
   </div>
 </header>
@@ -374,37 +376,70 @@ html.snap{scroll-snap-type:y mandatory}
         <h1 class="h1" id="h1" data-t="in.t">Fontaneros 24 horas.</h1>
         <p class="hola" id="hola">Llegamos antes de las <b data-eta>03:52</b>.</p>
         <p class="guardia"><i aria-hidden="true"></i><span id="guardia">3 técnicos de guardia ahora mismo.</span></p>
-        <a class="espera" href="cita.html"><span data-t="in.esp">¿Puede esperar?</span> <b data-t="nav.cita">Pedir cita</b></a>
+        <a class="espera" href="cita.html"><span data-t="in.esp">¿Puede esperar?</span> <b data-t="nav.cita">Pedir cita</b><small data-t="in.esp.s">Eliges día y franja, con tarifa normal.</small></a>
+        <p class="urge-l" id="urgeL">¿No puede esperar? Llámanos y salimos ahora: suplemento de urgencia de 30 €.</p>
         <div class="acts stage-acts">
-          <a class="btn pri" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span data-t="b.llamar">Llamar</span></a>
-          <a class="btn" href="https://wa.me/34930000000" data-wa><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5A2 2 0 0 1 5.5 6.5h2l1.6-2h5.8l1.6 2h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.8" r="3.6"/></svg><span data-t="b.foto">Mandar foto</span></a>
+          <a class="btn pri" href="cita.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14.5h3"/></svg><span data-t="nav.cita">Pedir cita</span></a>
+          <a class="btn" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span data-t="b.llamar">Llamar</span></a>
+          <a class="btn" href="https://wa.me/34930000000" data-wa><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5A2 2 0 0 1 5.5 6.5h2l1.6-2h5.8l1.6 2h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.8" r="3.6"/></svg><span data-t="b.foto">Enviar foto por WhatsApp</span></a>
         </div>
-        <p class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg><span data-t="w.sig">Precio, barrio y garantía: desliza.</span></p>
+        <p class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg><span data-t="w.sig">Servicios, precio y garantía: desliza.</span></p>
       </div>
     </div>
     <div class="snapT"></div>
     <div class="snap0"></div>
   </section>
 
-  <section class="sx av" id="averias" aria-labelledby="avT">
-    <div class="in avg" id="avg">
-      <h2 class="h2 avt" id="avT" data-t="av.t">¿Qué te pasa?</h2>
-      <div class="chips" id="chips" role="group" aria-label="Averías" data-ta="aria-label:a.averias"></div>
-      <div class="avobj" id="avObj"><img id="avImg" src="assets/img/av-fuga.webp" srcset="assets/img/av-fuga-s.webp 600w,assets/img/av-fuga.webp 1024w" sizes="(min-width:900px) 46vw,76vw" alt="" width="1024" height="1024"></div>
-      <div class="avd">
-        <p class="avn" id="avN" aria-live="polite">Fuga de agua</p>
-        <p class="avp" id="avP">desde 75 €</p>
-        <p class="avm" id="avMp">Llegamos en <b id="avM">25–40 min</b>.</p>
-        <p class="urg" id="avU">Tarifa de urgencia: +40 %</p>
-        <p class="avl" id="avL">Tubería, llave de paso o latiguillo.</p>
-        <div class="acts">
-          <button class="btn pri" id="esEsto" data-t="av.es">Es esto</button>
-          <div class="flechas">
-            <button id="avPrev" aria-label="Avería anterior" data-ta="aria-label:a.prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-            <button id="avNext" aria-label="Avería siguiente" data-ta="aria-label:a.next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-          </div>
-        </div>
+  <section class="sx av" id="averias" aria-labelledby="avT" data-largo>
+    <div class="in sv-in" id="avg">
+      <div class="svt">
+        <h2 class="h2 avt" id="avT" data-t="av.t">¿Qué necesitas arreglar?</h2>
+        <p class="svl" data-t="sv.l">Precios orientativos con IVA, con cita y tarifa normal. El precio final se cierra y lo firmas antes de empezar.</p>
       </div>
+      <ul class="svs" id="svs">
+        <li class="svc" data-av="fuga" data-paso>
+          <img src="assets/img/av-fuga-s.webp" srcset="assets/img/av-fuga-s.webp 600w,assets/img/av-fuga.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <h3 data-t="av.fuga">Fuga de agua</h3>
+          <p class="svd" data-t="av.fuga.d">Una tubería, una llave de paso o un latiguillo que pierde agua.</p>
+          <p class="svp" data-precio="fuga"></p>
+          <div class="sva"><a class="btn" href="cita.html?servicio=fuga" data-reserva="fuga" aria-label="Reservar Fuga de agua"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="fuga" data-t="sv.inc">Qué incluye</button></div>
+        </li>
+        <li class="svc" data-av="atasco" data-paso>
+          <img src="assets/img/av-atasco-s.webp" srcset="assets/img/av-atasco-s.webp 600w,assets/img/av-atasco.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <h3 data-t="av.atasco">Atasco</h3>
+          <p class="svd" data-t="av.atasco.d">El fregadero, la ducha, el váter o el bajante no tragan.</p>
+          <p class="svp" data-precio="atasco"></p>
+          <div class="sva"><a class="btn" href="cita.html?servicio=atasco" data-reserva="atasco" aria-label="Reservar Atasco"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="atasco" data-t="sv.inc">Qué incluye</button></div>
+        </li>
+        <li class="svc" data-av="termo" data-paso>
+          <img src="assets/img/av-termo-s.webp" srcset="assets/img/av-termo-s.webp 600w,assets/img/av-termo.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <h3 data-t="av.termo">Sin agua caliente</h3>
+          <p class="svd" data-t="av.termo.d">El termo eléctrico no calienta, hace saltar la luz o pierde agua.</p>
+          <p class="svp" data-precio="termo"></p>
+          <div class="sva"><a class="btn" href="cita.html?servicio=termo" data-reserva="termo" aria-label="Reservar Sin agua caliente"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="termo" data-t="sv.inc">Qué incluye</button></div>
+        </li>
+        <li class="svc" data-av="cisterna" data-paso>
+          <img src="assets/img/av-cisterna-s.webp" srcset="assets/img/av-cisterna-s.webp 600w,assets/img/av-cisterna.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <h3 data-t="av.cisterna">Cisterna que pierde</h3>
+          <p class="svd" data-t="av.cisterna.d">No para de correr el agua o no se llena.</p>
+          <p class="svp" data-precio="cisterna"></p>
+          <div class="sva"><a class="btn" href="cita.html?servicio=cisterna" data-reserva="cisterna" aria-label="Reservar Cisterna que pierde"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="cisterna" data-t="sv.inc">Qué incluye</button></div>
+        </li>
+        <li class="svc" data-av="grifo" data-paso>
+          <img src="assets/img/av-grifo-s.webp" srcset="assets/img/av-grifo-s.webp 600w,assets/img/av-grifo.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <h3 data-t="av.grifo">Grifo que gotea</h3>
+          <p class="svd" data-t="av.grifo.d">Gotea, está duro o hay que cambiarlo.</p>
+          <p class="svp" data-precio="grifo"></p>
+          <div class="sva"><a class="btn" href="cita.html?servicio=grifo" data-reserva="grifo" aria-label="Reservar Grifo que gotea"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="grifo" data-t="sv.inc">Qué incluye</button></div>
+        </li>
+        <li class="svc" data-av="otra" data-paso>
+          <img src="assets/img/av-otra-s.webp" srcset="assets/img/av-otra-s.webp 600w,assets/img/av-otra.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <h3 data-t="av.otra">Otra avería</h3>
+          <p class="svd" data-t="av.otra.d">¿No sabes qué es? Cuéntanoslo con una nota o una foto.</p>
+          <p class="svp" data-precio="otra"></p>
+          <div class="sva"><a class="btn" href="cita.html?servicio=otra" data-reserva="otra" aria-label="Reservar Otra avería"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="otra" data-t="sv.inc">Qué incluye</button></div>
+        </li>
+      </ul>
     </div>
   </section>
 
@@ -418,15 +453,16 @@ html.snap{scroll-snap-type:y mandatory}
       </div>
       <div class="parte" id="parte" data-ui>
         <div class="ph"><b data-t="p.t">Parte de trabajo</b><span id="pFecha">13/11/2026</span></div>
-        <div class="prow"><span class="fig">30 €</span><span data-t="p.r1">Desplazamiento en Barcelona</span></div>
-        <div class="prow"><span class="fig">45 €<small>/h</small></span><span data-t="p.r2">Mano de obra</span></div>
-        <div class="prow"><span class="fig">+40 %</span><span data-t="p.r3">De 20 a 8 h, fines de semana y festivos</span></div>
+        <div class="prow"><span class="fig" data-fig="desp">30 €</span><span data-t="p.r1">Desplazamiento en Barcelona</span></div>
+        <div class="prow"><span class="fig" data-fig="mo">45 €<small>/h</small></span><span data-t="p.r2">Mano de obra</span></div>
+        <div class="prow"><span class="fig" data-fig="urge">+30 €</span><span data-t="p.r4">Sin cita, por salir en el momento</span></div>
+        <div class="prow"><span class="fig" data-fig="sur">+40 %</span><span data-t="p.r3">Desplazamiento y mano de obra, de 20 a 8 h, fines de semana y festivos</span></div>
         <div class="pej" id="pEj" hidden>
-          <p><span data-t="ej.t">Una fuga de 1 h 30 min, un martes</span></p>
+          <p><span data-t="ej.t">Una fuga de 1 h 30 min, un martes, con cita</span></p>
           <p><span data-t="ej.r1">Desplazamiento</span><span id="ej1">30,00 €</span></p>
           <p><span data-t="ej.r2">Mano de obra, 1 h 30 min</span><span id="ej2">67,50 €</span></p>
           <p class="tot"><span data-t="ej.tot">Total</span><span id="ej3">97,50 €</span></p>
-          <p class="dom" id="ejDom">El mismo trabajo un domingo: 136,50 €.</p>
+          <p class="dom" id="ejDom">La misma fuga un domingo, sin cita: 166,50 €.</p>
         </div>
         <p class="sello" data-t="p.sello">Precio cerrado</p>
       </div>
@@ -458,7 +494,7 @@ html.snap{scroll-snap-type:y mandatory}
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span data-t="ga.d2">Factura con IVA</span></li>
           <li><b>4,8</b><svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.6l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg><span data-t="ga.d3">en 540 reseñas</span></li>
         </ul>
-        <ol class="pasos"><li data-t="ga.p1">Llamas</li><li data-t="ga.p2">Llegamos</li><li data-t="ga.p3">Precio cerrado</li><li data-t="ga.p4">Garantía</li></ol>
+        <ol class="pasos"><li data-t="ga.p1">Pides</li><li data-t="ga.p2">Llegamos</li><li data-t="ga.p3">Precio cerrado</li><li data-t="ga.p4">Garantía</li></ol>
         <button class="btn" id="verRes" data-t="ga.res">Leer reseñas</button>
       </div>
       <div class="gcard" id="gcard" data-ui>
@@ -515,20 +551,20 @@ html.snap{scroll-snap-type:y mandatory}
           <div><p class="mt" data-t="mi.3">Haz una foto y mándanosla.</p><p class="ms" data-t="mi.3s">Así venimos con la pieza que toca.</p></div>
         </li>
       </ol>
-      <div class="acts"><a class="btn pri" href="https://wa.me/34930000000" data-wa><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5A2 2 0 0 1 5.5 6.5h2l1.6-2h5.8l1.6 2h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.8" r="3.6"/></svg><span data-t="mi.btn">Mandar la foto</span></a></div>
+      <div class="acts"><a class="btn pri" href="https://wa.me/34930000000" data-wa><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5A2 2 0 0 1 5.5 6.5h2l1.6-2h5.8l1.6 2h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.8" r="3.6"/></svg><span data-t="mi.btn">Enviar foto por WhatsApp</span></a></div>
     </div>
   </section>
 
   <footer class="sx fin" id="fin" aria-labelledby="fiT">
     <picture class="ffoto"><source media="(max-aspect-ratio:1/1)" srcset="assets/img/fin-v.webp"><img src="assets/img/fin-h.webp" alt="" width="1376" height="768" loading="lazy"></picture>
     <div class="in">
-      <h2 class="h2" id="fiT" data-t="fi.t">¿Fuga ahora?</h2>
+      <h2 class="h2" id="fiT" data-t="fi.t">Pide cita o llámanos.</h2>
+      <p class="fur" data-t="fi.urg">¿No puede esperar? Llama, a cualquier hora:</p>
       <a class="num" href="tel:+34930000000" data-call>930 00 00 00</a>
       <p class="lead" data-t="fi.l">24 horas, 365 días. Taller en Sants.</p>
-      <p class="lead cital"><a href="cita.html" data-t="fi.cita">¿Puede esperar? Pide cita</a></p>
       <div class="acts">
-        <a class="btn pri" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span data-t="b.llamar">Llamar</span></a>
-        <a class="btn" href="https://wa.me/34930000000" data-wa><span data-t="fi.wa">WhatsApp</span></a>
+        <a class="btn pri" href="cita.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14.5h3"/></svg><span data-t="nav.cita">Pedir cita</span></a>
+        <a class="btn" href="https://wa.me/34930000000" data-wa><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5A2 2 0 0 1 5.5 6.5h2l1.6-2h5.8l1.6 2h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.8" r="3.6"/></svg><span data-t="b.foto">Enviar foto por WhatsApp</span></a>
         <button class="btn" id="toTop" data-t="fi.top">Volver a la entrada</button>
       </div>
       <div class="fpie">
@@ -539,39 +575,38 @@ html.snap{scroll-snap-type:y mandatory}
   </footer>
 </main>
 
-<nav class="bar" aria-label="Llamar o escribir" data-ta="aria-label:a.bar">
-  <a class="btn pri" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span data-t="bar.llamar">Llamar ahora</span></a>
-  <a class="btn wa" href="https://wa.me/34930000000" data-wa><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5A2 2 0 0 1 5.5 6.5h2l1.6-2h5.8l1.6 2h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.8" r="3.6"/></svg><span data-t="bar.foto">Foto</span></a>
+<nav class="bar" aria-label="Pedir cita o llamar" data-ta="aria-label:a.bar">
+  <a class="btn pri" href="cita.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14.5h3"/></svg><span data-t="nav.cita">Pedir cita</span></a>
+  <a class="btn tel" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span data-t="b.llamar">Llamar</span></a>
 </nav>
 
 <div class="navsheet" id="navsheet" role="dialog" aria-modal="true" aria-label="Menú" data-ta="aria-label:a.menuT" aria-hidden="true" inert>
   <nav aria-label="Secciones" data-ta="aria-label:a.nav">
-    <a href="#averias" data-go="averias" data-t="nav.averias">Averías</a>
+    <a href="#averias" data-go="averias" data-t="nav.averias">Servicios</a>
     <a href="#cuesta" data-go="cuesta" data-t="nav.precio">Precio</a>
     <a href="#barrio" data-go="barrio" data-t="nav.barrio">Barrio</a>
     <a href="#garantia" data-go="garantia" data-t="nav.garantia">Garantía</a>
-     <a href="cita.html" data-t="nav.cita">Pedir cita</a>
-     <a href="cliente.html" data-t="nav.zona">Tu zona</a>
+    <a href="cliente.html" data-t="nav.zona">Tu zona</a>
   </nav>
+  <a class="btn pri" href="cita.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14.5h3"/></svg><span data-t="nav.cita">Pedir cita</span></a>
   <a class="num-s" href="tel:+34930000000" data-call>930 00 00 00</a>
   <div class="langs" role="group" aria-label="Idioma" data-ta="aria-label:a.lang"><button data-lang="es" aria-pressed="true">ES</button><button data-lang="ca" aria-pressed="false">CA</button><button data-lang="en" aria-pressed="false">EN</button></div>
 </div>
 
 <div class="pscrim" id="pscrim"></div>
 <section class="sheet" id="p-desglose" role="dialog" aria-modal="true" aria-labelledby="dT" aria-hidden="true" inert>
-  <div class="shd"><h2 id="dT">Fuga, ahora.</h2><button class="rb" data-close aria-label="Cerrar" data-ta="aria-label:a.cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="shd"><h2 id="dT">Fuga de agua: qué incluye</h2><button class="rb" data-close aria-label="Cerrar" data-ta="aria-label:a.cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="sbody">
-    <p class="drate" id="dRate">Tarifa normal.</p>
+    <p class="drate" id="dRate">Con cita, tarifa normal.</p>
     <ul class="drows" id="dRows"></ul>
     <div class="dtot"><span data-t="d.tot">Total</span><b id="dTot">75–140 €</b></div>
-    <p class="dalt" id="dAlt"></p>
     <p class="dnote" id="dNote"></p>
-    <p class="dnote" data-t="d.cerrado">El precio exacto te lo cerramos antes de empezar.</p>
-      <p class="dnote" data-t="d.iva">Precios con IVA para una vivienda (10 %). Si el material pasa del 40 % del trabajo o es un local, el IVA es del 21 %.</p>
-      <p class="dnote"><a href="cita.html" data-t="d.cita">¿Puede esperar? Pide cita con tarifa normal</a></p>
+    <p class="dnote" data-t="d.cerrado">El precio final se cierra y lo firmas antes de empezar.</p>
+    <p class="dnote" data-t="d.iva">Precios con IVA para una vivienda (10 %). Si el material pasa del 40 % del trabajo o es un local, el IVA es del 21 %.</p>
+    <p class="dalt" id="dAlt"></p>
     <div class="acts">
-      <a class="btn pri" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span data-t="b.llamar">Llamar</span></a>
-      <a class="btn" href="https://wa.me/34930000000" data-wa><span data-t="b.foto">Mandar foto</span></a>
+      <a class="btn pri" id="dRes" href="cita.html?servicio=fuga"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14.5h3"/></svg><span id="dResT">Reservar Fuga de agua</span></a>
+      <a class="btn" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span data-t="b.llamar">Llamar</span></a>
     </div>
   </div>
 </section>
@@ -588,7 +623,7 @@ html.snap{scroll-snap-type:y mandatory}
 </section>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script type="application/json" id="i18n">{"ca":{"a.home":"Ramírez 24 h: tornar a l’entrada","a.nav":"Seccions","a.lang":"Idioma","a.menu":"Obrir el menú","a.menuT":"Menú","a.track":"Entrada: la furgoneta arriba al teu portal","a.averias":"Avaries","a.prev":"Avaria anterior","a.next":"Avaria següent","a.bar":"Trucar o escriure","a.cerrar":"Tancar","a.s5":"5 de 5","a.s4":"4 de 5","a.mapa":"Mapa dels districtes de Barcelona","nav.precio":"Preu","nav.barrio":"Barri","nav.garantia":"Garantia","nav.averias":"Avaries","b.llamar":"Trucar","b.foto":"Enviar foto","bar.llamar":"Trucar ara","bar.foto":"Foto","in.t":"Lampistes 24 hores.","hola":"Arribem abans de les <b data-eta>{t}</b>.","guardia":"{n} tècnics de guàrdia ara mateix.","w.sig":"Preu, barri i garantia: llisca.","av.m":"Arribem en {m}.","av.m.d":"A {b}, arribem en {m}.","av.t":"Què et passa?","av.precio":"Preu","av.llegamos":"Arribem en","av.es":"És això","desde":"des de {p}","urg":"Tarifa d’urgència: +40 %","av.fuga":"Fuita d’aigua","av.atasco":"Embús","av.termo":"Sense aigua calenta","av.cisterna":"Cisterna que perd","av.grifo":"Aixeta que goteja","av.otra":"Una altra avaria","av.fuga.l":"Canonada, clau de pas o flexo.","av.atasco.l":"Aigüera, vàter, dutxa o baixant.","av.termo.l":"Termo elèctric o escalfador.","av.cisterna.l":"L’aigua no para de córrer o no carrega.","av.grifo.l":"Goteja, perd o s’ha de canviar.","av.otra.l":"Explica-ho i et donem el preu al moment.","cu.t":"El que costa.","cu.n":"Ara, tarifa normal.","cu.u":"Ara, tarifa d’urgència: +40 %.","cu.l":"Preu tancat abans de començar.","cu.ej":"Veure l’exemple","cu.ej2":"Amagar l’exemple","p.t":"Part de treball","p.r1":"Desplaçament a Barcelona","p.r2":"Mà d’obra","p.r3":"De 20 a 8 h, caps de setmana i festius","p.sello":"Preu tancat","ej.t":"Una fuita d’1 h 30 min, un dimarts","ej.r1":"Desplaçament","ej.r2":"Mà d’obra, 1 h 30 min","ej.tot":"Total","ej.dom":"La mateixa feina un diumenge: {p}.","ba.t":"A quin barri ets?","ba.toca":"Toca el teu barri.","ba.toca2":"I et diem a quina hora arribem.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si truques ara, arribem abans de les {t}.","ba.cp":"O escriu el teu codi postal","ba.no":"Aquest codi no és de Barcelona. Truca’ns: també anem a L’Hospitalet, Esplugues i Sant Adrià.","ba.ley":"Minuts per arribar des del taller de Sants, amb trànsit normal.","ba.taller":"Taller","ba.mar":"MAR","ga.t":"Ho signem.","ga.d1":"Empresa instal·ladora autoritzada","ga.d2":"Factura amb IVA","ga.d3":"en 540 ressenyes","ga.p1":"Truques","ga.p2":"Arribem","ga.p3":"Preu tancat","ga.p4":"Garantia","ga.res":"Llegir ressenyes","ga.k":"Garantia de Ramírez 24 h","ga.big":"1 any","ga.s":"A cada feina, per escrit i a la teva factura.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, el fundador, de nit en un carrer de Barcelona","mi.t":"Mentre arribem.","mi.1":"Tanca la clau de pas.","mi.1s":"Gira la roda cap a la dreta, fins al final.","mi.2":"Aigua a prop d’un endoll?","mi.2s":"Abaixa el diferencial del quadre de la llum.","mi.3":"Fes una foto i envia-la’ns.","mi.3s":"Així venim amb la peça que toca.","mi.btn":"Enviar la foto","fi.t":"Fuita ara?","fi.l":"24 hores, 365 dies. Taller a Sants.","fi.wa":"WhatsApp","fi.top":"Tornar a l’entrada","fi.demo":"Web de mostra feta per OOOX: empresa, telèfon, preus i ressenyes són d’exemple.","fi.cta":"En vull una així","fi.mapa":"Mapa: Ajuntament de Barcelona (CC BY 4.0).","d.t":"{a}, ara.","d.n":"Tarifa normal.","d.u":"Tarifa d’urgència: +40 % en desplaçament i mà d’obra.","d.alt.n":"De nit, en cap de setmana o festiu: {p}.","d.alt.u":"En horari normal, de dilluns a divendres de 8 a 20 h: {p}.","d.tot":"Total","d.cerrado":"El preu exacte te’l tanquem abans de començar.","re.t":"El que diuen.","re.1":"Van venir a les dues de la matinada. Ens van donar el preu abans de tocar res i va ser aquest.","re.1a":"Núria, Les Corts","re.2":"Vaig enviar una foto del termo per WhatsApp i van venir amb la peça. En una hora, aigua calenta.","re.2a":"Andrés, Sants","re.3":"Ràpids i nets. El preu final va ser el del pressupost.","re.3a":"Claire, Eixample","re.ej":"Ressenyes d’exemple: aquesta web és una mostra.","wa.full":"{a} a {b}, ara. Us envio foto.","wa.av":"{a}, ara. Us envio foto.","wa.b":"Avaria a {b}, ara. Us envio foto.","wa.none":"Tinc una avaria, ara. Us envio foto.","wa.fuga":"Fuita","wa.atasco":"Embús","wa.termo":"Sense aigua calenta","wa.cisterna":"Cisterna que perd","wa.grifo":"Aixeta que goteja","wa.otra":"Avaria","dm.callT":"Trucada directa","dm.callN":"A la web real, aquest botó truca amb un toc. A la demo no truquem a ningú.","dm.waT":"Així li arriba el missatge a Ramírez","dm.waN":"A la web real, aquest botó obre WhatsApp amb el missatge ja escrit. La foto l’afegeixes tu.","dm.cta":"En vull una així","dm.close":"Tancar","dm.online":"en línia","min":"min","d.iva":"Preus amb IVA per a un habitatge (10 %). Si el material passa del 40 % de la feina o és un local, l’IVA és del 21 %.","d.cita":"Pot esperar? Demana cita amb tarifa normal","fi.cita":"Pot esperar? Demana cita","nav.cita":"Demanar cita","nav.zona":"La teva zona","fi.dentro":"Veure l’app per dins","dm.band":"Veure-ho arribar a la safata de Ramírez","in.esp":"Pot esperar?","a.barrios":"Barris"},"en":{"a.home":"Ramírez 24 h: back to the start","a.nav":"Sections","a.lang":"Language","a.menu":"Open the menu","a.menuT":"Menu","a.track":"Intro: the van pulls up at your door","a.averias":"Problems","a.prev":"Previous problem","a.next":"Next problem","a.bar":"Call or message","a.cerrar":"Close","a.s5":"5 out of 5","a.s4":"4 out of 5","a.mapa":"Map of Barcelona’s districts","nav.precio":"Prices","nav.barrio":"Area","nav.garantia":"Guarantee","nav.averias":"Problems","b.llamar":"Call","b.foto":"Send a photo","bar.llamar":"Call now","bar.foto":"Photo","in.t":"24-hour plumbers.","hola":"We’ll be there by <b data-eta>{t}</b>.","guardia":"{n} plumbers on call right now.","w.sig":"Prices, area and guarantee: swipe.","av.m":"We get there in {m}.","av.m.d":"To {b}: {m}.","av.t":"What’s wrong?","av.precio":"Price","av.llegamos":"We arrive in","av.es":"That’s it","desde":"from {p}","urg":"Emergency rate: +40%","av.fuga":"Water leak","av.atasco":"Blockage","av.termo":"No hot water","av.cisterna":"Leaking cistern","av.grifo":"Dripping tap","av.otra":"Another problem","av.fuga.l":"Pipe, stopcock or flexi hose.","av.atasco.l":"Sink, toilet, shower or soil stack.","av.termo.l":"Electric water heater or boiler.","av.cisterna.l":"Water keeps running or it won’t fill.","av.grifo.l":"Dripping, leaking or needs replacing.","av.otra.l":"Tell us and we’ll quote you on the spot.","cu.t":"What it costs.","cu.n":"Right now: standard rate.","cu.u":"Right now: emergency rate, +40%.","cu.l":"Fixed price before we start.","cu.ej":"See an example","cu.ej2":"Hide the example","p.t":"Job sheet","p.r1":"Call-out within Barcelona","p.r2":"Labour","p.r3":"8 pm to 8 am, weekends and public holidays","p.sello":"Fixed price","ej.t":"A 1 h 30 min leak, on a Tuesday","ej.r1":"Call-out","ej.r2":"Labour, 1 h 30 min","ej.tot":"Total","ej.dom":"The same job on a Sunday: {p}.","ba.t":"Which area are you in?","ba.toca":"Tap your area.","ba.toca2":"We’ll tell you when we’ll arrive.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Call now and we’ll be there by {t}.","ba.cp":"Or type your postcode","ba.no":"That postcode isn’t in Barcelona. Call us: we also cover L’Hospitalet, Esplugues and Sant Adrià.","ba.ley":"Minutes to reach you from our Sants workshop, in normal traffic.","ba.taller":"Workshop","ba.mar":"SEA","ga.t":"We put it in writing.","ga.d1":"Licensed plumbing company","ga.d2":"VAT invoice","ga.d3":"from 540 reviews","ga.p1":"You call","ga.p2":"We arrive","ga.p3":"Fixed price","ga.p4":"Guarantee","ga.res":"Read reviews","ga.k":"Ramírez 24 h guarantee","ga.big":"1 year","ga.s":"On every job, in writing, on your invoice.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, the founder, on a Barcelona street at night","mi.t":"Until we get there.","mi.1":"Turn off the stopcock.","mi.1s":"Turn the wheel clockwise, all the way.","mi.2":"Water near a socket?","mi.2s":"Switch off the main breaker in the fuse box.","mi.3":"Take a photo and send it.","mi.3s":"So we bring the right part.","mi.btn":"Send the photo","fi.t":"Leak right now?","fi.l":"24 hours, 365 days. Workshop in Sants.","fi.wa":"WhatsApp","fi.top":"Back to the start","fi.demo":"Sample website made by OOOX: the company, phone number, prices and reviews are examples.","fi.cta":"I want one like this","fi.mapa":"Map: Ajuntament de Barcelona (CC BY 4.0).","d.t":"{a}, right now.","d.n":"Standard rate.","d.u":"Emergency rate: +40% on call-out and labour.","d.alt.n":"At night, at weekends or on public holidays: {p}.","d.alt.u":"Standard hours, Monday to Friday 8 am to 8 pm: {p}.","d.tot":"Total","d.cerrado":"We agree the exact price with you before we start.","re.t":"What people say.","re.1":"They came at two in the morning. They gave us the price before touching anything, and that’s what we paid.","re.1a":"Núria, Les Corts","re.2":"I sent a photo of the water heater on WhatsApp and they came with the part. Hot water again within the hour.","re.2a":"Andrés, Sants","re.3":"Quick and tidy. The final price matched the quote.","re.3a":"Claire, Eixample","re.ej":"Sample reviews: this website is a demo.","wa.full":"{a} in {b}, right now. Sending you a photo.","wa.av":"{a}, right now. Sending you a photo.","wa.b":"Plumbing problem in {b}, right now. Sending you a photo.","wa.none":"I have a plumbing problem, right now. Sending you a photo.","wa.fuga":"Leak","wa.atasco":"Blockage","wa.termo":"No hot water","wa.cisterna":"Leaking cistern","wa.grifo":"Dripping tap","wa.otra":"Problem","dm.callT":"One-tap call","dm.callN":"On the real site, this button calls the business in one tap. In the demo we don’t call anyone.","dm.waT":"This is the message Ramírez gets","dm.waN":"On the real site, this button opens WhatsApp with the message already written. You add the photo.","dm.cta":"I want one like this","dm.close":"Close","dm.online":"online","min":"min","d.iva":"Prices include VAT for a home (10%). If parts exceed 40% of the job, or it is business premises, VAT is 21%.","d.cita":"Can it wait? Book a visit at the standard rate","fi.cita":"Can it wait? Book a visit","nav.cita":"Book a visit","nav.zona":"Your area","fi.dentro":"See the app behind it","dm.band":"See it arrive in Ramírez’s inbox","in.esp":"Can it wait?","a.barrios":"Areas"},"es":{"av.m":"Llegamos en {m}.","av.m.d":"A {b} llegamos en {m}.","hola":"Llegamos antes de las <b data-eta>{t}</b>.","guardia":"{n} técnicos de guardia ahora mismo.","desde":"desde {p}","urg":"Tarifa de urgencia: +40 %","av.fuga":"Fuga de agua","av.atasco":"Atasco","av.termo":"Sin agua caliente","av.cisterna":"Cisterna que pierde","av.grifo":"Grifo que gotea","av.otra":"Otra avería","av.fuga.l":"Tubería, llave de paso o latiguillo.","av.atasco.l":"Fregadero, váter, ducha o bajante.","av.termo.l":"Termo eléctrico o calentador.","av.cisterna.l":"No para de correr el agua o no carga.","av.grifo.l":"Gotea, pierde o hay que cambiarlo.","av.otra.l":"Cuéntanoslo y te damos el precio al momento.","cu.n":"Ahora, tarifa normal.","cu.u":"Ahora, tarifa de urgencia: +40 %.","cu.ej2":"Ocultar el ejemplo","ej.dom":"El mismo trabajo un domingo: {p}.","ba.toca":"Toca tu barrio.","ba.toca2":"Y te decimos a qué hora llegamos.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si llamas ahora, llegamos antes de las {t}.","ba.no":"Ese código no es de Barcelona. Llámanos: también vamos a L’Hospitalet, Esplugues y Sant Adrià.","ba.taller":"Taller","ba.mar":"MAR","a.mapa":"Mapa de los distritos de Barcelona","mi.1":"Cierra la llave de paso.","mi.1s":"Gira la rueda a la derecha, hasta el final.","mi.2":"¿Agua cerca de un enchufe?","mi.2s":"Baja el diferencial del cuadro de la luz.","mi.3":"Haz una foto y mándanosla.","mi.3s":"Así venimos con la pieza que toca.","d.alt.n":"De noche, en fin de semana o festivo: {p}.","d.alt.u":"En horario normal, de lunes a viernes de 8 a 20 h: {p}.","d.t":"{a}, ahora.","d.n":"Tarifa normal.","d.u":"Tarifa de urgencia: +40 % en desplazamiento y mano de obra.","wa.full":"{a} en {b}, ahora. Os mando foto.","wa.av":"{a}, ahora. Os mando foto.","wa.b":"Avería en {b}, ahora. Os mando foto.","wa.none":"Tengo una avería, ahora. Os mando foto.","wa.fuga":"Fuga","wa.atasco":"Atasco","wa.termo":"Sin agua caliente","wa.cisterna":"Cisterna que pierde","wa.grifo":"Grifo que gotea","wa.otra":"Avería","dm.callT":"Llamada directa","dm.callN":"En la web real, este botón llama con un toque. En la demo no llamamos a nadie.","dm.waT":"Así le llega el mensaje a Ramírez","dm.waN":"En la web real, este botón abre WhatsApp con el mensaje ya escrito. La foto la añades tú.","dm.cta":"Quiero una web así","dm.close":"Cerrar","dm.online":"en línea","min":"min","dm.band":"Verlo llegar a la bandeja de Ramírez","in.esp":"¿Puede esperar?"}}</script>
+<script type="application/json" id="i18n">{"ca":{"a.home":"Ramírez 24 h: tornar a l’entrada","a.nav":"Seccions","a.lang":"Idioma","a.menu":"Obrir el menú","a.menuT":"Menú","a.track":"Entrada: la furgoneta arriba al teu portal","a.averias":"Avaries","a.bar":"Demanar cita o trucar","a.cerrar":"Tancar","a.s5":"5 de 5","a.s4":"4 de 5","a.mapa":"Mapa dels districtes de Barcelona","nav.precio":"Preu","nav.barrio":"Barri","nav.garantia":"Garantia","nav.averias":"Serveis","b.llamar":"Trucar","b.foto":"Enviar foto per WhatsApp","bar.llamar":"Trucar ara","in.t":"Lampistes 24 hores.","hola":"Arribem abans de les <b data-eta>{t}</b>.","guardia":"{n} tècnics de guàrdia ara mateix.","w.sig":"Serveis, preu i garantia: llisca.","av.t":"Què necessites arreglar?","desde":"des de {p}","av.fuga":"Fuita d’aigua","av.atasco":"Embús","av.termo":"Sense aigua calenta","av.cisterna":"Cisterna que perd","av.grifo":"Aixeta que goteja","av.otra":"Una altra avaria","cu.t":"El que costa.","cu.n":"Ara, tarifa normal.","cu.u":"Ara, tarifa de nit i festius.","cu.l":"Preu tancat abans de començar.","cu.ej":"Veure l’exemple","cu.ej2":"Amagar l’exemple","p.t":"Part de treball","p.r1":"Desplaçament a Barcelona","p.r2":"Mà d’obra","p.r3":"Desplaçament i mà d’obra, de 20 a 8 h, caps de setmana i festius","p.sello":"Preu tancat","ej.t":"Una fuita d’1 h 30 min, un dimarts, amb cita","ej.r1":"Desplaçament","ej.r2":"Mà d’obra, 1 h 30 min","ej.tot":"Total","ej.dom":"La mateixa fuita un diumenge, sense cita: {p}.","ba.t":"A quin barri ets?","ba.toca":"Toca el teu barri.","ba.toca2":"I et diem a quina hora arribem.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si truques ara, arribem abans de les {t}.","ba.cp":"O escriu el teu codi postal","ba.no":"Aquest codi no és de Barcelona. Truca’ns: també anem a L’Hospitalet, Esplugues i Sant Adrià.","ba.ley":"Minuts per arribar des del taller de Sants, amb trànsit normal.","ba.taller":"Taller","ba.mar":"MAR","ga.t":"Ho signem.","ga.d1":"Empresa instal·ladora autoritzada","ga.d2":"Factura amb IVA","ga.d3":"en 540 ressenyes","ga.p1":"Demanes","ga.p2":"Arribem","ga.p3":"Preu tancat","ga.p4":"Garantia","ga.res":"Llegir ressenyes","ga.k":"Garantia de Ramírez 24 h","ga.big":"1 any","ga.s":"A cada feina, per escrit i a la teva factura.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, el fundador, de nit en un carrer de Barcelona","mi.t":"Mentre arribem.","mi.1":"Tanca la clau de pas.","mi.1s":"Gira la roda cap a la dreta, fins al final.","mi.2":"Aigua a prop d’un endoll?","mi.2s":"Abaixa el diferencial del quadre de la llum.","mi.3":"Fes una foto i envia-la’ns.","mi.3s":"Així venim amb la peça que toca.","mi.btn":"Enviar foto per WhatsApp","fi.t":"Demana cita o truca’ns.","fi.l":"24 hores, 365 dies. Taller a Sants.","fi.wa":"WhatsApp","fi.top":"Tornar a l’entrada","fi.demo":"Web de mostra feta per OOOX: empresa, telèfon, preus i ressenyes són d’exemple.","fi.cta":"En vull una així","fi.mapa":"Mapa: Ajuntament de Barcelona (CC BY 4.0).","d.t":"{a}: què inclou","d.n":"Amb cita, tarifa normal.","d.tot":"Total","d.cerrado":"El preu final es tanca i el signes abans de començar.","re.t":"El que diuen.","re.1":"Van venir a les dues de la matinada. Ens van donar el preu abans de tocar res i va ser aquest.","re.1a":"Núria, Les Corts","re.2":"Vaig enviar una foto del termo per WhatsApp i van venir amb la peça. En una hora, aigua calenta.","re.2a":"Andrés, Sants","re.3":"Ràpids i nets. El preu final va ser el del pressupost.","re.3a":"Claire, Eixample","re.ej":"Ressenyes d’exemple: aquesta web és una mostra.","wa.full":"{a} a {b}, ara. Us envio foto.","wa.av":"{a}, ara. Us envio foto.","wa.b":"Avaria a {b}, ara. Us envio foto.","wa.none":"Tinc una avaria, ara. Us envio foto.","wa.fuga":"Fuita","wa.atasco":"Embús","wa.termo":"Sense aigua calenta","wa.cisterna":"Cisterna que perd","wa.grifo":"Aixeta que goteja","wa.otra":"Avaria","dm.callT":"Trucada directa","dm.callN":"A la web real, aquest botó truca amb un toc. A la demo no truquem a ningú.","dm.waT":"Així li arriba el missatge a Ramírez","dm.waN":"A la web real, aquest botó obre WhatsApp amb el missatge ja escrit. La foto l’afegeixes tu.","dm.cta":"En vull una així","dm.close":"Tancar","dm.online":"en línia","min":"min","d.iva":"Preus amb IVA per a un habitatge (10 %). Si el material passa del 40 % de la feina o és un local, l’IVA és del 21 %.","nav.cita":"Demanar cita","nav.zona":"La teva zona","fi.dentro":"Veure l’app per dins","dm.band":"Veure-ho arribar a la safata de Ramírez","in.esp":"Pot esperar?","a.barrios":"Barris","sv.l":"Preus orientatius amb IVA, amb cita i tarifa normal. El preu final es tanca i el signes abans de començar.","av.fuga.d":"Una canonada, una clau de pas o un flexo que perd aigua.","av.atasco.d":"L’aigüera, la dutxa, el vàter o el baixant no empassen.","av.termo.d":"El termo elèctric no escalfa, fa saltar la llum o perd aigua.","av.cisterna.d":"L’aigua no para de córrer o no s’omple.","av.grifo.d":"Goteja, va dura o s’ha de canviar.","av.otra.d":"No saps què és? Explica-ho amb una nota o una foto.","sv.res":"Reservar","sv.resA":"Reservar: {a}","sv.inc":"Què inclou","sv.desde":"Des de {p}","d.urg":"No pot esperar? Ara, des de {p}: porta {s} de suplement per sortir al moment.","d.urg.n":"No pot esperar? Ara, des de {p}: porta {s} de suplement per sortir al moment i la tarifa de nit i festius.","in.esp.s":"Tries dia i franja, amb tarifa normal.","in.urg":"No pot esperar? Truca’ns i sortim ara: suplement d’urgència de {s}.","p.r4":"Sense cita, per sortir al moment","fi.urg":"No pot esperar? Truca, a qualsevol hora:"},"en":{"a.home":"Ramírez 24 h: back to the start","a.nav":"Sections","a.lang":"Language","a.menu":"Open the menu","a.menuT":"Menu","a.track":"Intro: the van pulls up at your door","a.averias":"Problems","a.bar":"Book or call","a.cerrar":"Close","a.s5":"5 out of 5","a.s4":"4 out of 5","a.mapa":"Map of Barcelona’s districts","nav.precio":"Prices","nav.barrio":"Area","nav.garantia":"Guarantee","nav.averias":"Services","b.llamar":"Call","b.foto":"Send a photo on WhatsApp","bar.llamar":"Call now","in.t":"24-hour plumbers.","hola":"We’ll be there by <b data-eta>{t}</b>.","guardia":"{n} plumbers on call right now.","w.sig":"Services, prices and guarantee: swipe.","av.t":"What needs fixing?","desde":"from {p}","av.fuga":"Water leak","av.atasco":"Blockage","av.termo":"No hot water","av.cisterna":"Leaking cistern","av.grifo":"Dripping tap","av.otra":"Another problem","cu.t":"What it costs.","cu.n":"Right now: standard rate.","cu.u":"Right now: night and holiday rate.","cu.l":"Fixed price before we start.","cu.ej":"See an example","cu.ej2":"Hide the example","p.t":"Job sheet","p.r1":"Call-out within Barcelona","p.r2":"Labour","p.r3":"Call-out and labour, 8 pm to 8 am, weekends and holidays","p.sello":"Fixed price","ej.t":"A 1 h 30 min leak, on a Tuesday, booked","ej.r1":"Call-out","ej.r2":"Labour, 1 h 30 min","ej.tot":"Total","ej.dom":"The same leak on a Sunday, without booking: {p}.","ba.t":"Which area are you in?","ba.toca":"Tap your area.","ba.toca2":"We’ll tell you when we’ll arrive.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Call now and we’ll be there by {t}.","ba.cp":"Or type your postcode","ba.no":"That postcode isn’t in Barcelona. Call us: we also cover L’Hospitalet, Esplugues and Sant Adrià.","ba.ley":"Minutes to reach you from our Sants workshop, in normal traffic.","ba.taller":"Workshop","ba.mar":"SEA","ga.t":"We put it in writing.","ga.d1":"Licensed plumbing company","ga.d2":"VAT invoice","ga.d3":"from 540 reviews","ga.p1":"You ask","ga.p2":"We arrive","ga.p3":"Fixed price","ga.p4":"Guarantee","ga.res":"Read reviews","ga.k":"Ramírez 24 h guarantee","ga.big":"1 year","ga.s":"On every job, in writing, on your invoice.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, the founder, on a Barcelona street at night","mi.t":"Until we get there.","mi.1":"Turn off the stopcock.","mi.1s":"Turn the wheel clockwise, all the way.","mi.2":"Water near a socket?","mi.2s":"Switch off the main breaker in the fuse box.","mi.3":"Take a photo and send it.","mi.3s":"So we bring the right part.","mi.btn":"Send a photo on WhatsApp","fi.t":"Book a visit or call us.","fi.l":"24 hours, 365 days. Workshop in Sants.","fi.wa":"WhatsApp","fi.top":"Back to the start","fi.demo":"Sample website made by OOOX: the company, phone number, prices and reviews are examples.","fi.cta":"I want one like this","fi.mapa":"Map: Ajuntament de Barcelona (CC BY 4.0).","d.t":"{a}: what’s included","d.n":"Booked visit, standard rate.","d.tot":"Total","d.cerrado":"The final price is agreed and you sign it before we start.","re.t":"What people say.","re.1":"They came at two in the morning. They gave us the price before touching anything, and that’s what we paid.","re.1a":"Núria, Les Corts","re.2":"I sent a photo of the water heater on WhatsApp and they came with the part. Hot water again within the hour.","re.2a":"Andrés, Sants","re.3":"Quick and tidy. The final price matched the quote.","re.3a":"Claire, Eixample","re.ej":"Sample reviews: this website is a demo.","wa.full":"{a} in {b}, right now. Sending you a photo.","wa.av":"{a}, right now. Sending you a photo.","wa.b":"Plumbing problem in {b}, right now. Sending you a photo.","wa.none":"I have a plumbing problem, right now. Sending you a photo.","wa.fuga":"Leak","wa.atasco":"Blockage","wa.termo":"No hot water","wa.cisterna":"Leaking cistern","wa.grifo":"Dripping tap","wa.otra":"Problem","dm.callT":"One-tap call","dm.callN":"On the real site, this button calls the business in one tap. In the demo we don’t call anyone.","dm.waT":"This is the message Ramírez gets","dm.waN":"On the real site, this button opens WhatsApp with the message already written. You add the photo.","dm.cta":"I want one like this","dm.close":"Close","dm.online":"online","min":"min","d.iva":"Prices include VAT for a home (10%). If parts exceed 40% of the job, or it is business premises, VAT is 21%.","nav.cita":"Book a visit","nav.zona":"Your area","fi.dentro":"See the app behind it","dm.band":"See it arrive in Ramírez’s inbox","in.esp":"Can it wait?","a.barrios":"Areas","sv.l":"Guide prices incl. VAT, for a booked visit at the standard rate. The final price is agreed and you sign it before we start.","av.fuga.d":"A pipe, stopcock or flexi hose that’s leaking.","av.atasco.d":"The sink, shower, toilet or soil stack won’t drain.","av.termo.d":"The electric water heater won’t heat, trips the power or leaks.","av.cisterna.d":"The water keeps running or it won’t fill.","av.grifo.d":"It drips, it’s stiff or it needs replacing.","av.otra.d":"Not sure what it is? Tell us with a note or a photo.","sv.res":"Book","sv.resA":"Book: {a}","sv.inc":"What’s included","sv.desde":"From {p}","d.urg":"Can’t wait? Right now, from {p}: that includes a {s} supplement for coming straight away.","d.urg.n":"Can’t wait? Right now, from {p}: that includes a {s} supplement for coming straight away and the night and holiday rate.","in.esp.s":"Pick a day and a time slot, at the standard rate.","in.urg":"Can’t wait? Call us and we’ll leave now: {s} emergency supplement.","p.r4":"No booking: for coming straight away","fi.urg":"Can’t wait? Call, any time:"},"es":{"hola":"Llegamos antes de las <b data-eta>{t}</b>.","guardia":"{n} técnicos de guardia ahora mismo.","desde":"desde {p}","av.fuga":"Fuga de agua","av.atasco":"Atasco","av.termo":"Sin agua caliente","av.cisterna":"Cisterna que pierde","av.grifo":"Grifo que gotea","av.otra":"Otra avería","cu.n":"Ahora, tarifa normal.","cu.u":"Ahora, tarifa de noche y festivos.","cu.ej2":"Ocultar el ejemplo","ej.dom":"La misma fuga un domingo, sin cita: {p}.","ba.toca":"Toca tu barrio.","ba.toca2":"Y te decimos a qué hora llegamos.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si llamas ahora, llegamos antes de las {t}.","ba.no":"Ese código no es de Barcelona. Llámanos: también vamos a L’Hospitalet, Esplugues y Sant Adrià.","ba.taller":"Taller","ba.mar":"MAR","a.mapa":"Mapa de los distritos de Barcelona","mi.1":"Cierra la llave de paso.","mi.1s":"Gira la rueda a la derecha, hasta el final.","mi.2":"¿Agua cerca de un enchufe?","mi.2s":"Baja el diferencial del cuadro de la luz.","mi.3":"Haz una foto y mándanosla.","mi.3s":"Así venimos con la pieza que toca.","d.t":"{a}: qué incluye","d.n":"Con cita, tarifa normal.","wa.full":"{a} en {b}, ahora. Os mando foto.","wa.av":"{a}, ahora. Os mando foto.","wa.b":"Avería en {b}, ahora. Os mando foto.","wa.none":"Tengo una avería, ahora. Os mando foto.","wa.fuga":"Fuga","wa.atasco":"Atasco","wa.termo":"Sin agua caliente","wa.cisterna":"Cisterna que pierde","wa.grifo":"Grifo que gotea","wa.otra":"Avería","dm.callT":"Llamada directa","dm.callN":"En la web real, este botón llama con un toque. En la demo no llamamos a nadie.","dm.waT":"Así le llega el mensaje a Ramírez","dm.waN":"En la web real, este botón abre WhatsApp con el mensaje ya escrito. La foto la añades tú.","dm.cta":"Quiero una web así","dm.close":"Cerrar","dm.online":"en línea","min":"min","dm.band":"Verlo llegar a la bandeja de Ramírez","in.esp":"¿Puede esperar?","sv.desde":"Desde {p}","sv.resA":"Reservar {a}","d.urg":"¿No puede esperar? Ahora, desde {p}: lleva {s} de suplemento por salir en el momento.","d.urg.n":"¿No puede esperar? Ahora, desde {p}: lleva {s} de suplemento por salir en el momento y la tarifa de noche y festivos.","in.urg":"¿No puede esperar? Llámanos y salimos ahora: suplemento de urgencia de {s}."}}</script>
 <script src="js/oficio-vigia.js" data-pagina="web" data-negocio="ramirez"></script>
 <script src="assets/gsap.min.js"></script>
 <script>
@@ -625,7 +660,8 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 {const q=(location.search.match(/[?&]lang=(es|ca|en)/)||[])[1],sv=store.get('lang'),nv=(navigator.language||'es').slice(0,2);LANG=q||(SHOT?'es':'')||sv||(nv==='ca'?'ca':'es')}
 
 /* ===== la hora de Barcelona lo decide todo: llegada, tarifa y precio ===== */
-const TZ='Europe/Madrid',SUR=.4;
+/* las cifras del negocio (las mismas que su archivo de datos: una prueba lo comprueba) */
+const TZ='Europe/Madrid',SUR=.4,DESP=30,MO=45,URGE=30;
 const HOL=['2026-01-01','2026-01-06','2026-04-03','2026-04-06','2026-05-01','2026-05-25','2026-06-24','2026-08-15','2026-09-11','2026-09-24','2026-10-12','2026-11-01','2026-12-06','2026-12-08','2026-12-25','2026-12-26','2027-01-01','2027-01-06','2027-03-26','2027-03-29','2027-05-01','2027-05-17','2027-06-24','2027-09-11','2027-09-24','2027-10-12','2027-11-01','2027-12-06','2027-12-08','2027-12-25'];
 function madrid(d){const p=new Intl.DateTimeFormat('en-GB',{timeZone:TZ,weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d||new Date()),g=k=>(p.find(x=>x.type===k)||{}).value;
  return{day:{Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[g('weekday')],min:+g('hour')*60+ +g('minute'),date:g('year')+'-'+g('month')+'-'+g('day'),dmy:g('day')+'/'+g('month')+'/'+g('year')}}
@@ -689,39 +725,29 @@ function pintaVivo(){const n=madrid(),u=urgente(n),eta=hhmm(n.min+etaMin());
  document.body.classList.toggle('is-urg',u);
  $('#hola').innerHTML=t('hola',{t:eta});$('#guardia').textContent=t('guardia',{n:tecnicos(n)});
  $('#ahoraT').textContent=t(u?'cu.u':'cu.n');$('#pFecha').textContent=n.dmy+'  '+hhmm(n.min);
- $('#ej1').textContent=eur2(30);$('#ej2').textContent=eur2(67.5);$('#ej3').textContent=eur2(97.5);$('#ejDom').textContent=t('ej.dom',{p:eur2(136.5)});
- pintaAv(false);pintaBarrio();if(openP==='desglose')pintaDesglose();refreshLinks()}
-/* --- averías --- */
-const avIdx=()=>AV.findIndex(a=>a.id===S.av);
-$('#chips').innerHTML=AV.map(a=>`<button data-av="${a.id}" aria-pressed="false"></button>`).join('');
-function pintaAv(){const p=AV[avIdx()],u=UR(),tt=total(p,u),suf=p.suf?' '+L(p.suf):'';
- $$('#chips button').forEach(b=>{b.textContent=t('av.'+b.dataset.av);b.setAttribute('aria-pressed',String(b.dataset.av===S.av))});
- $('#avN').textContent=t('av.'+p.id);$('#avL').textContent=t('av.'+p.id+'.l');
- $('#avP').textContent=t('desde',{p:eur(tt.a)})+suf;$('#avU').textContent=t('urg');
- $('#avMp').innerHTML=S.d?t('av.m.d',{m:'<b id="avM">'+esc(minTxt(DIS[S.d][1]))+'</b>',b:esc(DIS[S.d][0])}):t('av.m',{m:'<b id="avM">25–40 min</b>'});
- const im=$('#avImg');if(im.dataset.id!==p.id){im.dataset.id=p.id;im.src='assets/img/av-'+p.id+'.webp';im.srcset='assets/img/av-'+p.id+'-s.webp 600w,assets/img/av-'+p.id+'.webp 1024w';im.alt=t('av.'+p.id)}}
-let AVT=null;
-function irAv(i,dir){const n=AV.length;i=((i%n)+n)%n;if(AV[i].id===S.av)return;if(AVT){const x=AVT;AVT=null;x.progress(1)}
- S.av=AV[i].id;S.av0=true;store.set('av',S.av);
- if(RM){pintaAv();refreshLinks();return}
- const im=$('#avImg'),nm=$('#avN'),d=dir||1;
- AVT=gsap.timeline({onComplete:()=>{AVT=null}})
-  .to(im,{x:-70*d,opacity:0,duration:.18,ease:'power2.in'})
-  .to(nm,{yPercent:-30,opacity:0,duration:.16,ease:'power2.in'},0)
-  .add(()=>{pintaAv();refreshLinks()})
-  .fromTo(im,{x:90*d,opacity:0},{x:0,opacity:1,duration:.55,ease:'expo.out'})
-  .fromTo(nm,{yPercent:40,opacity:0},{yPercent:0,opacity:1,duration:.5,ease:'expo.out'},'<')}
-$('#chips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=AV.findIndex(a=>a.id===b.dataset.av);irAv(i,i>=avIdx()?1:-1);0});
-$('#avPrev').onclick=()=>irAv(avIdx()-1,-1);$('#avNext').onclick=()=>irAv(avIdx()+1,1);
-/* el objeto se pasa con el dedo, de lado (de arriba abajo sigue siendo cambiar de pantalla) */
-{let s=null;const o=$('#avObj');o.addEventListener('touchstart',e=>{const q=e.touches[0];s={x:q.clientX,y:q.clientY}},{passive:true});
- o.addEventListener('touchend',e=>{if(!s)return;const q=e.changedTouches[0],dx=q.clientX-s.x,dy=q.clientY-s.y;s=null;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.2)irAv(avIdx()+(dx<0?1:-1),dx<0?1:-1)},{passive:true})}
-/* --- el desglose --- */
-function pintaDesglose(){const p=AV[avIdx()],u=UR(),tt=total(p,u),suf=p.suf?' '+L(p.suf):'';
- $('#dT').textContent=t('d.t',{a:t('av.'+p.id)});$('#dRate').textContent=t(u?'d.u':'d.n');
- $('#dRows').innerHTML=p.rows.map(r=>{const f=fila(r,u);return'<li><span>'+esc(L(r.l))+'</span><b>'+esc(f.a===f.b?eur(f.a):f.a?rango(f.a,f.b):(LANG==='en'?'up to ':LANG==='ca'?'fins a ':'hasta ')+eur(f.b))+'</b></li>'}).join('');
- $('#dTot').textContent=(p.desde?t('desde',{p:eur(tt.a)}):rango(tt.a,tt.b))+suf;{const o=total(p,!u);$('#dAlt').textContent=t(u?'d.alt.u':'d.alt.n',{p:(p.desde?t('desde',{p:eur(o.a)}):rango(o.a,o.b))+suf})}$('#dNote').textContent=p.nota?L(p.nota):'';$('#dNote').hidden=!p.nota}
-$('#esEsto').onclick=()=>{S.av0=true;store.set('av',S.av);refreshLinks();pintaDesglose();openPanel('desglose')};
+ {const mo=MO*1.5,tot=DESP+mo,dom=Math.round(tot*(1+SUR)*100)/100+URGE;
+  $('#ej1').textContent=eur2(DESP);$('#ej2').textContent=eur2(mo);$('#ej3').textContent=eur2(tot);$('#ejDom').textContent=t('ej.dom',{p:eur2(dom)})}
+ $$('[data-fig]').forEach(e=>{const k=e.dataset.fig;if(k==='desp')e.textContent=eur(DESP);else if(k==='mo')e.innerHTML=esc(eur(MO))+'<small>/h</small>';else if(k==='urge')e.textContent='+'+eur(URGE);else if(k==='sur')e.textContent='+'+Math.round(SUR*100)+' %'});
+ $('#urgeL').textContent=t('in.urg',{s:eur(URGE)});
+ pintaSv();pintaBarrio();if(openP==='desglose')pintaDesglose();refreshLinks()}
+/* --- los servicios: precio con cita (tarifa normal) en cada tarjeta; «Reservar» abre la cita con ese servicio --- */
+const avIdx=()=>Math.max(0,AV.findIndex(a=>a.id===S.av));
+const precioSv=p=>{const tt=total(p,false),suf=p.suf?' '+L(p.suf):'';return(p.desde?t('sv.desde',{p:eur(tt.a)}):rango(tt.a,tt.b))+suf};
+const citaUrl=id=>'cita.html?servicio='+encodeURIComponent(id)+(LANG==='es'?'':'&lang='+LANG);
+function pintaSv(){$$('[data-precio]').forEach(e=>{const p=AV.find(a=>a.id===e.dataset.precio);if(p)e.textContent=precioSv(p)});
+ $$('[data-reserva]').forEach(a=>a.setAttribute('aria-label',t('sv.resA',{a:t('av.'+a.dataset.reserva)})))}
+const eligeAv=id=>{if(!AV.some(a=>a.id===id))return;S.av=id;S.av0=true;store.set('av',id);refreshLinks()};
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-incluye],[data-reserva]');if(!b)return;
+ if(b.dataset.incluye){eligeAv(b.dataset.incluye);pintaDesglose();openPanel('desglose');return}
+ eligeAv(b.dataset.reserva)});
+/* --- el desglose: lo que entra con cita, a tarifa normal; la urgencia, en una frase con su cifra --- */
+function pintaDesglose(){const p=AV[avIdx()],tt=total(p,false),suf=p.suf?' '+L(p.suf):'',u=UR(),ug=total(p,u);
+ $('#dT').textContent=t('d.t',{a:t('av.'+p.id)});$('#dRate').textContent=t('d.n');
+ $('#dRows').innerHTML=p.rows.map(r=>{const f=fila(r,false);return'<li><span>'+esc(L(r.l))+'</span><b>'+esc(f.a===f.b?eur(f.a):f.a?rango(f.a,f.b):(LANG==='en'?'up to ':LANG==='ca'?'fins a ':'hasta ')+eur(f.b))+'</b></li>'}).join('');
+ $('#dTot').textContent=(p.desde?t('desde',{p:eur(tt.a)}):rango(tt.a,tt.b))+suf;
+ $('#dAlt').textContent=t(u?'d.urg.n':'d.urg',{p:eur(ug.a+URGE),s:eur(URGE)});
+ $('#dNote').textContent=p.nota?L(p.nota):'';$('#dNote').hidden=!p.nota;
+ $('#dRes').setAttribute('href',citaUrl(p.id));$('#dResT').textContent=t('sv.resA',{a:t('av.'+p.id)})}
 /* --- lo que cuesta --- */
 $('#verEj').onclick=()=>{const p=$('#pEj'),on=p.hidden;p.hidden=!on;$('#verEj').setAttribute('aria-expanded',String(on));$('#verEj').textContent=t(on?'cu.ej2':'cu.ej');
  if(on&&!RM)gsap.fromTo('#pEj p',{opacity:0,x:-10},{opacity:1,x:0,duration:.35,ease:'power3.out',stagger:.06})};
@@ -735,7 +761,7 @@ function pintaBarrio(){const n=madrid();
  $('#mapa .mar').textContent=t('ba.mar');
  if(S.d){const[nm,b]=DIS[S.d];$('#baR').innerHTML=t('ba.r',{b:esc(nm),m:minTxt(b)});$('#baE').textContent=t('ba.eta',{t:hhmm(n.min+BANDA[b])})}
  else{$('#baR').textContent=t('ba.toca');$('#baE').textContent=t('ba.toca2')}}
-function elige(id,src){S.d=id;store.set('d',id||'');pintaBarrio();pintaAv();refreshLinks();$('#hola').innerHTML=t('hola',{t:hhmm(madrid().min+etaMin())});
+function elige(id,src){S.d=id;store.set('d',id||'');pintaBarrio();refreshLinks();$('#hola').innerHTML=t('hola',{t:hhmm(madrid().min+etaMin())});
  if(id&&src!=='cp'){$('#cp').value='';$('#cpMsg').textContent=''}}
 $('#mapaW').addEventListener('click',e=>{const g=e.target.closest('.d');if(g)elige(g.dataset.id)});
 /* la lista: por lo que se tarda en llegar y, a igualdad, por el nombre */
@@ -793,8 +819,14 @@ function pila(){if(SHOT)return;if(!PILA){PILA=[$('.stage'),...SECS.map(id=>docum
 gsap.ticker.add(pila);
 
 /* ===== un gesto, una pantalla ===== */
-function stops(){const vh=innerHeight,max=HTML.scrollHeight-vh,P=[tmax()];
- SECS.forEach(id=>{const e=document.getElementById(id),y=topOf(e);P.push(y);if(e.offsetHeight>vh+40)P.push(Math.min(max,y+e.offsetHeight-vh))});
+function stops(){const vh=innerHeight,max=HTML.scrollHeight-vh,P=[tmax()],arriba=$('.top').getBoundingClientRect().height,bar=$('.bar').offsetHeight||0;
+ SECS.forEach(id=>{const e=document.getElementById(id),y=topOf(e);P.push(y);if(e.offsetHeight<=vh+40)return;
+  /* pantalla larga: desde arriba, cada vez que una fila ([data-paso]) no entra entera entre la cabecera y la barra, se para
+     con esa fila justo debajo de la cabecera; y al final, el final de la pantalla */
+  let v=y;const filas=[...new Set([...e.querySelectorAll('[data-paso]')].map(x=>topOf(x)))].sort((a,b)=>a-b);
+  filas.forEach(ft=>{const fb=Math.max(...[...e.querySelectorAll('[data-paso]')].filter(x=>topOf(x)===ft).map(x=>ft+x.offsetHeight));
+   if(fb>v+vh-bar-4&&ft-arriba-12>v+8){v=Math.min(max,ft-arriba-12);P.push(v)}});
+  P.push(Math.min(max,y+e.offsetHeight-vh))});
  P.push(max);return[...new Set(P.map(x=>Math.round(Math.min(x,max))))].sort((a,b)=>a-b)}
 let openP=null;const blocked=()=>!!openP||!!document.querySelector('dialog[open]');
 function page(dir){const y=scrollY,P=stops(),to=dir>0?P.find(x=>x>y+4):[...P].reverse().find(x=>x<y-4);
@@ -807,7 +839,6 @@ function onWheelDy(dy,ev){if(ev)ev.preventDefault();clearTimeout(wQ);wQ=setTimeo
 addEventListener('wheel',e=>{if(SHOT||blocked()||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;onWheelDy(e.deltaY,e)},{passive:false});
 addEventListener('keydown',e=>{if(e.key==='Escape'){closeAll();return}const ae=document.activeElement||document.body;if(!acabada&&e.key==='Tab')llega(true);if(SHOT||blocked()||/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;const k=e.key;
  if(e.repeat&&/Arrow|Page| /.test(k)){e.preventDefault();return}
- if((k==='ArrowLeft'||k==='ArrowRight')&&curSec==='averias'&&(ae===document.body||ae===HTML||ae.closest('#averias'))){e.preventDefault();irAv(avIdx()+(k==='ArrowRight'?1:-1),k==='ArrowRight'?1:-1);return}
  if(k===' '&&ae!==document.body&&ae!==HTML)return;
  const d=(k==='ArrowDown'||k==='PageDown'||(k===' '&&!e.shiftKey))?1:(k==='ArrowUp'||k==='PageUp'||(k===' '&&e.shiftKey))?-1:0;if(!d)return;e.preventDefault();
  if(!acabada){llega(true);return}
@@ -815,7 +846,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'){closeAll();return}const ae=d
 let ts=null;
 addEventListener('touchstart',e=>{if(blocked())return;const q=e.touches[0];ts={x:q.clientX,y:q.clientY}},{passive:true});
 addEventListener('touchmove',e=>{if(SHOT||!ts||blocked())return;const q=e.touches[0],dx=q.clientX-ts.x,dy=q.clientY-ts.y;
- if(dy>0&&scrollY<=0)return;if(e.target.closest&&e.target.closest('.chips')&&Math.abs(dx)>Math.abs(dy))return;
+ if(dy>0&&scrollY<=0)return;
  if(Math.abs(dy)>Math.abs(dx)&&e.cancelable)e.preventDefault()},{passive:false});
 addEventListener('touchend',e=>{if(SHOT||!ts)return;const q=e.changedTouches[0],dx=q.clientX-ts.x,dy=q.clientY-ts.y;ts=null;
  if(blocked()||gliding||Math.abs(dy)<40||Math.abs(dy)<Math.abs(dx)*1.2)return;
@@ -861,7 +892,7 @@ langFns.push(()=>HEADS.forEach(s=>{const ls=partir($(s));if(LN[s])gsap.set(ls,{y
 if(!RM&&'IntersectionObserver'in window){
  const lineas=(tl,sel,at)=>{LN[sel]=false;return tl.fromTo(partir($(sel)),{yPercent:108},{yPercent:0,duration:1,ease:'expo.out',stagger:.09},at||0)};
  const E={
-  averias:{ln:'#avT',pre:['#avObj','#chips button'],run(){lineas(gsap.timeline(),'#avT').fromTo('#avObj',{x:80,opacity:0},{x:0,opacity:1,duration:.9,ease:'expo.out'},.1).fromTo('#chips button',{opacity:0,y:10},{opacity:1,y:0,duration:.4,ease:'power3.out',stagger:.04},.15)}},
+  averias:{ln:'#avT',pre:['.svl','#svs .svc'],run(){lineas(gsap.timeline(),'#avT').fromTo('.svl',{opacity:0,y:10},{opacity:1,y:0,duration:.5,ease:'power3.out'},.1).fromTo('#svs .svc',{opacity:0,y:24},{opacity:1,y:0,duration:.7,ease:'expo.out',stagger:.07},.15)}},
   cuesta:{ln:'#cuT',pre:['#parte'],run(){lineas(gsap.timeline(),'#cuT').fromTo('#parte',{y:70,rotation:-5,opacity:0},{y:0,rotation:-1.2,opacity:1,duration:1,ease:'expo.out'},.1)}},
   barrio:{ln:'#baT',pre:['#mapa .d'],run(){lineas(gsap.timeline(),'#baT').fromTo('#mapa .d',{opacity:0},{opacity:1,duration:.5,ease:'power2.out',stagger:.05},.1)}},
   garantia:{ln:'#gaT',pre:['#gcard'],run(){lineas(gsap.timeline(),'#gaT').fromTo('#gcard',{y:70,rotation:6,opacity:0},{y:0,rotation:1.4,opacity:1,duration:1,ease:'expo.out'},.1)}},
@@ -883,7 +914,7 @@ else HEADS.forEach(s=>partir($(s)));
    mucho hasta el 84 %); si ni así, la pantalla se alarga y se recorre con el dedo como siempre. En el ordenador, nada. */
 const SVH=(()=>{const p=document.createElement('div');p.style.cssText='position:fixed;top:0;left:0;width:1px;height:100svh;visibility:hidden;pointer-events:none';return()=>{document.body.appendChild(p);const h=p.getBoundingClientRect().height;p.remove();return h||innerHeight}})();
 function cabe(){const movil=innerWidth<900,h=Math.min(SVH(),innerHeight);
- $$('section.sx>.in').forEach(i=>{i.style.zoom='';if(!movil)return;const cs=getComputedStyle(i.parentElement),hueco=h-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom),alto=i.getBoundingClientRect().height;
+ $$('section.sx>.in').forEach(i=>{i.style.zoom='';if(!movil||i.parentElement.hasAttribute('data-largo'))return;const cs=getComputedStyle(i.parentElement),hueco=h-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom),alto=i.getBoundingClientRect().height;
   if(alto>hueco+1)i.style.zoom=String(Math.max(.84,Math.floor(hueco/alto*1000)/1000))})}
 {let tc=0;const otra=()=>{clearTimeout(tc);tc=setTimeout(cabe,120)};addEventListener('resize',otra);addEventListener('orientationchange',otra);langFns.push(cabe);
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(cabe);addEventListener('load',cabe)}

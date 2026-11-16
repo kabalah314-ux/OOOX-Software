@@ -90,7 +90,7 @@ async def main():
         await k.click(f'[data-alt="{marc[-1]}"]'); marc = marc[:-1]
         es(await k.locator('[data-alt][aria-pressed=true]').count() == len(marc), 'cliente: y desmarcar una')
         await k.fill('#c_nombre', 'Clara Franjas'); await k.fill('#c_apellidos', 'Prueba'); await k.fill('#c_tel', '611 22 44 90'); await k.fill('#c_dir', 'C/ de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
-        await k.click('button[type=submit]'); await k.wait_for_selector('.doc'); idk = (await k.evaluate("location.hash")).split('/')[-1]
+        await k.click('button[type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await k.wait_for_selector('.doc'); idk = (await k.evaluate("location.hash")).split('/')[-1]
         A = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idk}')")
         es(A and A['cita']['dia'] == D1 and A['cita']['ok'] is True and [f"{v['dia']}|{v['fr']}" for v in A['vale']] == [f"{D1}|{libre[0]['id']}"] + marc, f"cliente: la cita entra con la franja pedida y las otras que marcó ({len(A['vale']) if A else 0})")
         v = await k.evaluate(f"{K}.vistaCliente(Oficio.estado(),Oficio.cfg,'{idk}')")

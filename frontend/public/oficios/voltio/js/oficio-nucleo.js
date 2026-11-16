@@ -34,7 +34,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.16a';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.16b';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -44,6 +44,9 @@ const red=x=>Math.round(x+1e-7);
 const soloNum=s=>typeof s==='string'||typeof s==='number'?String(s).replace(/\D/g,''):'';
 /* solo texto y números; lo demás (listas, objetos) se queda en nada */
 const txt=x=>typeof x==='string'||typeof x==='number'?String(x):'';
+/* una foto solo vale si es una imagen de verdad (la que hace la app al reducirla): así nadie puede colar código por la
+   puerta de la web en lo que luego pinta la app de la oficina. Como mucho 140 000 letras */
+const esFoto=f=>typeof f==='string'&&f.length>0&&f.length<140000&&/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+\/]+={0,2}$/.test(f);
 
 /* ---------- fechas, siempre en hora de Madrid ---------- */
 const fmt=new Intl.DateTimeFormat('en-GB',{timeZone:TZ,weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
@@ -83,7 +86,9 @@ function cfgDe(N){const vacio=()=>Object.create(null),limpio=o=>Object.assign(va
  return{N,cat,av,tec,planes,kit:kitL(N.furgoneta),kits,pack:N.pack||'pro',recargo:N.tarifa.recargo,dia:N.tarifa.dia,festivos:N.festivos||[],franjas:N.franjas,cupo:N.cupo,zonas,
   etaMax:Math.max.apply(null,Object.values(zonas.banda)),horas:Object.keys(cat).find(k=>cat[k].un==='h')||'',meses:N.garantiaMeses||12,
   mapa:N.mapa&&typeof N.mapa==='object'?N.mapa:null,conHorario:!!(N.horario||N.tecnicos.some(x=>x.horario)),porFranja:(N.citas&&N.citas.porFranja)||1,reserva:(N.citas&&N.citas.reserva)||0,reservaSiFalta:!(N.citas&&N.citas.reservaSiFalta===false),porTiempo:!!(N.citas&&N.citas.porTiempo===true&&(N.horario||N.tecnicos.some(x=>x.horario))),hayGuardia:N.tecnicos.some(x=>x.guardia),
-  urge:typeof N.tarifa.urgente==='string'&&cat[N.tarifa.urgente]?N.tarifa.urgente:''}}
+  urge:typeof N.tarifa.urgente==='string'&&cat[N.tarifa.urgente]?N.tarifa.urgente:'',
+  /* cuánto antes de su franja puede decir «Voy» el técnico; si el negocio no dice otra cosa, media hora */
+  voyAntes:N.citas&&Number.isInteger(N.citas.voyAntes)&&N.citas.voyAntes>=0&&N.citas.voyAntes<=240?N.citas.voyAntes:30}}
 function nuevo(){return{esq:ESQ,v:0,n:0,avisos:[],ausencias:[]}}
 
 /* ---------- tarifa y precio ---------- */
@@ -336,6 +341,18 @@ function sobranTiempo(S,cfg,t){const hoy=madrid(t).date,P=['nuevo','asignado','a
   cfg.franjas.forEach(f=>{if(c[f.id])out.push({dia,fr:f.id,sobran:c[f.id]})})});
  return out}
 
+/* ---------- «Voy», solo cuando toca (16-11) ----------
+   Con cita, el técnico puede decir «Voy» desde media hora antes de que empiece su franja; antes, no: el cliente recibiría
+   «va de camino» horas antes y la llegada que le damos no valdría. Se cuenta en hora de Madrid y con el reloj de quien
+   decide: con servidor, el del servidor (cambiar la hora del móvil no sirve). Sin cita (una urgencia), en cuanto se le
+   asigna. Si la franja ya ha empezado, puede ir igual: va tarde, y eso se avisa, no se bloquea. Si un negocio quiere
+   otra cosa, lo dice en sus datos: citas.voyAntes (minutos, de 0 a 240). */
+const VOY_ANTES=30;
+function voyDesde(cfg,A){if(!A||!A.cita)return null;const f=cfg.franjas.find(x=>x.id===A.cita.fr);if(!f)return null;
+ let dia=A.cita.dia,min=f.de-(Number.isInteger(cfg.voyAntes)?cfg.voyAntes:VOY_ANTES);while(min<0){dia=masDias(dia,-1);min+=1440}return{dia,min}}
+function voyYa(cfg,A,t){const d=voyDesde(cfg,A);if(!d)return true;const n=madrid(t);return n.date>d.dia||(n.date===d.dia&&n.min>=d.min)}
+function voyTarde(cfg,A,t){if(!A||!A.cita||A.e!=='asignado')return false;const f=cfg.franjas.find(x=>x.id===A.cita.fr);if(!f)return false;const n=madrid(t);return n.date>A.cita.dia||(n.date===A.cita.dia&&n.min>=f.de)}
+
 /* ---------- la urgencia como extra: el suplemento ----------
    «tarifa.urgente» en los datos: la línea del catálogo del suplemento. Va en el presupuesto de partida de un aviso
    «cuanto antes» (sin cita); con cita, no. Con contrato de mantenimiento, va incluido (gratisDe). */
@@ -419,7 +436,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
    const hoy=madrid(t).date;vale=[{dia:cita.dia,fr:cita.fr}];
    (Array.isArray(a.alt)?a.alt:[]).slice(0,8).forEach(x=>{if(vale.length<5&&unaCita(x)&&esFecha(x.dia)&&x.dia>=hoy&&laborable(cfg,x.dia)&&cfg.franjas.some(f=>f.id===x.fr)&&!vale.some(v=>v.dia===x.dia&&v.fr===x.fr))vale.push({dia:x.dia,fr:x.fr})})}
   const n=++S.n,id=cfg.N.serie+'-'+String(n).padStart(4,'0');
-  const X={id,n,v:0,t,origen:a.origen==null?'cita':ORIGEN.includes(a.origen)?a.origen:'otro',av:a.av,nota:txt(a.nota).trim().slice(0,400),foto:typeof a.foto==='string'&&a.foto.length<140000?a.foto:'',cli:d.cli,cita,urg:!cita,e:'nuevo',tec:'',msgs:[],h:[]};if(vale)X.vale=vale;
+  const X={id,n,v:0,t,origen:a.origen==null?'cita':ORIGEN.includes(a.origen)?a.origen:'otro',av:a.av,nota:txt(a.nota).trim().slice(0,400),foto:esFoto(a.foto)?a.foto:'',cli:d.cli,cita,urg:!cita,e:'nuevo',tec:'',msgs:[],h:[]};if(vale)X.vale=vale;
   const g0=garantiaDe(S,cfg,X.cli,t);if(g0.length)X.gar0=g0[g0.length-1];
   const c0=conDe(S,cfg,X,t);if(c0)X.con=c0;
   if(noEscribe(S,X.cli.tel))X.noMsg=t;   // quien dijo que no quiere mensajes de seguimiento, lo sigue diciendo en su aviso nuevo
@@ -458,6 +475,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
  case 'voy':{
   if(!mio)return R('permiso');if(A.e!=='asignado')return R('estado');
+  if(!voyYa(cfg,A,t))return R('pronto');
   if(S.avisos.some(x=>x.id!==A.id&&x.tec===A.tec&&(x.e==='camino'||x.e==='curso')))return R('ocupado');
   A.e='camino';A.sal=t;A.eta=t+etaMin(cfg,A.cli.dis)*MIN;delete A.pos;delete A.posNo;sinMsg(A,['recibido','cita','vispera']);msg(A,'camino');log(A,'Va de camino');return ok({eta:A.eta})}
 
@@ -514,7 +532,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
  case 'anotar':{
   if(!mio&&!esC)return R('permiso');if(A.e==='hecho'||A.e==='cancelado')return R('estado');
-  const conFoto=typeof a.foto==='string'&&a.foto.length>0&&a.foto.length<140000;
+  const conFoto=esFoto(a.foto);
   if(a.foto!=null&&!conFoto)return R('foto');if(a.obs!=null&&typeof a.obs!=='string')return R('obs');
   if(conFoto&&(A.fotos||[]).length>=4)return R('fotos');if(a.obs==null&&!conFoto)return R('vacio');
   if(a.obs!=null)A.obs=a.obs.trim().slice(0,400);
@@ -820,5 +838,5 @@ function textoCarga(cfg,c){if(!c||!c.lin)return'';const T=cfg.tec[c.tec],L=[],id
  if(!L.length)return'';
  return'Material para el '+fechaLarga(c.dia)+(T?', '+T.n:'')+':\n'+L.join('\n')+'\n'+cfg.N.nombre}
 
-g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,lleva,cargaDe,reponerDe,kitDe,furgoDe,textoCarga,FURGO_H,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+g.OficioNucleo={VOY_ANTES,voyDesde,voyYa,voyTarde,VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,lleva,cargaDe,reponerDe,kitDe,furgoDe,textoCarga,FURGO_H,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

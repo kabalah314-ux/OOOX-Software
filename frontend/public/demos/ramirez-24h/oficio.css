@@ -169,3 +169,9 @@ dialog.hoja.llena{max-height:100svh;height:100svh;border-radius:0}
 .eqe.activo{color:var(--bien)}.eqe.baja{color:var(--mal)}
 .eqa{display:grid;justify-items:end;gap:2px;flex:none}
 .eqt{margin:6px 0 0;font-weight:600}.eqh li{font-size:.875rem;color:var(--tenue)}
+/* la foto del cliente: miniatura que se amplía (oficina y técnico) */
+.fotob{display:flex;align-items:center;gap:12px;margin-top:12px;padding:0;text-align:left;color:inherit}
+.fotob .fotoc{margin-top:0}
+.fotob span{display:grid;gap:2px}
+.fotob small{font-size:.875rem;color:var(--tenue)}
+.fotog{display:block;width:100%;height:auto;max-height:70svh;object-fit:contain;border-radius:10px;background:#000}

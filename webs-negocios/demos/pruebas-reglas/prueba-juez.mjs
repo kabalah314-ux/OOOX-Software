@@ -350,6 +350,19 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   es(no.ok && lN.cambios.cab.furgos[t0].on === false && lN.cambios.cab.furgos[t0].st[mats[0]] === 5, 'dejar de llevar la cuenta guarda lo último que había');
   es(repite('ramirez', NR), 'con las furgonetas, lo guardado sigue siendo igual a repetir el diario'); }
 
+/* ---- «Voy», solo cuando toca: con cita, desde media hora antes de la franja, con el reloj del servidor (16-11) ---- */
+{ reloj.t = Date.parse('2026-11-23T10:00:00+01:00');   // un lunes; la cita, el martes a primera hora
+  const libres = tecR.filter(x => ![...crudo('ramirez').avisos.values()].some(f => f.datos.tec === x && ['camino', 'curso'].includes(f.datos.e)));
+  const cliH = Object.assign(cliDe(NR), { nombre: 'Hora', apellidos: 'Del Servidor', tel: '644556677', dir: 'Calle del Reloj 3' });
+  const p = await hacer(OF, { tipo: 'pedir', av: NR.averias[0].id, origen: 'llamada', cli: cliH, cita: { dia: '2026-11-24', fr: 'f1' } });
+  let tv = null; for (const x of libres) if ((await hacer(OF, { tipo: 'asignar', id: p.r.id, tec: x })).ok) { tv = x; break; }
+  reloj.t = Date.parse('2026-11-24T07:29:00+01:00'); const pronto = await hacer(T(tv), { tipo: 'voy', id: p.r.id });
+  const sigue = crudo('ramirez').avisos.get(p.r.id).datos.e;
+  reloj.t = Date.parse('2026-11-24T07:30:00+01:00'); const ya = await hacer(T(tv), { tipo: 'voy', id: p.r.id });
+  es(p.ok && !!tv && pronto.ok === false && pronto.err === 'pronto' && sigue === 'asignado' && ya.ok && crudo('ramirez').avisos.get(p.r.id).datos.e === 'camino',
+    `el servidor no deja decir «Voy» a las 7:29 de una cita de las 8:00 y sí a las 7:30, con su reloj ${JSON.stringify({ p: p.ok, tv, pronto, sigue, ya: ya.ok || ya.err })}`);
+  es(repite('ramirez', NR), 'lo guardado sigue siendo igual a repetir el diario'); }
+
 /* ---- el equipo y sus accesos: la oficina o el dueño dan códigos nuevos y quitan accesos desde la app ---- */
 { const { codigoPersona, manda } = await import(pathToFileURL(path.join(DIR, 'juez.mjs')).href);
   const eq = (quien, mas) => J.atiende(Object.assign({ que: 'equipo' }, quien, mas));

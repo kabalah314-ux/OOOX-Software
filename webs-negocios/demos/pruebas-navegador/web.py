@@ -92,7 +92,7 @@ async def main():
             pg = oye(await ctx.new_page(), 'hora')
             await pon_hora(ctx, iso)
             await pg.goto(B + 'index.html'); await pg.wait_for_timeout(500)
-            web = await pg.evaluate("({u:document.body.classList.contains('is-urg'),t:document.querySelector('#ahoraT').textContent,p:document.querySelector('#avP').textContent})")
+            web = await pg.evaluate("({u:document.body.classList.contains('is-urg'),t:document.querySelector('#ahoraT').textContent})")
             await pg.goto(B + 'app.html'); await pg.wait_for_timeout(300)
             app = await pg.evaluate("OficioNucleo.urgente(OficioNucleo.cfgDe(OFICIO_NEGOCIO),Date.now())")
             es(web['u'] == urg and app == urg, f'tarifa {nombre}: {"urgencia" if urg else "normal"} en la web y en la app (web {web["u"]}, app {app})')
@@ -104,19 +104,33 @@ async def main():
         await pon_hora(ctx, '2026-11-16T10:00:00+01:00')
         await pg.goto(B + 'index.html'); await pg.wait_for_timeout(600)
         vistos = set()
-        for i in range(len(avs)):
-            n = await pg.locator('#avN').text_content()
-            await pg.evaluate("document.querySelector('#esEsto').click()"); await pg.wait_for_timeout(450)
+        for av in avs:
+            n = (await pg.locator(f'.svc[data-av="{av}"] h3').text_content()).strip()
+            await pg.evaluate(f"document.querySelector('[data-incluye=\"{av}\"]').click()"); await pg.wait_for_timeout(450)
             r = await pg.evaluate("""(()=>{const nums=t=>[...t.matchAll(/(\\d+(?:[.,]\\d+)?)\\s?€/g)].map(m=>parseFloat(m[1].replace(',','.')));
               const filas=[...document.querySelectorAll('#dRows > *')].map(f=>f.innerText);const tot=document.querySelector('#dTot').innerText;
-              return{filas,tot,abierto:document.querySelector('#p-desglose').getAttribute('aria-hidden')==='false',sa:filas.map(f=>nums(f)[0]||0),sb:filas.map(f=>{const x=nums(f);return x[x.length-1]||0}),t:nums(tot)}})()""")
+              return{filas,tot,abierto:document.querySelector('#p-desglose').getAttribute('aria-hidden')==='false',sa:filas.map(f=>nums(f)[0]||0),sb:filas.map(f=>{const x=nums(f);return x[x.length-1]||0}),t:nums(tot),
+               res:document.querySelector('#dRes').getAttribute('href'),resT:document.querySelector('#dResT').textContent,alt:document.querySelector('#dAlt').textContent}})()""")
             vistos.add(n)
             sa, sb = round(sum(r['sa']), 2), round(sum(r['sb']), 2)
             es(r['abierto'] and r['t'] and abs(r['t'][0] - sa) < 0.01 and abs(r['t'][-1] - sb) < 0.01, f'desglose «{n}»: las filas suman el total ({sa}–{sb} vs {r["tot"]})')
+            es(r['res'] == f'cita.html?servicio={av}' and r['resT'] == f'Reservar {n}' and 'suplemento' in r['alt'] and '%' not in r['alt'], f'desglose «{n}»: reserva ese servicio y explica la urgencia con una cifra, sin porcentajes ({r["res"]}, {r["alt"]})')
             await pg.keyboard.press('Escape'); await pg.wait_for_timeout(250)
             es(await pg.evaluate("document.querySelector('#p-desglose').getAttribute('aria-hidden')") == 'true', f'desglose «{n}»: se cierra con Escape')
-            await pg.evaluate("document.querySelector('#avNext').click()"); await pg.wait_for_timeout(300)
-        es(len(vistos) == len(avs), f'averías: «siguiente» recorre las {len(avs)} ({len(vistos)})')
+        es(len(vistos) == len(avs), f'servicios: hay una tarjeta con su desglose para cada una de las {len(avs)} averías ({len(vistos)})')
+
+        # ---------- 4 bis. cada tarjeta de servicio (auditoría A3, 16-11): su precio es el de la cita y su botón abre la cita con ese servicio ----------
+        for av in avs:
+            tj = await pg.evaluate(f"""(()=>{{const c=document.querySelector('.svc[data-av="{av}"]'),a=c.querySelector('[data-reserva]');
+              return{{n:c.querySelector('h3').textContent.trim(),p:c.querySelector('[data-precio]').textContent.trim(),href:a.getAttribute('href'),aria:a.getAttribute('aria-label'),img:c.querySelector('img').getAttribute('src'),d:c.querySelector('.svd').textContent.trim()}}}})()""")
+            es(tj['href'] == f'cita.html?servicio={av}' and tj['aria'] == f'Reservar {tj["n"]}' and tj['d'] and av in tj['img'], f'tarjeta «{tj["n"]}»: foto, frase, y «Reservar {tj["n"]}» lleva a cita.html?servicio={av}')
+            await pg.goto(B + tj['href']); await pg.wait_for_selector('#f')
+            ci = await pg.evaluate("({el:(document.querySelector('.elegida')||{}).textContent||'',r:(document.querySelector('.rango .num')||{}).textContent||'',grid:document.querySelectorAll('input[name=av]').length})")
+            nums_w = [int(x) for x in re.findall(r'(\d+)', tj['p'].split('+')[0])]; nums_c = [int(x) for x in re.findall(r'(\d+)', ci['r'])]
+            es(tj['n'] in ci['el'] and ci['grid'] == 0 and nums_w == nums_c, f'tarjeta «{tj["n"]}»: la cita sale con «Has elegido {tj["n"]}» y el mismo precio ({tj["p"]} en la web, {ci["r"]} en la cita)')
+            await pg.click('#cambiaAv'); await pg.wait_for_timeout(150)
+            es(await pg.locator('input[name=av]').count() == len(avs) and await pg.locator(f'input[name=av][value={av}]').is_checked(), f'tarjeta «{tj["n"]}»: en la cita se puede cambiar de servicio sin empezar de nuevo')
+            await pg.goto(B + 'index.html'); await pg.wait_for_timeout(500)
 
         # ---------- 5. el código postal y el menú ----------
         await pg.locator('#cp').fill('08008'); await pg.wait_for_timeout(200)
@@ -174,20 +188,25 @@ async def main():
             pg = oye(await ctx.new_page(), f'pantallas {w}x{h}')
             await pg.goto(B + 'index.html')   # se espera a que acabe la entrada: un gesto mientras corre solo se la salta
             await pg.wait_for_function("document.body.classList.contains('ready')", timeout=12000); await pg.wait_for_timeout(1000)
-            malas = {}; vistas = set(); y0 = -1
-            for _ in range(16):
+            malas = {}; vistas = set(); y0 = -1; enteros = set()
+            for _ in range(22):
                 r = await pg.evaluate("""(()=>{const top=document.querySelector('.top').getBoundingClientRect().bottom,bt=document.querySelector('.bar').getBoundingClientRect().top;
                   const S=[...document.querySelectorAll('section.sx')].find(s=>Math.abs(s.getBoundingClientRect().top)<3);if(!S)return null;const out=[];
-                  S.querySelectorAll('h2,.btn,.avp,.fig,.urg').forEach(e=>{const q=e.getBoundingClientRect(),s=getComputedStyle(e);if(!q.width||!q.height||s.visibility==='hidden'||s.display==='none')return;if(e.closest('[hidden],.sheet,.panel'))return;
+                  S.querySelectorAll('h2,.btn,.svp,.fig').forEach(e=>{const q=e.getBoundingClientRect(),s=getComputedStyle(e);if(!q.width||!q.height||s.visibility==='hidden'||s.display==='none')return;if(e.closest('[hidden],.sheet,.panel'))return;
+                   if(S.hasAttribute('data-largo')&&!e.matches('h2'))return;   /* la pantalla larga se mira aparte: abajo */
                    if(e.matches('h2')&&q.top<top-1)out.push('título bajo la cabecera: '+e.textContent.trim().slice(0,30));
                    if(!e.matches('h2')&&q.bottom>bt+1&&q.top<innerHeight)out.push('bajo la barra: '+e.textContent.trim().slice(0,30))});return{id:S.id,out}})()""")
                 if r:
                     vistas.add(r['id'])
                     if r['out']: malas[r['id']] = r['out']
+                enteros.update(await pg.evaluate("""(()=>{const top=document.querySelector('.top').getBoundingClientRect().bottom,bt=document.querySelector('.bar').getBoundingClientRect().top;
+                  return [...document.querySelectorAll('section[data-largo] .btn,section[data-largo] .svp')].map((e,i)=>{const q=e.getBoundingClientRect();return q.top>=top-1&&q.bottom<=bt+1?i:-1}).filter(i=>i>=0)})()"""))
                 y = await pg.evaluate('scrollY')
                 if y == y0: break
                 y0 = y; await pg.keyboard.press('ArrowDown'); await pg.wait_for_timeout(1400)
             es(len(vistas) >= 5 and not malas, f'pantallas a {w}×{h}: cada una entra entera, con el título a la vista y nada bajo la barra ({sorted(vistas)}) {malas}')
+            nl = await pg.evaluate("document.querySelectorAll('section[data-largo] .btn,section[data-largo] .svp').length")
+            es(nl > 0 and len(enteros) == nl, f'pantallas a {w}×{h}: en la de los servicios (más alta que el móvil), cada precio y cada «Reservar» se ve entero en alguna parada ({len(enteros)} de {nl})')
             await ctx.close()
         # la entrada lleva también a la cita; los barrios, también en lista; las averías se llaman como en la cita y la app
         ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True, timezone_id='Europe/Madrid'); await pon_hora(ctx)
@@ -196,17 +215,23 @@ async def main():
         await pg.wait_for_function("document.body.classList.contains('ready')", timeout=12000); await pg.wait_for_timeout(900)
         es(await pg.locator('#index a.espera[href="cita.html"]').count() == 1 and 'Pedir cita' in await pg.locator('#index a.espera').inner_text() and await pg.locator('#index a.espera').is_visible() and await pg.evaluate("getComputedStyle(document.querySelector('#index')).opacity==='1'"), 'entrada: al acabar el vídeo, además de llamar y la foto, «¿Puede esperar? Pedir cita», a la vista')
         es('Fontaneros 24 horas.' == (await pg.locator('#index h1').inner_text()).strip(), 'entrada: el título («Fontaneros 24 horas.») va en la portada, encima de la hora de llegada')
+        barra = await pg.evaluate("[...document.querySelectorAll('.bar a')].map(a=>({t:a.innerText.trim(),pri:a.classList.contains('pri'),h:a.getAttribute('href')}))")
+        es(len(barra) == 2 and barra[0]['pri'] and barra[0]['t'] == 'Pedir cita' and barra[0]['h'] == 'cita.html' and not barra[1]['pri'] and barra[1]['t'] == 'Llamar', f'entrada: abajo, «Pedir cita» es el botón destacado y «Llamar» va al lado, sin quitarle sitio ({barra})')
+        es('suplemento de urgencia' in await pg.locator('#urgeL').inner_text() and '30 €' in await pg.locator('#urgeL').inner_text(), 'entrada: si no puede esperar, se dice en una frase, con el suplemento en euros')
         nb = await pg.locator('#baLista button').count()
         es(nb == await pg.locator('#mapa .d').count() == 10 and 'min' in await pg.locator('#baLista').inner_text(), f'barrio: debajo del mapa, la lista de los diez distritos con sus minutos ({nb})')
         await pg.evaluate("document.querySelector('#barrio').scrollIntoView()"); await pg.wait_for_timeout(500)
         await pg.locator('#baLista button[data-id="gra"]').click(); await pg.wait_for_timeout(300)
         es('Gràcia' in await pg.locator('#baR').inner_text() and await pg.get_attribute('#baLista button[data-id="gra"]', 'aria-pressed') == 'true' and await pg.evaluate("document.querySelector('#mapa .d[data-id=gra]').classList.contains('on')"), 'barrio: tocar un barrio de la lista hace lo mismo que tocarlo en el mapa')
-        chips = await pg.evaluate("[...document.querySelectorAll('#chips button')].map(b=>b.textContent.trim()).join(' | ')")
-        es(all(x in chips for x in ('Fuga de agua', 'Sin agua caliente', 'Cisterna que pierde', 'Grifo que gotea', 'Otra avería')), f'averías: los mismos nombres que en la cita y en la app ({chips[:80]!r})')
+        chips = await pg.evaluate("[...document.querySelectorAll('#svs h3')].map(b=>b.textContent.trim()).join(' | ')")
+        es(all(x in chips for x in ('Fuga de agua', 'Sin agua caliente', 'Cisterna que pierde', 'Grifo que gotea', 'Otra avería')), f'servicios: los mismos nombres que en la cita y en la app ({chips[:80]!r})')
+        tq = ' '.join((await pg.locator('#avT').text_content()).split())
+        es(tq == '¿Qué necesitas arreglar?', f'servicios: la pregunta es «¿Qué necesitas arreglar?», la misma que en la cita ({tq!r})')
         # la cita va solo en castellano: desde la web en catalán, el enlace lo dice y la cita lo avisa en catalán
         await pg.evaluate("document.querySelector('[data-lang=ca]').click()"); await pg.wait_for_timeout(200)
-        hca = await pg.get_attribute('#index a.espera', 'href')
+        hca = await pg.get_attribute('#index a.espera', 'href'); sca = await pg.get_attribute('[data-reserva=fuga]', 'href')
         await pg.evaluate("document.querySelector('[data-lang=es]').click()"); await pg.wait_for_timeout(200)
+        es(sca == 'cita.html?servicio=fuga&lang=ca', f'idioma: en catalán, «Reservar» lleva el servicio y el idioma ({sca})')
         hes = await pg.get_attribute('#index a.espera', 'href')
         es(hca == 'cita.html?lang=ca' and hes == 'cita.html', f'idioma: en catalán, la cita se abre con ?lang=ca; en castellano, sin nada ({hca}, {hes})')
         await pg.goto(B + 'cita.html?lang=ca'); await pg.wait_for_selector('#f')
