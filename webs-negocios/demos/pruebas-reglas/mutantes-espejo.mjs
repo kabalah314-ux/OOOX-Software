@@ -39,7 +39,9 @@ const M = [
   ['al abrir la app, lo pendiente cambia de marca', 'cola:cola.filter(p=>!p.crea).map(p=>({clave:p.clave,accion', "cola:cola.filter(p=>!p.crea).map(p=>({clave:p.clave+'x',accion"],
   ['se carga lo guardado por otra persona', 'x.quien.rol!==q.rol||x.quien.id!==q.id||', ''],
   ['se carga lo guardado con otra versión de la app', '||x.B.esq!==K.ESQ', ''],
-  ['las fotos se guardan en el aparato', "Object.assign({},a,{foto:'',fotos:[]}):a;", 'a:a;'],
+  ['las fotos se guardan en el aparato', "Object.assign({},a,{foto:esDato(a.foto)?'':a.foto,fotos:(a.fotos||[]).filter(f=>!esDato(f))}):a;", 'a:a;'],
+  // las fotos van aparte desde el 16-11-2026: lo que se guarda es su referencia, que tiene que seguir ahí al volver
+  ['al guardar se pierden también las referencias de las fotos', "fotos:(a.fotos||[]).filter(f=>!esDato(f))}):a;", 'fotos:[]}):a;'],
   ['al juntar pestañas vuelve lo que ya estaba enviado', "&&p.accion&&!H.has(p.clave))por.set(p.clave,p)", '&&p.accion)por.set(p.clave,p)'],
   ['al juntar pestañas se mezcla lo de otra persona', "||viejo.quien.rol!==mio.quien.rol||viejo.quien.id!==mio.quien.id)return mio;", ')return mio;'],
   ['al juntar pestañas se pierde la cola de la otra', "[].concat(Array.isArray(viejo.cola)?viejo.cola:[],mio.cola).forEach", '[].concat(mio.cola).forEach'],

@@ -166,6 +166,10 @@ if (cfg.mapa || true) {
 // 13. las fotos no se guardan en el aparato, pero siguen en la memoria
 { const X = aparato('oficina', 'centralita'); X.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, n: 1, nu: 0, ausencias: [] }, avisos: [{ id: 'F-1', v: 1, datos: { id: 'F-1', n: 1, e: 'nuevo', foto: 'data:image/jpeg;base64,AAAA', fotos: ['data:image/jpeg;base64,BBBB'] } }] });
   es(X.E.estado().avisos[0].foto.length > 10 && X.E.guardado().B.avisos[0].foto === '' && X.E.guardado().B.avisos[0].fotos.length === 0 && X.E.estado().avisos[0].fotos.length === 1, 'las fotos se quedan en la memoria y no ocupan sitio en el aparato');
+  // un aviso de antes del 16-11-2026, con una foto dentro, al que se le añade otra que ya va aparte: se guarda su referencia
+  const Y = aparato('oficina', 'centralita'); Y.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, n: 1, nu: 0, ausencias: [] }, avisos: [{ id: 'F-2', v: 1, datos: { id: 'F-2', n: 2, e: 'nuevo', foto: 'f:00000000000000ab', fotos: ['data:image/jpeg;base64,CCCC', 'f:00000000000000cd'] } }] });
+  const g2 = Y.E.guardado().B.avisos[0];
+  es(g2.foto === 'f:00000000000000ab' && JSON.stringify(g2.fotos) === '["f:00000000000000cd"]' && Y.E.estado().avisos[0].fotos.length === 2, 'con fotos de las dos clases, el aparato guarda las referencias y deja fuera solo las fotos');
 }
 // 13 bis. los contratos de mantenimiento llegan a la oficina con la cabecera, y a un técnico no le llegan (15-11-2026)
 { const X = aparato('oficina', 'centralita'), Y = aparato('omar', 'tecnico'), CC = [{ id: 'RM-0001', n: 1, plan: 'anual', e: 'activo', per: [] }];
