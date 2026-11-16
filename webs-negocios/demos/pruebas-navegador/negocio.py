@@ -106,6 +106,12 @@ async def main():
         for ancho in (320, 390):
             await c.set_viewport_size({'width': ancho, 'height': 800}); await c.goto(B + 'app.html#/nuevo'); await c.wait_for_selector('#fNuevo')
             es(await c.evaluate('document.documentElement.scrollWidth') <= ancho + 1, f'nuevo aviso a {ancho} px: nada se sale')
+        # una marca larga (el ensayo del alta lo encontró el 16-11-2026 con «Lampistes Gràcia»): a 320 px tampoco se sale nada
+        cl = await br.new_context(viewport={'width': 320, 'height': 800}, locale='es-ES', timezone_id='Europe/Madrid'); await pon_hora(cl); pl = await cl.new_page()
+        await pl.route('**/js/oficio-datos.js', lambda r: r.fulfill(status=200, content_type='text/javascript; charset=utf-8', body=DATOS + "\n;window.OFICIO_NEGOCIO.marca=['Fontanería','Martínez Hermanos'];delete window.OFICIO_NEGOCIO.servidor;\n"))
+        await pl.goto(B + 'app.html#/nuevo'); await pl.wait_for_selector('#fNuevo')
+        es(await pl.evaluate('document.documentElement.scrollWidth') <= 321 and 'Martínez' in await pl.inner_text('#marca'), 'una marca larga tampoco se sale a 320 px: la marca encoge y la sesión se queda en su círculo')
+        await cl.close()
         await c.set_viewport_size({'width': 1280, 'height': 860})
 
         # ---------- 3. el técnico: los tres toques, con los precios del negocio ----------

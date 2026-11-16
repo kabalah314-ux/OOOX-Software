@@ -3,7 +3,8 @@
 // Uso: node prueba-copias.mjs <carpeta del sitio>
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'; import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process'; import { fileURLToPath } from 'node:url';
-import { nueva, actualizar, lista, estado, copiasDe, COMUNES, atras, fija, suelta, ponApp, manifiesto } from '../copias.mjs';
+import { nueva, actualizar, lista, estado, copiasDe, COMUNES, atras, fija, suelta, ponApp, manifiesto, alta, subirDatos, datosServidor, codigoNuevo } from '../copias.mjs';
+import { leeNegocio, leeNucleo } from './valida-negocio.mjs';
 
 const sitio = path.resolve(process.argv[2] || '.'), aqui = path.dirname(fileURLToPath(import.meta.url));
 let ok = 0; const mal = []; const es = (c, t) => { if (c) ok++; else { mal.push(t); console.log('  MAL ', t) } };
@@ -143,6 +144,35 @@ es(c.status === 2 && /le falta oficio\.css/.test(c.stdout) && huellas(cv) === hu
   es(!estado(sitio, cw).alDia && ponApp(cw, { nombre: 'Voltio Sur', marca: ['Voltio', 'Sur'] }).join() === 'manifest.webmanifest' && ponApp(cw, { nombre: 'Voltio Sur', marca: ['Voltio', 'Sur'] }).length === 0, 'app: ponerlo dos veces no cambia nada la segunda');
   // un nombre largo: el corto, la primera palabra de la marca
   es(JSON.parse(manifiesto(cw, { nombre: 'Fontanería y Calefacción Martínez', marca: ['Fontanería', 'Martínez Hermanos'] })).short_name === 'Fontanería', 'app: con una marca larga, el nombre corto es su primera palabra'); }
+
+// ---- 4 ter. el alta en el servidor (16-11-2026): el SQL lleva los datos y las huellas de los códigos, nunca los códigos
+{ const id = 'voltio-prueba', N = leeNegocio(path.join(destino, id, 'js/oficio-datos.js')).N, K = leeNucleo(sitio), r = alta({ plantilla: sitio, destino, id });
+  const sha = t => crypto.createHash('sha256').update(t, 'utf8').digest('hex'), FORMA = /^[a-hj-km-np-z2-9]{4}(-[a-hj-km-np-z2-9]{4}){3}$/;
+  es(r.ok && r.codigos.map(g => g.persona + ':' + g.rol).join() === ['oficina:centralita'].concat(N.tecnicos.map(t => t.id + ':tecnico')).join(), 'alta: una persona para entrar por la oficina y otra por cada técnico de sus datos');
+  es(r.ok && r.codigos.every(g => FORMA.test(g.codigo)) && new Set(r.codigos.map(g => g.codigo)).size === r.codigos.length, 'alta: cada código, 16 letras y números en cuatro grupos, sin i, l, o, 0 ni 1, y todos distintos');
+  es(r.ok && r.codigos.every(g => !r.sql.includes(g.codigo) && r.sql.includes("'" + sha(id + ':' + g.persona + ':' + g.codigo) + "'")), 'alta: el SQL no lleva ningún código, solo su huella (la de oficios.huella en el servidor)');
+  const m = /insert into oficios\.estados \(negocio, datos, cab\) values \('voltio-prueba', '((?:[^']|'')*)'::json, '((?:[^']|'')*)'::jsonb\);/.exec(r.sql || ''), D = m && JSON.parse(m[1].replace(/''/g, "'")), C = m && JSON.parse(m[2]);
+  es(!!D && JSON.stringify(D) === JSON.stringify(datosServidor(N)) && Object.keys(D).join() === Object.keys(N).filter(k => k !== 'servidor' && k !== 'textos').join() && !('servidor' in D), 'alta: los datos van tal cual y en el mismo orden, sin «servidor» ni «textos»');
+  es(!!C && C.esq === K.ESQ && C.n === 0 && C.nu === 0 && Array.isArray(C.ausencias), 'alta: la cabecera arranca vacía y con el esquema de las reglas');
+  es(/raise exception 'Falta el alta en el buzón/.test(r.sql) && /raise exception 'Este negocio ya está en el servidor/.test(r.sql) && /^begin;$/m.test(r.sql) && /^commit;$/m.test(r.sql), 'alta: comprueba antes el buzón y que no esté ya, y va entero o nada');
+  let x = alta({ plantilla: sitio, destino, id: 'ramirez' }); es(!x.ok && /Es una demo/.test(x.errores[0]), 'alta: una demo no se sube al servidor');
+  x = alta({ plantilla: sitio, destino, id: 'nadie' }); es(!x.ok && /No hay ninguna copia/.test(x.errores[0]), 'alta: una copia que no existe, lo dice');
+  x = alta({ plantilla: sitio, destino, id: '../voltio' }); es(!x.ok, 'alta: un «id» que no es el de una carpeta de copias no vale');
+  es(new Set(Array.from({ length: 200 }, codigoNuevo)).size === 200, 'alta: los códigos no se repiten');
+  // los datos nuevos: el mismo JSON y la huella que dará el servidor, la que mira «Tu sesión»
+  x = await subirDatos({ plantilla: sitio, destino, id });
+  const u = /update oficios\.estados set datos = '((?:[^']|'')*)'::json, cambiado = now\(\) where negocio = 'voltio-prueba';/.exec(x.sql || '');
+  es(x.ok && !!u && u[1] === m[1] && x.huella === await K.huellaDatos(N) && /^[0-9a-f]{16}$/.test(x.huella), 'subir datos: el mismo JSON que el alta, y la huella de sus datos');
+  es(/raise exception 'Este negocio no está en el servidor/.test(x.sql), 'subir datos: si el negocio no está en el servidor, no hace nada y lo dice');
+  // desde la consola: el SQL a un archivo solo para quien lo hace; los códigos, a la pantalla y una sola vez
+  const sq = path.join(T, 'alta.sql'); c = cli('alta', id, '--plantilla', sitio, '--destino', destino, '--sql', sq);
+  const cods = [...c.stdout.matchAll(/^\s{4}.+\(([a-z0-9-]+)\)\s+([a-z0-9]{4}(?:-[a-z0-9]{4}){3})$/gm)], txt = fs.existsSync(sq) ? fs.readFileSync(sq, 'utf8') : '';
+  es(c.status === 0 && /SQL DEL ALTA/.test(c.stdout) && cods.length === r.codigos.length && cods.every(k => !txt.includes(k[2]) && txt.includes(sha(id + ':' + k[1] + ':' + k[2]))) && (fs.statSync(sq).mode & 0o777) === 0o600,
+    '«alta» escribe el SQL en un archivo que solo lee quien lo hace y enseña los códigos en pantalla, que casan con sus huellas');
+  c = cli('subir-datos', id, '--plantilla', sitio, '--destino', destino, '--sql', path.join(T, 'datos.sql'));
+  es(c.status === 0 && /SQL DE LOS DATOS/.test(c.stdout) && c.stdout.includes(x.huella) && fs.existsSync(path.join(T, 'datos.sql')), '«subir-datos» escribe su SQL y dice la huella que dará el servidor');
+  c = cli('alta'); es(c.status === 2 && /Di qué copia/.test(c.stdout), '«alta» sin copia dice cómo se usa');
+}
 
 // ---- 5. nada de esto ha tocado la plantilla de verdad
 es(huellas(sitio) === P0 && h(VOLTIO) === h(path.join(aqui, 'negocios/voltio.js')), 'la plantilla y los datos de partida siguen como estaban');

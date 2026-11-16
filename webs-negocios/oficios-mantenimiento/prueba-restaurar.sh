@@ -96,6 +96,30 @@ PB -f "$T/volcar.sql" >/dev/null && ok "volcada" || malo "no se vuelca"
 [ "$(PB -At -c "select count(*) from oficios.avisos where id = 'S-2'")" = 1 ] && [ "$(PB -At -c "select texto from oficios.peticiones where negocio = 'sim-uno'")" = "Algo falla en el simulacro de restaurar." ] \
   && ok "vuelve a estar como en la copia" || malo "no vuelve a como estaba"
 
+echo "── El alta de un negocio en el servidor, con copias.mjs: sus datos y el código de cada persona (16-11-2026)"
+COP="$RAIZ/demos/copias.mjs"; PLA="$RAIZ/../frontend/public/demos/ramirez-24h"
+if [ -f "$COP" ] && [ -d "$PLA" ]; then
+  mkdir -p "$T/oficios"; sed "s/id:'voltio'/id:'sim-alta'/" "$RAIZ/demos/pruebas-reglas/negocios/voltio.js" > "$T/sim-alta.js"
+  node "$COP" nueva --datos "$T/sim-alta.js" --plantilla "$PLA" --destino "$T/oficios" > "$T/nueva.txt" 2>&1 || true
+  sop=$(sed -nE 's/^ {4}([a-z0-9]{4}(-[a-z0-9]{4}){3})$/\1/p' "$T/nueva.txt" | head -1 || true)
+  [ -n "$sop" ] && PB -c "insert into oficios.negocios (id, nombre, plan, prueba, clave_hash) values ('sim-alta', 'Voltio Sur', 'pro', false, oficios.huella('sim-alta', '$sop'))" >/dev/null \
+    && ok "la copia nueva y su alta en el buzón" || malo "la copia nueva o su alta en el buzón: $(head -c 300 "$T/nueva.txt")"
+  node "$COP" alta sim-alta --plantilla "$PLA" --destino "$T/oficios" --sql "$T/alta.sql" > "$T/alta.txt" 2>&1 || true
+  PB -f "$T/alta.sql" >/dev/null 2>&1 && ok "el SQL del alta entra" || malo "el SQL del alta no entra"
+  n=0; bien=0; fuera=0
+  while read -r p c; do
+    n=$((n+1)); [ "$(PB -At -c "select clave_hash = oficios.huella('sim-alta:$p', '$c') from oficios.personas where negocio = 'sim-alta' and persona = '$p'")" = t ] && bien=$((bien+1))
+    grep -qF "$c" "$T/alta.sql" && fuera=$((fuera+1))
+  done < <(sed -nE 's/^ {4}.*\(([a-z0-9-]+)\) +([a-z0-9]{4}(-[a-z0-9]{4}){3})$/\1 \2/p' "$T/alta.txt")
+  [ $n -ge 2 ] && [ $bien -eq $n ] && ok "cada código del alta casa con su huella en el servidor ($n personas)" || malo "los códigos del alta no casan ($bien de $n)"
+  [ $n -ge 2 ] && [ $fuera -eq 0 ] && ok "el SQL del alta no lleva ningún código" || malo "el SQL del alta lleva $fuera códigos"
+  rep=$(PB -f "$T/alta.sql" 2>&1 || true)   # con pipefail, el error de psql taparía lo que encuentra grep: se recoge antes
+  echo "$rep" | grep -q "ya está en el servidor" && ok "el mismo alta otra vez no entra, y lo dice" || malo "un alta repetida entra"
+  [ "$(PB -At -c "select datos->>'id' from oficios.estados where negocio = 'sim-alta'")" = sim-alta ] && ok "sus datos, en el servidor" || malo "sus datos no están en el servidor"
+  node "$COP" subir-datos sim-alta --plantilla "$PLA" --destino "$T/oficios" --sql "$T/datos.sql" >/dev/null 2>&1 && PB -f "$T/datos.sql" >/dev/null 2>&1 \
+    && ok "sus datos, otra vez, con «subir-datos»" || malo "«subir-datos» no entra"
+else echo "  (se salta: aquí no están copias.mjs ni la plantilla)"; fi
+
 echo "── Las pruebas del mantenimiento, en esta base de datos"
 r=$(PB -f "$AQUI/pruebas.sql" 2>&1 | grep -o 'RESULTADOS.*' || true)
 echo "$r" | grep -q 'MAL' || [ -z "$r" ] && malo "pruebas.sql: ${r:-no ha dicho nada}" || ok "pruebas.sql: $(echo "$r" | grep -o ':ok' | wc -l) bien"

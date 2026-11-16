@@ -15,6 +15,11 @@
 //   node copias.mjs suelta <id>                    la vuelve a dejar poner al día
 //   node copias.mjs app <carpeta>…                 pone el manifiesto y el icono de la app de esa carpeta (la plantilla o una
 //                                                  copia), sacados de sus datos; los iconos PNG los hace iconos.py
+//   node copias.mjs alta <id> [--sql <archivo>]    el alta de esa copia en el servidor: escribe el SQL (sus datos y una fila
+//                                                  por persona, sin ningún código: solo sus huellas) y enseña UNA VEZ el
+//                                                  código de cada persona, que no se guarda en ningún sitio
+//   node copias.mjs subir-datos <id> [--sql <archivo>]   el SQL que pone en el servidor los datos de la copia cuando cambian
+//                                                  (precios, horarios, técnicos…), y la huella que verá «Tu sesión»
 //
 // Publicar por fases: fijar las que esperan, «actualizar --todas» (solo se ponen al día las sueltas), mirar un día y
 // soltar las demás. Si algo va mal en una: «atras <id>».
@@ -25,7 +30,9 @@
 //   --sin-azar              no pasar los recorridos al azar al actualizar (solo se valida el archivo de datos)
 //
 // Una copia que no pasa la validación o las pruebas se queda como estaba; las demás siguen. La salida es el número de fallos.
+// El alta de un negocio de punta a punta (qué pedir, qué tarda cada paso y lo que salió al ensayarla): ALTA.md
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -181,13 +188,72 @@ export function lista({ plantilla, destino }) {
     return { id, nombre: m.N ? m.N.nombre : (e.ficha.nombre || '¿?'), version: e.version, plantilla: v, alDia: e.alDia, dif: e.dif, prueba: !!(m.N && m.N.prueba === true), fijada: e.ficha.fijada || null, errores: m.errores, avisos: m.avisos, creada: e.ficha.creada || '', actualizada: e.ficha.actualizada || '' } });
 }
 
+/* ---------- el servidor: el alta de un negocio y sus datos nuevos (16-11-2026) ----------
+   Lo que guarda el servidor de un negocio son sus datos TAL CUAL (en el mismo orden: las reglas miran alguna vez «la
+   primera» clave), sin «servidor» ni «textos». Antes esto se hacía a mano (oficios-servidor/LEEME.md, «Dar de alta un
+   negocio en el servidor»). El SQL no lleva ningún código: solo sus huellas, las mismas que oficios.huella. */
+export const datosServidor = N => { const c = {}; for (const [k, v] of Object.entries(N)) if (k !== 'servidor' && k !== 'textos') c[k] = v; return c };
+const sqlTexto = s => "'" + String(s).replace(/'/g, "''") + "'";
+const unaLinea = s => String(s).replace(/[\r\n]+/g, ' ');
+const ABC = 'abcdefghjkmnpqrstuvwxyz23456789';   // sin i, l, o, 0 ni 1: no se confunden al dictarlos ni al leerlos
+/** Un código de entrar: 16 letras y números en cuatro grupos (abcd-efgh-jkmn-pqrs), al azar de verdad. */
+export const codigoNuevo = () => Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => ABC[crypto.randomInt(ABC.length)]).join('')).join('-');
+/** La huella del código de una persona, como oficios.huella('<negocio>:<persona>', '<código>') en el servidor. */
+export const huellaPersona = (negocio, persona, codigo) => crypto.createHash('sha256').update(negocio + ':' + persona + ':' + codigo, 'utf8').digest('hex');
+/* la copia, si se puede subir al servidor: existe, sus datos valen y no es una demo */
+function paraServidor(plantilla, destino, id) {
+  const datos = path.join(destino, id, DATOS);
+  if (!idVale(id) || !fs.existsSync(datos)) return { error: 'No hay ninguna copia «' + id + '» en ' + destino };
+  const m = mira(plantilla, datos); if (m.errores.length) return { error: m.errores.join(' · '), m };
+  if (m.demo) return { error: 'Es una demo (trae su muestra y no va con servidor): no se sube al servidor', m };
+  if (m.N.id !== id) return { error: 'El «id» de sus datos («' + m.N.id + '») no es el de su carpeta («' + id + '»)', m };
+  return { m };
+}
+/** El alta de una copia en el servidor: el SQL y el código de cada persona (la oficina y cada técnico), que se enseña una vez. */
+export function alta({ plantilla, destino, id }) {
+  const p = paraServidor(plantilla, destino, id); if (p.error) return { ok: false, id, errores: [p.error], avisos: p.m ? p.m.avisos : [] };
+  const N = p.m.N, K = leeNucleo(plantilla);
+  const gente = [{ persona: 'oficina', rol: 'centralita', quien: 'oficina', n: 'Centralita' }]
+    .concat((N.tecnicos || []).map(t => ({ persona: t.id, rol: 'tecnico', quien: t.id, n: String(t.n + ' ' + (t.ap || '')).trim() })));
+  const malos = gente.filter(g => !/^[a-z0-9-]{2,40}$/.test(g.persona));
+  if (malos.length) return { ok: false, id, errores: malos.map(g => 'El id de ' + g.n + ' («' + g.persona + '») no vale para entrar: minúsculas, números y guiones, de 2 a 40'), avisos: p.m.avisos };
+  const codigos = gente.map(g => Object.assign({}, g, { codigo: codigoNuevo() })), q = sqlTexto(id);
+  const sql = [
+    `-- Alta de ${unaLinea(N.nombre)} (${id}) en el servidor de OOOX Oficios, hecha con copias.mjs el ${hoy()} (reglas ${K.VERSION}).`,
+    '-- No lleva ningún código, solo sus huellas: los códigos se enseñaron una vez al hacerla y no están en ningún sitio.',
+    'begin;',
+    'do $alta$ begin',
+    `  if not exists (select 1 from oficios.negocios where id = ${q}) then raise exception 'Falta el alta en el buzón (oficios.negocios): la da node copias.mjs nueva al crear la copia'; end if;`,
+    `  if exists (select 1 from oficios.estados where negocio = ${q}) then raise exception 'Este negocio ya está en el servidor. Para cambiar sus datos: node copias.mjs subir-datos ${id}'; end if;`,
+    'end $alta$;',
+    `insert into oficios.estados (negocio, datos, cab) values (${q}, ${sqlTexto(JSON.stringify(datosServidor(N)))}::json, ${sqlTexto(JSON.stringify({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }))}::jsonb);`,
+    'insert into oficios.personas (negocio, persona, rol, quien, clave_hash) values',
+    codigos.map(g => `  (${q}, ${sqlTexto(g.persona)}, ${sqlTexto(g.rol)}, ${sqlTexto(g.quien)}, ${sqlTexto(huellaPersona(id, g.persona, g.codigo))})`).join(',\n') + ';',
+    'commit;', ''].join('\n');
+  return { ok: true, id, nombre: N.nombre, sql, codigos, conServidor: !!(N.servidor && N.servidor.url), errores: [], avisos: p.m.avisos };
+}
+/** Los datos nuevos de una copia para el servidor: el SQL y la huella que dará el servidor después (la que mira «Tu sesión»). */
+export async function subirDatos({ plantilla, destino, id }) {
+  const p = paraServidor(plantilla, destino, id); if (p.error) return { ok: false, id, errores: [p.error], avisos: p.m ? p.m.avisos : [] };
+  const N = p.m.N, K = leeNucleo(plantilla), q = sqlTexto(id);
+  const sql = [
+    `-- Datos nuevos de ${unaLinea(N.nombre)} (${id}) para el servidor de OOOX Oficios, sacados de su copia con copias.mjs el ${hoy()}.`,
+    'begin;',
+    'do $datos$ begin',
+    `  if not exists (select 1 from oficios.estados where negocio = ${q}) then raise exception 'Este negocio no está en el servidor: primero, node copias.mjs alta ${id}'; end if;`,
+    'end $datos$;',
+    `update oficios.estados set datos = ${sqlTexto(JSON.stringify(datosServidor(N)))}::json, cambiado = now() where negocio = ${q};`,
+    'commit;', ''].join('\n');
+  return { ok: true, id, nombre: N.nombre, sql, huella: await K.huellaDatos(N), errores: [], avisos: p.m.avisos };
+}
+
 /* ---------- desde la consola ---------- */
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2), orden = args[0], op = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : undefined }, tiene = k => args.includes(k);
   // dónde está cada cosa: en el repositorio o, en la copia del PC, en las carpetas de al lado
   const enRepo = fs.existsSync(path.join(aqui, '../../frontend/public'));
   const plantilla = path.resolve(op('--plantilla') || path.join(aqui, enRepo ? '../../frontend/public/demos/ramirez-24h' : '../site')), destino = path.resolve(op('--destino') || path.join(aqui, enRepo ? '../../frontend/public/oficios' : '../oficios'));
-  const sueltos = args.slice(1).filter((a, i, L) => !a.startsWith('--') && !['--plantilla', '--destino', '--datos', '--a', '--motivo'].includes(L[i - 1]));
+  const sueltos = args.slice(1).filter((a, i, L) => !a.startsWith('--') && !['--plantilla', '--destino', '--datos', '--a', '--motivo', '--sql'].includes(L[i - 1]));
   const di = r => { r.avisos.forEach(a => console.log('   aviso  ' + a)); r.errores.forEach(e => console.log('   ERROR  ' + e)) };
   let mal = 0;
   try {
@@ -226,7 +292,25 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (!sueltos.length) { console.log('Di qué carpeta: node copias.mjs app <carpeta>…'); mal = 2 }
     for (const c of sueltos) { const carpeta = path.resolve(c); let N; try { ({ N } = leeNegocio(path.join(carpeta, DATOS))) } catch (e) { console.log('NO SE HA PODIDO  ' + c + ': ' + e.message); mal++; continue }
       const h = ponApp(carpeta, N); console.log((h.length ? 'PUESTO  ' + h.join(', ') : 'YA ESTABA') + '  ' + c + (fs.existsSync(path.join(carpeta, 'assets/icono-192.png')) ? '' : ' · sin iconos PNG: python3 iconos.py ' + c)) }
-  } else { console.log('Uso: node copias.mjs nueva --datos <archivo.js> | actualizar --todas | actualizar <id> | lista | comprueba | atras <id> | fija <id> | suelta <id> | app <carpeta>'); mal = 2 }
+  } else if (orden === 'alta' || orden === 'subir-datos') {
+    if (sueltos.length !== 1) { console.log(`Di qué copia: node copias.mjs ${orden} <id> [--sql <archivo>]`); mal = 2 }
+    else {
+      const id = sueltos[0], r = orden === 'alta' ? alta({ plantilla, destino, id }) : await subirDatos({ plantilla, destino, id }); di(r);
+      if (!r.ok) { console.log('NO SE HA PODIDO  ' + id); mal = 1 }
+      else {
+        // el SQL va a un archivo (no lleva códigos); los códigos, solo a la pantalla
+        const archivo = path.resolve(op('--sql') || path.join(os.tmpdir(), `${orden}-${id}-${hoy()}.sql`));
+        fs.writeFileSync(archivo, r.sql, { mode: 0o600 });
+        if (orden === 'alta') {
+          console.log(`SQL DEL ALTA  ${r.nombre} (${id})\n        ${archivo}\n        Se pasa en Supabase (SQL Editor) o con su conector. No lleva ningún código, solo sus huellas.`);
+          console.log('\nCÓDIGOS PARA ENTRAR. Se enseñan solo esta vez y no se guardan en ningún sitio: dáselos a cada uno por un canal privado.');
+          for (const g of r.codigos) console.log(`    ${(g.n + ' (' + g.persona + ')').padEnd(34)} ${g.codigo}`);
+          if (!r.conServidor) console.log('\nOjo: sus datos no llevan la línea «servidor». Sin ella, la app no habla con el servidor: cópiala de otra copia que lo lleve.');
+          console.log(`\nSi un código se pierde, el dueño da otro desde su app («Tu sesión» → «Equipo y accesos»).`);
+        } else console.log(`SQL DE LOS DATOS  ${r.nombre} (${id})\n        ${archivo}\n        Cuando esté pasado, el servidor dará la huella ${r.huella || '(no se ha podido calcular)'} y «Tu sesión» dejará de avisar.`);
+      }
+    }
+  } else { console.log('Uso: node copias.mjs nueva --datos <archivo.js> | actualizar --todas | actualizar <id> | lista | comprueba | atras <id> | fija <id> | suelta <id> | app <carpeta> | alta <id> | subir-datos <id>'); mal = 2 }
   } catch (e) { console.log('No se ha podido: ' + e.message); mal = 2 }
   process.exit(mal);
 }

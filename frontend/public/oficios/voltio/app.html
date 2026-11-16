@@ -20,10 +20,13 @@
 body{padding-bottom:calc(64px + var(--sb))}
 body.det{padding-bottom:0}
 .lado{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;padding:0 16px;background:var(--asfalto);border-bottom:1px solid var(--linea)}
-.wm{font:800 1.5rem/1 var(--fd);text-decoration:none;white-space:nowrap}
+/* la marca, de cualquier largo (16-11-2026): en un móvil estrecho encoge un poco y, si aún no cabe, se corta con «…» */
+.wm{font:800 clamp(1.25rem,6.6vw,1.5rem)/1 var(--fd);text-decoration:none;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;padding:.12em 0}
 .wm span{margin-left:.22em;padding:.02em .22em;border-radius:4px;background:var(--senal);color:var(--negro)}
 .quien{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px 0 5px;border-radius:999px;border:1px solid var(--control);font-weight:600;font-size:.9375rem}
 .quien>svg{width:16px;height:16px;color:var(--suave)}
+/* en un móvil estrecho, «Tu sesión» se queda en su círculo: su nombre lo dice al tocarlo (y su etiqueta, al lector) */
+@media (max-width:374px){.lado .quien>span{display:none}.lado .quien{gap:4px;padding:0 8px 0 5px}}
 .av{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:50%;background:hsl(var(--h,210) 28% 24%);color:hsl(var(--h,210) 70% 84%);font:700 1.05rem/1 var(--fd);font-style:normal}
 .av.c{background:var(--asfalto-3);color:var(--texto)}
 #nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:var(--asfalto);border-top:1px solid var(--linea);padding-bottom:var(--sb)}
@@ -376,7 +379,7 @@ main.papelv{max-width:760px}
  body{padding-bottom:0}
  .marco{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100svh}
  .lado{position:sticky;top:0;height:100svh;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:16px;padding:22px 14px 18px;border-bottom:0;border-right:1px solid var(--linea)}
- .wm{padding:0 8px;font-size:1.75rem}
+ .wm{padding:0 8px;font-size:1.75rem;white-space:normal;overflow:visible;line-height:1.15}
  .quien{justify-content:flex-start;border-radius:12px;padding:6px 10px 6px 8px}
  .quien>svg{margin-left:auto}
  #nav{position:static;flex-direction:column;gap:2px;padding:0;border:0;background:none}
