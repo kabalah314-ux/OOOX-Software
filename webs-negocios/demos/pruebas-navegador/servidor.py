@@ -253,10 +253,17 @@ async def main():
         es(await z.get_attribute(f"a.tj[href^='cita.html#/aviso/{A1}/']", 'href') == f'cita.html#/aviso/{A1}/{LLV}', 'la tarjeta de su aviso lleva el enlace con su llave')
         await z.click(f"a.tj[href^='cita.html#/aviso/{A1}/']")
         es(await pasa(z, f"location.pathname.endsWith('cita.html')&&document.querySelector('#v').textContent.includes('{A1}')&&!/No encuentro|Buscando/.test(document.querySelector('#v').textContent)", 9000), 'y con ella abre la página de su aviso, en directo')
-        await z.goto(B + 'cliente.html'); await z.wait_for_selector('#salir'); await z.click('#salir'); await z.wait_for_selector('#fE')
+        await z.goto(B + 'cliente.html'); await z.wait_for_selector('#salir'); await pasa(z, "document.querySelector('#v').textContent.startsWith('Hola')"); await z.wait_for_timeout(3300)
+        # lo que pidió su sesión y llega cuando ya ha salido (esa vez el servidor tarda en contestar) no debe valer. Al volver
+        # a la página, la zona pide lo suyo otra vez; se sale mientras esa respuesta viene de camino
+        api('__prueba/red', {'modo': 'va', 'lento': 2500}); await z.evaluate("document.dispatchEvent(new Event('visibilitychange'))"); await z.wait_for_timeout(400); api('__prueba/red', {'modo': 'va', 'lento': 0})
+        await z.click('#salir'); await z.wait_for_selector('#fE')
         es(await z.evaluate(f"localStorage.getItem('oficio:{N['id']}:cliente')") is None, 'salir: vuelve a pedir el código y no queda nada guardado')
         await z.fill('#z_tel', '612345678'); await z.fill('#z_cod', 'zzzz-zzzz'); await z.click('#fE [type=submit]')
         es(await pasa(z, "!!document.querySelector('.campo.mal #z_cod')") and 'no van juntos' in await z.inner_text('#fE') and await z.evaluate("document.activeElement.id") == 'z_cod', 'un código que no es: no entra, lo dice en su campo y deja el cursor ahí')
+        await z.wait_for_timeout(2600)
+        es(await z.evaluate("document.activeElement.id") == 'z_cod' and 'no van juntos' in await z.inner_text('#fE') and await z.input_value('#z_cod') == 'zzzz-zzzz',
+           'lo de su sesión que llega tarde, cuando ya ha salido, ni se enseña ni le quita el cursor del campo')
         await z.fill('#z_tel', '612 34 56 78'); await z.fill('#z_cod', ' ' + C1.upper().replace('-', ' ') + ' '); await z.click('#fE [type=submit]')
         es(await pasa(z, "!!document.querySelector('#salir')"), 'con el código en mayúsculas y con espacios, y el teléfono con espacios, entra')
         # la oficina cambia el código: el de antes deja de valer

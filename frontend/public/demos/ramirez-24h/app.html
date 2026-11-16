@@ -1298,10 +1298,13 @@ function avisosHtml(){const on=avisarOn(),np='Notification' in window?Notificati
  return'<div class="mavi" id="mAvi"><p><b>Avisos en este aparato</b><br><small>'+(on?(Q.rol==='tecnico'?'Suena cuando te asignan un aviso':'Suena cuando entra un aviso nuevo')+
   (np==='granted'?' y sale una notificación':np==='denied'?'. Las notificaciones están bloqueadas en este navegador':'')+'. Con la app abierta o en segundo plano.':'Apagados: no suena nada.')+'</small></p>'+
   '<button class="btn peq" id="mAviB" type="button">'+(on?'Apagar':'Encender')+'</button></div>'}
-function pita(){try{const C=AV.ctx||(AV.ctx=new (window.AudioContext||window.webkitAudioContext)());if(C.state==='suspended')C.resume();
+/* despertar el sonido: Firefox rechaza la promesa que queda pendiente al cambiar de página («Navigated away from page»);
+   se recoge para que no salga como error en la consola */
+const despierta=C=>{try{if(C&&C.state==='suspended'){const r=C.resume();if(r&&r.catch)r.catch(()=>{})}}catch(e){}};
+function pita(){try{const C=AV.ctx||(AV.ctx=new (window.AudioContext||window.webkitAudioContext)());despierta(C);
  [0,.2].forEach(s=>{const o=C.createOscillator(),gn=C.createGain(),t=C.currentTime+s;o.frequency.value=880;gn.gain.setValueAtTime(.0001,t);
   gn.gain.exponentialRampToValueAtTime(.3,t+.02);gn.gain.exponentialRampToValueAtTime(.0001,t+.16);o.connect(gn).connect(C.destination);o.start(t);o.stop(t+.17)})}catch(e){}}
-addEventListener('pointerdown',()=>{if(AV.ctx&&AV.ctx.state==='suspended')AV.ctx.resume()},{passive:true});
+addEventListener('pointerdown',()=>despierta(AV.ctx),{passive:true});
 function notifica(tit,cuerpo,id){if(!('Notification' in window)||Notification.permission!=='granted')return;
  const o={body:cuerpo,tag:'aviso-'+id,data:{aviso:id},icon:'assets/icono-192.png'};
  (APPI.reg&&APPI.reg.showNotification?APPI.reg.showNotification(tit,o):Promise.reject(0)).catch(()=>{try{const x=new Notification(tit,o);x.onclick=()=>{focus();location.hash='#/aviso/'+encodeURIComponent(id);x.close()}}catch(e){}})}

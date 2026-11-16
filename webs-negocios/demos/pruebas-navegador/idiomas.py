@@ -181,7 +181,7 @@ async def main():
         await pg.goto(B + 'cliente.html'); await pg.wait_for_selector('#fE')
         es(await pg.evaluate('document.documentElement.lang') == 'ca' and 'La teva zona' in await pg.locator('h1').inner_text() and await pg.locator('#pideArriba').inner_text() == 'Demanar cita', 'la zona del cliente, ya en catalán')
         await pg.locator('#idiomas [data-lang=en]').click(); await pg.reload(); await pg.wait_for_selector('#fE')
-        es(await pg.evaluate('document.documentElement.lang') == 'en' and 'Your area' in await pg.locator('h1').inner_text(), 'en inglés, y al volver a cargar se queda')
+        es(await pg.evaluate('document.documentElement.lang') == 'en' and 'Your account' in await pg.locator('h1').inner_text(), 'en inglés, y al volver a cargar se queda')
         await pg.goto(B + 'cita.html?lang=es'); await pg.wait_for_selector('#f')
         es(await pg.evaluate('document.documentElement.lang') == 'es' and await pg.evaluate("localStorage.getItem('ramirez:lang')") == 'es', '?lang=es en el enlace manda, y se guarda')
         await pg.goto(B + 'index.html?lang=ca'); await pg.wait_for_timeout(400)

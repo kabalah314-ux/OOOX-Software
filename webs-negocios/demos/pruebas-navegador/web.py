@@ -188,14 +188,18 @@ async def main():
             pg = oye(await ctx.new_page(), f'pantallas {w}x{h}')
             await pg.goto(B + 'index.html')   # se espera a que acabe la entrada: un gesto mientras corre solo se la salta
             await pg.wait_for_function("document.body.classList.contains('ready')", timeout=12000); await pg.wait_for_timeout(1000)
+            await pg.evaluate("document.fonts.ready.then(()=>1)")   # con la letra de repuesto, más ancha, todo baja un poco
             malas = {}; vistas = set(); y0 = -1; enteros = set()
-            for _ in range(22):
-                r = await pg.evaluate("""(()=>{const top=document.querySelector('.top').getBoundingClientRect().bottom,bt=document.querySelector('.bar').getBoundingClientRect().top;
+            MIDE = """(()=>{const top=document.querySelector('.top').getBoundingClientRect().bottom,bt=document.querySelector('.bar').getBoundingClientRect().top;
                   const S=[...document.querySelectorAll('section.sx')].find(s=>Math.abs(s.getBoundingClientRect().top)<3);if(!S)return null;const out=[];
                   S.querySelectorAll('h2,.btn,.svp,.fig').forEach(e=>{const q=e.getBoundingClientRect(),s=getComputedStyle(e);if(!q.width||!q.height||s.visibility==='hidden'||s.display==='none')return;if(e.closest('[hidden],.sheet,.panel'))return;
                    if(S.hasAttribute('data-largo')&&!e.matches('h2'))return;   /* la pantalla larga se mira aparte: abajo */
                    if(e.matches('h2')&&q.top<top-1)out.push('título bajo la cabecera: '+e.textContent.trim().slice(0,30));
-                   if(!e.matches('h2')&&q.bottom>bt+1&&q.top<innerHeight)out.push('bajo la barra: '+e.textContent.trim().slice(0,30))});return{id:S.id,out}})()""")
+                   if(!e.matches('h2')&&q.bottom>bt+1&&q.top<innerHeight)out.push('bajo la barra: '+e.textContent.trim().slice(0,30))});return{id:S.id,out}})()"""
+            for _ in range(22):
+                r = await pg.evaluate(MIDE)
+                # si algo sale mal, se vuelve a mirar parado un momento: en una máquina cargada, el paso puede no haber acabado
+                if r and r['out']: await pg.wait_for_timeout(900); r = await pg.evaluate(MIDE)
                 if r:
                     vistas.add(r['id'])
                     if r['out']: malas[r['id']] = r['out']

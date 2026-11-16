@@ -27,7 +27,8 @@ async def main():
         c = await ctx.new_page(); errs = []
         c.on('pageerror', lambda e: errs.append(str(e)))
         c.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
-        ctx.on('requestfailed', lambda r: errs.append('no carga ' + r.url[:90]))
+        # lo que se corta al cambiar de pantalla no es que no cargue (Firefox baja el icono del iPhone y lo corta al irse)
+        ctx.on('requestfailed', lambda r: None if any(x in str(r.failure or '').upper() for x in ('ABORT', 'CANCEL')) else errs.append(f'no carga {r.url[:90]} ({r.failure})'))
         # U31: abrir la oficina la primera vez (se hace el negocio de nueve semanas) y U42: volver a abrir
         t0 = time.time(); await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('#nav a'); t1 = time.time() - t0
         st = await c.evaluate("(()=>{const S=Oficio.estado();return{n:S.avisos.length,t0:S.t0,v:S.v}})()")

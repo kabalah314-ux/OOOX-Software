@@ -122,7 +122,11 @@ function entraSrv(tel,cod){const t9=K.tel9(tel);if(!t9)return Promise.resolve('t
  return Oficio.perfil(t9,c).then(r=>{if(r&&r.ok&&r.perfil){mem.set(CLAVE,JSON.stringify({tel:t9,cod:c}));Z.pf=r.perfil;Z.txt=JSON.stringify(r.perfil);Z.t=Date.now();Z.err='';return''}return motivo(r&&r.err)})}
 /* con la sesión abierta, lo suyo se vuelve a pedir de vez en cuando. Si su código ya no vale, sale de su zona */
 function trae(){const se=sesion();if(!SRV||!se||Z.va)return;Z.va=true;
- Oficio.perfil(se.tel,se.cod).then(r=>{Z.va=false;Z.t=Date.now();
+ Oficio.perfil(se.tel,se.cod).then(r=>{Z.va=false;
+  /* lo que llega de una sesión que ya no es la de ahora (salió, o entró otra persona en este navegador) no vale: ni se
+     enseña ni se repinta, que quitaría el cursor del campo en el que está escribiendo */
+  const ya=sesion();if(!ya||ya.tel!==se.tel||ya.cod!==se.cod)return;
+  Z.t=Date.now();
   if(r&&r.ok&&r.perfil){const t=JSON.stringify(r.perfil),cambia=t!==Z.txt||!!Z.err;Z.pf=r.perfil;Z.txt=t;Z.err='';if(cambia)pinta();return}
   const e=motivo(r&&r.err);
   if(e==='clave'||e==='nadie'){mem.del(CLAVE);limpia();F={tel:K.telBonito(se.tel),cod:'',err:e==='clave'?'cambio':'nadie',va:false};pinta();return}
