@@ -8,6 +8,7 @@
 #
 # GitHub solo lo lanza solo desde la rama principal. Un cambio en este archivo lo lanza una vez en la rama donde se
 # suba, para ver que funciona (así no abre incidencias).
+# Probado así, con la base de datos de verdad, el 16-11-2026 (rama ramirez-nueva).
 name: Copia de cada noche de OOOX Oficios
 on:
   schedule:

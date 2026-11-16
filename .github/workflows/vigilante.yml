@@ -10,6 +10,7 @@
 #
 # GitHub solo lo lanza solo desde la rama principal. Un cambio en este archivo o en vigilar.json lo lanza una vez en la
 # rama donde se suba, solo para ver que funciona: así no abre incidencias ni avisa.
+# Probado así, con la base de datos de verdad, el 16-11-2026 (rama ramirez-nueva).
 # El repositorio es público: las máquinas estándar de GitHub no cuestan nada. No usar máquinas «grandes».
 name: Vigilante de OOOX Oficios
 on:
