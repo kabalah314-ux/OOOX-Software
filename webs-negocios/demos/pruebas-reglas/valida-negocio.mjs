@@ -10,7 +10,7 @@ import { TODOS as BASE } from '../../oficios-base/servicios.mjs';   // la base d
 
 const require = createRequire(import.meta.url);
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento', 'furgoneta'];
+const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento', 'furgoneta', 'textos'];
 const esTexto = (x, min = 1, max = 200) => typeof x === 'string' && x.trim().length >= min && x.length <= max;
 const esNum = x => typeof x === 'number' && Number.isFinite(x);
 const esEntero = x => Number.isInteger(x);
@@ -142,6 +142,7 @@ export function valida(N, K, hoy) {
   // las citas por lo que tarda cada trabajo (15-11-2026): sí o no, y solo con horarios
   if (N.citas && N.citas.porTiempo != null && typeof N.citas.porTiempo !== 'boolean') E('citas.porTiempo: true para repartir las citas por lo que tarda cada trabajo; si no, false o nada.');
   if (N.citas && N.citas.porTiempo === true && !conHorario) A('citas.porTiempo: sin horarios no se puede; las citas van por número (cupo).');
+  if (N.citas && N.citas.voyAntes != null && !(Number.isInteger(N.citas.voyAntes) && N.citas.voyAntes >= 0 && N.citas.voyAntes <= 240)) E('citas.voyAntes: los minutos antes de la franja desde los que el técnico puede pulsar «Voy» en una cita, de 0 a 240 (sin poner, 30).');
   if (N.citas && N.citas.reservaSiFalta != null && typeof N.citas.reservaSiFalta !== 'boolean') E('citas.reservaSiFalta: false para no guardar a nadie para urgencias los días que falta alguien; si no, true o nada.');
   if (N.citas && N.citas.reservaSiFalta === false && !(N.citas.reserva > 0)) A('citas.reservaSiFalta: sin reserva para urgencias (citas.reserva) no cambia nada.');
   if (conHorario && Array.isArray(tecs) && Array.isArray(fr)) {
@@ -325,6 +326,17 @@ export function valida(N, K, hoy) {
     }
   }
   claves.forEach(k => { if (!usadas.has(k)) A('catalogo.' + k + ': no lo usa ninguna avería; el técnico no podrá elegirlo.') });
+
+  // ---- lo que ve el cliente en catalán y en inglés (js/oficio-idioma.js): filas [castellano, catalán, inglés]. Que estén todos
+  //      los textos del negocio lo mira pruebas-reglas/idiomas.mjs; aquí, la forma
+  if (N.textos != null) {
+    if (!Array.isArray(N.textos)) E('textos: tiene que ser una lista de filas [castellano, catalán, inglés].');
+    else { const vistos = new Set();
+      N.textos.forEach((f, i) => {
+        if (!Array.isArray(f) || f.length !== 3 || !f.every(x => esTexto(x, 1, 300))) { E('textos[' + i + ']: tiene que ser [castellano, catalán, inglés], tres textos de hasta 300 letras.'); return }
+        if (vistos.has(f[0])) E('textos: «' + f[0] + '» está dos veces.'); vistos.add(f[0]);
+      }) }
+  }
 
   // ---- claves de más (casi siempre, una errata)
   Object.keys(N).forEach(k => { if (!CLAVES.includes(k) && k !== 'zona') A('«' + k + '» no es un dato que la app conozca. ¿Es una errata?') });

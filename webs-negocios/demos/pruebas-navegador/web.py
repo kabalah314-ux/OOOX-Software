@@ -114,7 +114,7 @@ async def main():
             vistos.add(n)
             sa, sb = round(sum(r['sa']), 2), round(sum(r['sb']), 2)
             es(r['abierto'] and r['t'] and abs(r['t'][0] - sa) < 0.01 and abs(r['t'][-1] - sb) < 0.01, f'desglose «{n}»: las filas suman el total ({sa}–{sb} vs {r["tot"]})')
-            es(r['res'] == f'cita.html?servicio={av}' and r['resT'] == f'Reservar {n}' and 'suplemento' in r['alt'] and '%' not in r['alt'], f'desglose «{n}»: reserva ese servicio y explica la urgencia con una cifra, sin porcentajes ({r["res"]}, {r["alt"]})')
+            es(r['res'] == f'cita.html?servicio={av}&lang=es' and r['resT'] == f'Reservar {n}' and 'suplemento' in r['alt'] and '%' not in r['alt'], f'desglose «{n}»: reserva ese servicio y explica la urgencia con una cifra, sin porcentajes ({r["res"]}, {r["alt"]})')
             await pg.keyboard.press('Escape'); await pg.wait_for_timeout(250)
             es(await pg.evaluate("document.querySelector('#p-desglose').getAttribute('aria-hidden')") == 'true', f'desglose «{n}»: se cierra con Escape')
         es(len(vistos) == len(avs), f'servicios: hay una tarjeta con su desglose para cada una de las {len(avs)} averías ({len(vistos)})')
@@ -123,7 +123,7 @@ async def main():
         for av in avs:
             tj = await pg.evaluate(f"""(()=>{{const c=document.querySelector('.svc[data-av="{av}"]'),a=c.querySelector('[data-reserva]');
               return{{n:c.querySelector('h3').textContent.trim(),p:c.querySelector('[data-precio]').textContent.trim(),href:a.getAttribute('href'),aria:a.getAttribute('aria-label'),img:c.querySelector('img').getAttribute('src'),d:c.querySelector('.svd').textContent.trim()}}}})()""")
-            es(tj['href'] == f'cita.html?servicio={av}' and tj['aria'] == f'Reservar {tj["n"]}' and tj['d'] and av in tj['img'], f'tarjeta «{tj["n"]}»: foto, frase, y «Reservar {tj["n"]}» lleva a cita.html?servicio={av}')
+            es(tj['href'] == f'cita.html?servicio={av}&lang=es' and tj['aria'] == f'Reservar {tj["n"]}' and tj['d'] and av in tj['img'], f'tarjeta «{tj["n"]}»: foto, frase, y «Reservar {tj["n"]}» lleva a cita.html?servicio={av} (con el idioma)')
             await pg.goto(B + tj['href']); await pg.wait_for_selector('#f')
             ci = await pg.evaluate("({el:(document.querySelector('.elegida')||{}).textContent||'',r:(document.querySelector('.rango .num')||{}).textContent||'',grid:document.querySelectorAll('input[name=av]').length})")
             nums_w = [int(x) for x in re.findall(r'(\d+)', tj['p'].split('+')[0])]; nums_c = [int(x) for x in re.findall(r'(\d+)', ci['r'])]
@@ -213,10 +213,10 @@ async def main():
         pg = oye(await ctx.new_page(), 'entrada y barrios'); await pg.goto(B + 'index.html')
         # la entrada (16-11-2026) es un vídeo corto que arranca solo; al acabar, la portada con la bienvenida
         await pg.wait_for_function("document.body.classList.contains('ready')", timeout=12000); await pg.wait_for_timeout(900)
-        es(await pg.locator('#index a.espera[href="cita.html"]').count() == 1 and 'Pedir cita' in await pg.locator('#index a.espera').inner_text() and await pg.locator('#index a.espera').is_visible() and await pg.evaluate("getComputedStyle(document.querySelector('#index')).opacity==='1'"), 'entrada: al acabar el vídeo, además de llamar y la foto, «¿Puede esperar? Pedir cita», a la vista')
+        es(await pg.locator('#index a.espera[href="cita.html?lang=es"]').count() == 1 and 'Pedir cita' in await pg.locator('#index a.espera').inner_text() and await pg.locator('#index a.espera').is_visible() and await pg.evaluate("getComputedStyle(document.querySelector('#index')).opacity==='1'"), 'entrada: al acabar el vídeo, además de llamar y la foto, «¿Puede esperar? Pedir cita», a la vista')
         es('Fontaneros 24 horas.' == (await pg.locator('#index h1').inner_text()).strip(), 'entrada: el título («Fontaneros 24 horas.») va en la portada, encima de la hora de llegada')
         barra = await pg.evaluate("[...document.querySelectorAll('.bar a')].map(a=>({t:a.innerText.trim(),pri:a.classList.contains('pri'),h:a.getAttribute('href')}))")
-        es(len(barra) == 2 and barra[0]['pri'] and barra[0]['t'] == 'Pedir cita' and barra[0]['h'] == 'cita.html' and not barra[1]['pri'] and barra[1]['t'] == 'Llamar', f'entrada: abajo, «Pedir cita» es el botón destacado y «Llamar» va al lado, sin quitarle sitio ({barra})')
+        es(len(barra) == 2 and barra[0]['pri'] and barra[0]['t'] == 'Pedir cita' and barra[0]['h'] == 'cita.html?lang=es' and not barra[1]['pri'] and barra[1]['t'] == 'Llamar', f'entrada: abajo, «Pedir cita» es el botón destacado y «Llamar» va al lado, sin quitarle sitio ({barra})')
         es('suplemento de urgencia' in await pg.locator('#urgeL').inner_text() and '30 €' in await pg.locator('#urgeL').inner_text(), 'entrada: si no puede esperar, se dice en una frase, con el suplemento en euros')
         nb = await pg.locator('#baLista button').count()
         es(nb == await pg.locator('#mapa .d').count() == 10 and 'min' in await pg.locator('#baLista').inner_text(), f'barrio: debajo del mapa, la lista de los diez distritos con sus minutos ({nb})')
@@ -227,17 +227,17 @@ async def main():
         es(all(x in chips for x in ('Fuga de agua', 'Sin agua caliente', 'Cisterna que pierde', 'Grifo que gotea', 'Otra avería')), f'servicios: los mismos nombres que en la cita y en la app ({chips[:80]!r})')
         tq = ' '.join((await pg.locator('#avT').text_content()).split())
         es(tq == '¿Qué necesitas arreglar?', f'servicios: la pregunta es «¿Qué necesitas arreglar?», la misma que en la cita ({tq!r})')
-        # la cita va solo en castellano: desde la web en catalán, el enlace lo dice y la cita lo avisa en catalán
+        # la cita y la zona del cliente van en el idioma de la web: el enlace lo lleva siempre (más en idiomas.py)
         await pg.evaluate("document.querySelector('[data-lang=ca]').click()"); await pg.wait_for_timeout(200)
-        hca = await pg.get_attribute('#index a.espera', 'href'); sca = await pg.get_attribute('[data-reserva=fuga]', 'href')
+        hca = await pg.get_attribute('#index a.espera', 'href'); sca = await pg.get_attribute('[data-reserva=fuga]', 'href'); zca = await pg.evaluate("[...document.querySelectorAll('a[href^=\"cliente.html\"]')].map(a=>a.getAttribute('href'))")
         await pg.evaluate("document.querySelector('[data-lang=es]').click()"); await pg.wait_for_timeout(200)
         es(sca == 'cita.html?servicio=fuga&lang=ca', f'idioma: en catalán, «Reservar» lleva el servicio y el idioma ({sca})')
         hes = await pg.get_attribute('#index a.espera', 'href')
-        es(hca == 'cita.html?lang=ca' and hes == 'cita.html', f'idioma: en catalán, la cita se abre con ?lang=ca; en castellano, sin nada ({hca}, {hes})')
+        es(hca == 'cita.html?lang=ca' and hes == 'cita.html?lang=es' and zca and all(z == 'cliente.html?lang=ca' for z in zca), f'idioma: la cita y la zona del cliente se abren con el idioma de la web ({hca}, {hes}, {zca})')
         await pg.goto(B + 'cita.html?lang=ca'); await pg.wait_for_selector('#f')
-        es('encara és en castellà' in await pg.locator('.nota-lang').inner_text() and await pg.get_attribute('.nota-lang', 'lang') == 'ca', 'idioma: la cita avisa en catalán de que el formulario va en castellano, con el teléfono')
-        await pg.goto(B + 'cita.html'); await pg.wait_for_selector('#f')
-        es(await pg.locator('.nota-lang').count() == 0, 'idioma: en castellano, sin aviso')
+        es('Demana cita sense pressa.' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'ca' and await pg.locator('.nota-lang').count() == 0, 'idioma: la cita, en catalán (ya no avisa de que va en castellano)')
+        await pg.goto(B + 'cita.html?lang=es'); await pg.wait_for_selector('#f')
+        es('Pide cita sin prisa.' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'es', 'idioma: y en castellano')
         await ctx.close()
 
         # ---------- 8. la página de los tres móviles ----------

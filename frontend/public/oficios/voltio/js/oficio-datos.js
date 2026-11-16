@@ -61,6 +61,31 @@ g.OFICIO_NEGOCIO={
     urgencias no se cobra la visita */
  mantenimiento:{
   revision:{n:'Revisión del contrato',c:'Revisión',d:'La revisión de la instalación eléctrica que lleva el contrato.',dur:[40,75],ini:[{k:'visita'},{k:'revinst'}],chips:['diferencial','magneto','mecanismo','regleta']},
-  planes:[{id:'anual',n:'Mantenimiento anual',precio:95,iva:21,revisiones:1,desp:'visita',rev:'revinst',prioridad:1}]}
+  planes:[{id:'anual',n:'Mantenimiento anual',precio:95,iva:21,revisiones:1,desp:'visita',rev:'revinst',prioridad:1}]},
+ /* lo de este negocio en catalán y en inglés, para lo que ve el cliente (la cita, su zona y sus papeles). En cada fila:
+    el texto en castellano tal cual está arriba, el catalán y el inglés. Lo que falte sale en castellano. Lo común de las
+    pantallas ya va traducido (js/oficio-idioma.js) */
+ textos:[
+  ['Taller en Russafa, València','Taller a Russafa, València','Workshop in Russafa, València'],
+  ['Salta el diferencial','Salta el diferencial','The main breaker keeps tripping'],
+  ['Sin luz en una zona','Sense llum en una zona','No power in part of the home'],
+  ['Enchufe o interruptor','Endoll o interruptor','Socket or switch'],
+  ['Instalar una lámpara','Instal·lar un llum','Fit a light'],
+  ['Otra avería','Una altra avaria','Another problem'],
+  ['Visita y diagnóstico','Visita i diagnòstic','Visit and diagnosis'],
+  ['Servicio urgente: salimos en el momento','Servei urgent: sortim al moment','Emergency service: we leave straight away'],
+  ['Mano de obra','Mà d’obra','Labour'],
+  ['Cambio de enchufe o interruptor, con visita','Canvi d’endoll o interruptor, amb visita','Socket or switch replacement, visit included'],
+  ['Instalar una lámpara, con visita','Instal·lar un llum, amb visita','Light fitting, visit included'],
+  ['Interruptor diferencial','Interruptor diferencial','RCD (residual-current device)'],
+  ['Magnetotérmico','Magnetotèrmic','Circuit breaker (MCB)'],
+  ['Mecanismo de enchufe','Mecanisme d’endoll','Socket mechanism'],
+  ['Cable, tramo hasta 5 m','Cable, tram fins a 5 m','Cable, up to 5 m'],
+  ['Caja de empalmes','Caixa d’empalmaments','Junction box'],
+  ['Regletas y bornes','Regletes i borns','Terminal strips and connectors'],
+  ['Cuadro eléctrico de 12 módulos, instalado','Quadre elèctric de 12 mòduls, instal·lat','12-module consumer unit, installed'],
+  ['Revisión de la instalación eléctrica','Revisió de la instal·lació elèctrica','Electrical installation inspection'],
+  ['Revisión del contrato','Revisió del contracte','Contract inspection'],
+  ['Mantenimiento anual','Manteniment anual','Annual maintenance']]
 };
 })(typeof globalThis!=='undefined'?globalThis:this);

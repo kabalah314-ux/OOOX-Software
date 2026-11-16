@@ -187,7 +187,9 @@ function firma(lienzo,alCambiar){const cx=lienzo.getContext('2d');let trazos=[],
  return{vacia:()=>largo<60,borrar(){trazos=[];largo=0;pinta();alCambiar&&alCambiar()},medir,
   ruta(){const r=lienzo.getBoundingClientRect(),kx=300/r.width,ky=110/r.height;
    return trazos.map(t=>t.filter((p,i)=>i%2===0||i===t.length-1).map((p,i)=>(i?'L':'M')+Math.round(p[0]*kx)+' '+Math.round(p[1]*ky)).join('')).join('')}}}
-const firmaSvg=d=>'<svg viewBox="0 0 300 110" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Firma"><path d="'+String(d).replace(/[^MLC0-9 .-]/g,'')+'"/></svg>';
+/* la firma dibujada; en la zona del cliente, su nombre en el idioma del cliente (js/oficio-idioma.js) */
+const _=s=>g.OficioIdioma?g.OficioIdioma.T(s):s;
+const firmaSvg=d=>'<svg viewBox="0 0 300 110" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="'+_('Firma')+'"><path d="'+String(d).replace(/[^MLC0-9 .-]/g,'')+'"/></svg>';
 
 /* Lo que usan las pantallas. «crear» es para lo que tiene número propio (un aviso, una ausencia): devuelve una promesa,
    porque con servidor el número lo pone él. Sin servidor contesta al momento, igual que «hacer». */
@@ -196,8 +198,9 @@ g.Oficio=R?{K,N,cfg,DEMO,SRV:true,estado:R.estado,hacer:R.hacer,crear:R.crear,re
  :{K,N,cfg,DEMO,SRV:false,estado,hacer,crear:(a,q)=>Promise.resolve(hacer(a,q)),reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
   sesion:()=>null,red:()=>null,alRechazar(){}};
 /* Una copia de prueba (prueba:true en los datos del negocio) lo dice arriba en todas sus pantallas: así nadie la toma por un
-   negocio en marcha. Va con sus colores puestos aquí para no depender de la hoja de estilos de cada página. */
+   negocio en marcha. Va con sus colores puestos aquí para no depender de la hoja de estilos de cada página.
+   En la cita y en la zona del cliente, en su idioma (js/oficio-idioma.js); en la oficina, en castellano. */
 if(N.prueba===true&&typeof document!=='undefined'&&document.body&&!document.getElementById('prb')){const p=document.createElement('p');p.id='prb';
- p.textContent='Copia de prueba de OOOX Oficios. Este negocio aún no está en marcha: '+(R?'lo que hagas aquí se guarda en el servidor de pruebas, no llega a ningún cliente.':'lo que hagas aquí se queda en este navegador.');
+ p.textContent=_('Copia de prueba de OOOX Oficios. Este negocio aún no está en marcha:')+' '+(R?_('lo que hagas aquí se guarda en el servidor de pruebas, no llega a ningún cliente.'):_('lo que hagas aquí se queda en este navegador.'));
  p.style.cssText='margin:0;padding:7px 16px;background:#3a2f0a;color:#ffd34d;font:500 .8125rem/1.35 system-ui,sans-serif;text-align:center';document.body.prepend(p)}
 })(window);

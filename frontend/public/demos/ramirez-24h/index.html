@@ -654,8 +654,10 @@ function applyLang(){
  HTML.lang=LANG;$$('[data-lang]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===LANG)));
  langFns.forEach(f=>f())}
 function setLang(l){LANG=LANGS.includes(l)?l:'es';store.set('lang',LANG);applyLang()}
-/* la cita todavía está solo en castellano: si la web está en catalán o en inglés, el enlace lo lleva y la cita lo avisa */
-langFns.push(()=>$$('a[href^="cita.html"]').forEach(a=>{const u=a.getAttribute('href').replace(/[?&]lang=(ca|en)/,'').replace(/\?$/,'');a.setAttribute('href',LANG==='es'?u:u+(u.includes('?')?'&':'?')+'lang='+LANG)}));
+/* la cita y la zona del cliente van en el idioma de la web: el enlace lo lleva siempre (?lang=) y ellas lo guardan, en la
+   misma llave que la web (js/oficio-idioma.js). Así, lo que se elige en un sitio vale en los tres */
+langFns.push(()=>$$('a[href^="cita.html"],a[href^="cliente.html"]').forEach(a=>{const[u0,h]=a.getAttribute('href').split('#'),u=u0.replace(/[?&]lang=(es|ca|en)/,'').replace(/\?$/,'');
+ a.setAttribute('href',u+(u.includes('?')?'&':'?')+'lang='+LANG+(h!=null?'#'+h:''))}));
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-lang]');if(b){e.preventDefault();setLang(b.dataset.lang)}});
 {const q=(location.search.match(/[?&]lang=(es|ca|en)/)||[])[1],sv=store.get('lang'),nv=(navigator.language||'es').slice(0,2);LANG=q||(SHOT?'es':'')||sv||(nv==='ca'?'ca':'es')}
 
@@ -733,7 +735,7 @@ function pintaVivo(){const n=madrid(),u=urgente(n),eta=hhmm(n.min+etaMin());
 /* --- los servicios: precio con cita (tarifa normal) en cada tarjeta; «Reservar» abre la cita con ese servicio --- */
 const avIdx=()=>Math.max(0,AV.findIndex(a=>a.id===S.av));
 const precioSv=p=>{const tt=total(p,false),suf=p.suf?' '+L(p.suf):'';return(p.desde?t('sv.desde',{p:eur(tt.a)}):rango(tt.a,tt.b))+suf};
-const citaUrl=id=>'cita.html?servicio='+encodeURIComponent(id)+(LANG==='es'?'':'&lang='+LANG);
+const citaUrl=id=>'cita.html?servicio='+encodeURIComponent(id)+'&lang='+LANG;   /* siempre con el idioma: la cita sale en el de la web */
 function pintaSv(){$$('[data-precio]').forEach(e=>{const p=AV.find(a=>a.id===e.dataset.precio);if(p)e.textContent=precioSv(p)});
  $$('[data-reserva]').forEach(a=>a.setAttribute('aria-label',t('sv.resA',{a:t('av.'+a.dataset.reserva)})))}
 const eligeAv=id=>{if(!AV.some(a=>a.id===id))return;S.av=id;S.av0=true;store.set('av',id);refreshLinks()};

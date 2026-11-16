@@ -121,7 +121,7 @@ async def main():
         if libres:
             await k.locator('[data-fr]:not([disabled])').first.click()
             cp = await k.evaluate("Object.keys(Oficio.N.zonas.cp)[0]")
-            await k.fill('#c_nombre', 'Clara'); await k.fill('#c_apellidos', 'Prueba Uso'); await k.fill('#c_tel', '611 22 33 99'); await k.fill('#c_dir', 'C/ de la Prueba 12, 3.º'); await k.fill('#c_cp', cp)
+            await k.fill('#c_nomap', 'Clara Prueba Uso'); await k.fill('#c_tel', '611 22 33 99'); await k.fill('#c_dir', 'C/ de la Prueba 12, 3.º'); await k.fill('#c_cp', cp)
             await k.click('button[type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await k.wait_for_selector('.doc'); await k.wait_for_timeout(200)
             nueva = await c.evaluate("(()=>{const A=Oficio.estado().avisos.find(a=>a.cli.apellidos==='Prueba Uso');return A?{id:A.id,dia:A.cita.dia}:null})()")
             es(nueva is not None, 'U40: la cita queda apuntada')

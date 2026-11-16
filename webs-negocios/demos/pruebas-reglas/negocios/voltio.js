@@ -49,6 +49,27 @@ g.OFICIO_NEGOCIO={
   {id:'sinluz',n:'Sin luz en una zona',c:'Sin luz',d:'Una habitación o varios enchufes.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:1.5},{k:'magneto'},{k:'cable'}],ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','cable','caja','regleta']},
   {id:'enchufe',n:'Enchufe o interruptor',c:'Enchufe',d:'Suelto, quemado o que no funciona.',min:[{k:'enchufe'}],max:[{k:'enchufe'},{k:'mecanismo'},{k:'caja'}],ini:[{k:'enchufe'}],chips:['mecanismo','caja','cable']},
   {id:'lampara',n:'Instalar una lámpara',c:'Lámpara',d:'Colgar y conectar una lámpara o un plafón.',min:[{k:'lampara'}],max:[{k:'lampara'},{k:'regleta'},{k:'cable'}],ini:[{k:'lampara'}],chips:['regleta','cable']},
-  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'visita'},{k:'horas',q:.5}],max:null,ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','mecanismo','cable','caja','regleta']}]
+  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'visita'},{k:'horas',q:.5}],max:null,ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','mecanismo','cable','caja','regleta']}],
+ /* lo de este negocio en catalán y en inglés, para lo que ve el cliente (la cita, su zona y sus papeles). En cada fila:
+    el texto en castellano tal cual está arriba, el catalán y el inglés. Lo que falte sale en castellano. Lo común de las
+    pantallas ya va traducido (js/oficio-idioma.js) */
+ textos:[
+  ['Taller en Russafa, València','Taller a Russafa, València','Workshop in Russafa, València'],
+  ['Salta el diferencial','Salta el diferencial','The main breaker keeps tripping'],
+  ['Sin luz en una zona','Sense llum en una zona','No power in part of the home'],
+  ['Enchufe o interruptor','Endoll o interruptor','Socket or switch'],
+  ['Instalar una lámpara','Instal·lar un llum','Fit a light'],
+  ['Otra avería','Una altra avaria','Another problem'],
+  ['Visita y diagnóstico','Visita i diagnòstic','Visit and diagnosis'],
+  ['Mano de obra','Mà d’obra','Labour'],
+  ['Cambio de enchufe o interruptor, con visita','Canvi d’endoll o interruptor, amb visita','Socket or switch replacement, visit included'],
+  ['Instalar una lámpara, con visita','Instal·lar un llum, amb visita','Light fitting, visit included'],
+  ['Interruptor diferencial','Interruptor diferencial','RCD (residual-current device)'],
+  ['Magnetotérmico','Magnetotèrmic','Circuit breaker (MCB)'],
+  ['Mecanismo de enchufe','Mecanisme d’endoll','Socket mechanism'],
+  ['Cable, tramo hasta 5 m','Cable, tram fins a 5 m','Cable, up to 5 m'],
+  ['Caja de empalmes','Caixa d’empalmaments','Junction box'],
+  ['Regletas y bornes','Regletes i borns','Terminal strips and connectors'],
+  ['Cuadro eléctrico de 12 módulos, instalado','Quadre elèctric de 12 mòduls, instal·lat','12-module consumer unit, installed']]
 };
 })(typeof globalThis!=='undefined'?globalThis:this);

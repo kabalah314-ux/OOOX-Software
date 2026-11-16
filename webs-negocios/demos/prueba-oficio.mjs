@@ -1356,6 +1356,12 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
     es(d && d.dia === '2026-11-16' && d.min === 1425 && !K.voyYa(cm, Ax, hora('2026-11-16T23:44:00+01:00')) && K.voyYa(cm, Ax, hora('2026-11-16T23:45:00+01:00')), `a medianoche: la franja de las 00:15 abre el día antes a las 23:45 ${JSON.stringify(d)}`) }
 }
 
+// ---------- «Nombre y apellidos» en un solo campo (decisión de Oscar, 16-11): la primera palabra es el nombre ----------
+{ const P = K.parteNombre;
+  es(JSON.stringify(P('  María José   García López ')) === JSON.stringify({ nombre: 'María', apellidos: 'José García López', bien: true }), 'nombre y apellidos: la primera palabra es el nombre y el resto, los apellidos, sin espacios de más');
+  es(!P('Montse').bien && P('Montse').apellidos === '' && !P('').bien && !P(null).bien && !P('J X').bien && P('Ana Lo').bien, 'nombre y apellidos: hace falta el nombre y al menos un apellido (de dos letras o más)');
+  es(P('Ana ' + 'x'.repeat(200)).apellidos.length === 80 && P('y'.repeat(100) + ' Pérez').nombre.length === 60, 'nombre y apellidos: con los mismos topes que la regla (60 y 80)') }
+
 // ---------- quitar el técnico («soltar», 16-11, auditoría UX-16): también es el «Deshacer» de «Asignar a» ----------
 { const SV = K.nuevo(); let tv = Date.parse('2026-11-16T10:00:00+01:00'); const hv = (a, q) => K.aplicar(SV, cfg, a, q, tv += M), Ax = id => SV.avisos.find(a => a.id === id);
   const cp = Object.keys(cfg.zonas.cp)[0], cli = { nombre: 'Des', apellidos: 'Hacer', tel: '600000992', dir: 'C/ Atrás 1', cp };

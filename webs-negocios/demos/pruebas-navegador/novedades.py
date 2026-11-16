@@ -158,7 +158,7 @@ async def main():
         await c.goto(B + 'app.html#/contratos'); await c.wait_for_selector('.cab [data-a=conAlta]')
         es('Contratos' in await texto(c, 'main h1') and 'al año' in await texto(c, 'main'), 'la pantalla de contratos, con lo que vende el negocio')
         await c.click('.cab [data-a=conAlta]'); await c.wait_for_selector('#caF')
-        for k, v in (('nombre', 'Clara'), ('apellidos', 'Riu'), ('tel', '611000020'), ('dir', 'C/ Verdi 50, 2.º'), ('cp', cp0)):
+        for k, v in (('nomap', 'Clara Riu'), ('tel', '611000020'), ('dir', 'C/ Verdi 50, 2.º'), ('cp', cp0)):
             await c.fill('#ca_' + k, v)
         await c.click('button[form=caF]'); await c.wait_for_timeout(200)
         es('Falta la firma' in await texto(c, '#ca_err'), 'sin la firma del cliente no se da de alta')

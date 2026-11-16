@@ -18,7 +18,9 @@ g.OFICIO_NEGOCIO={
     Omar y Laia, de lunes a viernes, de 8 a 14 y de 15 a 20. Jordi, de 8 a 14 y de 15 a 18: la última franja no la hace.
     Los tres hacen guardias, porque el servicio es de 24 horas. Cada técnico lleva una cita por franja y, de las que caben,
     una no se ofrece al cliente: se guarda para urgencias y solo la puede usar la oficina. */
- citas:{porFranja:1,reserva:1},
+ citas:{porFranja:1,reserva:1,
+  /* «Voy» de una cita se enciende estos minutos antes de su franja (de 0 a 240; sin poner, 30). Las urgencias, al momento */
+  voyAntes:30},
  /* coche: lo que ve el cliente cuando va de camino. foto (en assets/) solo con fotoOk:1, que es su permiso por escrito */
  tecnicos:[
   {id:'omar',n:'Omar',ap:'Benali',tono:205,coche:'Furgoneta blanca con el logo de Ramírez',guardia:1,horario:{1:[[480,840],[900,1200]],2:[[480,840],[900,1200]],3:[[480,840],[900,1200]],4:[[480,840],[900,1200]],5:[[480,840],[900,1200]]}},
@@ -70,7 +72,41 @@ g.OFICIO_NEGOCIO={
     (en su aviso tampoco se cobra el desplazamiento); «revisiones», cuántas al año; «prioridad», sus avisos van primero. */
  mantenimiento:{
   revision:{n:'Revisión del contrato',c:'Revisión',d:'La revisión de la instalación que lleva el contrato.',dur:[40,75],ini:[{k:'desp'},{k:'revinst'}],chips:['juntas','sellador','latig','llave','valvula','termostato']},
-  planes:[{id:'anual',n:'Mantenimiento anual',precio:120,iva:21,revisiones:1,desp:'desp',rev:'revinst',prioridad:1}]}
+  planes:[{id:'anual',n:'Mantenimiento anual',precio:120,iva:21,revisiones:1,desp:'desp',rev:'revinst',prioridad:1}]},
+ /* lo de este negocio en catalán y en inglés, para lo que ve el cliente (la cita, su zona y sus papeles). En cada fila:
+    el texto en castellano tal cual está arriba, el catalán y el inglés. Lo que falte sale en castellano. Lo común de las
+    pantallas ya va traducido (js/oficio-idioma.js) */
+ textos:[
+  ['Taller en Sants, Barcelona','Taller a Sants, Barcelona','Workshop in Sants, Barcelona'],
+  ['Furgoneta blanca con el logo de Ramírez','Furgoneta blanca amb el logo de Ramírez','White van with the Ramírez logo'],
+  ['Fuga de agua','Fuita d’aigua','Water leak'],
+  ['Atasco','Embús','Blockage'],
+  ['Sin agua caliente','Sense aigua calenta','No hot water'],
+  ['Cisterna que pierde','Cisterna que perd','Leaking cistern'],
+  ['Grifo que gotea','Aixeta que goteja','Dripping tap'],
+  ['Otra avería','Una altra avaria','Another problem'],
+  ['Desplazamiento en Barcelona','Desplaçament a Barcelona','Call-out within Barcelona'],
+  ['Servicio urgente: salimos en el momento','Servei urgent: sortim al moment','Emergency service: we leave straight away'],
+  ['Mano de obra','Mà d’obra','Labour'],
+  ['Desatasco manual, con desplazamiento','Desembús manual, amb desplaçament','Manual unblocking, call-out included'],
+  ['Máquina desatascadora','Màquina desembussadora','Drain-clearing machine'],
+  ['Ajuste o cambio de mecanismo, con desplazamiento','Ajust o canvi de mecanisme, amb desplaçament','Mechanism adjustment or replacement, call-out included'],
+  ['Cambio o reparación de grifo, con desplazamiento','Canvi o reparació d’aixeta, amb desplaçament','Tap replacement or repair, call-out included'],
+  ['Juntas y racores','Juntes i ràcords','Seals and fittings'],
+  ['Teflón y sellador','Tefló i segellador','PTFE tape and sealant'],
+  ['Latiguillos, el par','Flexos, el parell','Flexi hoses, per pair'],
+  ['Llave de escuadra','Clau d’escaire','Angle valve'],
+  ['Sifón','Sifó','Trap'],
+  ['Tramo de tubería, hasta 1 m','Tram de canonada, fins a 1 m','Pipe section, up to 1 m'],
+  ['Mecanismo de cisterna','Mecanisme de cisterna','Cistern mechanism'],
+  ['Válvula de seguridad','Vàlvula de seguretat','Safety valve'],
+  ['Termostato','Termòstat','Thermostat'],
+  ['Resistencia','Resistència','Heating element'],
+  ['Grifo monomando','Aixeta monocomandament','Single-lever tap'],
+  ['Termo eléctrico de 80 litros, instalado','Termo elèctric de 80 litres, instal·lat','80-litre electric water heater, installed'],
+  ['Revisión de la instalación','Revisió de la instal·lació','Installation inspection'],
+  ['Revisión del contrato','Revisió del contracte','Contract inspection'],
+  ['Mantenimiento anual','Manteniment anual','Annual maintenance']]
 };
 
 /* ---------- los avisos de muestra de la demo, siempre recientes ---------- */

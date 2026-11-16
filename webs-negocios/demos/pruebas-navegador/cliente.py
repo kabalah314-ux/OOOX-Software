@@ -86,11 +86,11 @@ async def main():
             t2 = await pg.locator('main').inner_text()
             es('No está en tu zona' in t2 and otros[0]['cli'].get('dir', '¿?') not in t2, 'el aviso de otro cliente, escrito a mano en la dirección: no se ve')
             # pedir otra cita con sus datos puestos, una sola vez
-            await pg.goto(B + 'cliente.html#/'); await pg.wait_for_selector('#otra'); await pg.click('#otra'); await pg.wait_for_selector('#c_nombre')
-            v = {k: await pg.input_value('#c_' + k) for k in ('nombre', 'apellidos', 'tel', 'dir', 'cp')}
-            es(v['nombre'] == P['cli']['nombre'] and v['apellidos'] == P['cli']['apellidos'] and tel9(v['tel']) == TEL and v['dir'] == P['cli']['dir'] and v['cp'] == P['cli']['cp'], 'pedir otra cita: sus datos ya puestos')
-            await pg.reload(); await pg.wait_for_selector('#c_nombre')
-            es(await pg.input_value('#c_nombre') == '', 'y solo esa vez: al volver a entrar, el formulario sale vacío')
+            await pg.goto(B + 'cliente.html#/'); await pg.wait_for_selector('#otra'); await pg.click('#otra'); await pg.wait_for_selector('#c_nomap')
+            v = {k: await pg.input_value('#c_' + k) for k in ('nomap', 'tel', 'dir', 'cp')}
+            es(v['nomap'] == (P['cli']['nombre'] + ' ' + P['cli']['apellidos']).strip() and tel9(v['tel']) == TEL and v['dir'] == P['cli']['dir'] and v['cp'] == P['cli']['cp'], 'pedir otra cita: sus datos ya puestos')
+            await pg.reload(); await pg.wait_for_selector('#c_nomap')
+            es(await pg.input_value('#c_nomap') == '', 'y solo esa vez: al volver a entrar, el formulario sale vacío')
             # salir
             await pg.goto(B + 'cliente.html'); await pg.wait_for_selector('#salir'); await pg.click('#salir'); await pg.wait_for_selector('#fE')
             es(await pg.evaluate("localStorage.getItem('oficio:'+Oficio.N.id+':cliente')") is None, 'salir: vuelve a pedir el código y no queda nada guardado')
@@ -110,7 +110,7 @@ async def main():
             es(pg.url.endswith('#/') and COD not in pg.url and 'Hola' in await pg.locator('main').inner_text(), 'el enlace del mensaje entra solo y el código no se queda en la barra')
             # la web lleva a la zona
             w = await ctx.new_page(); await w.goto(B + 'index.html'); await w.wait_for_timeout(400)
-            if not COPIA: es(await w.locator('a[href="cliente.html"]').count() >= 1, 'la web tiene «Tu zona»')   # una copia no lleva la web del negocio, solo la portada de pedir cita
+            if not COPIA: es(await w.locator('a[href^="cliente.html"]').count() >= 1, 'la web tiene «Tu zona»')   # una copia no lleva la web del negocio, solo la portada de pedir cita
             await w.close()
             es(not errs, f'sin errores {errs[:2]}')
         await b.close()

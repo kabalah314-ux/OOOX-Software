@@ -28,11 +28,13 @@ if [ "$QUE" != navegador ]; then
   paso "Reglas, con ejemplos" node "$AQUI/prueba-oficio.mjs" "$SITIO"
   paso "Reglas, con recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$SITIO/js/oficio-datos.js" --negocio "$OTRO" --tandas "${TANDAS:-100}" --semilla "${SEMILLA:-20261113}"
   paso "Restos del negocio de muestra en los archivos comunes" node "$R/restos.mjs" "$SITIO"
+  paso "Idiomas: la cita, la zona del cliente y los papeles, en catalán y en inglés" node "$R/idiomas.mjs" "$SITIO" "$SITIO/js/oficio-datos.js" "$OTRO"
   paso "Buzón de mejoras, sin navegador" node "$R/prueba-soporte.mjs" "$SITIO"
   paso "Vigía de fallos, sin navegador" node "$R/prueba-vigia.mjs" "$SITIO"
   paso "Herramienta de copias" node "$R/prueba-copias.mjs" "$SITIO"
   if [ -d "$COPIAS" ]; then
     paso "Copias: todas al día y con datos que valen" node "$AQUI/copias.mjs" comprueba --plantilla "$SITIO" --destino "$COPIAS"
+    paso "Copias: lo de cada negocio, en catalán y en inglés" node "$R/idiomas.mjs" "$SITIO" "$COPIAS"/*/js/oficio-datos.js
     for d in "$COPIAS"/*/js/oficio-datos.js; do [ -f "$d" ] && paso "Copia $(basename "$(dirname "$(dirname "$d")")"): recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$d" --tandas "${TANDAS_COPIA:-20}" --semilla "${SEMILLA:-20261113}"; done
   fi
   # la demo «en uso»: el negocio de nueve semanas, hecho con las reglas, a ocho horas distintas y con sus cuentas (pruebas-uso/LISTA.md)
@@ -62,6 +64,7 @@ if [ "$QUE" != reglas ]; then
   paso "Web y página de los tres móviles" python3 web.py
   paso "Muestra de la demo" python3 muestra.py
   paso "Zona del cliente: entrar con el teléfono y ver lo suyo" python3 cliente.py
+  paso "Idiomas: la cita, la zona del cliente y los papeles, en catalán y en inglés" python3 idiomas.py
   paso "Vídeo de entrada" python3 entrada.py
   paso "Vigía de fallos: lo que ve, lo que manda y lo que guarda sin red" python3 vigia.py "$COPIAS"
   paso "Otro negocio, de principio a fin" python3 negocio.py "$OTRO"

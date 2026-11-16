@@ -54,7 +54,7 @@ async def nuevo_con_cita(c, dia, fr, n, av=None):
     b = c.locator(f'[data-b-fr="{fr}"]')
     if await b.is_disabled(): return ''
     await b.click()
-    await c.fill('#n_tel', f'6112244{n:02d}'); await c.fill('#n_nombre', f'Prueba Horarios {n}'); await c.fill('#n_apellidos', 'Prueba'); await c.fill('#n_dir', f'C/ de la Prueba {n}, 1.º'); await c.fill('#n_cp', CP)
+    await c.fill('#n_tel', f'6112244{n:02d}'); await c.fill('#n_nomap', f'Prueba Horarios {n}'); await c.fill('#n_dir', f'C/ de la Prueba {n}, 1.º'); await c.fill('#n_cp', CP)
     await c.click('#fNuevo button[type=submit], #fNuevo .btn.pri'); await c.wait_for_function("location.hash.startsWith('#/aviso/')"); await c.wait_for_selector('[data-a=cita]')
     return (await c.evaluate("location.hash")).split('/')[-1]
 
@@ -92,7 +92,7 @@ async def main():
         es(len(marc) == min(4, len(alts)) and (len(alts) < 5 or await toast(k, 'Con cuatro')), f'cliente: puede marcar hasta cuatro; a la quinta se le dice que basta ({len(marc)})')
         await k.click(f'[data-alt="{marc[-1]}"]'); marc = marc[:-1]
         es(await k.locator('[data-alt][aria-pressed=true]').count() == len(marc), 'cliente: y desmarcar una')
-        await k.fill('#c_nombre', 'Clara Franjas'); await k.fill('#c_apellidos', 'Prueba'); await k.fill('#c_tel', '611 22 44 90'); await k.fill('#c_dir', 'C/ de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
+        await k.fill('#c_nomap', 'Clara Franjas'); await k.fill('#c_tel', '611 22 44 90'); await k.fill('#c_dir', 'C/ de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
         await k.click('button[type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await k.wait_for_selector('.doc'); idk = (await k.evaluate("location.hash")).split('/')[-1]
         A = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idk}')")
         es(A and A['cita']['dia'] == D1 and A['cita']['ok'] is True and [f"{v['dia']}|{v['fr']}" for v in A['vale']] == [f"{D1}|{libre[0]['id']}"] + marc, f"cliente: la cita entra con la franja pedida y las otras que marcó ({len(A['vale']) if A else 0})")

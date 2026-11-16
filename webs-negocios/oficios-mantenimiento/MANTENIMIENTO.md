@@ -17,7 +17,10 @@ La revisión diaria de Claude sigue este documento al pie de la letra.
 | 3 veces al día | La revisión del buzón «Mejoras» | Su tarea programada, aparte |
 
 Lo de GitHub solo corre solo desde la rama principal (`main`): hasta que los archivos de `.github/workflows` estén
-allí, solo corre cuando se cambian.
+allí, solo corre cuando se cambian. La copia de cada noche y el vigilante están preparados para `main` en la petición
+n.º 1 (https://github.com/kabalah314-ux/OOOX-Software/pull/1, probada el 16-11): corren solos en cuanto Oscar la junte.
+Las pruebas de cada noche van con la app, cuando la rama `ramirez-nueva` pase a `main`. Mientras tanto, si cambia
+`vigilar.json` aquí, hay que cambiarlo también en `main`.
 
 ## La revisión diaria (Claude)
 
@@ -115,7 +118,9 @@ tiene que revisar un abogado.
 - Decir «publica» (y probar en su iPhone los cambios grandes).
 - Pagar lo que haga falta cuando haya clientes: Supabase Pro (25 $ al mes, con copias diarias de 7 días; conviene
   mover oficios a su propio proyecto, separado del juego), los dominios.
-- Guardar la llave privada de las copias fuera del PC (un pendrive o su gestor de contraseñas).
+- Juntar la petición n.º 1 en `main` (la copia de cada noche y el vigilante).
+- Guardar la llave privada de las copias fuera del PC (un pendrive y su gestor de contraseñas; los pasos, en la guía,
+  pestaña «Idiomas y listo para implementar (16-11)»).
 - Instalar ntfy en el móvil y suscribirse a su tema, si quiere avisos al momento (además del correo).
 - Hablar con los negocios: soporte por teléfono, avisos de caídas, contrato y encargo de tratamiento.
 - Dar de alta y de baja a las personas de cada negocio (hasta que el dueño pueda hacerlo desde su app).
