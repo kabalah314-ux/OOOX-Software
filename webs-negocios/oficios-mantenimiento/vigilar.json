@@ -1,0 +1,12 @@
+{
+ "_que": "Lo que mira el vigilante de GitHub cada 5 minutos (.github/workflows/vigilante.yml). Cada web: tiene que contestar 200 y llevar dentro el texto de «contiene». Al dar de alta un negocio con su dominio, se añade aquí su app y su página de citas.",
+ "web": [
+  {"nombre": "Demo de Ramírez (vista previa)", "url": "https://ramirez-nueva.ooox-software.pages.dev/demos/ramirez-24h/app.html", "contiene": "oficio-nucleo.js"},
+  {"nombre": "Voltio Sur, la app (copia de prueba)", "url": "https://ramirez-nueva.ooox-software.pages.dev/oficios/voltio/app.html", "contiene": "oficio-nucleo.js"},
+  {"nombre": "Voltio Sur, pedir cita (copia de prueba)", "url": "https://ramirez-nueva.ooox-software.pages.dev/oficios/voltio/cita.html", "contiene": "oficio-nucleo.js"},
+  {"nombre": "OOOX, la web", "url": "https://ooox.es/", "contiene": "OOOX"}
+ ],
+ "servidor": "https://glsmahzpvzabeeucyqif.supabase.co",
+ "llave": "sb_publishable_SmbXr1nXApZ8HRF1ezbXcg_lqtr2yaZ",
+ "funcion": "oficio"
+}
