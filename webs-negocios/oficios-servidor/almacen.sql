@@ -146,6 +146,18 @@ begin
 end $$;
 
 -- La puerta del juez. Solo entra la llave de servicio (la función «oficio»).
+-- El equipo: lo que hace la oficina (o el dueño) con los accesos, para que quede apuntado quién y cuándo. Sin códigos.
+create table if not exists oficios.accesos (
+  id      bigint generated always as identity primary key,
+  negocio text not null references oficios.estados(negocio),
+  cuando  timestamptz not null default now(),
+  quien   text not null,                         -- quién lo hizo: «oficina» o el id del técnico dueño
+  que     text not null check (que in ('codigo','baja')),
+  a       text not null                          -- a qué persona
+);
+create index if not exists accesos_negocio on oficios.accesos (negocio, cuando desc);
+alter table oficios.accesos enable row level security;
+
 create or replace function public.oficios_srv(p_que text, p_a jsonb) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare neg text := p_a ->> 'negocio'; e oficios.estados; n oficios.negocios; c jsonb; x jsonb; v0 bigint; cuantos int;
@@ -204,6 +216,28 @@ begin
     end;
   when 'cliente_entra' then
     return oficios.cliente_entra(neg, p_a ->> 'tel', p_a ->> 'codigo', p_a ->> 'red');
+  -- el equipo: quién tiene acceso (sin huellas), un código nuevo (solo se guarda su huella) y quitar el acceso
+  when 'personas' then
+    return coalesce((select jsonb_agg(jsonb_build_object('persona', p.persona, 'rol', p.rol, 'quien', p.quien, 'activo', p.activo) order by p.persona)
+                     from oficios.personas p where p.negocio = neg), '[]'::jsonb);
+  when 'pon_persona' then
+    if coalesce(p_a ->> 'codigo', '') !~ '^[a-z0-9]{4}(-[a-z0-9]{4}){3}$' then return jsonb_build_object('ok', false); end if;
+    begin   -- el código nuevo sustituye al de antes, que deja de valer; si no tenía acceso, se le da
+      insert into oficios.personas(negocio, persona, rol, quien, clave_hash) values (neg, p_a ->> 'persona', p_a ->> 'rol', p_a ->> 'quien', oficios.huella(neg || ':' || (p_a ->> 'persona'), p_a ->> 'codigo'))
+      on conflict (negocio, persona) do update set clave_hash = excluded.clave_hash, rol = excluded.rol, quien = excluded.quien, activo = true;
+      insert into oficios.accesos(negocio, quien, que, a) values (neg, left(coalesce(p_a ->> 'por', '?'), 40), 'codigo', p_a ->> 'persona');
+      return jsonb_build_object('ok', true);
+    exception when not_null_violation or check_violation or foreign_key_violation then
+      return jsonb_build_object('ok', false);
+    end;
+  when 'baja_persona' then
+    update oficios.personas set activo = false where negocio = neg and persona = p_a ->> 'persona';
+    if not found then return jsonb_build_object('ok', false); end if;
+    insert into oficios.accesos(negocio, quien, que, a) values (neg, left(coalesce(p_a ->> 'por', '?'), 40), 'baja', p_a ->> 'persona');
+    return jsonb_build_object('ok', true);
+  when 'accesos' then
+    return coalesce((select jsonb_agg(jsonb_build_object('cuando', floor(extract(epoch from x.cuando) * 1000)::bigint, 'quien', x.quien, 'que', x.que, 'a', x.a) order by x.cuando desc, x.id desc)
+                     from (select * from oficios.accesos where negocio = neg order by cuando desc, id desc limit 20) x), '[]'::jsonb);
   else
     return null;
   end case;

@@ -162,3 +162,10 @@ dialog.hoja.llena{max-height:100svh;height:100svh;border-radius:0}
 /* el formulario de desistimiento del presupuesto */
 .papel .fdes{margin-top:10px;padding:10px 12px;border:1px dashed currentColor;border-radius:8px}
 .papel .fdes h3{font-size:1em;margin:0 0 4px}
+/* el equipo y sus accesos (con servidor) */
+.eql,.eqh{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.eqf{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}
+.eqn{display:grid;gap:2px;min-width:0}.eqn small{font-size:.875rem;color:var(--tenue)}
+.eqe.activo{color:var(--bien)}.eqe.baja{color:var(--mal)}
+.eqa{display:grid;justify-items:end;gap:2px;flex:none}
+.eqt{margin:6px 0 0;font-weight:600}.eqh li{font-size:.875rem;color:var(--tenue)}

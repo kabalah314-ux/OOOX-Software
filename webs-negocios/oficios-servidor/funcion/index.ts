@@ -34,6 +34,10 @@ const almacen = {
   cliente: (negocio: string, tel: string) => srv("cliente", { negocio, tel }),
   ponCliente: (negocio: string, tel: string, codigo: string) => srv("pon_cliente", { negocio, tel, codigo }),
   clienteEntra: (negocio: string, tel: string, codigo: string, red: string) => srv("cliente_entra", { negocio, tel, codigo, red }),
+  personas: (negocio: string) => srv("personas", { negocio }),
+  ponPersona: (negocio: string, persona: string, rol: string, quien: string, codigo: string, por: string) => srv("pon_persona", { negocio, persona, rol, quien, codigo, por }),
+  bajaPersona: (negocio: string, persona: string, por: string) => srv("baja_persona", { negocio, persona, por }),
+  accesos: (negocio: string) => srv("accesos", { negocio }),
 };
 const juez = crea({ K, almacen, aviso: (e: unknown) => console.error("juez:", e) });
 const VERSION = { reglas: K && K.VERSION, commit: "9b1400421b2e" };   // para saber desde fuera qué versión corre

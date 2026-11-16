@@ -4,7 +4,7 @@
 # Uso: python3 servidor.py [puerto]     (NAVEGADOR=chromium|firefox|webkit)   Antes: node servidor_local.mjs <carpeta> <puerto>
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')
-import asyncio, sys, json, time, base64, tempfile, urllib.request, urllib.parse
+import asyncio, re, sys, json, time, base64, tempfile, urllib.request, urllib.parse
 from playwright.async_api import async_playwright
 import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
 import buzon_falso
@@ -310,6 +310,45 @@ async def main():
         api('__prueba/persona', {'persona': T2, 'codigo': COD[T2]})
         await t2.fill('#e_cod', COD[T2]); await t2.click('#fEntra [type=submit]'); await pasa(t2, "Oficio.sesion()&&document.querySelector('#nav a')", 6000)
         es(await pasa(t2, tiene(A1, 'curso')), 'con un código bueno vuelve a entrar y recupera lo suyo')
+
+        # ---------- 13 bis. el equipo y sus accesos, desde la app (la oficina o el técnico que es el dueño) ----------
+        async def abre_equipo(pg):
+            await pg.goto(B + 'app.html#/'); await pg.wait_for_selector('[data-a=menu]'); await pg.click('[data-a=menu]'); await pg.wait_for_selector('#mEq'); await pg.wait_for_timeout(250); await pg.click('#mEq')
+            return await pasa(pg, "document.querySelectorAll('.eqf').length>0", 8000)
+        fila = lambda p: f".eqf[data-p='{p}']"
+        es(await abre_equipo(o) and await o.locator('.eqf').count() == len(N['tecnicos']) + 1, 'la oficina abre «Equipo y accesos» y ve a la centralita y a cada técnico')
+        es('Puede entrar' in await o.inner_text(fila(T2)) and await o.locator(fila('oficina') + ' [data-hace=baja]').count() == 0, 'cada uno con su estado; la oficina no tiene cómo quitarse el acceso a sí misma')
+        await o.click(fila(T2) + ' [data-hace=codigo]'); es('Sí, darle un código nuevo' in await o.inner_text(fila(T2)), 'dar un código nuevo pide confirmarlo')
+        await o.click(fila(T2) + ' [data-hace=codigo]')
+        es(await pasa(o, "!!document.querySelector('#eqCod')"), 'el código nuevo sale en pantalla, una sola vez')
+        nuevo = (await o.inner_text('#eqCod')).strip()
+        es(re.fullmatch(r'[a-z0-9]{4}(-[a-z0-9]{4}){3}', nuevo) is not None, 'con la forma de siempre: cuatro grupos de cuatro')
+        es(await pasa(t2, "!!document.querySelector('#fEntra')&&Oficio.sesion()===null", 8000), 'el móvil del técnico vuelve solo a la pantalla de entrar: el código de antes ya no vale')
+        await t2.fill('#e_cod', nuevo); await t2.click('#fEntra [type=submit]')
+        es(await pasa(t2, "!!Oficio.sesion()&&!!document.querySelector('#nav a')", 8000), 'y entra con el código nuevo')
+        await o.click('#eqCopia') if await o.locator('#eqCopia').count() else None
+        await o.locator('dialog[open] [data-x]').last.click()
+        es(await abre_equipo(o), 'se vuelve a abrir el equipo')
+        await o.click(fila(T2) + ' [data-hace=baja]'); await o.click(fila(T2) + ' [data-hace=baja]')
+        es(await pasa(o, f"/Acceso quitado/.test((document.querySelector(\"{fila(T2)}\")||{{}}).textContent||'')", 8000), 'quitar el acceso: se ve quitado')
+        es(await pasa(t2, "!!document.querySelector('#fEntra')&&Oficio.sesion()===null", 8000), 'y la app del técnico se cierra sola')
+        await t2.fill('#e_cod', nuevo); await t2.click('#fEntra [type=submit]'); await pasa(t2, "!!document.querySelector('#e_ecod')")
+        es(await t2.evaluate('Oficio.sesion()===null'), 'ya no puede entrar ni con su último código')
+        es('quitó el acceso' in await o.inner_text('.eqh') and 'dio un código' in await o.inner_text('.eqh'), 'queda apuntado en «Lo último», sin ningún código')
+        es(nuevo not in await o.inner_text('#eqB'), 'el código no vuelve a salir en el equipo')
+        await o.locator('dialog[open] [data-x]').last.click()
+        # el dueño, aunque entre como técnico, también lleva el equipo; un técnico que no es el dueño, no
+        jefe = next((t['id'] for t in N['tecnicos'] if t.get('jefe')), None)
+        if jefe:
+            cj = await contexto(br); j = await pagina(cj, 'dueño'); await entra(j, jefe, COD[jefe])
+            es(await abre_equipo(j) and await j.locator(fila(jefe) + ' [data-hace=baja]').count() == 0, 'el técnico que es el dueño también lleva el equipo (y tampoco puede quitarse el acceso a sí mismo)')
+            await cj.close()
+        api('__prueba/persona', {'persona': T2, 'codigo': COD[T2]})
+        await t2.fill('#e_cod', COD[T2]); await t2.click('#fEntra [type=submit]'); await pasa(t2, "Oficio.sesion()&&document.querySelector('#nav a')", 8000)
+        await t2.click('[data-a=menu]'); await t2.wait_for_selector('#mSal')
+        es(await t2.locator('#mEq').count() == (1 if T2 == jefe else 0), 'un técnico que no es el dueño no ve «Equipo y accesos»')
+        await t2.locator('dialog[open] [data-x]').last.click()
+        es(await pasa(t2, tiene(A1, 'curso')), 'el técnico, con su código de vuelta, recupera lo suyo')
 
         # ---------- 14. cerrar la sesión ----------
         await o.goto(B + 'app.html#/bandeja'); await o.wait_for_selector('[data-a=menu]'); await o.click('[data-a=menu]'); await o.wait_for_selector('#mSal'); await o.wait_for_timeout(250); await o.click('#mSal')

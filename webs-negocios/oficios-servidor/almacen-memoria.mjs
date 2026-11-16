@@ -18,7 +18,7 @@ export function creaAlmacen({ ahora = () => Date.now(), estorbo = null } = {}) {
     /* como el de verdad: solo cuentan los fallos de una persona que existe; diez desde la misma conexión la bloquean a ella */
     async entra(id, persona, codigo, red = '') {
       const n = neg(id); if (!n || !n.activo) return null; const t = ahora();
-      const p = n.personas.get(persona); if (!p) return null;
+      const p = n.personas.get(persona); if (!p || p.activo === false) return null;
       n.fallos = n.fallos.filter(x => t - x.t < 600000);
       const suyos = n.fallos.filter(x => x.persona === persona);
       if (suyos.filter(x => x.red === red).length >= 10 || suyos.length >= 200) return 'bloqueo';
@@ -39,6 +39,11 @@ export function creaAlmacen({ ahora = () => Date.now(), estorbo = null } = {}) {
     async cambios(id, desde) { const n = neg(id); return { v: n.v, cab: copia(n.cab), avisos: [...n.avisos.values()].filter(f => f.v > desde).map(copia) }; },
     async vista(id, aviso, llave) { const n = neg(id), f = n && n.avisos.get(aviso); return f && f.llave && f.llave === llave ? copia(f.vista) : null; },
     async tope(id, clave, max, ventana) { const n = neg(id); if (!n) return false; const t = ahora(), L = (n.topes.get(clave) || []).filter(x => t - x < ventana); if (L.length >= max) { n.topes.set(clave, L); return false; } L.push(t); n.topes.set(clave, L); return true; },
+    /* el equipo: quién tiene acceso (sin códigos), dar un código nuevo, quitar el acceso y lo último que se ha hecho */
+    async personas(id) { const n = neg(id); return n ? [...n.personas.entries()].map(([persona, p]) => ({ persona, rol: p.rol, quien: p.id, activo: p.activo !== false })) : []; },
+    async ponPersona(id, persona, rol, quien, codigo, por) { const n = neg(id); if (!n) return { ok: false }; n.personas.set(persona, { rol, id: quien, codigo, activo: true }); (n.accesos = n.accesos || []).push({ cuando: ahora(), quien: por, que: 'codigo', a: persona }); return { ok: true }; },
+    async bajaPersona(id, persona, por) { const n = neg(id), p = n && n.personas.get(persona); if (!p) return { ok: false }; p.activo = false; (n.accesos = n.accesos || []).push({ cuando: ahora(), quien: por, que: 'baja', a: persona }); return { ok: true }; },
+    async accesos(id) { const n = neg(id); return n ? (n.accesos || []).slice(-20).reverse().map(copia) : []; },
     /* la zona del cliente: su código, que la oficina puede volver a mandar o cambiar */
     async cliente(id, tel) { const n = neg(id), c = n && n.clientes.get(tel); return c ? { codigo: c.codigo, activo: c.activo } : null; },
     async ponCliente(id, tel, codigo) { const n = neg(id); if (!n) return { ok: false }; n.clientes.set(tel, { codigo, activo: true }); return { ok: true }; },

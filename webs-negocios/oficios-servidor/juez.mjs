@@ -13,9 +13,11 @@
 //  - Cada persona recibe solo lo suyo: la oficina, todo lo de su negocio; un técnico, sus avisos y su furgoneta; el cliente, su aviso.
 //  - En su zona, el cliente entra con su teléfono y un código que le da la oficina, y recibe sus avisos y nada de nadie más.
 //  - Una acción repetida (la red se cortó y el móvil la manda otra vez) no se hace dos veces.
+//  - El equipo y sus accesos los lleva el negocio desde su app (la oficina o el dueño): dar un código nuevo (sale una sola
+//    vez; se guarda solo su huella) o quitar el acceso. Nadie se queda fuera a sí mismo ni deja el negocio sin quien mande.
 //  - Nunca lanza un error hacia fuera: contesta siempre {ok:true,…} o {ok:false,err}.
 
-export const QUE = ['entrar', 'hacer', 'leer', 'pedir', 'huecos', 'ver', 'acceso', 'perfil'];
+export const QUE = ['entrar', 'hacer', 'leer', 'pedir', 'huecos', 'ver', 'acceso', 'perfil', 'equipo'];
 export const TOPES = {
   accion: 400000,     // letras que puede pesar una acción (cabe una foto reducida)
   intentos: 5,        // veces que vuelve a leer si alguien se le adelanta
@@ -33,6 +35,10 @@ export function llaveNueva(n = 24) {
 }
 /** El código de la zona de un cliente: 8 letras en dos grupos («abcd-efgh»), con el mismo abecedario. */
 export function codigoCliente() { const s = llaveNueva(8); return s.slice(0, 4) + '-' + s.slice(4); }
+/** El código de una persona del equipo: 16 letras en cuatro grupos («abcd-efgh-jkmn-pqrs»), con el mismo abecedario. */
+export function codigoPersona() { return llaveNueva(16).match(/.{4}/g).join('-'); }
+/** Quién puede llevar el equipo: la oficina, o un técnico que es el dueño («jefe» en los datos del negocio). */
+export const manda = (cfg, q) => !!q && (q.rol === 'centralita' || (q.rol === 'tecnico' && !!cfg.tec[q.id] && !!cfg.tec[q.id].jefe));
 /** Un código de cliente tecleado con mayúsculas, espacios o sin guion vale igual: devuelve «abcd-efgh», o '' si no lo es. */
 export function limpiaCodigo(c) {
   if (typeof c !== 'string' || c.length > 40) return '';
@@ -163,6 +169,40 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       if (ya && ya.activo && limpiaCodigo(ya.codigo) === ya.codigo) return { ok: true, tel, codigo: ya.codigo, nuevo: false };
       const codigo = codigoCliente(), g = await almacen.ponCliente(neg.id, tel, codigo);
       return g && g.ok ? { ok: true, tel, codigo, nuevo: true } : R('servidor');
+    },
+
+    /* El equipo y sus accesos (la oficina o el dueño). Sin «hace»: quién hay, quién puede entrar y lo último que se ha
+       hecho. «hace: 'codigo'»: un código nuevo para esa persona (el de antes deja de valer; si no tenía acceso, se le da);
+       sale solo en esta respuesta, porque se guarda su huella. «hace: 'baja'»: le quita el acceso (su app vuelve a la
+       pantalla de entrar). Nadie se quita el acceso a sí mismo, y siempre queda alguien que puede llevar el equipo. */
+    async equipo(neg, cfg, p) {
+      const w = await quien(neg, cfg, p); if (!w.ok) return w;
+      if (!manda(cfg, w.q)) return R('permiso');
+      const lista = async () => {
+        const P = (await almacen.personas(neg.id)) || [], por = new Map(P.map(x => [x.persona, x]));
+        const estado = persona => { const x = por.get(persona); return !x ? 'sin' : x.activo ? 'activo' : 'baja'; };
+        const L = [{ persona: 'oficina', nombre: 'Centralita', rol: 'centralita', jefe: false, estado: estado('oficina') }]
+          .concat((neg.datos.tecnicos || []).filter(t => t && texto(t.id, 40)).map(t => ({ persona: t.id, nombre: [t.n, t.ap].filter(Boolean).join(' '), rol: 'tecnico', jefe: !!t.jefe, estado: estado(t.id) })));
+        // quien tiene acceso y ya no está en los datos del negocio (un técnico que se fue): se le puede quitar, no dar
+        for (const x of P) if (!L.some(y => y.persona === x.persona)) L.push({ persona: x.persona, nombre: x.persona, rol: x.rol, jefe: false, estado: x.activo ? 'activo' : 'baja', fuera: true });
+        return L;
+      };
+      if (p.hace === undefined || p.hace === 'ver') return { ok: true, yo: p.persona, equipo: await lista(), accesos: (await almacen.accesos(neg.id)) || [] };
+      if (p.hace !== 'codigo' && p.hace !== 'baja') return R('peticion');
+      if (!texto(p.a, 40)) return R('peticion');
+      const L = await lista(), x = L.find(y => y.persona === p.a);
+      if (!x || (x.fuera && p.hace === 'codigo')) return R('nadie');
+      if (p.hace === 'baja') {
+        if (p.a === p.persona) return R('tuyo');
+        if (x.estado !== 'activo') return { ok: true, persona: p.a, ya: true };
+        if (!L.some(y => y.persona !== p.a && y.estado === 'activo' && (y.rol === 'centralita' || y.jefe))) return R('ultimo');
+        if (!(await almacen.tope(neg.id, 'equipo', 30, 86400000))) return R('limite');
+        const g = await almacen.bajaPersona(neg.id, p.a, p.persona);
+        return g && g.ok ? { ok: true, persona: p.a } : R('servidor');
+      }
+      if (!(await almacen.tope(neg.id, 'equipo', 30, 86400000))) return R('limite');
+      const codigo = codigoPersona(), g = await almacen.ponPersona(neg.id, p.a, x.rol, p.a, codigo, p.persona);
+      return g && g.ok ? { ok: true, persona: p.a, codigo, tuyo: p.a === p.persona } : R('servidor');
     },
 
     /* El cliente, en su zona: con su teléfono y su código recibe sus avisos (K.perfilCliente) y nada de nadie más. Los

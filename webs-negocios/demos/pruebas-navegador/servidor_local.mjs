@@ -79,7 +79,7 @@ async function prueba(req, res, ruta) {
   if (que === 'red') { red = c.modo === 'cae' ? 'cae' : 'va'; lento = Math.max(0, Number(c.lento) || 0); return json(res, { ok: true, red, lento }); }
   if (que === 'pierde') { pierde = Math.max(0, Number(c.n) || 0); return json(res, { ok: true, pierde }); }
   if (que === 'persona') { const p = crudo().personas.get(String(c.persona)); if (!p) return json(res, { ok: false }, 404);
-    if (typeof c.codigo === 'string') p.codigo = c.codigo; return json(res, { ok: true }); }
+    if (typeof c.codigo === 'string') { p.codigo = c.codigo; p.activo = true; } return json(res, { ok: true }); }
   return json(res, { ok: false, err: 'no existe' }, 404);
 }
 

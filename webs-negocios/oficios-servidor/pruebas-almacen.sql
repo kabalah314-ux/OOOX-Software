@@ -1,6 +1,6 @@
 -- Pruebas del almacén del servidor (almacen.sql), pasadas en la base de datos de verdad y deshechas al acabar:
 -- el bloque termina con un error a propósito, que lleva el resultado y no deja nada escrito.
--- Tiene que decir «ok» en las 31. Se pasan con el conector de Supabase de Claude o en el editor SQL del proyecto.
+-- Tiene que decir «ok» en las 37. Se pasan con el conector de Supabase de Claude o en el editor SQL del proyecto.
 do $$
 declare
   r text[] := '{}'; j jsonb; k jsonb; n int;
@@ -182,6 +182,36 @@ begin
   update oficios.clientes set activo = false where negocio = 'prueba-srv' and tel = '622222222';
   r := array_append(r, case when public.oficios_srv('cliente_entra', '{"negocio":"prueba-srv","tel":"622222222","codigo":"wxyz-2345","red":"c4"}') is null
     and (select s.clientes = 1 from oficios.servidor s where s.negocio = 'prueba-srv') then '31:ok' else '31:MAL' end);
+
+  -- 32. el equipo: quién tiene acceso, sin huellas de los códigos
+  j := public.oficios_srv('personas', '{"negocio":"prueba-srv"}');
+  r := array_append(r, case when jsonb_array_length(j) = 3 and position('clave' in j::text) = 0 and position('huella' in j::text) = 0
+    and (select bool_and((x ->> 'activo')::boolean = (x ->> 'persona' <> 'baja')) from jsonb_array_elements(j) x) then '32:ok' else '32:MAL' end);
+  -- 33. un código con forma rara no se guarda
+  r := array_append(r, case when public.oficios_srv('pon_persona', '{"negocio":"prueba-srv","persona":"ana","rol":"tecnico","quien":"ana-id","codigo":"corto","por":"oficina"}') = '{"ok":false}'::jsonb
+    and public.oficios_srv('entra', '{"negocio":"prueba-srv","persona":"ana","codigo":"codigo-ana-1","red":"e1"}') is not null then '33:ok' else '33:MAL' end);
+  -- 34. un código nuevo: el de antes deja de valer, el nuevo entra, queda apuntado quién lo dio y el código no se guarda
+  j := public.oficios_srv('pon_persona', '{"negocio":"prueba-srv","persona":"ana","rol":"tecnico","quien":"ana-id","codigo":"abcd-efgh-jkmn-pqrs","por":"oficina"}');
+  r := array_append(r, case when j = '{"ok":true}'::jsonb
+    and public.oficios_srv('entra', '{"negocio":"prueba-srv","persona":"ana","codigo":"codigo-ana-1","red":"e2"}') is null
+    and public.oficios_srv('entra', '{"negocio":"prueba-srv","persona":"ana","codigo":"abcd-efgh-jkmn-pqrs","red":"e2"}') = '{"rol":"tecnico","id":"ana-id"}'::jsonb
+    and (select count(*) from oficios.accesos a where a.negocio = 'prueba-srv' and a.que = 'codigo' and a.a = 'ana' and a.quien = 'oficina') = 1
+    and not exists (select 1 from oficios.personas p where p.negocio = 'prueba-srv' and p.clave_hash like '%abcd%')
+    and position('abcd-efgh' in (select string_agg(to_jsonb(a)::text, '') from oficios.accesos a where a.negocio = 'prueba-srv')) = 0 then '34:ok' else '34:MAL' end);
+  -- 35. a quien no tenía acceso se le da de alta, y a quien se lo quitaron se le vuelve a dar
+  perform public.oficios_srv('pon_persona', '{"negocio":"prueba-srv","persona":"nuevo","rol":"tecnico","quien":"nuevo-id","codigo":"bcde-fghj-kmnp-qrst","por":"oficina"}');
+  perform public.oficios_srv('pon_persona', '{"negocio":"prueba-srv","persona":"baja","rol":"tecnico","quien":"baja-id","codigo":"cdef-ghjk-mnpq-rstu","por":"oficina"}');
+  r := array_append(r, case when public.oficios_srv('entra', '{"negocio":"prueba-srv","persona":"nuevo","codigo":"bcde-fghj-kmnp-qrst","red":"e3"}') = '{"rol":"tecnico","id":"nuevo-id"}'::jsonb
+    and public.oficios_srv('entra', '{"negocio":"prueba-srv","persona":"baja","codigo":"cdef-ghjk-mnpq-rstu","red":"e3"}') = '{"rol":"tecnico","id":"baja-id"}'::jsonb then '35:ok' else '35:MAL' end);
+  -- 36. quitar el acceso: ya no entra, queda apuntado; a quien no existe, no
+  j := public.oficios_srv('baja_persona', '{"negocio":"prueba-srv","persona":"ana","por":"oficina"}');
+  r := array_append(r, case when j = '{"ok":true}'::jsonb and public.oficios_srv('entra', '{"negocio":"prueba-srv","persona":"ana","codigo":"abcd-efgh-jkmn-pqrs","red":"e4"}') is null
+    and public.oficios_srv('baja_persona', '{"negocio":"prueba-srv","persona":"nadie","por":"oficina"}') = '{"ok":false}'::jsonb
+    and (select count(*) from oficios.accesos a where a.negocio = 'prueba-srv' and a.que = 'baja' and a.a = 'ana') = 1 then '36:ok' else '36:MAL' end);
+  -- 37. lo último que se ha hecho, de lo más nuevo a lo más viejo, solo de ese negocio
+  j := public.oficios_srv('accesos', '{"negocio":"prueba-srv"}');
+  r := array_append(r, case when jsonb_array_length(j) = 4 and j -> 0 ->> 'que' = 'baja' and j -> 0 ->> 'a' = 'ana' and jsonb_typeof(j -> 0 -> 'cuando') = 'number'
+    and public.oficios_srv('accesos', '{"negocio":"prueba-srv2"}') = '[]'::jsonb then '37:ok' else '37:MAL' end);
 
   raise exception 'RESULTADOS %', array_to_string(r, ' | ');
 end $$;

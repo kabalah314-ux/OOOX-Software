@@ -350,5 +350,47 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   es(no.ok && lN.cambios.cab.furgos[t0].on === false && lN.cambios.cab.furgos[t0].st[mats[0]] === 5, 'dejar de llevar la cuenta guarda lo último que había');
   es(repite('ramirez', NR), 'con las furgonetas, lo guardado sigue siendo igual a repetir el diario'); }
 
+/* ---- el equipo y sus accesos: la oficina o el dueño dan códigos nuevos y quitan accesos desde la app ---- */
+{ const { codigoPersona, manda } = await import(pathToFileURL(path.join(DIR, 'juez.mjs')).href);
+  const eq = (quien, mas) => J.atiende(Object.assign({ que: 'equipo' }, quien, mas));
+  const jefe = NR.tecnicos.find(t => t.jefe).id, otro = NR.tecnicos.find(t => !t.jefe).id;
+  es(/^[a-z2-9]{4}(-[a-z2-9]{4}){3}$/.test(codigoPersona()) && !/[ilo01]/.test(codigoPersona()), 'el código de una persona: 16 letras en cuatro grupos, sin letras que se confundan');
+  es(manda(K.cfgDe(NR), { rol: 'centralita', id: 'oficina' }) && manda(K.cfgDe(NR), { rol: 'tecnico', id: jefe }) && !manda(K.cfgDe(NR), { rol: 'tecnico', id: otro }), 'llevan el equipo la oficina y el técnico que es el dueño; los demás técnicos, no');
+  const v0 = await eq(OF);
+  es(v0.ok && v0.yo === 'oficina' && v0.equipo[0].persona === 'oficina' && v0.equipo.filter(x => x.rol === 'tecnico' && !x.fuera).length === NR.tecnicos.length
+    && v0.equipo.every(x => !('codigo' in x)) && !JSON.stringify(v0).includes('codigo-') && v0.equipo.find(x => x.persona === 'fantasma').fuera === true, 'la oficina ve su equipo, quién puede entrar y quién ya no está en los datos, sin ningún código');
+  es((await eq(T(otro))).err === 'permiso' && (await eq(T(otro), { hace: 'baja', a: jefe })).err === 'permiso', 'un técnico que no es el dueño no ve ni toca el equipo');
+  es((await eq(T(jefe))).ok, 'el dueño, aunque entre como técnico, sí');
+  // un código nuevo: el de antes deja de valer, el nuevo entra, y se apunta quién lo dio
+  const c1 = await eq(OF, { hace: 'codigo', a: otro });
+  const viejo = await J.atiende(Object.assign({ que: 'entrar' }, T(otro))), nuevo = await J.atiende({ que: 'entrar', negocio: 'ramirez', persona: otro, codigo: c1.codigo });
+  es(c1.ok && /^[a-z2-9]{4}(-[a-z2-9]{4}){3}$/.test(c1.codigo) && c1.tuyo === false && !viejo.ok && nuevo.ok && nuevo.id === otro, 'código nuevo: el de antes ya no entra y el nuevo sí');
+  const v1 = await eq(OF);
+  es(v1.accesos[0] && v1.accesos[0].que === 'codigo' && v1.accesos[0].a === otro && v1.accesos[0].quien === 'oficina' && !JSON.stringify(v1).includes(c1.codigo), 'queda apuntado quién lo dio y a quién, y el código no vuelve a salir');
+  // quitar el acceso: ya no entra; a sí mismo no; si es el único que manda, tampoco
+  const b1 = await eq(T(jefe), { hace: 'baja', a: otro });
+  es(b1.ok && !(await J.atiende({ que: 'entrar', negocio: 'ramirez', persona: otro, codigo: c1.codigo })).ok && (await eq(OF)).equipo.find(x => x.persona === otro).estado === 'baja', 'quitar el acceso: ya no entra y se ve quitado');
+  es((await eq(T(jefe), { hace: 'baja', a: otro })).ya === true, 'quitárselo otra vez no hace nada');
+  es((await eq(OF, { hace: 'baja', a: 'oficina' })).err === 'tuyo', 'nadie se quita el acceso a sí mismo');
+  const b2 = await eq(OF, { hace: 'baja', a: jefe });
+  es(b2.ok && (await eq(T(jefe))).err === 'clave', 'la oficina puede quitárselo al dueño, y el dueño ya no entra');
+  // ahora solo manda la oficina: no puede dejar el negocio sin nadie que mande (ni siquiera a través de otro)
+  const c2 = await eq(OF, { hace: 'codigo', a: jefe }), dueño = { negocio: 'ramirez', persona: jefe, codigo: c2.codigo };
+  es(c2.ok && (await eq(dueño)).ok, 'devolverle el acceso con un código nuevo: vuelve a entrar');
+  es((await eq(dueño, { hace: 'baja', a: 'oficina' })).ok && (await eq(dueño, { hace: 'baja', a: jefe })).err === 'tuyo', 'el dueño quita el acceso a la oficina, pero no a sí mismo');
+  const c3 = await eq(dueño, { hace: 'codigo', a: 'oficina' }), OF2 = { negocio: 'ramirez', persona: 'oficina', codigo: c3.codigo };
+  es(c3.ok && (await eq(OF2)).ok && (await eq(OF2, { hace: 'baja', a: jefe })).ok && (await eq(OF2, { hace: 'baja', a: 'oficina' })).err === 'tuyo', 'la oficina vuelve con su código nuevo');
+  // el propio código: sale con «tuyo» para que la app se lo guarde
+  const c4 = await eq(OF2, { hace: 'codigo', a: 'oficina' });
+  es(c4.ok && c4.tuyo === true && !(await eq(OF2)).ok && (await eq({ negocio: 'ramirez', persona: 'oficina', codigo: c4.codigo })).ok, 'cambiar el propio código: sale marcado como suyo y el de antes deja de valer');
+  const OF3 = { negocio: 'ramirez', persona: 'oficina', codigo: c4.codigo };
+  // a quien no está en los datos no se le da código (sí se le puede quitar); peticiones raras; el tope
+  es((await eq(OF3, { hace: 'codigo', a: 'fantasma' })).err === 'nadie' && (await eq(OF3, { hace: 'baja', a: 'fantasma' })).ok, 'a quien ya no está en los datos se le puede quitar el acceso, pero no dar un código');
+  es((await eq(OF3, { hace: 'codigo', a: 'nadie-asi' })).err === 'nadie' && (await eq(OF3, { hace: 'borrar', a: otro })).err === 'peticion' && (await eq(OF3, { hace: 'codigo' })).err === 'peticion', 'a quien no existe, o con algo que no se puede hacer: no');
+  es((await eq(OF3, { hace: 'baja', a: 'ines' })).err === 'nadie' && (await eq(OF3, { hace: 'codigo', a: 'pau' })).err === 'nadie', 'la oficina de un negocio no llega a las personas de otro');
+  let tope = null; for (let i = 0; i < 40 && !tope; i++) { const r = await eq(OF3, { hace: 'codigo', a: otro }); if (!r.ok) tope = r.err; }
+  es(tope === 'limite', 'como mucho 30 cambios de acceso al día por negocio');
+  es(repite('ramirez', NR), 'los accesos no tocan el diario: lo guardado sigue siendo igual a repetirlo'); }
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

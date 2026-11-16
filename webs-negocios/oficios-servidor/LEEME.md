@@ -67,6 +67,7 @@ Contesta siempre `{ok:true, …}` o `{ok:false, err}`. Nunca lanza.
 | `ver` | El cliente, con su enlace | `negocio, aviso, llave` | `vista` |
 | `acceso` | Solo la oficina | `negocio, persona, codigo, tel` y, para cambiarlo, `cambia: true` | `tel, codigo, nuevo` |
 | `perfil` | El cliente, en su zona | `negocio, tel, codigo` (el suyo) | `perfil`: `{tel, cli, avisos}`; cada aviso, con su `vista` y su `llave` |
+| `equipo` | La oficina o el técnico que es el dueño (`jefe`) | `negocio, persona, codigo` y, para cambiar algo, `hace` (`codigo` o `baja`) y `a` (la persona) | sin `hace`: `yo, equipo` (cada persona con `estado`: `sin`, `activo` o `baja`) y `accesos` (los 20 últimos cambios, sin códigos). Con `hace:'codigo'`: `persona, codigo, tuyo` (el código nuevo sale solo esta vez). Con `hace:'baja'`: `persona` (y `ya` si no tenía acceso) |
 
 `cambios` es `{v, entero, cab, avisos}`. `entero:true` quiere decir «tira lo que tengas y quédate con esto». La oficina
 recibe todos los avisos y la cabecera (contadores, ausencias y, desde el 15-11, los contratos de mantenimiento); un técnico,
@@ -74,7 +75,9 @@ solo los avisos que lleva y los `fuera`.
 
 Errores propios del juez: `clave` (código malo, persona o negocio que no existe, negocio de baja: todos contestan lo
 mismo; en la zona del cliente, también un teléfono que no es suyo), `bloqueo` (demasiados códigos fallados seguidos),
-`accion`, `grande`, `permiso` (por la puerta de la web solo se puede pedir; un técnico no da códigos de la zona), `tel`
+`accion`, `grande`, `permiso` (por la puerta de la web solo se puede pedir; un técnico no da códigos de la zona; el
+equipo solo lo lleva la oficina o el dueño), `tuyo` (quitarse el acceso a uno mismo), `ultimo` (no quedaría nadie que
+lleve el equipo), `tel`
 (un teléfono mal escrito), `nadie` (un teléfono sin avisos), `limite`, `enlace`, `negocio`, `lleno`, `peticion` y
 `servidor`. Los demás son los de las reglas.
 
@@ -118,8 +121,13 @@ en la lista de lo que falta.
    archivo de la copia y `oficios.estados.datos`. Si no, la app y el servidor harían cuentas distintas (ganaría el
    servidor, pero la pantalla bailaría un momento).
 
-Para retirar el acceso a alguien: `update oficios.personas set activo = false` (o cambiarle el `clave_hash`). Su app
-vuelve sola a la pantalla de entrar en dos segundos.
+Para retirar el acceso a alguien, desde el 16-11 lo hace el propio negocio: **«Tu sesión» → «Equipo y accesos»** (la
+oficina o el técnico que es el dueño). «Quitar el acceso» y «Código nuevo» piden confirmarlo; el código nuevo sale una
+sola vez y no se guarda en ningún sitio (solo su huella). Nadie puede quitarse el acceso a sí mismo, y siempre tiene que
+quedar alguien que lleve el equipo (`ultimo`). Más de 30 cambios al día: `limite`. Cada cambio queda en
+`oficios.accesos` (quién, a quién, qué y cuándo; nunca el código). A mano sigue valiendo
+`update oficios.personas set activo = false`. En los dos casos, su app vuelve sola a la pantalla de entrar en dos
+segundos.
 
 `select * from oficios.servidor` enseña cada negocio con servidor, su versión, sus avisos y sus personas.
 
@@ -150,7 +158,7 @@ Las pantallas llaman a lo mismo con o sin servidor (`Oficio.estado`, `Oficio.hac
 
 ## El contrato del almacén
 
-Once funciones. Devuelven siempre copias.
+Quince funciones. Devuelven siempre copias.
 
 | Función | Qué hace |
 |---|---|
@@ -165,6 +173,10 @@ Once funciones. Devuelven siempre copias.
 | `cliente(negocio, tel)` | `{codigo, activo}` del código de la zona de ese teléfono, o nada |
 | `ponCliente(negocio, tel, codigo)` | Guarda el código de ese teléfono (el de antes deja de valer). `{ok}` |
 | `clienteEntra(negocio, tel, codigo, red)` | `true`, nada, o `'bloqueo'`. Cuenta los fallos (ver «El freno de la zona») |
+| `personas(negocio)` | `[{persona, rol, activo}]`: quién tiene acceso, sin códigos ni huellas |
+| `ponPersona(negocio, persona, rol, quien, codigo, por)` | Da (o cambia) el código de esa persona y la deja activa; apunta el cambio. `{ok}` |
+| `bajaPersona(negocio, persona, por)` | Le quita el acceso; apunta el cambio. `{ok}` |
+| `accesos(negocio)` | Los 20 últimos cambios de acceso, del más nuevo al más viejo: `[{cuando, quien, que, a}]` |
 
 ## Pruebas
 
