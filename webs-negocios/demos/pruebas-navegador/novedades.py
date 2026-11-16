@@ -315,7 +315,7 @@ async def main():
         F4 = await o.evaluate(st + "('omar')")
         es(await toast(o, 'Recuento guardado') and F4['on'] and F4['st'] == {'juntas': 7} and await o.locator('#fgRep').count() == 1, f'su primer recuento, y le sale lo que toca reponer ({F4["st"]})')
         c2 = oye(await x2.new_page(), 'oficina, furgonetas'); await c2.goto(B + 'app.html#/bandeja'); await c2.wait_for_selector('.alertas')
-        al = await texto(c2, '.alertas')
+        al = ' | '.join(await c2.locator('.alertas').all_inner_texts())   # «Por hacer» va en dos listas: «Ahora» y «Después»
         es('cosas por reponer' in al and ('Omar' in al or '2 furgonetas' in al), f'la oficina ve en «Por hacer» lo que toca reponer ({al[:160]!r})')
         await c2.goto(B + 'app.html#/equipo'); await c2.wait_for_selector('.tecds')
         es('Ver la furgoneta' in await texto(c2, '.tecd[data-tec="laia"] .fgq') and 'por reponer' in await texto(c2, '.tecd[data-tec="omar"] .fgq'), 'en «Equipo», la furgoneta de quien lleva la cuenta')

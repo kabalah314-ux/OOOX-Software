@@ -37,6 +37,10 @@ a.tj:hover{border-color:var(--control)}
 .tj .k{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9375rem;color:var(--suave)}
 .tj b{font:700 1.25rem/1.1 var(--fd)}
 .tj small{font-size:.9375rem;color:var(--suave)}
+/* el pago, el parte y la factura de un trabajo terminado, cada uno por su lado (auditoría UX-08) */
+.tj .tres{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tj .tres span{padding:3px 9px;border-radius:999px;border:1px solid var(--linea);font-size:.8125rem;line-height:1.3;color:var(--suave)}
+.tj .tres span.pend{border-color:var(--control);color:var(--texto);font-weight:600}
 .tj.prota{gap:8px;padding:18px 16px;background:var(--asfalto-3);border-color:var(--control)}
 .tj.prota b{font:800 1.75rem/1 var(--fd)}
 .tj.prota .pa{font-size:1.0625rem;line-height:1.35}
@@ -152,9 +156,12 @@ function tjProta(a){const v=a.vista||{},T=v.tec||'El técnico',cu=a.cita?K.fecha
  const ahora={nuevo:a.cita?'Para el '+cu+'.':'Lo estamos mirando ahora mismo.',asignado:a.cita?'El '+cu+'. Irá '+T+'.':'Irá '+T+'. Sale enseguida.',camino:T+' llega hacia las '+(v.eta?K.hora(v.eta):'…')+'.',curso:T+' está trabajando. El precio ya está cerrado y firmado.',ausente:'Fuimos y no había nadie. Escríbenos y volvemos cuando te vaya bien.'}[a.e]||'';
  const sig={nuevo:'Lo siguiente: te confirmamos quién irá.',asignado:'Lo siguiente: te escribimos cuando salga hacia tu casa.',camino:'Lo siguiente: antes de empezar te da el precio cerrado y lo firmas.',curso:'Lo siguiente: al terminar, el parte y la garantía.'}[a.e]||'';
  return'<a class="tj prota" href="'+enlace(a)+'"><span class="k"><span>'+esc(a.id)+' · '+esc(avN(a))+'</span><span class="pill '+PILL[a.e]+'">'+EST[a.e]+'</span></span><b>'+tit+'</b><span class="pa">'+esc(ahora)+'</span>'+(sig?'<small>'+sig+'</small>':'')+'<span class="mas">Ver cómo va</span></a>'}
+/* un trabajo terminado: el pago, el parte y la factura, cada uno con lo suyo (auditoría UX-08): si tiene que pagar, que el
+   parte ya lo tiene aquí y quién le hace la factura (la app no la hace: la hace el negocio con su programa) */
 function tjHecho(a,hoy){const gar=a.gar?(a.gar.hasta>=hoy?' · garantía hasta el '+K.fechaCorta(a.gar.hasta):' · garantía terminada'):'';
+ const tres=a.tot?[a.pago&&a.pago.cobrado?(a.tot.total?'Pagado':'Nada que pagar: va en tu contrato'):'Pendiente de pago','Parte de trabajo: aquí',a.fac?(a.fac.num?'Factura '+esc(a.fac.num):'Factura hecha'):'Factura: te la hace '+esc(N.razon)+' aparte']:[];
  return'<a class="tj" href="#/aviso/'+esc(a.id)+'"><span class="k"><span>'+esc(a.id)+' · '+K.fechaCorta(K.madrid(a.fin||a.t).date)+'</span><span class="pill hecho">Terminado</span></span><b>'+esc(avN(a))+'</b><small>'+
-  (a.tot?K.eur(a.tot.total)+' · '+(a.pago&&a.pago.cobrado?'pagado':'pendiente de pago'):'')+gar+'</small></a>'}
+  (a.tot?K.eur(a.tot.total):'')+gar+'</small>'+(tres.length?'<span class="tres">'+tres.map((x,i)=>'<span class="'+(i===0&&!(a.pago&&a.pago.cobrado)?'pend':'')+'">'+x+'</span>').join('')+'</span>':'')+'</a>'}
 
 function vPerfil(Pf){const c=Pf.cli,hoy=K.madrid().date,n=(c.nombre||'').split(' ')[0],F=Pf.fincas||[];
  /* un administrador de fincas: lo suyo, agrupado por dirección */
@@ -205,7 +212,9 @@ function pinta(){S=Oficio.estado();let r=ruta();
  if(SRV&&se&&!Pf&&!Z.va&&!Z.err)trae();
  const v=Pf?(r.v==='aviso'?'aviso/'+r.a+'/'+r.b:r.v==='contrato'?'contrato/'+r.a:'perfil'):SRV&&se?'abre':'entra';
  $('#v').innerHTML=Pf?(r.v==='aviso'?vPapel(Pf,r.a,r.b):r.v==='contrato'?vContratoCli(Pf,r.a):vPerfil(Pf)):SRV&&se?vAbre():vEntra();
- document.title=(Pf?'Tu zona':'Entra en tu zona')+' · '+N.nombre;
+ /* con un papel abierto, su nombre (qué es, de qué aviso y de qué día): es el que propone el navegador al guardarlo en PDF (UX-25) */
+ const A0=Pf&&r.v==='aviso'?Pf.avisos.find(x=>x.id===r.a):null,tp=A0?P.nombre(A0,r.b,K):'';
+ document.title=tp?tp+' · '+N.nombre:(Pf?'Tu zona':'Entra en tu zona')+' · '+N.nombre;
  if(v!==vista){const cambia=!!vista;vista=v;if(cambia){scrollTo(0,0);$('#v').focus({preventScroll:true})}}}
 
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.f)F[i.dataset.f]=i.value});

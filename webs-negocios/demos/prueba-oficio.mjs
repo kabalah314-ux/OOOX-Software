@@ -1356,5 +1356,29 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
     es(d && d.dia === '2026-11-16' && d.min === 1425 && !K.voyYa(cm, Ax, hora('2026-11-16T23:44:00+01:00')) && K.voyYa(cm, Ax, hora('2026-11-16T23:45:00+01:00')), `a medianoche: la franja de las 00:15 abre el día antes a las 23:45 ${JSON.stringify(d)}`) }
 }
 
+// ---------- quitar el técnico («soltar», 16-11, auditoría UX-16): también es el «Deshacer» de «Asignar a» ----------
+{ const SV = K.nuevo(); let tv = Date.parse('2026-11-16T10:00:00+01:00'); const hv = (a, q) => K.aplicar(SV, cfg, a, q, tv += M), Ax = id => SV.avisos.find(a => a.id === id);
+  const cp = Object.keys(cfg.zonas.cp)[0], cli = { nombre: 'Des', apellidos: 'Hacer', tel: '600000992', dir: 'C/ Atrás 1', cp };
+  let cita = null; for (const d of K.diasDe(SV, cfg, tv, 8, true)) { if (d.dia <= '2026-11-17') continue; const f = d.franjas.find(f => f.okOf); if (f) { cita = { dia: d.dia, fr: f.id }; break } }
+  const id = hv({ tipo: 'pedir', av: 'grifo', origen: 'llamada', cli, cita }, C).id;
+  es(hv({ tipo: 'soltar', id }, C).err === 'estado', 'soltar: un aviso sin técnico no se puede soltar');
+  const tec = Object.keys(cfg.tec).find(x => hv({ tipo: 'asignar', id, tec: x }, C).ok), n0 = Ax(id).h.length;
+  const ks = () => Ax(id).msgs.filter(m => !m.env).map(m => m.k).sort().join();
+  es(tec && ks().includes('cita') && ks().includes('vispera'), `soltar: al asignar quedan escritos el mensaje de la cita y el de la víspera (${ks()})`);
+  es(hv({ tipo: 'soltar', id }, T(tec)).err === 'permiso' && Ax(id).e === 'asignado', 'soltar: el técnico no puede quitarse un aviso; solo la oficina');
+  const r = hv({ tipo: 'soltar', id }, C), X = Ax(id);
+  es(r.ok && X.e === 'nuevo' && X.tec === '' && !X.reasignar && !X.msgs.some(m => !m.env && (m.k === 'cita' || m.k === 'vispera')) && X.h.length === n0 + 1 && /^Sin técnico: .+ ya no lo lleva$/.test(X.h[X.h.length - 1].txt),
+    `soltar: vuelve a la bandeja sin técnico, sin los mensajes de la cita que no salieron y queda escrito en su diario ${JSON.stringify({ r, e: X.e, tec: X.tec, m: X.msgs })}`);
+  // el mensaje que ya salió se queda (y queda como mandado); y en la calle o trabajando ya no se suelta
+  hv({ tipo: 'asignar', id, tec }, C); hv({ tipo: 'enviado', id, k: 'cita' }, C); hv({ tipo: 'soltar', id }, C);
+  es(Ax(id).msgs.some(m => m.k === 'cita' && m.env) && Ax(id).e === 'nuevo', 'soltar: el mensaje de la cita que ya se mandó se queda como mandado');
+  const u = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: Object.assign({}, cli, { tel: '600000993' }) }, C).id, tu = Object.keys(cfg.tec).find(x => hv({ tipo: 'asignar', id: u, tec: x }, C).ok);
+  hv({ tipo: 'voy', id: u }, T(tu));
+  es(Ax(u).e === 'camino' && hv({ tipo: 'soltar', id: u }, C).err === 'estado' && Ax(u).tec === tu, 'soltar: con el técnico de camino ya no se puede (hay que hablarlo con él)');
+  // «Deshacer» un cambio de técnico es asignar otra vez al de antes
+  const w = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: Object.assign({}, cli, { tel: '600000994' }) }, C).id, libres = Object.keys(cfg.tec).filter(x => x !== tu);
+  const a1 = libres.find(x => hv({ tipo: 'asignar', id: w, tec: x }, C).ok), a2 = libres.find(x => x !== a1 && hv({ tipo: 'asignar', id: w, tec: x }, C).ok);
+  es(a1 && a2 && hv({ tipo: 'asignar', id: w, tec: a1 }, C).ok && Ax(w).tec === a1 && Ax(w).e === 'asignado', 'deshacer un cambio: se vuelve a asignar a quien lo llevaba') }
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

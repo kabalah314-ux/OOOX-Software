@@ -34,7 +34,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.16b';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.16c';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -461,6 +461,12 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   A.tec=a.tec;A.e='asignado';delete A.aus;delete A.reasignar;sinMsg(A,['ausente']);
   if(A.cita){msg(A,'cita');const v=masDias(A.cita.dia,-1);if(v>madrid(t).date)msg(A,'vispera',Date.parse(v+'T17:00:00Z'))}
   log(A,'Asignado a '+cfg.tec[a.tec].n);return ok()}
+
+ /* la oficina quita el técnico (también para deshacer un «Asignar a» recién hecho, 16-11-2026): el aviso vuelve a la bandeja
+    sin técnico y los mensajes de la cita que aún no han salido se quitan. Solo antes de que salga («Voy») */
+ case 'soltar':{
+  if(!esC)return R('permiso');if(A.e!=='asignado')return R('estado');
+  log(A,'Sin técnico: '+((cfg.tec[A.tec]||{}).n||'el técnico')+' ya no lo lleva');A.tec='';A.e='nuevo';delete A.reasignar;sinMsg(A,['cita','vispera']);return ok()}
 
  case 'mover':{
   if(!esC)return R('permiso');if(!['nuevo','asignado','ausente'].includes(A.e))return R('estado');

@@ -334,6 +334,13 @@ const M = [
   ['la furgoneta acepta lo que no es material', "if(cat[k]&&cat[k].mat&&Array.isArray(v)", "if(cat[k]&&Array.isArray(v)"],
   ['la furgoneta de un técnico no cuenta', "const kitDe=(cfg,tec)=>(cfg.kits&&typeof tec==='string'&&tiene(cfg.kits,tec)?cfg.kits[tec]:null)||cfg.kit||{};", "const kitDe=(cfg,tec)=>cfg.kit||{};"],
   ['los movimientos no tienen tope', "if(F.h.length>FURGO_H)F.h=F.h.slice(-FURGO_H);", ""],
+  // quitar el técnico («soltar», 16-11-2026, el «Deshacer» de «Asignar a»)
+  ['el técnico se quita un aviso', "case 'soltar':{\n  if(!esC)return R('permiso');if(A.e!=='asignado')", "case 'soltar':{\n  if(A.e!=='asignado')"],
+  ['se suelta un aviso con el técnico de camino', "if(A.e!=='asignado')return R('estado');\n  log(A,'Sin técnico: '", "if(!['asignado','camino'].includes(A.e))return R('estado');\n  log(A,'Sin técnico: '"],
+  ['se suelta un aviso que no tiene técnico', "if(A.e!=='asignado')return R('estado');\n  log(A,'Sin técnico: '", "if(!['asignado','nuevo'].includes(A.e))return R('estado');\n  log(A,'Sin técnico: '"],
+  ['al soltar el aviso sigue asignado', "A.tec='';A.e='nuevo';delete A.reasignar;sinMsg(A,['cita','vispera']);return ok()}", "A.tec='';delete A.reasignar;sinMsg(A,['cita','vispera']);return ok()}"],
+  ['al soltar se quedan los mensajes de la cita', "delete A.reasignar;sinMsg(A,['cita','vispera']);return ok()}", "delete A.reasignar;return ok()}"],
+  ['al soltar no queda escrito en el diario', "log(A,'Sin técnico: '+((cfg.tec[A.tec]||{}).n||'el técnico')+' ya no lo lleva');", ""],
 ];
 
 // una copia del sitio donde solo cambian las reglas o los papeles (lo demás, enlazado)

@@ -37,6 +37,26 @@ main.dos.det>.lst,main.dos:not(.det)>.sin{display:none}
 main.det.tecnico:not(.papelv){display:flex;flex-direction:column;min-height:calc(100svh - 56px)}
 main.det.tecnico:not(.papelv)>.accion{margin-top:auto}
 main>*:has(+ .accion){margin-bottom:18px}
+/* la barra de la ficha de la oficina (auditoría UX-17): el estado y lo principal, pegados abajo */
+.accion.of{gap:6px;justify-items:stretch;margin:18px -16px -26px;padding-top:6px;padding-bottom:calc(10px + var(--sb))}
+.accion.of .est{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.accion.of .ln{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.accion.of .est .txt{flex:none;padding:0 4px}
+.accion.of .acs{display:flex;gap:8px}
+.accion.of .acs .btn{flex:1 1 auto;min-width:0;padding:4px .7em;white-space:normal;text-align:center;line-height:1.15}
+.accion.of .acs .btn.pri{flex-grow:1.6}
+/* el aviso corto con botón («Deshacer») */
+#toast.on.conb{pointer-events:auto}
+#toast .tacc{min-height:44px;margin-left:6px;padding:0 8px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+/* «Por hacer» en dos: «Ahora» y «Después» */
+.ph{margin:14px 0 0;font:600 .9375rem/1.2 var(--fb);color:var(--suave)}
+.ph:first-child{margin-top:8px}
+.phn{margin-top:6px;color:var(--suave)}
+/* el mensaje: para quién, por qué, cuándo caduca y lo último que se le mandó */
+.mdat{display:grid;gap:6px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--linea);border-radius:10px;font-size:.9375rem}
+.mdat div{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:8px}
+.mdat dt{color:var(--suave)}
+.mdat dd{margin:0;overflow-wrap:anywhere}
 
 /* ===== título de la pantalla ===== */
 .atras{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin:-8px 0 2px -6px;padding:0 8px 0 2px;font-weight:600;color:var(--suave);text-decoration:none}
@@ -224,7 +244,11 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 @container (max-width:50px){.dia .dj span{visibility:hidden}}
 .dia .dg{position:absolute;top:0;bottom:0;width:1px;background:var(--linea);opacity:.7}
 .dia .dj.u{background:repeating-linear-gradient(-45deg,var(--senal) 0 6px,#e8b400 6px 12px)}
-.dia .dj.h{background:var(--control);color:var(--texto)}
+.dia .dj.h{background:var(--bien-f);color:var(--bien);box-shadow:inset 0 0 0 1px var(--bien)}
+.dia .dj.n{color:var(--texto);text-shadow:0 0 3px var(--asfalto),0 0 3px var(--asfalto)}
+.dia .dx{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none;container-type:inline-size}
+.dia .dx span{padding:0 5px;border-radius:4px;background:var(--asfalto);color:var(--suave);font:600 .75rem/18px var(--fb);white-space:nowrap}
+@container (max-width:72px){.dia .dx span{visibility:hidden}}
 .dj.n{background:repeating-linear-gradient(-45deg,var(--control) 0 4px,var(--asfalto) 4px 7px)}
 .dia .dj.t{box-shadow:inset 0 0 0 2px var(--mal);background:var(--mal-f);color:var(--mal)}
 .dia .dj:focus-visible{outline:2px solid var(--texto);outline-offset:2px;z-index:2}
@@ -238,7 +262,7 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .tabx{color:var(--tenue);font-size:.9375rem}
 .tabl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:12px;font-size:.8125rem;color:var(--suave)}
 .tabl i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:-8px}
-.tabl .lc{background:var(--agua)}.tabl .lu{background:repeating-linear-gradient(-45deg,var(--senal) 0 4px,#e8b400 4px 8px)}.tabl .lh{background:var(--control)}
+.tabl .lc{background:var(--agua)}.tabl .lu{background:repeating-linear-gradient(-45deg,var(--senal) 0 4px,#e8b400 4px 8px)}.tabl .lh{background:var(--bien-f);box-shadow:inset 0 0 0 1px var(--bien)}
 .tabl .ln{background:repeating-linear-gradient(-45deg,var(--control) 0 3px,var(--asfalto) 3px 5px)}
 .tabl .lr{background:repeating-linear-gradient(-45deg,var(--asfalto) 0 3px,var(--control) 3px 5px)}
 .tab .ojo{margin-top:12px}
@@ -370,6 +394,7 @@ main.papelv{max-width:760px}
  main.dos.det>.lst,main.dos:not(.det)>.sin{display:block}
  main.dos .atras{display:none}
  main.tecnico .accion{margin:auto -36px -40px;padding:14px 36px}
+ main.dos>.col .accion.of{margin:18px -28px -40px;padding:10px 28px 12px;bottom:-40px} /* la columna se desplaza sola y su relleno de abajo cuenta para lo pegado */
  main.det.tecnico:not(.papelv){min-height:100svh}
  .tabla{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
@@ -499,7 +524,10 @@ const abiertos=['nuevo','asignado','ausente'];
 const NOVA={ausente_tec:()=>'Ausente ese día',lleno:()=>cfg.porTiempo?'No le da tiempo en esa franja':'Ya tiene esa franja ocupada',horario:A=>A.cita?'No trabaja en esa franja':'Ahora no trabaja y no hace guardias'};
 const ava=id=>{const t=cfg.tec[id];return t?'<i class="av" style="--h:'+t.tono+'" aria-hidden="true">'+t.n[0]+'</i>':'<i class="av c" aria-hidden="true">C</i>'};
 const lq=l=>l.un==='h'?dur(Math.round(l.q*60)):l.q>1?l.q+' unidades':'';
-const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
+/* un aviso corto; con «acc» ({t,fn}) lleva además un botón (p. ej. «Deshacer») y dura más, para que dé tiempo a pulsarlo */
+const toast=(s,acc)=>{const e=$('#toast');e.textContent=s;e.classList.toggle('conb',!!acc);
+ if(acc){const b=document.createElement('button');b.type='button';b.className='tacc';b.textContent=acc.t;b.onclick=()=>{clearTimeout(e._t);e.classList.remove('on','conb');acc.fn()};e.append(' ',b)}
+ e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on','conb'),acc?7000:3200)};
 const hacer=a=>{const r=Oficio.hacer(a,Q);if(!r.ok)toast(ERR[r.err]||'No se ha podido hacer.');return r};
 const el=id=>S.avisos.find(a=>a.id===id);
 
@@ -621,7 +649,7 @@ function bReparto(A){const r=K.resumen(S,cfg,Date.now()),rep=['nuevo','asignado'
  const eta=id=>{const x=ll(id);if(!x)return'';return' · llega en ~'+x.llega+' min'+(x.choca?' (y llegaría tarde a su cita)':x.fuera?' (acabaría fuera de su horario)':pri&&pri.tec===id?' · recomendado: es el que antes llega':'')};
  /* si nadie puede (todos fuera de horario, ausentes o con la franja llena), se dice claro y se da la salida: otra franja */
  const nadie=rep&&!A.tec&&A.cita&&N.tecnicos.length>0&&N.tecnicos.every(t=>!!K.puedeIr(S,cfg,A,t.id,Date.now()));
- return'<section class="blq"><h2>'+(A.tec?'Lo lleva':'¿Quién va?')+'</h2>'+(A.reasignar&&!A.tec?'<p class="ojo" style="margin:0 0 10px">Quien lo llevaba ya no puede ir. Elige a otra persona.</p>':'')+(nadie?'<p class="ojo" id="nadieFr" style="margin:0 0 10px">No hay técnico que cumpla la franja. Cambia la cita a otra («Cuándo», más abajo) y avisa al cliente.</p>':'')+'<div class="tecs">'+N.tecnicos.map(t=>{const x=r.tec[t.id],B=x.aviso&&el(x.aviso),no=rep&&A.tec!==t.id?K.puedeIr(S,cfg,A,t.id,Date.now()):'';
+ return'<section class="blq" id="reparto" tabindex="-1"><h2>'+(A.tec?'Lo lleva':'¿Quién va?')+'</h2>'+(A.reasignar&&!A.tec?'<p class="ojo" style="margin:0 0 10px">Quien lo llevaba ya no puede ir. Elige a otra persona.</p>':'')+(nadie?'<p class="ojo" id="nadieFr" style="margin:0 0 10px">No hay técnico que cumpla la franja. Cambia la cita a otra («Cuándo», más abajo) y avisa al cliente.</p>':'')+'<div class="tecs">'+N.tecnicos.map(t=>{const x=r.tec[t.id],B=x.aviso&&el(x.aviso),no=rep&&A.tec!==t.id?K.puedeIr(S,cfg,A,t.id,Date.now()):'';
   return'<button class="tec'+(no?' no':'')+'" data-a="asignar" data-id="'+A.id+'" data-tec="'+t.id+'" aria-pressed="'+(A.tec===t.id)+'">'+ava(t.id)+'<span><b>'+esc(t.n)+' '+esc(t.ap)+'</b><small>'+(no&&NOVA[no]?NOVA[no](A):x.e==='curso'?'Trabajando en '+esc(barrio(B))+', lleva '+dur(K.minutos(B,Date.now())):x.e==='camino'?'De camino a '+esc(barrio(B)):'Libre ahora')+' · '+(x.hoy+x.hechos)+' hoy'+(no?'':eta(t.id)+enCita(t.id))+'</small></span>'+(A.tec===t.id?'<span class="va">Asignado</span>':'')+'</button>'}).join('')+'</div></section>'}
 function bCita(A){const c=A.cita,hoy=K.madrid().date,otras=c&&A.vale?A.vale.filter(v=>!(v.dia===c.dia&&v.fr===c.fr)&&v.dia>=hoy):[];
  return'<section class="blq"><h2>Cuándo</h2><div class="cita"><p>'+(c?'Cita '+diaTxt(c.dia)+', '+frTxt(c.fr)+'. Tarifa normal.':'Urgente: cuanto antes.'+(K.tarifaDe(cfg,A)?' Tarifa de urgencia.':' Tarifa normal.')+(cfg.urge&&A.av!==K.REV?(K.gratisDe(A).includes(cfg.urge)?' Sin suplemento de urgencia: va en su contrato.':' Suplemento de urgencia de '+K.eur(cfg.cat[cfg.urge].p10)+', en el presupuesto.'):''))+'</p><button class="btn peq" data-a="cita" data-id="'+A.id+'">'+(c?'Cambiar':'Dar cita')+'</button></div>'+
@@ -635,28 +663,33 @@ const porMandar=ahora=>K.porMandar(S,ahora),esSeg=x=>K.SEGUIR.includes(x.m.k);
 const porQue=x=>{const A=x.a,m=x.m,av=cfg.av[A.av],qu=av?av.n.toLowerCase()+', ':'';return m.k==='presupuesto'?qu+'no aceptó '+(A.noPres?K.eur(A.noPres.total):'el presupuesto')+' '+hace(A.fin):m.k==='proxima'&&A.prox?'toca el '+K.fechaCorta(A.prox.dia):qu+'terminado '+hace(A.fin)};
 function bAlertas(ag){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),rea=S.avisos.filter(a=>a.reasignar&&a.e==='nuevo'),conf=S.avisos.filter(a=>a.cita&&a.cita.ok===false&&abiertos.includes(a.e));
  const it=(b,sm,href,atn,da)=>'<li'+(atn?' class="atn"':'')+'>'+(da?'<button type="button" data-a="'+da+'">':'<a href="'+href+'">')+'<b>'+b+'</b>'+(sm?'<small>'+sm+'</small>':'')+(da?'</button>':'</a>')+'</li>';
- const L=r.sobran.map(x=>it(x.sobran===1?'Sobra 1 cita':'Sobran '+x.sobran+' citas',diaTxt(x.dia)+', '+frTxt(x.fr)+': no hay técnicos para todas','#/equipo/'+x.dia,1));
+ /* «Ahora» (auditoría UX-15): lo que bloquea el reparto o deja al cliente sin respuesta. «Después» (D): lo que puede esperar a un rato tranquilo */
+ const L=r.sobran.map(x=>it(x.sobran===1?'Sobra 1 cita':'Sobran '+x.sobran+' citas',diaTxt(x.dia)+', '+frTxt(x.fr)+': no hay técnicos para todas','#/equipo/'+x.dia,1)),D=[];
  if(rea.length)L.push(it(rea.length===1?'1 aviso por reasignar':rea.length+' avisos por reasignar','quien lo llevaba ya no puede ir','#/aviso/'+rea[0].id,1));
+ /* sin teléfono, dirección y código postal no se puede asignar (el aviso que entra por WhatsApp trae los datos después) */
+ {const sd=S.avisos.filter(a=>(a.e==='nuevo'||a.e==='ausente')&&!(a.cli.tel&&a.cli.dir&&a.cli.dis));
+  if(sd.length)L.push(it(sd.length===1?'1 aviso sin los datos del cliente':sd.length+' avisos sin los datos del cliente','sin teléfono, dirección y código postal no se puede asignar','#/aviso/'+sd[0].id,1))}
  const M=ag?[]:porMandar(ahora),Mo=M.filter(x=>!esSeg(x)),Ms=M.filter(esSeg);
  if(Mo.length)L.push(it(Mo.length===1?'1 mensaje por mandar':Mo.length+' mensajes por mandar','«'+K.MSG[Mo[0].m.k]+'» a '+esc(K.nomCli(Mo[0].a.cli)||'un cliente')+(Mo.length>1?' y '+(Mo.length-1)+' más':''),'',0,'mensajes'))
  if(conf.length)L.push(it(conf.length===1?'1 cita pendiente de confirmar':conf.length+' citas pendientes de confirmar','con el cliente','#/aviso/'+conf[0].id));
  {const dm=proxLab(),n=new Set([].concat(...K.material(S,cfg,dm).map(g=>[].concat(...g.cosas.map(c=>c.av))))).size;
-  if(n)L.push(it((n===1?'1 aviso':n+' avisos')+' de '+diaTxt(dm)+' con material por preparar','mándalo o cárgalo antes','#/equipo/'+dm))}
+  if(n)D.push(it((n===1?'1 aviso':n+' avisos')+' de '+diaTxt(dm)+' con material por preparar','mándalo o cárgalo antes','#/equipo/'+dm))}
  /* las furgonetas de quien lleva la cuenta: lo que le falta para el próximo día y lo que hay que reponer */
  {const dm=proxLab(),T=N.tecnicos.filter(x=>FG(x.id)),fa=T.filter(x=>K.cargaDe(S,cfg,x.id,dm,ahora).falta.some(y=>!y.quiza));
-  if(fa.length)L.push(it((fa.length===1?'A '+esc(fa[0].n)+' le falta':'A '+fa.length+' técnicos les falta')+' material para '+diaTxt(dm),'según la cuenta de su furgoneta','#/furgo/'+fa[0].id));
+  if(fa.length)D.push(it((fa.length===1?'A '+esc(fa[0].n)+' le falta':'A '+fa.length+' técnicos les falta')+' material para '+diaTxt(dm),'según la cuenta de su furgoneta','#/furgo/'+fa[0].id));
   const rp=T.map(x=>({x,r:K.reponerDe(S,cfg,x.id)})).filter(y=>y.r.length),n=rp.reduce((s,y)=>s+y.r.length,0);
-  if(n)L.push(it(n===1?'1 cosa por reponer':n+' cosas por reponer',rp.length===1?'en la furgoneta de '+esc(rp[0].x.n):'en '+rp.length+' furgonetas','#/furgo/'+rp[0].x.id))}
+  if(n)D.push(it(n===1?'1 cosa por reponer':n+' cosas por reponer',rp.length===1?'en la furgoneta de '+esc(rp[0].x.n):'en '+rp.length+' furgonetas','#/furgo/'+rp[0].x.id))}
  /* contratos y facturas son cosa de la oficina: en la agenda y en el equipo solo sale lo del reparto («ag») */
- if(!ag&&HAY_CON()){const pc=K.pendientesContratos(S,cfg,ahora),n=pc.renovar.length+pc.revision.length;if(n)L.push(it(n===1?'1 contrato pide algo':n+' contratos piden algo',[pc.renovar.length?(pc.renovar.length===1?'una renovación':pc.renovar.length+' renovaciones'):'',pc.revision.length?(pc.revision.length===1?'una revisión sin cita':pc.revision.length+' revisiones sin cita'):''].filter(Boolean).join(' y '),'#/contratos'))}
- if(!ag&&pro()&&r.porFac.viejos)L.push(it((r.porFac.viejos===1?'1 trabajo lleva':r.porFac.viejos+' trabajos llevan')+' más de una semana sin facturar','','#/cobros'));
+ if(!ag&&HAY_CON()){const pc=K.pendientesContratos(S,cfg,ahora),n=pc.renovar.length+pc.revision.length;if(n)D.push(it(n===1?'1 contrato pide algo':n+' contratos piden algo',[pc.renovar.length?(pc.renovar.length===1?'una renovación':pc.renovar.length+' renovaciones'):'',pc.revision.length?(pc.revision.length===1?'una revisión sin cita':pc.revision.length+' revisiones sin cita'):''].filter(Boolean).join(' y '),'#/contratos'))}
+ if(!ag&&pro()&&r.porFac.viejos)D.push(it((r.porFac.viejos===1?'1 trabajo lleva':r.porFac.viejos+' trabajos llevan')+' más de una semana sin facturar','','#/cobros'));
  /* el seguimiento: lo último, porque puede esperar a un rato tranquilo */
  if(Ms.length){const c=k=>Ms.filter(x=>k.includes(x.m.k)).length,tr=c(['resena','seguimiento']),pr=c(['presupuesto']),vu=c(['proxima']);
-  L.push(it(Ms.length===1?'1 cliente para el seguimiento':Ms.length+' clientes para el seguimiento',[tr?(tr===1?'1 trabajo terminado':tr+' trabajos terminados'):'',pr?(pr===1?'1 presupuesto sin respuesta':pr+' presupuestos sin respuesta'):'',vu?(vu===1?'1 al que le toca volver':vu+' a los que les toca volver'):''].filter(Boolean).join(', '),'',0,'seguir'))}
- return L.length?'<ul class="alertas" aria-label="Lo que hay que hacer">'+L.join('')+'</ul>':''}
+  D.push(it(Ms.length===1?'1 cliente para el seguimiento':Ms.length+' clientes para el seguimiento',[tr?(tr===1?'1 trabajo terminado':tr+' trabajos terminados'):'',pr?(pr===1?'1 presupuesto sin respuesta':pr+' presupuestos sin respuesta'):'',vu?(vu===1?'1 al que le toca volver':vu+' a los que les toca volver'):''].filter(Boolean).join(', '),'',0,'seguir'))}
+ if(!L.length&&!D.length)return'';const ul=(X,lb)=>'<ul class="alertas" aria-label="'+lb+'">'+X.join('')+'</ul>',H=ag?'h2':'h3';   /* en la agenda y el equipo van justo debajo del título */
+ return'<'+H+' class="ph">Ahora</'+H+'>'+(L.length?ul(L,'Lo que hay que hacer ahora'):'<p class="phn">Nada que corra prisa.</p>')+(D.length?'<'+H+' class="ph">Después</'+H+'>'+ul(D,'Lo que puede esperar'):'')}
 /* todos los mensajes por mandar, para mandarlos uno detrás de otro */
 function hMensajes(seg){const T=porMandar(Date.now()),M=T.filter(x=>esSeg(x)===!!seg);
- const fila=x=>'<li><span>'+K.MSG[x.m.k]+'<small>'+esc(K.nomCli(x.a.cli)||'Aún sin nombre')+' · '+(seg?porQue(x):x.a.id+' · '+cuandoT(x.m.t))+'</small></span><button class="btn peq" data-a="msg" data-id="'+x.a.id+'" data-k="'+x.m.k+'">Ver</button></li>';
+ const fila=x=>'<li><span>'+K.MSG[x.m.k]+'<small>'+esc(K.nomCli(x.a.cli)||'Aún sin nombre')+' · '+(seg?esc(porQue(x))+(x.m.hasta?' · caduca el '+K.fechaCorta(K.madrid(x.m.hasta).date):''):x.a.id+' · '+cuandoT(x.m.t))+'</small></span><button class="btn peq" data-a="msg" data-id="'+x.a.id+'" data-k="'+x.m.k+'">Ver</button></li>';
  const tit=seg?(M.length===1?'1 cliente para el seguimiento':M.length+' clientes para el seguimiento'):(M.length===1?'1 mensaje por mandar':M.length+' mensajes por mandar');
  const d=hoja(hc(tit)+'<div class="hb">'+(seg&&M.length?'<p class="dn">Mensajes para después del trabajo. Si alguno no hace falta, déjalo: no pasa nada. Caducan solos.</p>':'')+(M.length?'<ul class="msgs">'+M.map(fila).join('')+'</ul>':'<p class="hueco">'+(seg?'No hay ningún cliente para el seguimiento.':'No queda ningún mensaje por mandar.')+'</p>')+'</div>');
  d.addEventListener('click',e=>{if(e.target.closest('[data-a="msg"]'))d.close()})}
@@ -783,8 +816,20 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
   if(A.e==='camino'&&A.pos&&t)h+='<p class="mnota" id="posOf" style="margin-top:12px">'+esc(t.n)+' compartió su posición '+hace(A.pos.t)+'. El cliente la ve en su página.</p>';
   h+=bDinero(A)+bFalta(A);
   h+=bMensajes(A)+bHist(A);
-  if(abierto)h+='<p class="fin"><button class="txt mal" data-a="cancelar" data-id="'+A.id+'">Cancelar el aviso</button></p>'}
+  h+=bAccOf(A)}
  return h}
+/* la ficha de la oficina: el estado y lo principal del aviso, siempre a mano abajo, también en una ficha larga y a 320 px
+   (auditoría UX-17). Primero lo que toca: completar los datos, asignar (en una urgencia, a quien antes llega) o mandar el mensaje */
+function bAccOf(A){if(!['nuevo','asignado','ausente'].includes(A.e))return'';
+ const t=cfg.tec[A.tec],datos=A.cli.tel&&A.cli.dir&&A.cli.dis,M=A.msgs.filter(m=>!m.env&&m.t<=Date.now()&&(pro()||m.k!=='resena')),sin=!A.tec||A.e==='ausente';
+ const ua=sin&&datos&&!A.cita&&A.e==='nuevo'?K.urgenciaAhora(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):null,B=[];
+ if(!datos)B.push('<button class="btn pri peq" data-a="completar" data-id="'+A.id+'">Completar los datos</button>');
+ else if(sin)B.push(ua?'<button class="btn pri peq" data-a="asignar" data-id="'+A.id+'" data-tec="'+ua.tec+'">Asignar a '+esc(cfg.tec[ua.tec].n)+'</button>':'<button class="btn pri peq" data-a="irSec" data-sec="reparto">Elegir técnico</button>');
+ if(M.length)B.push('<button class="btn peq'+(B.length?'':' pri')+'" data-a="msg" data-id="'+A.id+'" data-k="'+M[0].k+'" aria-label="Mandar «'+K.MSG[M[0].k]+'»">Mandar mensaje</button>');
+ if(datos&&!sin)B.push('<button class="btn peq" data-a="irSec" data-sec="reparto">Cambiar técnico</button>');
+ B.push('<button class="btn peq" data-a="cita" data-id="'+A.id+'">'+(A.cita?'Cambiar la hora':'Dar cita')+'</button>');
+ const est=(A.e==='ausente'?'No había nadie':t?'Asignado a '+esc(t.n):'Sin técnico')+' · '+(A.cita?diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente');
+ return'<div class="accion of" role="region" aria-label="Lo principal del aviso"><div class="est"><p class="ln">'+est+'</p><button class="txt mal" data-a="cancelar" data-id="'+A.id+'" aria-label="Cancelar el aviso">Cancelar</button></div><div class="acs">'+B.join('')+'</div></div>'}
 
 /* ===== técnico: su posición, solo si el negocio tiene el mapa activado y solo desde «Voy» hasta llegar =====
    El móvil la da mientras la app está en pantalla. Se manda como mucho cada 20 segundos, o antes si se ha movido unos 40 metros.
@@ -868,9 +913,11 @@ const hh0=m=>K.hhmm(m).replace(/^0/,'');
 function barraDia(X,a0,a1){const W=a1-a0||1,pc=m=>((m-a0)/W*100).toFixed(2)+'%',an=m=>(m/W*100).toFixed(2)+'%';
  let h='<div class="dia">'+X.T.map(x=>'<i class="dt" aria-hidden="true" style="left:'+pc(x[0])+';width:'+an(x[1]-x[0])+'"></i>').join('');
  for(let m=Math.ceil(a0/60)*60+60;m<a1;m+=60)h+='<i class="dg" aria-hidden="true" style="left:'+pc(m)+'"></i>';
+ /* lo que no trabaja, escrito dentro cuando cabe (auditoría UX-19): sin la leyenda ni los colores se entiende igual */
+ {let m=a0;X.T.slice().sort((x,y)=>x[0]-y[0]).concat([[a1,a1]]).forEach(x=>{if(x[0]-m>=30)h+='<i class="dx" aria-hidden="true" style="left:'+pc(m)+';width:'+an(x[0]-m)+'"><span>No trabaja</span></i>';m=Math.max(m,x[1])})}
  X.L.forEach(x=>{const A=el(x.id),av=A&&cfg.av[A.av],q=(av?av.n:'Trabajo')+(A&&barrio(A)?' en '+barrio(A):'')+', de '+hh0(x.llega)+' a '+hh0(x.acaba)+(x.nadie?', fue y no había nadie':x.hecho?', hecho':x.urg?', urgente':'')+(x.tarde?', llegaría tarde':'');
   if(x.viaje&&!x.hecho)h+='<i class="dv" aria-hidden="true" style="left:'+pc(x.llega-x.viaje)+';width:'+an(x.viaje)+'"></i>';
-  h+='<a class="dj'+(x.urg?' u':'')+(x.hecho?' h':'')+(x.nadie?' n':'')+(x.tarde?' t':'')+'" href="#/aviso/'+x.id+'" style="left:'+pc(x.llega)+';width:'+an(Math.max(x.acaba-x.llega,4))+'" aria-label="'+esc(q)+'" title="'+esc(q)+'"><span aria-hidden="true">'+esc(av?av.n:'')+'</span></a>'});
+  h+='<a class="dj'+(x.urg?' u':'')+(x.hecho?' h':'')+(x.nadie?' n':'')+(x.tarde?' t':'')+'" href="#/aviso/'+x.id+'" style="left:'+pc(x.llega)+';width:'+an(Math.max(x.acaba-x.llega,4))+'" aria-label="'+esc(q)+'" title="'+esc(q)+'"><span aria-hidden="true">'+(x.nadie?'No había nadie':(x.hecho?'✓ ':'')+(x.tarde?'Tarde · ':'')+esc(av?av.n:''))+'</span></a>'});
  if(X.hoy&&X.n.min>a0&&X.n.min<a1)h+='<i class="dn" aria-hidden="true" style="left:'+pc(X.n.min)+'"></i>';
  return h+'</div>'}
 /* en palabras: cuántos trabajos, sus ratos libres y lo que no cuadra */
@@ -885,7 +932,7 @@ function bTablero(d){const F=N.tecnicos.map(t=>({t,u:K.ausente(S,t.id,d),X:diaTe
  let h='<section class="tab" aria-label="El día de un vistazo"><div class="tabf tabh" aria-hidden="true"><span></span><div class="tabe">';
  for(let m=a0;m<=a1;m+=120)h+='<span style="left:'+pc(m)+(m===a0?';transform:none':m===a1?';transform:translateX(-100%)':'')+'">'+(m/60)+'</span>';
  h+='</div></div>'+F.map(f=>'<div class="tabf"><span class="tabn">'+ava(f.t.id)+esc(f.t.n)+'</span>'+(f.u?'<p class="tabx">Ausente</p>':!f.X.T.length&&!f.X.L.length?'<p class="tabx">No trabaja</p>':barraDia(f.X,a0,a1))+'</div>').join('');
- return h+'<p class="tabl" aria-hidden="true"><i class="lc"></i>Cita<i class="lu"></i>Urgencia<i class="lh"></i>Hecho<i class="ln"></i>No había nadie<i class="lr"></i>No trabaja</p>'+(d===K.madrid().date?bUrgAhora():'')+'</section>'}
+ return h+'<p class="tabl" aria-hidden="true"><i class="lc"></i>Cita<i class="lu"></i>Urgencia<i class="lh"></i>✓ Hecho<i class="ln"></i>No había nadie<i class="lr"></i>No trabaja</p>'+(d===K.madrid().date?bUrgAhora():'')+'</section>'}
 /* ===== centralita: el equipo, día a día. Quién trabaja, qué lleva cada uno y quién falta ===== */
 function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora);if(!dias.includes(d))d=dias[0];
  const fr=K.franjasDe(S,cfg,d,ahora),L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),sin=L.filter(a=>!a.tec),ds=new Date(d+'T12:00:00Z').getUTCDay();
@@ -1123,7 +1170,8 @@ function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
  CUR=dos||r.v==='nuevo'?'bandeja':(r.v==='equipo'||r.v==='furgo')&&!esT?'agenda':r.v;pNav();geoSync();voyReloj();
  const t=cfg.tec[Q.id],quien=(esT?ava(Q.id):'<i class="av c" aria-hidden="true">C</i>')+'<span>'+(esT?esc(t.n):'Centralita')+'</span>';
  $('#quien').innerHTML=FIJO?'<span class="quien" style="border-color:transparent">'+quien+'</span>':'<button class="quien" data-a="menu" aria-haspopup="dialog" aria-label="'+(SRV?'Tu sesión':'Cambiar de papel o de pack')+'. Ahora: '+(esT?t.n:'centralita')+'">'+quien+I.baja+'</button>';
- document.title=(esT?t.n:'Centralita')+' · '+N.nombre+' por dentro'}
+ const tp=papel?(r.b==='contrato'?(contrato(r.a)?'Contrato de mantenimiento '+r.a:''):el(r.a)?OficioPapeles.nombre(el(r.a),r.b,K):''):'';
+ document.title=tp?tp+' · '+N.nombre:(esT?t.n:'Centralita')+' · '+N.nombre+' por dentro'}
 addEventListener('hashchange',()=>{pinta();scrollTo(0,0);$('#v').focus({preventScroll:true})});
 /* Si llega un cambio mientras alguien escribe, la pantalla no se toca (perdería el foco), pero los números del menú sí se ponen al día. */
 Oficio.suscribir(()=>{const a=document.activeElement;pRed();if(a&&a.closest&&a.closest('#fEntra'))return;if(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,#fBusca,[data-obs]')&&quienEntra()){S=Oficio.estado();pNav();return}pinta()});
@@ -1135,10 +1183,16 @@ setInterval(()=>{$$('[data-reloj]').forEach(e=>{const A=el(e.dataset.reloj);if(A
 setInterval(()=>{const a=document.activeElement;if(document.querySelector('dialog[open]')||(a&&a.closest&&a.closest('#fNuevo,#fMejora,#fCodigo,#fEntra,[data-obs]')))return;pinta()},60000);
 
 /* ===== las hojas de cada paso ===== */
-function hMsg(A,k){const txt=K.mensaje(cfg,A,k),m=A.msgs.find(x=>x.k===k&&!x.env);
+/* por qué sale cada mensaje, en pocas palabras (los del seguimiento, con porQue) */
+const POR_MSG={recibido:'Ha entrado su aviso: que sepa que lo tenemos.',cita:'Ya tiene técnico y hora.',vispera:'Mañana es su cita.',camino:'El técnico va de camino.',ausente:'Fuimos y no había nadie: que diga cuándo volver.',hecho:'Trabajo terminado: el resumen y la garantía.',cobro:'Queda un pago pendiente.'};
+/* lo último que se le mandó a este cliente (por su teléfono, en todos sus avisos): para no escribirle dos veces seguidas */
+const ultimoMsg=tel=>{const t9=K.tel9(tel);let u=null;if(t9)S.avisos.forEach(x=>{if(x.cli&&x.cli.tel===t9)(x.msgs||[]).forEach(m=>{if(m.env&&!m.no&&(!u||m.env>u.m.env))u={a:x,m}})});return u};
+function hMsg(A,k){const txt=K.mensaje(cfg,A,k),m=A.msgs.find(x=>x.k===k&&!x.env),u=ultimoMsg(A.cli.tel),hs=m&&m.hasta;
+ const dat='<dl class="mdat"><div><dt>Para</dt><dd>'+esc(K.nomCli(A.cli)||'Aún sin nombre')+(A.cli.tel?' · '+K.telBonito(A.cli.tel):'')+'</dd></div><div><dt>Por qué</dt><dd>'+(K.SEGUIR.includes(k)?esc(porQue({a:A,m:m||{k}})):POR_MSG[k]||'')+'</dd></div>'+
+  (hs?'<div><dt>Caduca</dt><dd>el '+K.fechaCorta(K.madrid(hs).date)+'; después ya no sale</dd></div>':'')+'<div><dt>Último mensaje</dt><dd>'+(u?'«'+K.MSG[u.m.k]+'», '+hace(u.m.env):'todavía no se le ha escrito')+'</dd></div></dl>';
  /* la oficina puede dejarlo sin mandar; en el seguimiento, apuntar que el cliente no quiere estos mensajes (se le dice en cada uno, como pide la ley) */
  const mas=m&&Q.rol==='centralita'?'<div class="mno"><button class="txt" id="mNo" type="button">No hace falta mandarlo</button>'+(K.SEGUIR.includes(k)?'<button class="txt" id="mBaja" type="button">No quiere estos mensajes</button>':'')+'</div>':'';
- const d=hoja(hc(K.MSG[k])+'<div class="hb">'+waHtml(txt,A.cli.nombre)+(Oficio.DEMO?'<p class="dn">En la app real, este botón abre WhatsApp con el mensaje ya escrito para '+esc(A.cli.nombre.split(' ')[0])+'. En la demo no se escribe a nadie.</p></div><div class="hp"><button class="btn pri ancho" id="mOk">'+(m?'Enviar':'Entendido')+'</button>'+mas+'</div>'
+ const d=hoja(hc(K.MSG[k])+'<div class="hb">'+dat+waHtml(txt,A.cli.nombre)+(Oficio.DEMO?'<p class="dn">En la app real, este botón abre WhatsApp con el mensaje ya escrito para '+esc(A.cli.nombre.split(' ')[0])+'. En la demo no se escribe a nadie.</p></div><div class="hp"><button class="btn pri ancho" id="mOk">'+(m?'Enviar':'Entendido')+'</button>'+mas+'</div>'
   :'<p class="dn">Se abre WhatsApp con el mensaje ya escrito. Revísalo y envíalo desde allí.</p></div><div class="hp"><a class="btn pri ancho" id="mOk" target="_blank" rel="noopener" href="https://wa.me/34'+K.tel9(A.cli.tel)+'?text='+encodeURIComponent(txt)+'">Abrir WhatsApp</a>'+mas+'</div>'));
  $('#mOk',d).onclick=()=>{if(m&&hacer({tipo:'enviado',id:A.id,k}).ok)toast(Oficio.DEMO?'Mensaje enviado (en la demo, solo se apunta).':'Apuntado como enviado.');d.close()};
  const no=$('#mNo',d),baja=$('#mBaja',d);
@@ -1398,7 +1452,12 @@ const ACC={
  fContar:(A,b)=>hFz(b.dataset.tec,true),
  copiaCarga:(A,b)=>{const t=K.textoCarga(cfg,K.cargaDe(S,cfg,b.dataset.tec,b.dataset.dia,Date.now()));if(t)copia(t,'Copiado. Pégalo donde quieras.')},
  copiaMat:(A,b)=>{const d=b.dataset.dia||'',g=K.material(S,cfg,d).find(x=>x.tec===(b.dataset.tec||''));if(g)copia(K.textoMaterial(cfg,g,d),'Copiado. Pégalo donde quieras.')},
- asignar:(A,b)=>{const otraVez=A.e==='ausente';if(A.tec===b.dataset.tec&&!otraVez)return;const antes=A.tec&&A.tec!==b.dataset.tec;if(hacer({tipo:'asignar',id:A.id,tec:b.dataset.tec}).ok)toast((otraVez&&!antes?'Vuelve a ir ':antes?'Cambiado: ahora va ':'Asignado a ')+cfg.tec[b.dataset.tec].n+'.'+(A.cita?' Queda escrito el mensaje de la cita.':''))},
+ /* «Asignar a X» y, durante unos segundos, «Deshacer» (auditoría UX-16): vuelve a quien lo llevaba o lo deja sin técnico.
+    Después de «No había nadie» no se ofrece: volver a ir es otra visita */
+ asignar:(A,b)=>{const otraVez=A.e==='ausente',id=A.id,tec=b.dataset.tec,prev=A.e==='asignado'?A.tec:'';if(A.tec===tec&&!otraVez)return;const antes=A.tec&&A.tec!==tec;
+  if(hacer({tipo:'asignar',id,tec}).ok)toast((otraVez&&!antes?'Vuelve a ir ':antes?'Cambiado: ahora va ':'Asignado a ')+cfg.tec[tec].n+'.'+(A.cita?' Queda escrito el mensaje de la cita.':''),otraVez?null:{t:'Deshacer',fn:()=>{const X=el(id),vuelve=prev&&cfg.tec[prev];
+   if(!X||X.e!=='asignado'||X.tec!==tec)return toast('Ya no se puede deshacer: el aviso ha cambiado.');
+   if(hacer(vuelve?{tipo:'asignar',id,tec:prev}:{tipo:'soltar',id}).ok)toast(vuelve?'Deshecho: lo vuelve a llevar '+cfg.tec[prev].n+'.':'Deshecho: el aviso vuelve a estar sin técnico.')}})},
  voy:A=>{const r=hacer({tipo:'voy',id:A.id});if(r.ok){toast('De camino. Llegas sobre las '+K.hora(r.eta)+'.');if(ruta().v!=='aviso')location.hash='#/aviso/'+A.id}},
  ausente:A=>{if(hacer({tipo:'ausente',id:A.id}).ok){toast('Apuntado: no había nadie. Vuelve a la centralita.');location.hash='#/hoy'}},
  empezar:A=>hPrecio(A,false),

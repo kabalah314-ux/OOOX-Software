@@ -13,6 +13,9 @@ const lq=l=>l.un==='h'?dur(Math.round(l.q*60)):l.q>1?l.q+' unidades':'';
 function tipos(A){if(!A||!A.tot)return[];return[A.pres&&['presupuesto','Presupuesto'],A.e==='hecho'&&['parte','Parte de trabajo'],A.gar&&['garantia','Garantía']].filter(Boolean)}
 /* el que se enseña: el pedido si lo tiene; si no, el parte de un trabajo terminado o el primero */
 function elige(A,tipo){const T=tipos(A);if(!T.length)return'';return T.find(x=>x[0]===tipo)?tipo:T[T.length>1&&A.e==='hecho'?1:0][0]}
+/* el nombre de un papel: qué es, de qué aviso y de qué día, p. ej. «Parte de trabajo R-0012 16-11-2026». Es el título de la página
+   mientras se ve, y el navegador lo propone como nombre del archivo al guardarlo en PDF (auditoría UX-25) */
+function nombre(A,tipo,K){const x=tipos(A).find(y=>y[0]===elige(A,tipo));if(!x)return'';return x[1]+' '+A.id+' '+K.madrid(A.fin||A.t).date.split('-').reverse().join('-')}
 
 function doc(A,tipo,o){const K=o.K,N=o.N,cfg=o.cfg,firmaSvg=o.firmaSvg,f=K.fechaCorta,PCT=Math.round(cfg.recargo*100);
  tipo=elige(A,tipo);if(!tipo)return'';
@@ -71,5 +74,5 @@ function contrato(C,o){if(!C||!Array.isArray(C.per)||!C.per.length)return'';cons
   '<h2>Aceptado por el cliente</h2>'+(C.acepta==='firma'&&C.firma?'<div class="fir">'+firmaSvg(C.firma)+'<small>Firmado el '+f(alta)+' a las '+K.hora(C.t)+'</small></div>':'<p>Aceptado por mensaje el '+f(alta)+' a las '+K.hora(C.t)+'.</p>')+
   '<p class="pie">Este papel no es una factura. La factura de la cuota la emite '+esc(N.razon)+' con su programa de facturas.</p>'}
 
-g.OficioPapeles={tipos,elige,doc,contrato,esc,PAGO,dur,lq};
+g.OficioPapeles={tipos,elige,nombre,doc,contrato,esc,PAGO,dur,lq};
 })(globalThis);
