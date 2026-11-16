@@ -24,7 +24,7 @@ g.OFICIO_NEGOCIO={
  citas:{porFranja:1,reserva:0},
  tecnicos:[
   {id:'ines',n:'Inés',ap:'Marqués',tono:30,jefe:1,horario:{1:[[510,810],[930,1080]],2:[[510,810],[930,1080]],3:[[510,810],[930,1080]],4:[[510,810],[930,1080]],5:[[510,810],[930,1080]]}},
-  {id:'pau',n:'Pau',ap:'Ferri',tono:210,guardia:1,horario:{1:[[510,810]],2:[[510,810]],3:[[510,810]],4:[[510,810]]}}],
+  {id:'pau',n:'Pau',ap:'Ferri',tono:210,guardia:1,furgoneta:{mecanismo:[2,6],regleta:[2,6],magneto:[1,2]},horario:{1:[[510,810]],2:[[510,810]],3:[[510,810]],4:[[510,810]]}}],
  zonas:{banda:{cerca:20,lejos:45},
   dis:{cv:['Ciutat Vella','cerca','Ciutat Vella'],ex:['L’Eixample','cerca','L’Eixample'],em:['Extramurs','cerca','Extramurs'],ca:['Campanar','lejos','Campanar'],pm:['Poblats Marítims','lejos','Poblats Marítims']},
   cp:{'46001':'cv','46002':'cv','46003':'cv','46004':'ex','46005':'ex','46006':'ex','46007':'em','46008':'em','46009':'ca','46015':'ca','46011':'pm','46024':'pm'}},
@@ -42,6 +42,8 @@ g.OFICIO_NEGOCIO={
   caja:{t:'Caja de empalmes',p10:6,mat:1},
   regleta:{t:'Regletas y bornes',p10:5,mat:1},
   cuadro:{t:'Cuadro eléctrico de 12 módulos, instalado',p21:290,mat:1}},
+ /* la furgoneta: lo que lleva siempre cada una, [mínimo, máximo]. Pau, que hace guardias, lleva la suya (en su ficha) */
+ furgoneta:{diferencial:[1,2],magneto:[2,4],mecanismo:[4,10],cable:[2,5],caja:[3,8],regleta:[4,10]},
  averias:[
   {id:'salta',n:'Salta el diferencial',c:'Diferencial',d:'Se va la luz de toda la casa.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:2},{k:'diferencial'}],ini:[{k:'visita'},{k:'horas',q:1}],chips:['diferencial','magneto','cable','cuadro']},
   {id:'sinluz',n:'Sin luz en una zona',c:'Sin luz',d:'Una habitación o varios enchufes.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:1.5},{k:'magneto'},{k:'cable'}],ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','cable','caja','regleta']},

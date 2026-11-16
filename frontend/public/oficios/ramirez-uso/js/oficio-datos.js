@@ -54,6 +54,9 @@ g.OFICIO_NEGOCIO={
   grifon:{t:'Grifo monomando',p10:35,mat:1},
   termo80:{t:'Termo eléctrico de 80 litros, instalado',p21:390,mat:1,extra:1,base:'fon-termo',dur:[90,180]},
   revinst:{t:'Revisión de la instalación',p10:45,base:'fon-revision',dur:[40,75],cada:12}},
+ /* la furgoneta: lo que lleva siempre cada una, [mínimo, máximo]. Solo cuenta en la de quien lleva la cuenta en la app (lo decide
+    cada técnico). Lo que baja del mínimo sale para reponer hasta el máximo. Si alguien lleva otra cosa, se le pone la suya en su ficha */
+ furgoneta:{juntas:[6,12],sellador:[2,4],latig:[4,8],llave:[3,6],sifon:[2,4],tubo:[2,4],mecanismo:[2,4],valvula:[2,4],termostato:[1,2],resistencia:[1,2],grifon:[1,2]},
  /* las averías: min y max dan el «de cuánto a cuánto» de la web; ini es el presupuesto que sale ya puesto en la puerta */
  averias:[
   {id:'fuga',n:'Fuga de agua',c:'Fuga',d:'Tubería, llave de paso o latiguillo.',min:[{k:'desp'},{k:'mo',q:1}],max:[{k:'desp'},{k:'mo',q:2},{k:'juntas'},{k:'sellador'}],dur:[45,120],ini:[{k:'desp'},{k:'mo',q:1},{k:'juntas'}],chips:['sellador','latig','llave','tubo']},
@@ -128,10 +131,13 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora,info){
   const r=az();if(!urg&&r<.035){if(haz({tipo:'ausente',id},T(tec),tl+5*M))(el(id).msgs||[]).forEach(m=>{if(m.k==='ausente'&&!m.env)m.env=tl+7*M});const tm=at(sig(d,1),entre(600,700));tareas.push([tm,()=>{const B=el(id);if(!B||B.e!=='ausente')return;
     let dd=sigLab(K.madrid(tm).date,1);for(let k=0;k<6;k++,dd=sigLab(dd,1)){const f=K.franjasDe(S,cfg,dd,tm,id,B).filter(x=>x.okOf);if(f.length){haz({tipo:'mover',id,cita:{dia:dd,fr:elige(f).id},confirmado:true},C,tm);return}}}]);return}
   if(!urg&&r<.075){haz({tipo:'noacepta',id,modo:elige(['tarjeta','efectivo','bizum']),pres:{lineas:datosAv(A.av).ini}},T(tec),tl+12*M);despues(id,tec,tl+12*M);return}
-  const te=tl+3*M;if(!haz({tipo:'empezar',id,pres:{lineas:lineas(A.av,urg),firma:FIRMA,pide:true}},T(tec),te))return;
+  const te=tl+3*M,LP=lineas(A.av,urg);lleno(tec,LP,te-M);if(!haz({tipo:'empezar',id,pres:{lineas:LP,firma:FIRMA,pide:true}},T(tec),te))return;
   const B=el(id),dur=tiempo(B,Math.max(20,tope-l-4));
-  if(az()<.05){const ta=te+Math.round(dur/3)*M;haz({tipo:'ampliar',id,lineas:[{k:elige(['latig','llave','sifon','tubo'])}],firma:FIRMA,pide:true},T(tec),ta)}
+  if(az()<.05){const ta=te+Math.round(dur/3)*M,LA=[{k:elige(['latig','llave','sifon','tubo'])}];lleno(tec,LA,ta-M);haz({tipo:'ampliar',id,lineas:LA,firma:FIRMA,pide:true},T(tec),ta)}
   const tf=tl+dur*M;haz({tipo:'terminar',id,modo:pesa(PAGO),firma:FIRMA},T(tec),tf);despues(id,tec,tf)};
+ /* quien lleva la cuenta de su furgoneta y va a usar algo que no tiene, lo compra de camino y lo apunta como cargado */
+ const lleno=(tec,L,t)=>{const F=K.furgoDe(S,tec);if(!F)return;const C1={};L.forEach(l=>{const it=cfg.cat[l.k];if(!it||!it.mat)return;const n=Math.round(+l.q||1)+(C1[l.k]?C1[l.k].n:0);C1[l.k]={n}});
+  const L2={};Object.keys(C1).forEach(k=>{const f=C1[k].n-(F.st[k]||0);if(f>0)L2[k]=f});if(Object.keys(L2).length)haz({tipo:'furgo',tec,carga:L2},T(tec),t)};
  /* las tareas que quedan para otro día (cobros, facturas, mover citas), en orden */
  const tareas=[],hazTareas=hasta=>{tareas.sort((a,b)=>a[0]-b[0]);while(tareas.length&&tareas[0][0]<=hasta){const x=tareas.shift();x[1]()}};
  /* una cita: el cliente la pide en la web o la oficina por teléfono, para uno de los próximos días con hueco */
@@ -147,6 +153,23 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora,info){
  /* los contratos que ya traía el negocio: altas de hace meses, uno a punto de renovar */
  const inicio=sig(hoy,-63);
  [350,340,300,250,200,170,120,95,80].forEach(dias=>{const c=nuevoCli();haz({tipo:'contrato',plan:'anual',cli:c,acepta:'firma',firma:FIRMA,modo:'tarjeta'},C,at(sig(hoy,-dias),entre(600,1100)))});
+ /* la furgoneta (16-11-2026): Omar lleva la cuenta desde la segunda semana; Laia y Jordi, no. La tarde antes carga lo que le
+    falta para mañana y, los lunes y los jueves, repone; a las cuatro y a las siete semanas la cuenta (y siempre hay alguna
+    diferencia). Lo que usa se descuenta solo al terminar cada trabajo. La última semana no repone: hoy hay algo por reponer.
+    Tiene su propio azar, para no cambiar nada de lo demás */
+ let semF=20261116;const azF=()=>{semF=semF+0x6D2B79F5|0;let x=Math.imul(semF^semF>>>15,1|semF);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296};
+ const entreF=(a,b)=>a+Math.floor(azF()*(b-a+1)),cuentaF=[sig(inicio,28),sig(inicio,49)];
+ const furgoneta=(d,L)=>{
+  if(d===sig(inicio,7)){const tk=at(d,1150),kit=K.kitDe(cfg,'omar'),L0={};Object.keys(kit).forEach(k=>{L0[k]=entreF(kit[k][0],kit[k][1])});
+   if(haz({tipo:'furgo',tec:'omar',llevar:true},T('omar'),tk))haz({tipo:'furgo',tec:'omar',cuenta:L0},T('omar'),tk+3*M);return}
+  const F=K.furgoDe(S,'omar');if(!F||!L||d>=hoy)return;
+  const tk=at(d,1145),c=K.cargaDe(S,cfg,'omar',sigLab(d,1),tk),L1={},dw=new Date(d+'T12:00:00Z').getUTCDay();
+  c.falta.forEach(x=>{if(!x.quiza||azF()<.5)L1[x.k]=x.q});
+  /* repone los lunes y los jueves; las dos últimas semanas el almacén va corto y solo llega a pasar del mínimo */
+  if((dw===1||dw===4)&&d<sig(hoy,-6))c.reponer.forEach(x=>{L1[x.k]=Math.max(L1[x.k]||0,d<sig(hoy,-14)?x.q:x.min+1-x.hay)});
+  if(Object.keys(L1).length)haz({tipo:'furgo',tec:'omar',carga:L1},T('omar'),tk);
+  if(cuentaF.length&&d>=cuentaF[0]){cuentaF.shift();const L2={},ks=Object.keys(F.st);ks.forEach(k=>{L2[k]=F.st[k]});
+   if(ks.length){const k=ks[Math.floor(azF()*ks.length)];L2[k]=Math.max(0,L2[k]+(azF()<.7?-1:1));haz({tipo:'furgo',tec:'omar',cuenta:L2},T('omar'),tk+20*M)}}};
  /* ---------- día a día ---------- */
  const tecs=Object.keys(cfg.tec);
  for(let d=inicio;d<=hoy;d=sig(d,1)){const L=lab(d),t0=at(d,0);hazTareas(t0+7*H);
@@ -172,6 +195,7 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora,info){
   /* las revisiones de los contratos: la oficina las ve un mes antes de que toquen y llama a los que tocan en los próximos diez días */
   if(L&&az()<.12){const X=K.pendientesContratos(S,cfg,at(d,600)).revision.filter(r=>r.toca<=sig(d,10)).map(r=>S.contratos.find(c=>c.id===r.id)).filter(Boolean);if(X.length){const x=X[0],t=at(d,entre(600,780));pideCita(t,{nombre:x.cli.nombre,apellidos:x.cli.apellidos,tel:x.cli.tel,dir:x.cli.dir,cp:x.cli.cp},K.REV,true)}}
   if(L&&d<hoy)reparte(sigLab(d,1),at(d,1110));
+  furgoneta(d,L);
   if(d<hoy)hazTareas(t0+24*H-M);
  }
  hazTareas(ahora);

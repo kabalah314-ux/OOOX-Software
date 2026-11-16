@@ -46,6 +46,7 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | F19. Datos malos | Teléfono mal, código postal fuera de zona, texto raro, foto grande |
 | F20. Permisos | El técnico no ve las cifras; el cliente solo ve lo suyo |
 | F21. Después del trabajo | La reseña a las dos horas, el seguimiento a la semana, el presupuesto sin respuesta a los tres días y, si el cliente dijo que sí, el aviso cuando toque volver; alguno no hace falta, y un cliente dice que no quiere más |
+| F22. La furgoneta | Omar lleva la cuenta de su furgoneta desde la segunda semana; Laia y Jordi, no. La tarde antes carga lo que le falta para mañana, repone dos veces por semana y la cuenta de vez en cuando; lo que usa se descuenta al terminar cada trabajo y, si va a usar algo que no lleva, lo compra de camino |
 
 ## La lista
 
@@ -121,6 +122,11 @@ qué tiene que pasar para dar cada prueba por buena y cómo se comprueba.
 | U65 | F21 | El seguimiento en la bandeja | En «Por hacer» sale «N clientes para el seguimiento», y su hoja tiene una fila por cliente | P | Bien |
 | U66 | F21 | Dejarlo sin mandar | Cada mensaje dice cómo dejar de recibirlos; «No hace falta mandarlo» lo deja apuntado y ya no sale | P | Bien |
 | U67 | F21 | «No quiere estos mensajes» | Se apunta en todos sus avisos, ya no le sale ninguno, se ve en su ficha y «Volver a escribirle» lo quita | P | Bien |
+| U68 | F22 | Quién lleva la cuenta | Omar la lleva, con lo que hay bien apuntado (solo material del catálogo, cantidades enteras); Laia y Jordi, no | R | Bien |
+| U69 | F22 | Lo usado se descuenta | Cada trabajo suyo con material lo ha descontado de su furgoneta y lo dice en el aviso y en los movimientos; los que no llevan material, no | R | Bien |
+| U70 | F22 | Lo que conviene cargar | Hay algo que enseñar (trabajos de hoy o de mañana, o algo por reponer); lo que conviene cargar es lo mayor entre lo que le falta y lo que toca reponer, y nunca usa lo que no llevaba | R | Bien |
+| U71 | F22 | La furgoneta en el móvil | Omar ve lo que lleva, sus movimientos y lo que toca reponer; Laia puede empezar a llevar la cuenta cuando quiera | P | Bien |
+| U72 | F22 | La furgoneta en la oficina | En «Equipo» sale la furgoneta de quien lleva la cuenta y no la de los demás; la oficina abre la de Omar y puede apuntar lo que carga | P | Bien |
 
 ## Lo que se ha visto y las mejoras
 

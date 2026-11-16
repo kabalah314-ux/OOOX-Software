@@ -200,6 +200,21 @@ async def main():
             await c.click('.nomsg [data-a="escribirSi"]'); await c.wait_for_timeout(300)
             vuelve = await c.evaluate(f"Oficio.estado().avisos.filter(a=>a.cli.tel==='{tel}').every(a=>!a.noMsg)")
             es(vuelve and await c.locator('.nomsg').count() == 0, 'U67: en la ficha del cliente se ve, y «Volver a escribirle» lo quita')
+        # U71–U72: la furgoneta (16-11-2026): Omar lleva la cuenta desde hace semanas; Laia, no. Omar ve lo que lleva, lo usado en
+        # sus trabajos y lo que le falta; la oficina lo ve en «Equipo» y en su furgoneta
+        await c.goto(B + 'app.html?papel=tecnico&tec=omar#/furgo'); await c.wait_for_selector('#fgSt')
+        fo = await c.evaluate(f"(()=>{{const S=Oficio.estado(),F={K}.furgoDe(S,'omar');return F?{{n:Object.keys(F.st).length,h:F.h.length,rp:{K}.reponerDe(S,{CFG},'omar').length}}:null}})()")
+        await c.click('#fgMov summary'); mov = await c.locator('#fgMov').inner_text()
+        es(fo and fo['n'] >= 5 and 'Tu furgoneta' in await c.locator('main h1').inner_text() and await c.locator('#fgSt li').count() >= 5 and ('Recuento' in mov or 'Cargado' in mov) and '× ' in mov
+           and (await c.locator('#fgRep').count() == 1) == (fo['rp'] > 0), f'U71: Omar ve lo que lleva en su furgoneta, sus movimientos y lo que toca reponer ({fo})')
+        await c.goto(B + 'app.html?papel=tecnico&tec=laia#/furgo'); await c.wait_for_selector('main h1')
+        es(await c.locator('#fgNo [data-a="fSi"]').count() == 1, 'U71: Laia no lleva la cuenta: puede empezar cuando quiera')
+        de = await c.evaluate(f"(()=>{{const S=Oficio.estado();let d={K}.madrid(Date.now()).date;for(let i=0;i<10;i++){{if({K}.laborable({CFG},d)&&!{K}.ausente(S,'omar',d))return d;d={K}.masDias(d,1)}}return d}})()")
+        await c.goto(B + f'app.html#/equipo/{de}'); await c.wait_for_selector('.tecds')
+        eq = await c.locator('.tecd[data-tec="omar"] .fgq').inner_text() if await c.locator('.tecd[data-tec="omar"] .fgq').count() else ''
+        es('Furgoneta:' in eq and await c.locator('.tecd[data-tec="laia"] .fgq').count() == 0, f'U72: en «Equipo», la oficina ve la furgoneta de Omar y no la de quien no lleva la cuenta ({eq!r})')
+        await c.goto(B + 'app.html#/furgo/omar'); await c.wait_for_selector('#fgSt')
+        es('Furgoneta de Omar' in await c.locator('main h1').inner_text() and await c.locator('#fgSt [data-a="fCargar"]').count() == 1, 'U72: la oficina abre la furgoneta de Omar y puede apuntar lo que carga')
         # U57: de noche, quien no hace guardias sale «fuera de horario»; los que las hacen, libres para una urgencia
         ctx2 = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=1, timezone_id='Europe/Madrid')
         await pon_hora(ctx2, '2026-11-18T22:00:00+01:00')

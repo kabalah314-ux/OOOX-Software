@@ -48,6 +48,7 @@ async function tanda(semilla) {
       () => ({ tipo: 'anotar', id, obs: 'Nota ' + Math.floor(rnd() * 1000) }), () => ({ tipo: 'cancelar', id, motivo: 'prueba' }),
       () => ({ tipo: 'mover', id, cita: null }), () => ({ tipo: 'ausencia', tec: uno(d.N.tecnicos).id, de: K.madrid(reloj.t).date, a: K.masDias(K.madrid(reloj.t).date, Math.floor(rnd() * 3)), motivo: 'baja' }),
       () => ({ tipo: 'cobrar', id, modo: 'efectivo' }),
+      () => furgo(d, uno(d.N.tecnicos).id), () => furgo(d, uno(d.N.tecnicos).id),
     ].concat(Object.keys(cfg.planes || {}).length ? [   // los contratos de mantenimiento, si el negocio tiene planes
       () => ({ tipo: 'contrato', plan: uno(Object.keys(cfg.planes)), cli: x && rnd() < .5 ? Object.assign({}, x.cli) : cli(d.N), acepta: 'mensaje', modo: uno(['efectivo', 'tarjeta', 'pendiente']) }),
       () => { const L = (d.cab && d.cab.contratos) || [], C = L.length ? uno(L) : null; return { tipo: uno(['cobroContrato', 'bajaContrato']), id: C ? C.id : d.N.serie + 'M-0001', modo: 'bizum', motivo: 'prueba' }; },
@@ -58,7 +59,15 @@ async function tanda(semilla) {
       () => ({ tipo: 'terminar', id, modo: uno(['efectivo', 'tarjeta', 'pendiente']), firma: 'M1 1L20 20L40 10L60 30L80 12L100 40' }),
       () => ({ tipo: 'noacepta', id, modo: 'efectivo' }), () => ({ tipo: 'anotar', id, obs: 'Del técnico ' + Math.floor(rnd() * 1000) }),
       () => ({ tipo: 'posicion', id, lat: 41 + rnd(), lon: 2 + rnd() }), () => ({ tipo: 'sinPosicion', id }),
+      () => furgo(d, d.q.id), () => furgo(d, rnd() < .9 ? d.q.id : uno(d.N.tecnicos).id),
     ])();
+  }
+  /* la furgoneta (16-11-2026): llevar la cuenta, contar o cargar material del catálogo */
+  function furgo(d, tec) {
+    const cfg = cfgs[d.neg], mats = Object.keys(cfg.cat).filter(k => cfg.cat[k].mat), F = d.cab && d.cab.furgos && d.cab.furgos[tec], L = {};
+    if (!mats.length || !F || !F.on || rnd() < .1) return { tipo: 'furgo', tec, llevar: !(F && F.on) };
+    for (let i = 0; i < 1 + Math.floor(rnd() * 3); i++) L[uno(mats)] = Math.floor(rnd() * 9) + (rnd() < .5 ? 1 : 0);
+    return rnd() < .5 ? { tipo: 'furgo', tec, cuenta: L } : { tipo: 'furgo', tec, carga: Object.fromEntries(Object.entries(L).map(([k, n]) => [k, n || 1])) };
   }
   /* Como un aparato de verdad: antes de mandar nada, prueba la acción con las reglas sobre lo que él tiene. De cuatro
      al azar manda la primera que sus reglas dan por buena; si ninguna lo es, manda la última igualmente (también hay
@@ -67,7 +76,7 @@ async function tanda(semilla) {
     let a = null;
     for (let i = 0; i < 4; i++) {
       a = accion(d);
-      const S = Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, d.q.rol === 'centralita' && d.cab ? JSON.parse(JSON.stringify(d.cab)) : {}, { v: d.v, avisos: JSON.parse(JSON.stringify([...d.avisos.values()].sort((x, y) => x.n - y.n))) });
+      const S = Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, d.q.rol === 'centralita' && d.cab ? JSON.parse(JSON.stringify(d.cab)) : d.cab && d.cab.furgos ? { furgos: JSON.parse(JSON.stringify(d.cab.furgos)) } : {}, { v: d.v, avisos: JSON.parse(JSON.stringify([...d.avisos.values()].sort((x, y) => x.n - y.n))) });
       if (K.aplicar(S, cfgs[d.neg], JSON.parse(JSON.stringify(a)), d.q, reloj.t).ok) return a;
     }
     return a;
@@ -79,7 +88,7 @@ async function tanda(semilla) {
       if (d.q.rol === 'tecnico') ley(x.fuera ? igual(Object.keys(x).sort(), ['fuera', 'id', 'v']) : x.datos && x.datos.tec === d.q.id, 'el-tecnico-recibe-solo-lo-suyo', d.persona + ' recibió ' + x.id);
       else ley(!!x.datos, 'la-oficina-recibe-entero');
     }
-    if (d.q.rol === 'tecnico') ley(igual(c.cab, { esq: K.ESQ }), 'el-tecnico-no-recibe-la-cabecera');
+    if (d.q.rol === 'tecnico') ley(igual(Object.keys(c.cab || {}).sort(), ['esq', 'furgos']) && c.cab.esq === K.ESQ && Object.keys(c.cab.furgos).every(k => k === d.q.id), 'el-tecnico-recibe-solo-su-furgoneta', d.persona + ': ' + JSON.stringify(Object.keys((c.cab || {}).furgos || {})));
     else if (!c.entero) ley(('contratos' in (c.cab || {})) === (((c.cab || {}).vc || 0) > d.v), 'los-contratos-solo-cuando-cambian', d.persona + ' desde ' + d.v);
     if (c.entero) d.avisos.clear();
     for (const x of c.avisos) { if (x.fuera) d.avisos.delete(x.id); else d.avisos.set(x.id, x.datos); }
@@ -102,7 +111,7 @@ async function tanda(semilla) {
       for (const x of n.diario) { const c0 = JSON.stringify(S.contratos || []), r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(x.accion)), x.q, x.t); ley(r.ok && S.v === x.v, 'el-diario-se-puede-repetir', id + ' v' + x.v); if (JSON.stringify(S.contratos || []) !== c0) vc = x.v; }
       const guardado = [...n.avisos.values()].map(f => f.datos).sort((a, b) => a.n - b.n), sin = a => { const y = Object.assign({}, a); delete y.llave; return y; };
       ley(igual(S.avisos, guardado.map(sin)), 'lo-guardado-es-el-diario', id);
-      ley(igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0 }, n.cab)), 'la-cabecera-es-el-diario', id);
+      ley(igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc, furgos: S.furgos || {} }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0, furgos: {} }, n.cab)), 'la-cabecera-es-el-diario', id);
       const Sg = Object.assign({}, S, { avisos: guardado });
       for (const f of n.avisos.values()) {
         ley(igual(f.vista, K.vistaCliente(Sg, cfg, f.id)), 'lo-que-ve-el-cliente-esta-al-dia', f.id);
@@ -120,6 +129,7 @@ async function tanda(semilla) {
     const n = A.crudo(d.neg), espera = [...n.avisos.values()].filter(f => d.q.rol === 'centralita' || f.datos.tec === d.q.id).map(f => f.datos).sort((a, b) => a.n - b.n);
     ley(d.v === n.v && igual([...d.avisos.values()].sort((a, b) => a.n - b.n), espera), 'el-aparato-al-dia-tiene-lo-que-le-toca', d.persona + ' de ' + d.neg);
     const orden = o => Object.fromEntries(Object.entries(Object.assign({}, o, { contratos: (o && o.contratos) || [] })).sort(([x], [y]) => x < y ? -1 : 1));   // sin contratos guardados es como una lista vacía
+    if (d.q.rol === 'tecnico') ley(igual(((d.cab || {}).furgos || {})[d.q.id] || null, ((n.cab || {}).furgos || {})[d.q.id] || null), 'el-tecnico-tiene-su-furgoneta', d.persona);
     if (d.q.rol === 'centralita') ley(igual(orden(d.cab), orden(n.cab)), 'la-oficina-tiene-la-cabecera', Object.keys(Object.assign({}, d.cab, n.cab)).filter(k => !igual(d.cab[k], n.cab[k])).map(k => k + ': ' + String(JSON.stringify(d.cab[k])).slice(0, 80) + ' / ' + String(JSON.stringify(n.cab[k])).slice(0, 80)).join(' · '));
   }
 

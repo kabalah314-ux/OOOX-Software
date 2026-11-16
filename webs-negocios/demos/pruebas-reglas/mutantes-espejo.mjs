@@ -45,6 +45,9 @@ const M = [
   ['al juntar pestañas se pierde la cola de la otra', "[].concat(Array.isArray(viejo.cola)?viejo.cola:[],mio.cola).forEach", '[].concat(mio.cola).forEach'],
   ['lo que otra pestaña ya envió sigue en la cola', 'cola=cola.filter(p=>p.vuela||p.crea||!H.has(p.clave));', ''],
   ['lo adelantado se repite en otro orden', 'S=copia(B);cola.forEach(p=>{', 'S=copia(B);cola.slice().reverse().forEach(p=>{'],
+  // la furgoneta (16-11-2026)
+  ['el aparato no guarda la furgoneta que llega', "if(cab.furgos&&typeof cab.furgos==='object'&&!Array.isArray(cab.furgos))B.furgos=cab.furgos;else if(c.entero)delete B.furgos;", ''],
+  ['al recibirlo todo, se queda la furgoneta de antes', "if(cab.furgos&&typeof cab.furgos==='object'&&!Array.isArray(cab.furgos))B.furgos=cab.furgos;else if(c.entero)delete B.furgos;", "if(cab.furgos&&typeof cab.furgos==='object'&&!Array.isArray(cab.furgos))B.furgos=cab.furgos;"],
 ];
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mutantes-espejo-')), copia = path.join(tmp, 'oficio-espejo.js');

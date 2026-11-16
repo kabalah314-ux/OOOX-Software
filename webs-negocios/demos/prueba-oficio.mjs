@@ -1199,5 +1199,106 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(s && s.sobran === 1, 'y si ese día no trabaja nadie, la oficina ve que sobra (para moverla a otro día)');
 }
 
+// 49. la furgoneta (16-11-2026): lo que lleva cada trabajo, la carga de cada día, la cuenta de la furgoneta (si el técnico
+//     quiere), lo que se descuenta al terminar y lo que hay que reponer
+{
+  const SV = K.nuevo(); let tv = MAR; const hv = (a, q) => K.aplicar(SV, cfg, a, q, tv += M), GV = id => SV.avisos.find(a => a.id === id);
+  const hoy = K.madrid(MAR).date, man = K.masDias(hoy, 1);
+  const cliV = n => ({ nombre: 'Furgo', apellidos: 'Prueba', tel: '6000007' + String(n).padStart(2, '0'), dir: 'C/ del Material ' + n + ', 1.º', cp: '08012' });
+  // lo que lleva un trabajo
+  const f1 = hv({ tipo: 'pedir', av: 'fuga', cli: cliV(1), origen: 'llamada' }, C).id, L1 = K.lleva(cfg, GV(f1));
+  es(L1.lin.length === 1 && L1.lin[0].k === 'juntas' && L1.lin[0].q === 1 && !L1.lin[0].fa && L1.quiza.map(x => x.k).join() === 'sellador,latig,llave,tubo' && !L1.mano.length,
+    'sin presupuesto, un trabajo lleva el material de partida de su avería; por si acaso, las piezas que se suelen añadir en ella');
+  hv({ tipo: 'falta', id: f1, k: 'juntas', q: 3 }, C); hv({ tipo: 'falta', id: f1, k: 'latig', q: 2 }, C); hv({ tipo: 'falta', id: f1, t: 'Codo de cobre de 15', q: 1 }, C);
+  const L1b = K.lleva(cfg, GV(f1)), ju = L1b.lin.find(x => x.k === 'juntas'), la = L1b.lin.find(x => x.k === 'latig');
+  es(ju.q === 3 && ju.fa === 3 && la.q === 2 && la.fa === 2 && !L1b.quiza.some(x => x.k === 'latig') && L1b.mano.length === 1 && L1b.mano[0].t === 'Codo de cobre de 15',
+    'lo apuntado que falta cuenta (sin sumarse a lo de partida), sale marcado, y lo escrito a mano va aparte');
+  const t1 = hv({ tipo: 'pedir', av: 'termo', cli: cliV(2), origen: 'llamada' }, C).id;
+  es(!K.lleva(cfg, GV(t1)).quiza.some(x => x.k === 'termo80') && K.lleva(cfg, GV(t1)).quiza.some(x => x.k === 'termostato'), 'un aparato («extra») nunca sale por si acaso');
+  hv({ tipo: 'asignar', id: t1, tec: 'omar' }, C); hv({ tipo: 'voy', id: t1 }, T('omar'));
+  const em = hv({ tipo: 'empezar', id: t1, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'termo80' }, { k: 'valvula', q: 2 }, { k: 'otro', t: 'Codo raro', p: 9 }], firma: F, pide: true } }, T('omar'));
+  const L2 = K.lleva(cfg, GV(t1));
+  es(em.ok && L2.lin.map(x => x.k + x.q).join() === 'termo801,valvula2', 'con el presupuesto firmado lleva su material, también un aparato; ni el servicio ni lo escrito a mano con precio');
+  // la carga de un día
+  const c1 = hv({ tipo: 'pedir', av: 'cisterna', cli: cliV(3), origen: 'llamada', cita: { dia: man, fr: 'f1' } }, C).id; hv({ tipo: 'asignar', id: c1, tec: 'omar' }, C); hv({ tipo: 'falta', id: c1, k: 'mecanismo', q: 1 }, T('omar'));
+  const c2 = hv({ tipo: 'pedir', av: 'grifo', cli: cliV(4), origen: 'llamada', cita: { dia: man, fr: 'f2' } }, C).id; hv({ tipo: 'asignar', id: c2, tec: 'omar' }, C);
+  const c3 = hv({ tipo: 'pedir', av: 'grifo', cli: cliV(5), origen: 'llamada', cita: { dia: man, fr: 'f3' } }, C).id; hv({ tipo: 'asignar', id: c3, tec: 'laia' }, C);
+  const cm = K.cargaDe(SV, cfg, 'omar', man, tv);
+  es(cm.av.join() === [c1, c2].join() && cm.lin.map(x => x.k + x.q).join() === 'mecanismo1' && cm.lin[0].fa === 1 && cm.quiza.map(x => x.k).join() === 'latig,llave,grifon' && cm.quiza[0].av.join() === [c1, c2].join() && !cm.furgo && !('falta' in cm),
+    'la carga de mañana: sus citas de ese día, sumado; por si acaso, una de cada pieza con los avisos de los que sale; sin la cuenta, nada más');
+  const ch = K.cargaDe(SV, cfg, 'omar', hoy, tv);
+  es(ch.av.join() === t1 && ch.lin.map(x => x.k + x.q).join() === 'valvula2,termo801', 'hoy cuenta lo que ya está en marcha; no lo de otro día ni lo que no es suyo');
+  const pas = K.masDias(man, 1), cp = K.cargaDe(SV, cfg, 'omar', pas, Date.parse(pas + 'T09:00:00Z'));
+  es([c1, c2, t1].every(id => cp.av.includes(id)), 'una cita de un día que ya pasó y sigue sin hacer cuenta para hoy');
+  // la cuenta: permisos y lo que no vale; nada de eso cambia nada
+  const antes = JSON.stringify(SV);
+  const malas = [hv({ tipo: 'furgo', tec: 'omar', llevar: true }, T('laia')), hv({ tipo: 'furgo', tec: 'omar', llevar: true }, CLI), hv({ tipo: 'furgo', tec: 'nadie', llevar: true }, C),
+    hv({ tipo: 'furgo', tec: 'omar', cuenta: { juntas: 1 } }, T('omar')), hv({ tipo: 'furgo', tec: 'omar', llevar: false }, T('omar')), hv({ tipo: 'furgo', tec: 'omar', llevar: 'si' }, T('omar'))];
+  es(malas.map(r => r.err).join() === 'permiso,permiso,tec,estado,estado,furgo' && JSON.stringify(SV) === antes && !('furgos' in SV),
+    'la furgoneta: un técnico solo la suya, el cliente nada; sin llevar la cuenta no se cuenta ni se deja; nada de eso cambia nada');
+  const si = hv({ tipo: 'furgo', tec: 'omar', llevar: true }, T('omar')), F0 = SV.furgos.omar;
+  es(si.ok && F0.on === true && !Object.keys(F0.st).length && F0.h.length === 1 && K.furgoDe(SV, 'omar') === F0 && !K.furgoDe(SV, 'laia'), 'el técnico empieza a llevar la cuenta de la suya');
+  es(hv({ tipo: 'furgo', tec: 'omar', llevar: true }, C).err === 'estado', 'no se empieza dos veces');
+  const antes2 = JSON.stringify(SV);
+  const malas2 = [{ cuenta: { juntas: 1 }, carga: { juntas: 1 } }, {}, { cuenta: {} }, { cuenta: [] }, { cuenta: { desp: 1 } }, { cuenta: { otro: 1 } }, { cuenta: { nada: 1 } }, { cuenta: JSON.parse('{"__proto__":1}') },
+    { cuenta: { juntas: -1 } }, { cuenta: { juntas: 1.5 } }, { cuenta: { juntas: 1000 } }, { cuenta: { juntas: '3' } }, { carga: { juntas: 0 } }, { carga: 'juntas' }].map(x => hv(Object.assign({ tipo: 'furgo', tec: 'omar' }, x), T('omar')).err);
+  es(malas2.every(e => e === 'furgo') && JSON.stringify(SV) === antes2, 'contar o cargar: solo material del catálogo, enteros de 0 a 999 (al cargar, de 1 en adelante) y una cosa cada vez; si no, no cambia nada');
+  const cu = hv({ tipo: 'furgo', tec: 'omar', cuenta: { juntas: 6, latig: 1, valvula: 3, termo80: 1, llave: 0 } }, T('omar'));
+  es(cu.ok && cu.cambios === 4 && JSON.stringify(F0.st) === JSON.stringify({ juntas: 6, latig: 1, valvula: 3, termo80: 1 }) && F0.cnt === tv && /^Recuento\. /.test(F0.h[F0.h.length - 1].txt),
+    'el recuento deja lo dicho tal cual (cero es que no hay) y apunta lo que ha cambiado');
+  const cg = hv({ tipo: 'furgo', tec: 'omar', carga: { latig: 2, mecanismo: 1 } }, C);
+  es(cg.ok && F0.st.latig === 3 && F0.st.mecanismo === 1 && F0.st.juntas === 6 && F0.h[F0.h.length - 1].q === 'Centralita' && F0.h[F0.h.length - 1].txt === 'Cargado: 2 × Latiguillos, el par; 1 × Mecanismo de cisterna',
+    'lo cargado se suma, y la oficina también puede apuntarlo');
+  // con la cuenta: lo que le falta, lo que hay que reponer y lo que conviene cargar
+  const cmf = K.cargaDe(SV, cfg, 'omar', man, tv), rp = K.reponerDe(SV, cfg, 'omar'), kit = K.kitDe(cfg, 'omar'), enKit = k => Object.prototype.hasOwnProperty.call(kit, k);
+  es(cmf.furgo && cmf.falta.map(x => x.k + x.q + (x.quiza ? '?' : '')).join() === 'llave1?,grifon1?', 'con la cuenta, lo que le falta para mañana (aquí, solo lo de por si acaso)');
+  es(rp.length > 0 && rp.every(x => enKit(x.k) && x.hay < kit[x.k][0] && x.q === kit[x.k][1] - x.hay) && Object.keys(kit).every(k => (F0.st[k] || 0) >= kit[k][0] || rp.some(x => x.k === k)),
+    'para reponer: todo lo que está por debajo del mínimo, hasta el máximo, y nada más');
+  es(cmf.cargar.length === new Set(cmf.falta.map(x => x.k).concat(rp.map(x => x.k))).size && cmf.cargar.every(x => x.q === Math.max((cmf.falta.find(y => y.k === x.k) || { q: 0 }).q, (rp.find(y => y.k === x.k) || { q: 0 }).q)),
+    'lo que conviene cargar: lo mayor entre lo que falta y lo que hay que reponer');
+  const Lc = {}; cmf.cargar.forEach(x => { Lc[x.k] = x.q }); hv({ tipo: 'furgo', tec: 'omar', carga: Lc }, T('omar'));
+  const cmf2 = K.cargaDe(SV, cfg, 'omar', man, tv);
+  es(!cmf2.falta.length && !cmf2.reponer.length && !cmf2.cargar.length, 'cargado eso, ya no le falta nada ni hay nada que reponer');
+  hv({ tipo: 'falta', id: c2, k: 'grifon', q: 5 }, C); const g5 = K.cargaDe(SV, cfg, 'omar', man, tv).falta.find(x => x.k === 'grifon');
+  es(g5 && g5.q === 5 - F0.st.grifon && g5.hay === F0.st.grifon && !g5.quiza, 'si un trabajo necesita más de lo que lleva, le falta la diferencia');
+  const tx = K.textoCarga(cfg, K.cargaDe(SV, cfg, 'omar', man, tv));
+  es(tx.startsWith('Material para el ' + K.fechaLarga(man) + ', Omar:') && tx.includes('Para cargar:') && tx.includes('Lo que lleva cada trabajo:') && tx.includes('(' + c2 + '), apuntado que falta') && tx.endsWith(N.nombre)
+    && K.textoCarga(cfg, K.cargaDe(SV, cfg, 'jordi', man, tv)) === '', 'la lista escrita para copiarla o mandarla, y nada si no hay nada');
+  // al terminar se descuenta
+  const sv0 = JSON.parse(JSON.stringify(F0.st)), rt = hv({ tipo: 'terminar', id: t1, modo: 'tarjeta' }, T('omar'));
+  es(rt.ok && !('termo80' in F0.st) && F0.st.valvula === sv0.valvula - 2 && F0.st.juntas === sv0.juntas && GV(t1).h.some(h => h.txt === 'Descontado de la furgoneta: 1 × Termo eléctrico de 80 litros, instalado; 2 × Válvula de seguridad') && F0.h[F0.h.length - 1].txt.startsWith(t1 + ': '),
+    'al terminar, lo usado (solo material del catálogo) se descuenta de su furgoneta y queda apuntado en el aviso y en la furgoneta');
+  const u1 = hv({ tipo: 'pedir', av: 'grifo', cli: cliV(6), origen: 'llamada' }, C).id; hv({ tipo: 'asignar', id: u1, tec: 'omar' }, C); hv({ tipo: 'voy', id: u1 }, T('omar'));
+  hv({ tipo: 'empezar', id: u1, pres: { lineas: [{ k: 'grifo' }, { k: 'latig', q: 9 }], firma: F } }, T('omar'));
+  const hayL = F0.st.latig, ru = hv({ tipo: 'terminar', id: u1, modo: 'efectivo' }, T('omar'));
+  es(ru.ok && hayL < 9 && !('latig' in F0.st) && GV(u1).h.some(h => h.txt.includes('(apuntados había ' + hayL + ')')), 'si se usa más de lo apuntado, se queda en cero y lo dice: el próximo recuento lo pone bien');
+  es(!JSON.stringify(K.perfilCliente(SV, cfg, cliV(6).tel)).includes('furgoneta') && !('furgos' in K.vistaCliente(SV, cfg, u1)), 'el cliente no ve nada de la furgoneta');
+  const u2 = hv({ tipo: 'pedir', av: 'fuga', cli: cliV(7), origen: 'llamada' }, C).id; hv({ tipo: 'asignar', id: u2, tec: 'laia' }, C); hv({ tipo: 'voy', id: u2 }, T('laia'));
+  hv({ tipo: 'empezar', id: u2, pres: { lineas: [{ k: 'desp' }, { k: 'juntas', q: 2 }], firma: F } }, T('laia'));
+  const sv1 = JSON.stringify(F0.st); hv({ tipo: 'terminar', id: u2, modo: 'efectivo' }, T('laia'));
+  es(JSON.stringify(F0.st) === sv1 && !SV.furgos.laia && !GV(u2).h.some(h => h.txt.startsWith('Descontado')), 'lo que usa otro técnico no toca esta furgoneta, y quien no lleva la cuenta no descuenta nada');
+  const no = hv({ tipo: 'furgo', tec: 'omar', llevar: false }, T('omar')), sv2 = JSON.stringify(F0.st);
+  const sv2b = JSON.stringify(SV), nc1 = hv({ tipo: 'furgo', tec: 'omar', cuenta: { juntas: 1 } }, C), nc2 = hv({ tipo: 'furgo', tec: 'omar', carga: { juntas: 1 } }, T('omar'));
+  es(nc1.err === 'estado' && nc2.err === 'estado' && JSON.stringify(SV) === sv2b, 'con la cuenta dejada, ni se cuenta ni se carga');
+  const u3 = hv({ tipo: 'pedir', av: 'fuga', cli: cliV(8), origen: 'llamada' }, C).id; hv({ tipo: 'asignar', id: u3, tec: 'omar' }, C); hv({ tipo: 'voy', id: u3 }, T('omar'));
+  hv({ tipo: 'empezar', id: u3, pres: { lineas: [{ k: 'desp' }, { k: 'juntas', q: 2 }], firma: F } }, T('omar')); hv({ tipo: 'terminar', id: u3, modo: 'efectivo' }, T('omar'));
+  es(no.ok && F0.on === false && !K.furgoDe(SV, 'omar') && JSON.stringify(F0.st) === sv2 && !K.reponerDe(SV, cfg, 'omar').length && K.cargaDe(SV, cfg, 'omar', man, tv).furgo === false,
+    'sin llevar la cuenta no se descuenta nada; lo apuntado se queda guardado');
+  const re = hv({ tipo: 'furgo', tec: 'omar', llevar: true }, C);
+  es(re.ok && F0.on === true && JSON.stringify(F0.st) === sv2 && F0.h[F0.h.length - 1].txt === 'Empieza a llevar la cuenta', 'al volver a llevarla, sale lo último que había');
+  for (let i = 0; i < K.FURGO_H + 5; i++) hv({ tipo: 'furgo', tec: 'omar', carga: { juntas: 1 } }, T('omar'));
+  es(F0.h.length === K.FURGO_H && F0.st.juntas === JSON.parse(sv2).juntas + K.FURGO_H + 5, 'de cada furgoneta se guardan los últimos movimientos, no todos');
+  const stz = JSON.parse(JSON.stringify(F0.st)), cz = hv({ tipo: 'furgo', tec: 'omar', cuenta: { juntas: 0 } }, C);
+  es(cz.ok && cz.cambios === 1 && !('juntas' in F0.st) && Object.keys(stz).filter(k => k !== 'juntas').every(k => F0.st[k] === stz[k]), 'contar cero de lo que había lo quita; lo que no se cuenta se queda como estaba');
+  // lo que lleva siempre la furgoneta, en los datos
+  const NK = JSON.parse(JSON.stringify(N)); NK.furgoneta = { juntas: [2, 5], desp: [1, 2], nada: [1, 1], latig: [5, 2], llave: [0, 0], sifon: [1.5, 3], tubo: [0, 3], grifon: [1, 1000] }; NK.tecnicos[1].furgoneta = { valvula: [1, 2] };
+  const ck = K.cfgDe(NK);
+  es(JSON.stringify(K.kitDe(ck, NK.tecnicos[0].id)) === JSON.stringify({ juntas: [2, 5], tubo: [0, 3] }) && JSON.stringify(K.kitDe(ck, NK.tecnicos[1].id)) === JSON.stringify({ valvula: [1, 2] }) && JSON.stringify(K.kitDe(K.cfgDe(Object.assign({}, NK, { furgoneta: undefined })), 'nadie')) === '{}',
+    'lo que lleva siempre la furgoneta: solo material del catálogo y [mínimo, máximo] que valga; un técnico puede tener la suya');
+  // la demo: Laia lleva la cuenta y le toca reponer las llaves y el tubo
+  const SM = globalThis.OFICIO_MUESTRA(K, cfg, Date.now()), rL = K.reponerDe(SM, cfg, 'laia');
+  es(K.furgoDe(SM, 'laia') && !K.furgoDe(SM, 'omar') && !K.furgoDe(SM, 'jordi') && rL.map(x => x.k).join() === 'llave,tubo', 'en la demo, Laia lleva la cuenta de su furgoneta y le toca reponer');
+}
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

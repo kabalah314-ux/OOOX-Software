@@ -115,7 +115,7 @@ async def main():
         # ---------- 3. un técnico entra en su móvil ----------
         c2 = await contexto(br); t2 = await pagina(c2, 'técnico 2'); await entra(t2, T2, COD[T2])
         es(await t2.evaluate('Oficio.sesion().rol') == 'tecnico' and await t2.evaluate('Oficio.estado().avisos.length') == 0 and 'No tienes avisos' in await t2.inner_text('#v'), 'el técnico entra con su código y aún no tiene nada')
-        es(await t2.locator('#nav a').count() == 2 and await t2.locator('#nav a[href="#/bandeja"]').count() == 0, 'el técnico ve su menú (Hoy y Hechos), no el de la oficina')
+        es(await t2.locator('#nav a').count() == 3 and await t2.locator('#nav a[href="#/furgo"]').count() == 1 and await t2.locator('#nav a[href="#/bandeja"]').count() == 0, 'el técnico ve su menú (Hoy, Hechos y Furgoneta), no el de la oficina')
         c1 = await contexto(br); t1 = await pagina(c1, 'técnico 1'); await entra(t1, T1, COD[T1])
 
         # ---------- 4. la oficina asigna y al técnico le llega solo ----------
@@ -250,6 +250,24 @@ async def main():
             es(len(cs) == 1 and cs[0]['cli']['tel'] == '612345678' and cs[0]['per'][0]['pago']['cobrado'] and st['cab'].get('vc') == st['v'], 'el servidor lo guarda con lo de la oficina')
             es(await pasa(t1, "Oficio.estado().contratos.length===0") and await pasa(t2, "Oficio.estado().contratos.length===0"), 'los técnicos no reciben los contratos')
             await z.reload(); es(await pasa(z, "!!document.querySelector('#cons a.tj')", 9000), 'el cliente lo ve en su zona')
+        # ---------- 10 quater. la furgoneta con servidor (16-11-2026): el técnico lleva la cuenta en su móvil; le llega a la oficina, y al otro técnico, no ----------
+        mat = await t1.evaluate("Object.keys(Oficio.cfg.cat).find(k=>Oficio.cfg.cat[k].mat)||''")
+        if mat:
+            await t1.goto(B + 'app.html#/furgo'); await t1.wait_for_selector('#fgNo [data-a=fSi]')
+            await t1.click('#fgNo [data-a=fSi]'); await t1.wait_for_selector('#fzF')
+            await t1.fill('#fz_' + mat, '5'); await t1.click('button[form=fzF]')
+            es(await pasa(t1, f"(()=>{{const F=(Oficio.estado().furgos||{{}})['{T1}'];return !!F&&F.on&&F.st['{mat}']===5}})()"), 'el técnico lleva la cuenta de su furgoneta en el móvil y lo ve al momento')
+            ok_srv = False
+            for _ in range(40):
+                F = (estado()['cab'].get('furgos') or {}).get(T1)
+                if F and F.get('on') and F['st'].get(mat) == 5 and len(diario('furgo')) >= 2: ok_srv = True; break
+                await asyncio.sleep(0.25)
+            es(ok_srv, 'el servidor la guarda, con lo que contó')
+            es(await pasa(o, f"(()=>{{const F=(Oficio.estado().furgos||{{}})['{T1}'];return !!F&&F.st['{mat}']===5}})()", 9000), 'a la oficina le llega sola')
+            await o.goto(B + f'app.html#/furgo/{T1}'); await o.wait_for_selector('#fgSt')
+            es('5' in await o.inner_text('#fgSt') and await o.locator('#fgSt [data-a=fCargar]').count() == 1, 'la oficina abre su furgoneta y puede apuntar lo que carga')
+            await t2.wait_for_timeout(900)
+            es(await t2.evaluate(f"!(Oficio.estado().furgos||{{}})['{T1}']"), 'al otro técnico no le llega la furgoneta de su compañero')
         # un técnico no da códigos
         await t1.goto(B + f'app.html#/aviso/{A2}'); await t1.wait_for_selector('#nav a', state='attached'); await pasa(t1, f"document.querySelector('#v').textContent.includes('{A2}')")
         es(await t1.locator('[data-a=zona]').count() == 0 and await t1.evaluate("Oficio.acceso('698765432').then(r=>r.err)") == 'permiso', 'un técnico no tiene «Su zona» y, si lo pide igualmente, el servidor no le da el código')

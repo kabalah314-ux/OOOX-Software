@@ -36,7 +36,7 @@ function repite(id, N) {
   for (const d of n.diario) { const c0 = JSON.stringify(S.contratos || []), r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(d.accion)), d.q, d.t); if (!r.ok || S.v !== d.v) return false; if (JSON.stringify(S.contratos || []) !== c0) vc = d.v; }
   const sin = a => { const x = Object.assign({}, a); delete x.llave; return x; };
   const guardado = [...n.avisos.values()].map(f => f.datos).sort((a, b) => a.n - b.n);
-  return S.v === n.v && igual(S.avisos, guardado.map(sin)) && igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0 }, n.cab))
+  return S.v === n.v && igual(S.avisos, guardado.map(sin)) && igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc, furgos: S.furgos || {} }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0, furgos: {} }, n.cab))
     && [...n.avisos.values()].every(f => igual(f.vista, K.vistaCliente(Object.assign({}, S, { avisos: guardado }), cfg, f.id)));
 }
 
@@ -80,7 +80,7 @@ let id2;
   id2 = (await hacer(OF, { tipo: 'pedir', av: NR.averias[0].id, origen: 'llamada', cli: Object.assign(cliDe(NR), { nombre: 'Pere Soler', tel: '698765432', dir: 'Avenida de Otra Cosa 3' }) })).r.id;
   const o = await leer(OF, 0), a = await leer(T(tecR[0]), 0), b = await leer(T(tecR[1]), 0);
   es(o.ok && o.cambios.avisos.length === 2 && o.cambios.avisos.every(x => x.datos) && Array.isArray(o.cambios.cab.ausencias), 'la oficina recibe todos los avisos de su negocio');
-  es(a.ok && a.cambios.avisos.length === 1 && a.cambios.avisos[0].id === id1 && a.cambios.avisos[0].datos.cli.tel === '612345678' && igual(a.cambios.cab, { esq: K.ESQ }), 'un técnico recibe solo el aviso que lleva, y nada de las ausencias de los demás');
+  es(a.ok && a.cambios.avisos.length === 1 && a.cambios.avisos[0].id === id1 && a.cambios.avisos[0].datos.cli.tel === '612345678' && igual(a.cambios.cab, { esq: K.ESQ, furgos: {} }), 'un técnico recibe solo el aviso que lleva, y nada de las ausencias de los demás');
   es(b.ok && b.cambios.avisos.length === 0 && !JSON.stringify(b).includes('Montse') && !JSON.stringify(b).includes('Pere'), 'otro técnico no recibe nada: ni nombres ni teléfonos');
   const va = a.cambios.v;
   await hacer(OF, { tipo: 'asignar', id: id1, tec: tecR[1] });
@@ -321,6 +321,34 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
     && ofT.cambios.cab.contratos.some(c => c.id === alT.r.id && c.per[0].pago.cobrado) && crudo('ramirez').cab.vc === vT + 1,
     'el técnico da de alta el contrato desde su aviso: le llega a la oficina, y él solo recibe su aviso con la nota; otro técnico no puede');
   es(repite('ramirez', NR), 'con los contratos, lo guardado sigue siendo igual a repetir el diario'); }
+
+// 15. la furgoneta (16-11-2026): va en la cabecera. La oficina recibe todas; cada técnico, solo la suya. Lo usado se descuenta al
+// terminar, también en el servidor, y lo guardado sigue siendo igual a repetir el diario
+{ const cfg = K.cfgDe(NR), mats = Object.keys(cfg.cat).filter(k => cfg.cat[k].mat), [t0, t1] = tecR;
+  const si = await hacer(T(t0), { tipo: 'furgo', tec: t0, llevar: true }), cu = await hacer(T(t0), { tipo: 'furgo', tec: t0, cuenta: { [mats[0]]: 5, [mats[1]]: 2 } });
+  const otro = await hacer(T(t1), { tipo: 'furgo', tec: t0, carga: { [mats[0]]: 1 } }), deOf = await hacer(OF, { tipo: 'furgo', tec: t1, llevar: true });
+  es(si.ok && cu.ok && !otro.ok && otro.err === 'permiso' && deOf.ok, 'cada técnico lleva la cuenta de la suya; la oficina, de cualquiera; un técnico no toca la de otro');
+  const c0 = crudo('ramirez').cab.furgos;
+  es(c0 && c0[t0] && c0[t0].on === true && c0[t0].st[mats[0]] === 5 && c0[t0].st[mats[1]] === 2 && c0[t1] && c0[t1].on === true, 'queda guardada en la cabecera del negocio');
+  const lT = await leer(T(t0), 0), lO = await leer(OF, 0), l1 = await leer(T(t1), 0);
+  es(lT.ok && Object.keys(lT.cambios.cab.furgos).join() === t0 && lT.cambios.cab.furgos[t0].st[mats[0]] === 5 && !('ausencias' in lT.cambios.cab) && !('contratos' in lT.cambios.cab), 'el técnico recibe solo su furgoneta');
+  es(l1.ok && Object.keys(l1.cambios.cab.furgos).join() === t1, 'y el otro, solo la suya');
+  es(lO.ok && lO.cambios.cab.furgos[t0] && lO.cambios.cab.furgos[t1], 'la oficina las recibe todas');
+  // un trabajo con material, de alguien que no está con otro: al terminarlo se descuenta en el servidor
+  const tj = tecR.find(x => !Array.from(crudo('ramirez').avisos.values()).some(f => f.datos.tec === x && ['camino', 'curso'].includes(f.datos.e)));
+  const cuOf = await hacer(OF, { tipo: 'furgo', tec: tj, llevar: true }), cuOf2 = await hacer(OF, { tipo: 'furgo', tec: tj, cuenta: { [mats[0]]: 5, [mats[1]]: 2 } });
+  const cliF = Object.assign(cliDe(NR), { nombre: 'Rosa', apellidos: 'Puig', tel: '633445566', dir: 'Calle de la Furgoneta 7' });
+  const avF = (await hacer(OF, { tipo: 'pedir', av: NR.averias[0].id, origen: 'llamada', cli: cliF })).r.id;
+  await hacer(OF, { tipo: 'asignar', id: avF, tec: tj });
+  const pase = Object.keys(cfg.cat).find(k => !cfg.cat[k].mat && cfg.cat[k].un !== 'h');
+  const em = await hacer(T(tj), { tipo: 'empezar', id: avF, pres: { lineas: [{ k: pase, q: 1 }, { k: mats[0], q: 2 }], firma: 'M1 1L20 20L40 10L60 30' } });
+  const te = await hacer(T(tj), { tipo: 'terminar', id: avF, modo: 'efectivo' });
+  const c1 = crudo('ramirez').cab.furgos[tj], fA = crudo('ramirez').avisos.get(avF).datos;
+  es(!!tj && (cuOf.ok || cuOf.err === 'estado') && cuOf2.ok && em.ok && te.ok && c1.st[mats[0]] === 3 && c1.st[mats[1]] === 2 && fA.h.some(h => h.txt.startsWith('Descontado de la furgoneta')) && te.cambios.cab.furgos[tj].st[mats[0]] === 3,
+    'al terminar, lo usado se descuenta de su furgoneta en el servidor, y la respuesta ya lo trae');
+  const no = await hacer(T(t0), { tipo: 'furgo', tec: t0, llevar: false }), lN = await leer(T(t0), 0);
+  es(no.ok && lN.cambios.cab.furgos[t0].on === false && lN.cambios.cab.furgos[t0].st[mats[0]] === 5, 'dejar de llevar la cuenta guarda lo último que había');
+  es(repite('ramirez', NR), 'con las furgonetas, lo guardado sigue siendo igual a repetir el diario'); }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

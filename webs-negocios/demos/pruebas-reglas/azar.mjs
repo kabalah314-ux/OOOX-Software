@@ -57,6 +57,9 @@ const resI = (N, S, dia) => { const r = (N.citas && N.citas.reserva) || 0; if (!
 const capI = (N, S, dia, f) => conH(N) ? Math.max(0, topeI(N, S, dia, f) - resI(N, S, dia)) : N.cupo;
 const cap0 = (N, S, A, f) => capI(N, S, A.cita.dia, f) - (enFr(S, A.cita.dia, A.cita.fr) - 1) > 0;
 const enFr = (S, dia, fr) => S.avisos.filter(a => a.cita && a.cita.dia === dia && a.cita.fr === fr && a.e !== 'cancelado').length;
+// por tiempo, lo que ocupa una franja: una cita que ya se empezó o se hizo antes de su día, de alguien que ese día falta o no
+// trabaja esa franja, ya no ocupa a nadie (lo encontró el recorrido de la demo «en uso», 16-11-2026)
+const enFrT = (N, S, dia, f) => S.avisos.filter(a => a.cita && a.cita.dia === dia && a.cita.fr === f.id && a.e !== 'cancelado' && !(['camino', 'curso', 'hecho'].includes(a.e) && a.tec && (ausI(S, a.tec, dia) || !trabI(N, a.tec, dia, f.de, f.a)))).length;
 const laborI = (N, f) => { const w = diaSemI(f); return w >= 1 && w <= 5 && !(N.festivos || []).includes(f) };
 
 function mundo(cfg, N, ini) {
@@ -73,6 +76,7 @@ function paso(W, a, q, t) {
   const A0 = typeof idA === 'string' ? S.avisos.find(x => x.id === idA) : null, e0 = A0 ? A0.e : '', tec0 = A0 ? A0.tec : '';
   const otros0 = new Map(S.avisos.filter(x => x !== A0).map(x => [x.id, JSON.stringify(x)]));
   const Av0 = tipo === 'contrato' && a && typeof a.aviso === 'string' ? S.avisos.find(x => x.id === a.aviso) : null, Av0j = Av0 ? JSON.stringify(Av0) : '';
+  const fz0 = JSON.stringify(S.furgos === undefined ? null : S.furgos);   // la furgoneta de cada técnico, antes (16-11-2026)
   let r;
   try { r = K.aplicar(S, cfg, a, q, t) } catch (e) { rota('no-revienta', (tipo || '¿?') + ' → ' + e.message) }
   W.leyes++;
@@ -92,7 +96,8 @@ function paso(W, a, q, t) {
   if (tipo === 'ausencia' || tipo === 'quitarAusencia') { if (rol !== 'centralita') rota('cada-uno-lo-suyo', tipo + ' hecho por ' + rol) }
   if (tipo === 'contrato' && rol !== 'centralita') { const C1 = (S.contratos || []).find(c => c.id === r.id);   // el técnico: desde un aviso suyo, en casa del cliente y para ese teléfono
     if (rol !== 'tecnico' || !Av0 || Av0.tec !== q.id || !['curso', 'hecho'].includes(JSON.parse(Av0j).e) || !C1 || C1.cli.tel !== JSON.parse(Av0j).cli.tel) rota('cada-uno-lo-suyo', 'contrato dado de alta por ' + rol + ' ' + (q && q.id)) }
-  if (!['pedir', 'contrato'].concat(SOLO_CENTRALITA, SOLO_SU_TECNICO, LOS_DOS).includes(tipo)) rota('acciones-conocidas', 'se ha aceptado «' + tipo + '»');
+  if (tipo === 'furgo' && rol !== 'centralita' && !(rol === 'tecnico' && q.id === a.tec)) rota('cada-uno-lo-suyo', 'la furgoneta de ' + a.tec + ' tocada por ' + rol + ' ' + (q && q.id));
+  if (!['pedir', 'contrato', 'furgo'].concat(SOLO_CENTRALITA, SOLO_SU_TECNICO, LOS_DOS).includes(tipo)) rota('acciones-conocidas', 'se ha aceptado «' + tipo + '»');
   // --- contador, y nada cambia fuera del aviso tocado
   if (S.v !== v0 + 1) rota('version-sube-de-uno-en-uno', v0 + ' → ' + S.v);
   if (S.avisos.length !== n0 + (tipo === 'pedir' ? 1 : 0)) rota('nadie-desaparece', n0 + ' → ' + S.avisos.length);
@@ -132,6 +137,7 @@ function paso(W, a, q, t) {
     if (x.cita && x.e !== 'cancelado' && !conH(W.N)) { const k = x.cita.dia + ' ' + x.cita.fr; porFranja[k] = (porFranja[k] || 0) + 1; if (porFranja[k] > cfg.cupo) rota('cupo', k + ' lleva ' + porFranja[k] + ' citas y caben ' + cfg.cupo) }
   }
   horarios(W, tipo, A, a, q, t);
+  furgoneta(W, tipo, A, a, q, t, fz0);
   // --- el mapa: una posición solo existe mientras el técnico va de camino, solo si el negocio lo tiene activado, y es una sola
   for (const x of S.avisos) {
     if (x.pos !== undefined) { if (x.e !== 'camino') rota('posicion-solo-de-camino', x.id + ' está en «' + x.e + '» y guarda posición');
@@ -214,30 +220,76 @@ function paso(W, a, q, t) {
 }
 
 /* ---- las leyes de los horarios: el cliente solo ve huecos reales y la oficina solo asigna a quien puede ---- */
+/* ---------- la furgoneta (16-11-2026) ----------
+   Solo la cambian «furgo» (la de quien se dice) y «terminar» (la de su técnico, si lleva la cuenta: lo usado, nunca por debajo
+   de cero). Siempre bien formada. Y lo que se calcula para cargar cuadra con lo que lleva cada trabajo y con lo que hay. */
+function furgoneta(W, tipo, A, a, q, t, fz0) {
+  const { S, cfg } = W, F0 = JSON.parse(fz0) || {}, F1 = S.furgos || {}, FH = K.FURGO_H;
+  for (const tec of Object.keys(F1)) { const F = F1[tec];
+    if (!cfg.tec[tec] || !F || typeof F.on !== 'boolean' || !F.st || typeof F.st !== 'object' || Array.isArray(F.st) || !Array.isArray(F.h) || F.h.length > FH || !Number.isFinite(F.cnt) || !Number.isFinite(F.t)) rota('furgoneta-bien-formada', tec + ': ' + JSON.stringify(F).slice(0, 200));
+    for (const k of Object.keys(F.st)) if (!cfg.cat[k] || !cfg.cat[k].mat || !Number.isInteger(F.st[k]) || F.st[k] < 1 || F.st[k] > 9999) rota('furgoneta-bien-formada', tec + '.' + k + ' = ' + F.st[k]);
+    F.h.forEach(x => { if (!Number.isFinite(x.t) || typeof x.q !== 'string' || typeof x.txt !== 'string' || FEO.test(x.txt)) rota('furgoneta-bien-formada', tec + ': «' + JSON.stringify(x) + '»') }) }
+  const igualF = (x, y) => JSON.stringify(x === undefined ? null : x) === JSON.stringify(y === undefined ? null : y);
+  if (tipo !== 'furgo' && tipo !== 'terminar' && JSON.stringify(S.furgos === undefined ? null : S.furgos) !== fz0) rota('furgoneta-solo-con-furgo-o-terminar', String(tipo));
+  if (tipo === 'furgo') {
+    for (const tec of new Set(Object.keys(F0).concat(Object.keys(F1)))) if (tec !== a.tec && !igualF(F0[tec], F1[tec])) rota('furgoneta-solo-la-suya', a.tec + ' ha cambiado la de ' + tec);
+    const x = F0[a.tec] || { on: false, st: {} }, y = F1[a.tec], st0 = x.st || {};
+    if (!y) rota('furgoneta-existe', a.tec);
+    if ((a.cuenta != null || a.carga != null) && !x.on) rota('sin-cuenta-no-se-cuenta-ni-se-carga', a.tec);
+    if (a.llevar === true && (!y.on || x.on || !igualF(y.st, x.on === false ? x.st : {}))) rota('furgoneta-llevar', JSON.stringify(y).slice(0, 200));
+    if (a.llevar === false && (y.on || !x.on || !igualF(y.st, st0))) rota('furgoneta-dejar-guarda-lo-que-hay', JSON.stringify(y).slice(0, 200));
+    if (a.cuenta && typeof a.cuenta === 'object') { for (const k of Object.keys(cfg.cat)) { const e = Object.prototype.hasOwnProperty.call(a.cuenta, k) ? a.cuenta[k] : (st0[k] || 0); if ((y.st[k] || 0) !== e) rota('recuento-queda-tal-cual', k + ': ' + (y.st[k] || 0) + ' y se dijo ' + e) }
+      if (y.cnt !== t) rota('recuento-con-fecha', a.tec) }
+    if (a.carga && typeof a.carga === 'object') for (const k of Object.keys(cfg.cat)) { const e = Math.min(9999, (st0[k] || 0) + (Object.prototype.hasOwnProperty.call(a.carga, k) ? a.carga[k] : 0)); if ((y.st[k] || 0) !== e) rota('lo-cargado-se-suma', k + ': ' + (y.st[k] || 0) + ' y tocaba ' + e) }
+  }
+  if (tipo === 'terminar' && A) {
+    const x = F0[A.tec], y = F1[A.tec];
+    for (const tec of new Set(Object.keys(F0).concat(Object.keys(F1)))) if (tec !== A.tec && !igualF(F0[tec], F1[tec])) rota('terminar-solo-su-furgoneta', A.id + ' ha cambiado la de ' + tec);
+    if (!x || !x.on) { if (!igualF(x, y)) rota('sin-cuenta-no-se-descuenta', A.id) }
+    else { const usa = {}; A.lin.forEach(l => { if (l.k !== 'otro' && cfg.cat[l.k] && cfg.cat[l.k].mat) usa[l.k] = (usa[l.k] || 0) + Math.round(+l.q || 0) });
+      for (const k of Object.keys(cfg.cat)) { const e = Math.max(0, (x.st[k] || 0) - (usa[k] || 0)); if ((y.st[k] || 0) !== e) rota('al-terminar-se-descuenta-lo-usado', A.id + ' ' + k + ': ' + (y.st[k] || 0) + ' y tocaba ' + e) }
+      const hayLog = A.h.some(h => h.t === t && h.txt.startsWith('Descontado de la furgoneta')); if (Object.keys(usa).some(k => usa[k] > 0) !== hayLog) rota('lo-descontado-queda-apuntado', A.id); W.furgoTerm = (W.furgoTerm || 0) + 1 }
+  }
+  // lo que se calcula para cargar, para un técnico y un día cualquiera
+  { const tecs = Object.keys(cfg.tec), tec = tecs[W.leyes % tecs.length], hoy = K.madrid(t).date, dia = W.leyes % 2 ? hoy : K.masDias(hoy, 1), c = K.cargaDe(S, cfg, tec, dia, t), F = K.furgoDe(S, tec);
+    const mios = S.avisos.filter(x => x.tec === tec && ['asignado', 'camino', 'curso'].includes(x.e) && ((x.e !== 'asignado' || !x.cita || x.cita.dia < hoy) ? hoy : x.cita.dia) === dia).map(x => x.id);
+    if (c.av.join() !== mios.join()) rota('carga-de-sus-avisos-de-ese-dia', tec + ' ' + dia + ': ' + c.av.join() + ' / ' + mios.join());
+    const suma = {}; mios.forEach(id => K.lleva(cfg, S.avisos.find(x => x.id === id)).lin.forEach(l => { suma[l.k] = (suma[l.k] || 0) + l.q }));
+    if (c.lin.length !== Object.keys(suma).length || c.lin.some(l => l.q !== suma[l.k] || !cfg.cat[l.k].mat)) rota('carga-suma-lo-de-cada-trabajo', tec + ' ' + dia);
+    if (c.quiza.some(x => !cfg.cat[x.k].mat || cfg.cat[x.k].extra || x.q !== 1)) rota('por-si-acaso-una-de-cada', tec);
+    if (!!F !== c.furgo) rota('carga-sabe-si-lleva-la-cuenta', tec);
+    if (F) { const hay = k => F.st[k] || 0, kit = K.kitDe(cfg, tec), nec = Object.assign({}, suma); c.quiza.forEach(x => { nec[x.k] = (nec[x.k] || 0) + 1 });
+      const fa = Object.keys(nec).filter(k => nec[k] > hay(k)); if (c.falta.length !== fa.length || c.falta.some(x => x.q !== nec[x.k] - hay(x.k) || x.q < 1)) rota('le-falta-lo-que-no-hay', tec + ' ' + JSON.stringify(c.falta));
+      const rp = Object.keys(kit).filter(k => hay(k) < kit[k][0]); if (c.reponer.length !== rp.length || c.reponer.some(x => x.q !== kit[x.k][1] - hay(x.k))) rota('reponer-hasta-el-maximo', tec + ' ' + JSON.stringify(c.reponer));
+      if (c.cargar.some(x => x.q !== Math.max((c.falta.find(y => y.k === x.k) || { q: 0 }).q, (c.reponer.find(y => y.k === x.k) || { q: 0 }).q)) || c.cargar.length !== new Set(c.falta.map(x => x.k).concat(c.reponer.map(x => x.k))).size) rota('cargar-lo-mayor', tec) } }
+  W.leyes += 12;
+}
+
 function horarios(W, tipo, A, a, q, t) {
   const { S, cfg, N } = W, hoy = K.madrid(t).date, min = K.madrid(t).min, pf = (N.citas && N.citas.porFranja) || 1;
   const frDe = id => N.franjas.find(f => f.id === id); S_ = S; cfg_ = cfg; N_ = N;
+  const nDe = (dia, f) => cfg.porTiempo ? enFrT(N, S, dia, f) : enFr(S, dia, f.id);   // lo que ocupa la franja (ver enFrT)
   // 1. lo que se ofrece al cliente existe de verdad
   K.diasDe(S, cfg, t, 6).forEach(d => { if (!laborI(N, d.dia)) rota('solo-dias-laborables', d.dia); d.franjas.forEach(f => {
-    const cap = capI(N, S, d.dia, frDe(f.id)), libres = cap - enFr(S, d.dia, f.id);
-    if (f.ok && !(libres > 0)) rota('hueco-ofrecido-hueco-real', d.dia + ' ' + f.id + ': se ofrece y caben ' + cap + ' con ' + enFr(S, d.dia, f.id) + ' ya dadas');
+    const cap = capI(N, S, d.dia, frDe(f.id)), dadas = nDe(d.dia, frDe(f.id)), libres = cap - dadas;
+    if (f.ok && !(libres > 0)) rota('hueco-ofrecido-hueco-real', d.dia + ' ' + f.id + ': se ofrece y caben ' + cap + ' con ' + dadas + ' ya dadas');
     if (f.ok && d.dia === hoy && f.de < min + 120) rota('dos-horas-de-margen', d.dia + ' ' + f.id);
     // por tiempo, el número de citas por técnico es solo el máximo: lo que cabe puede ser menos, nunca más
     if (cfg.porTiempo ? !(Number.isInteger(f.libres) && f.libres >= 0 && f.libres <= Math.max(0, libres) && f.libres <= f.libresOf) : f.libres !== Math.max(0, libres)) rota('huecos-bien-contados', d.dia + ' ' + f.id + ': dice ' + f.libres + ' y son ' + Math.max(0, libres)) }) });
   // 1b. lo que puede poner la oficina: todo lo del cliente y, además, el hueco de urgencias y las franjas de hoy sin acabar. Nunca donde no cabe
   K.diasDe(S, cfg, t, 6, true).forEach(d => { if (!laborI(N, d.dia)) rota('oficina-solo-dias-laborables', d.dia); d.franjas.forEach(f => {
-    const tope = topeI(N, S, d.dia, frDe(f.id)), n = enFr(S, d.dia, f.id);
+    const tope = topeI(N, S, d.dia, frDe(f.id)), n = enFr(S, d.dia, f.id), nT = nDe(d.dia, frDe(f.id));
     if (f.ok && !f.okOf) rota('lo-del-cliente-lo-puede-la-oficina', d.dia + ' ' + f.id);
-    if (f.okOf && !(tope > n)) rota('la-oficina-no-fuerza-donde-no-cabe', d.dia + ' ' + f.id + ': caben ' + tope + ' y hay ' + n);
+    if (f.okOf && !(tope > nT)) rota('la-oficina-no-fuerza-donde-no-cabe', d.dia + ' ' + f.id + ': caben ' + tope + ' y hay ' + nT);
     if (f.okOf && d.dia === hoy && f.a <= min) rota('la-oficina-no-pone-en-franja-acabada', d.dia + ' ' + f.id);
-    if (cfg.porTiempo ? f.libresOf > Math.max(0, tope - n) || f.tope !== n + f.libresOf : f.tope !== tope || f.libresOf !== Math.max(0, tope - n)) rota('tope-bien-contado', d.dia + ' ' + f.id + ': dice ' + f.tope + '/' + f.libresOf + ' y son ' + tope + '/' + Math.max(0, tope - n));
+    if (cfg.porTiempo ? f.libresOf > Math.max(0, tope - nT) || f.tope !== n + f.libresOf : f.tope !== tope || f.libresOf !== Math.max(0, tope - n)) rota('tope-bien-contado', d.dia + ' ' + f.id + ': dice ' + f.tope + '/' + f.libresOf + ' y son ' + tope + '/' + Math.max(0, tope - n));
     if ((f.por !== '') !== (f.okOf && !f.ok)) rota('se-dice-por-que-solo-la-oficina', d.dia + ' ' + f.id + ': «' + f.por + '»');
     if (f.por.includes('margen') && !(d.dia === hoy && f.de < min + 120)) rota('margen-bien-dicho', d.dia + ' ' + f.id);
     // la reserva para urgencias: por número, solo cuando ya no quedan huecos para el cliente; por tiempo, solo cuando los
     // técnicos de esa franja sin ninguna cita no pasan de los que se guardan (si hubiera más, el cliente cabría en uno libre)
     if (f.por.includes('reserva') && (cfg.porTiempo ? sinCitaEn(d.dia, f) > resI(N, S, d.dia) : capI(N, S, d.dia, frDe(f.id)) - n > 0)) rota('reserva-bien-dicha', d.dia + ' ' + f.id + ' · libres ' + f.libres + '/' + f.libresOf + ', sin cita ' + (cfg.porTiempo ? sinCitaEn(d.dia, f) : '-'))}) });
   // 2. una cita nueva o cambiada nunca pasa de lo que cabe en ese momento: para el cliente, lo que se le ofrece; para la oficina, el tope
-  if ((tipo === 'pedir' || tipo === 'mover') && A && A.cita) { const esOf = !!q && q.rol === 'centralita', f = frDe(A.cita.fr), cap = esOf ? topeI(N, S, A.cita.dia, f) : capI(N, S, A.cita.dia, f), n = enFr(S, A.cita.dia, A.cita.fr);
+  if ((tipo === 'pedir' || tipo === 'mover') && A && A.cita) { const esOf = !!q && q.rol === 'centralita', f = frDe(A.cita.fr), cap = esOf ? topeI(N, S, A.cita.dia, f) : capI(N, S, A.cita.dia, f), n = nDe(A.cita.dia, f);
     if (n > cap) rota('cita-nueva-cabe', A.cita.dia + ' ' + A.cita.fr + ': ' + n + ' citas y caben ' + cap + (esOf ? ' (oficina)' : ''));
     if (!laborI(N, A.cita.dia) || A.cita.dia < hoy || (A.cita.dia === hoy && (esOf ? f.a <= min : f.de < min + 120))) rota('cita-nueva-a-tiempo', A.cita.dia + ' ' + A.cita.fr + (esOf ? ' (oficina)' : ''));
     // por tiempo, si era la reserva lo dice la ley «reserva-bien-dicha» de las franjas: aquí solo el margen
@@ -361,6 +413,19 @@ function generador(G) {
   const firma = () => r() < .06 ? pick(['', 'M1', null, 7]) : FIRMA, mats = cat.filter(k => cfg.cat[k].mat);
   const modo = () => r() < .06 ? pick(['paypal', '', null, 'constructor']) : pick(K.PAGOS);
 
+  /* la furgoneta: casi siempre la de alguien que existe, por él o por la oficina; a veces, lo que no vale */
+  function furgo(S) {
+    const tec = r() < .06 ? pick(RAROS) : pick(tecs), F = S.furgos && typeof tec === 'string' && Object.prototype.hasOwnProperty.call(S.furgos, tec) ? S.furgos[tec] : null, v = r();
+    const quien = r() < .1 ? pick([T(pick(tecs)), { rol: 'cliente' }, {}]) : r() < .5 ? C : T(tec);
+    const lista = () => { if (r() < .04) return pick(RAROS); const L = {}, n = 1 + Math.floor(r() * 4);
+      for (let i = 0; i < n; i++) { const k = r() < .07 ? pick(cat.concat(['otro', 'constructor', 'toString', ''])) : pick(mats.length ? mats : cat); L[k] = r() < .08 ? pick([-1, 1.5, '2', 1000, null, 0, 9999]) : Math.floor(r() * 12) } return L };
+    if ((!F || !F.on) && r() < .3) return [r() < .5 ? { tipo: 'furgo', tec, cuenta: lista() } : { tipo: 'furgo', tec, carga: lista() }, quien];
+    if (!F || !F.on || v < .08) return [{ tipo: 'furgo', tec, llevar: r() < .92 ? true : pick([false, 'sí', 1]) }, quien];
+    if (v < .13) return [{ tipo: 'furgo', tec, llevar: false }, quien];
+    if (v < .45) return [{ tipo: 'furgo', tec, cuenta: lista() }, quien];
+    if (v < .48) return [{ tipo: 'furgo', tec, cuenta: lista(), carga: lista() }, quien];
+    return [{ tipo: 'furgo', tec, carga: lista() }, quien];
+  }
   const planes = Object.keys(cfg.planes || {});
   function contrato(S, t) {
     const Cs = S.contratos || [];
@@ -439,6 +504,7 @@ function generador(G) {
     if (u < .065) { const hoy = K.madrid(t).date, de = K.masDias(hoy, Math.floor(r() * 7)), al = K.masDias(de, Math.floor(r() * 5));
       return r() < .12 ? [{ tipo: 'ausencia', tec: pick(tecs.concat(RAROS)), de: pick([de, '2020-01-01', '2026-02-30', 7, null]), a: pick([al, '1999-12-31', 'mañana']) }, pick([C, C, T(pick(tecs))])] : [{ tipo: 'ausencia', tec: pick(tecs), de, a: al, motivo: pick(['Vacaciones', 'Baja', '', 'x'.repeat(100)]) }, C] }
     if (u >= .075 && u < .1) return contrato(S, t);
+    if (u >= .112 && u < .13) return furgo(S);
     if (u >= .1 && u < .112) { const X = S.avisos.length ? pick(S.avisos) : null, tel = X && X.cli && X.cli.tel && r() < .9 ? (r() < .5 ? X.cli.tel : K.telBonito(X.cli.tel)) : pick(['600000999', '', null, 7]);
       return [{ tipo: 'escribir', tel, si: r() < .08 ? pick([undefined, 'no', 1, null]) : r() < .45 }, r() < .9 ? C : T(pick(tecs))] }
     if (u < .075) return [{ tipo: 'quitarAusencia', aus: S.ausencias && S.ausencias.length && r() < .8 ? pick(S.ausencias).id : pick(['U99', null, 7]) }, C];
@@ -550,7 +616,7 @@ for (const archivo of opc.negocio) {
       for (const k in R.W.acept) acept[k] = (acept[k] || 0) + R.W.acept[k]; for (const k in R.W.rech) rech[k] = (rech[k] || 0) + R.W.rech[k];
     }
     // el recorrido tiene que haber pasado por todo: si no, la prueba no prueba
-    const faltan = ['pedir', 'completar', 'asignar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'descartar', 'escribir', 'ausencia', 'quitarAusencia', 'falta'].concat(Object.keys(cfg.planes || {}).length ? ['contrato', 'cobroContrato', 'bajaContrato'] : []).filter(k => !acept[k]);
+    const faltan = ['pedir', 'completar', 'asignar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'descartar', 'escribir', 'ausencia', 'quitarAusencia', 'falta', 'furgo'].concat(Object.keys(cfg.planes || {}).length ? ['contrato', 'cobroContrato', 'bajaContrato'] : []).filter(k => !acept[k]);
     const sinVer = ['nuevo', 'asignado', 'camino', 'curso', 'hecho', 'ausente', 'cancelado'].filter(e => !estados.has(e));
     if (opc.tandas >= 50 && (faltan.length || sinVer.length)) { fallos++; mal++; console.log('  EL RECORRIDO SE QUEDA CORTO en ' + NN.id + ': sin aceptar ' + faltan.join(', ') + ' · sin ver ' + sinVer.join(', ')) }
     const nA = Object.values(acept).reduce((s, x) => s + x, 0), nR = Object.values(rech).reduce((s, x) => s + x, 0);

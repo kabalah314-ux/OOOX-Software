@@ -10,7 +10,7 @@
 // Lo que garantiza, cada cosa con su prueba (pruebas-reglas/prueba-juez.mjs y azar-juez.mjs):
 //  - El orden lo pone él: guarda solo si nadie ha cambiado nada desde que leyó; si alguien se adelantó, vuelve a leer.
 //  - Lo guardado es siempre igual a repetir su diario desde cero.
-//  - Cada persona recibe solo lo suyo: la oficina, todo lo de su negocio; un técnico, sus avisos; el cliente, su aviso.
+//  - Cada persona recibe solo lo suyo: la oficina, todo lo de su negocio; un técnico, sus avisos y su furgoneta; el cliente, su aviso.
 //  - En su zona, el cliente entra con su teléfono y un código que le da la oficina, y recibe sus avisos y nada de nadie más.
 //  - Una acción repetida (la red se cortó y el móvil la manda otra vez) no se hace dos veces.
 //  - Nunca lanza un error hacia fuera: contesta siempre {ok:true,…} o {ok:false,err}.
@@ -42,7 +42,7 @@ export function limpiaCodigo(c) {
 
 const texto = (x, max) => typeof x === 'string' && x.length > 0 && x.length <= max;
 const R = (err, mas) => Object.assign({ ok: false, err }, mas);
-const cabDe = S => ({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc: S.vc || 0 });   // solo para la oficina
+const cabDe = S => ({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc: S.vc || 0, furgos: S.furgos || {} });   // para la oficina; de «furgos», cada técnico recibe solo la suya
 // «vc» es la versión en la que cambiaron por última vez los contratos: la oficina los recibe solo si han cambiado desde lo
 // que ya tiene, porque pueden ser muchos y llevar firmas, y la cabecera viaja con cada cambio
 
@@ -82,6 +82,7 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
     const c = await almacen.cambios(neg.id, d), esC = q.rol === 'centralita', cb = c.cab || {};
     let cab = { esq: cb.esq };
     if (esC) { cab = Object.assign({}, cb); if (d > 0 && !((cb.vc || 0) > d)) delete cab.contratos; }   // los contratos, solo si han cambiado
+    else { const F = cb.furgos && typeof cb.furgos === 'object' && Object.prototype.hasOwnProperty.call(cb.furgos, q.id) ? cb.furgos[q.id] : null; cab.furgos = F ? { [q.id]: F } : {}; }   // el técnico, solo su furgoneta (16-11-2026)
     return { v: c.v, entero: d === 0, cab, avisos: c.avisos.map(f => paraQuien(q, f)).filter(Boolean) };
   }
 

@@ -29,7 +29,7 @@ const M = [
   ['los contratos no se marcan al cambiar', 'if (JSON.stringify(S.contratos || []) !== contAntes) S.vc = S.v;', ''],
   ['la oficina ya no vuelve a recibir los contratos', 'if (d > 0 && !((cb.vc || 0) > d)) delete cab.contratos;', 'if (d > 0) delete cab.contratos;'],
   ['la oficina recibe todos los contratos con cada cambio', 'if (d > 0 && !((cb.vc || 0) > d)) delete cab.contratos;', ''],
-  ['la versión de los contratos no se guarda', ', nc: S.nc || 0, vc: S.vc || 0 });', ', nc: S.nc || 0 });'],
+  ['la versión de los contratos no se guarda', ', nc: S.nc || 0, vc: S.vc || 0, furgos:', ', nc: S.nc || 0, furgos:'],
   ['siempre se manda todo, aunque el aparato vaya al día', 'const d = Number.isInteger(desde) && desde > 0 && desde <= (neg.v || 0) ? desde : 0;', 'const d = 0;'],
   ['una versión del futuro se da por buena', ' && desde <= (neg.v || 0) ? desde : 0;', ' ? desde : 0;'],
   ['una acción repetida se hace dos veces', 'if (clave) { const ya = await almacen.hecha(neg.id, clave);', 'if (false) { const ya = await almacen.hecha(neg.id, clave);'],
@@ -71,6 +71,9 @@ const M = [
   ['cualquier código abre la zona de un cliente', "if (ok !== true) return R('clave');", ''],
   ['la zona de un cliente lleva los avisos de todos', 'const { S, filas } = await carga(neg), Pf = K.perfilCliente(S, cfg, tel);', 'const { S, filas } = await carga(neg), Pf = Object.assign(K.perfilCliente(S, cfg, tel) || {}, { avisos: S.avisos.map(a => Object.assign({}, a)) });'],
   ['la zona no lleva la llave de cada aviso', "a.llave = f && f.llave ? f.llave : '';", "a.llave = '';"],
+  // la furgoneta (16-11-2026)
+  ['la furgoneta no se guarda en el servidor', ', furgos: S.furgos || {} });', ' });'],
+  ['un técnico recibe todas las furgonetas', 'cab.furgos = F ? { [q.id]: F } : {};', 'cab.furgos = cb.furgos || {};'],
 ];
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mutantes-juez-'));

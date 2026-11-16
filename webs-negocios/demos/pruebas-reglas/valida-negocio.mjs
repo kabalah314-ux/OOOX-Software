@@ -10,7 +10,7 @@ import { TODOS as BASE } from '../../oficios-base/servicios.mjs';   // la base d
 
 const require = createRequire(import.meta.url);
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento'];
+const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento', 'furgoneta'];
 const esTexto = (x, min = 1, max = 200) => typeof x === 'string' && x.trim().length >= min && x.length <= max;
 const esNum = x => typeof x === 'number' && Number.isFinite(x);
 const esEntero = x => Number.isInteger(x);
@@ -238,6 +238,23 @@ export function valida(N, K, hoy) {
   const porHoras = claves.filter(k => cat[k] && cat[k].un === 'h');
   if (porHoras.length > 1) A('catalogo: hay ' + porHoras.length + ' conceptos por horas (' + porHoras.join(', ') + '); la pantalla de «más tiempo» usa el primero.');
   if (!porHoras.length) A('catalogo: no hay mano de obra por horas; el técnico no podrá añadir «más tiempo».');
+
+  // ---- la furgoneta (opcional, 16-11-2026): lo que lleva siempre, con su mínimo y su máximo. La del negocio y, si alguien
+  // lleva otra cosa, la suya en su ficha. Solo cuenta en las furgonetas de quien lleva la cuenta en la app.
+  const kitMal = (o, cual) => {
+    if (typeof o !== 'object' || o === null || Array.isArray(o)) { E(cual + ': tiene que ser un objeto, con cada material y su [mínimo, máximo], por ejemplo {"latig": [4, 8]}.'); return }
+    const ks = Object.keys(o);
+    if (!ks.length) A(cual + ': está vacía; sin nada puesto, no sale nada para reponer.');
+    ks.forEach(k => {
+      const v = o[k];
+      if (!propio(cat, k)) E(cual + '.' + k + ': no está en el catálogo.');
+      else if (!cat[k] || !cat[k].mat) E(cual + '.' + k + ': no es material; en la furgoneta solo va material del catálogo.');
+      else if (cat[k].extra) A(cual + '.' + k + ': es un aparato («extra»). ¿Seguro que va siempre en la furgoneta?');
+      if (!Array.isArray(v) || v.length !== 2 || !v.every(esEntero) || v[0] < 0 || v[1] < 1 || v[0] > v[1] || v[1] > 999) E(cual + '.' + k + ': va como [mínimo, máximo], dos números enteros con el mínimo de 0 a máximo y el máximo de 1 a 999.');
+    });
+  };
+  if (N.furgoneta != null) kitMal(N.furgoneta, 'furgoneta');
+  if (Array.isArray(tecs)) tecs.forEach(x => { if (x && x.furgoneta != null) kitMal(x.furgoneta, 'tecnicos (' + x.id + ').furgoneta') });
 
   // ---- averías
   const av = N.averias, idsAv = new Set(), usadas = new Set([N.sinTrabajo, (N.tarifa || {}).urgente]);   // el suplemento de urgencia lo pone la app sola

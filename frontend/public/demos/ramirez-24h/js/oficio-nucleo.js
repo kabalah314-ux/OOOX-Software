@@ -24,6 +24,8 @@
      mandarlo por WhatsApp. El cliente no lo ve.
    - Los contratos de mantenimiento: la oficina los da de alta con la firma o el sí del cliente; 14 días para desistir;
      no se renuevan solos. Cada aviso del cliente lleva lo justo del contrato («con») para que todos calculen el mismo precio.
+   - La furgoneta: la app dice qué material lleva cada trabajo y qué cargar cada día. Si el técnico quiere, lleva además la
+     cuenta de su furgoneta: lo que carga suma y lo que usa se descuenta al terminar el trabajo.
    - Todo lo que llega de fuera se trata como sospechoso: claves que no
      existen, textos que no son texto y cantidades imposibles se rechazan
      sin cambiar nada.
@@ -32,7 +34,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.15l';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.16a';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -74,7 +76,11 @@ function cfgDe(N){const vacio=()=>Object.create(null),limpio=o=>Object.assign(va
  const MT=N.mantenimiento;if(MT&&Array.isArray(MT.planes)&&MT.revision){av[REV]=Object.assign({},MT.revision,{id:REV,min:MT.revision.ini,max:null,interna:true});
   MT.planes.forEach(x=>{planes[x.id]={id:x.id,n:x.n,precio:cts(x.precio),iva:x.iva||21,revisiones:x.revisiones||1,desp:typeof x.desp==='string'&&cat[x.desp]?x.desp:'',rev:typeof x.rev==='string'&&cat[x.rev]?x.rev:'',prioridad:!!x.prioridad}})}
  const zonas={banda:limpio(N.zonas.banda),dis:limpio(N.zonas.dis),cp:limpio(N.zonas.cp)};
- return{N,cat,av,tec,planes,pack:N.pack||'pro',recargo:N.tarifa.recargo,dia:N.tarifa.dia,festivos:N.festivos||[],franjas:N.franjas,cupo:N.cupo,zonas,
+ /* la furgoneta: lo que lleva siempre, con su mínimo y su máximo. Solo material del catálogo. Un técnico puede tener la suya */
+ const kitL=o=>{const x=vacio();if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).forEach(k=>{const v=o[k];
+  if(cat[k]&&cat[k].mat&&Array.isArray(v)&&v.length===2&&Number.isInteger(v[0])&&Number.isInteger(v[1])&&v[0]>=0&&v[1]>=1&&v[0]<=v[1]&&v[1]<=999)x[k]=[v[0],v[1]]});return x};
+ const kits=vacio();N.tecnicos.forEach(x=>{if(x.furgoneta)kits[x.id]=kitL(x.furgoneta)});
+ return{N,cat,av,tec,planes,kit:kitL(N.furgoneta),kits,pack:N.pack||'pro',recargo:N.tarifa.recargo,dia:N.tarifa.dia,festivos:N.festivos||[],franjas:N.franjas,cupo:N.cupo,zonas,
   etaMax:Math.max.apply(null,Object.values(zonas.banda)),horas:Object.keys(cat).find(k=>cat[k].un==='h')||'',meses:N.garantiaMeses||12,
   mapa:N.mapa&&typeof N.mapa==='object'?N.mapa:null,conHorario:!!(N.horario||N.tecnicos.some(x=>x.horario)),porFranja:(N.citas&&N.citas.porFranja)||1,reserva:(N.citas&&N.citas.reserva)||0,reservaSiFalta:!(N.citas&&N.citas.reservaSiFalta===false),porTiempo:!!(N.citas&&N.citas.porTiempo===true&&(N.horario||N.tecnicos.some(x=>x.horario))),hayGuardia:N.tecnicos.some(x=>x.guardia),
   urge:typeof N.tarifa.urgente==='string'&&cat[N.tarifa.urgente]?N.tarifa.urgente:''}}
@@ -377,7 +383,7 @@ function minutos(A,t){if(!A.ini)return 0;const fin=A.fin||t||Date.now();let ms=f
 const enPausa=A=>!!(A.pausas&&A.pausas.length&&!A.pausas[A.pausas.length-1][1]);
 
 /* ---------- las acciones ---------- */
-const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato','escribir'].concat(CON_ACC);
+const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato','escribir','furgo'].concat(CON_ACC);
 function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  const R=err=>({ok:false,err});
  const A=typeof a.id==='string'?S.avisos.find(x=>x.id===a.id):null;
@@ -541,7 +547,14 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
      Con contrato no: sus revisiones ya las lleva el contrato */
   {const k=a.avisar===true&&A.av!==REV&&!A.con&&A.lin.map(l=>l.k).find(x=>cfg.cat[x]&&cfg.cat[x].cada);if(k){const dia=masMeses(madrid(t).date,cfg.cat[k].cada);A.prox={k,dia,t};
    msg(A,'proxima',Date.parse(masDias(dia,-30)+'T09:00:00Z'),Date.parse(masDias(dia,30)+'T19:00:00Z'))}}
-  log(A,'Terminado. '+eur(A.tot.total)+(!A.tot.total?', sin nada que cobrar':A.pago.cobrado?', cobrado ('+a.modo+')':', pendiente de pago'));return ok()}
+  log(A,'Terminado. '+eur(A.tot.total)+(!A.tot.total?', sin nada que cobrar':A.pago.cobrado?', cobrado ('+a.modo+')':', pendiente de pago'));
+  /* la furgoneta (16-11-2026): si su técnico lleva la cuenta, lo usado se descuenta. Nunca por debajo de cero: si no
+     llegaba, lo dice, y el próximo recuento lo pone bien */
+  {const F=furgoDe(S,A.tec),usa=[];if(F){F.st=F.st&&typeof F.st==='object'&&!Array.isArray(F.st)?F.st:{};
+   A.lin.forEach(l=>{const it=l&&l.k!=='otro'?cfg.cat[l.k]:null;if(!it||!it.mat)return;const n=Math.round(+l.q||0);if(n<1)return;
+    const antes=hay(F.st,l.k),queda=Math.max(0,antes-n);if(queda)F.st[l.k]=queda;else delete F.st[l.k];usa.push(n+' × '+it.t+(antes<n?' (apuntados había '+antes+')':''))});
+   if(usa.length){apuntaF(F,t,nom,A.id+': '+usa.join('; '));log(A,'Descontado de la furgoneta: '+usa.join('; '))}}}
+  return ok()}
 
  case 'cobrar':{
   if(!esC&&!mio)return R('permiso');if(A.e!=='hecho'||!A.pago||A.pago.cobrado)return R('estado');
@@ -619,6 +632,25 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   m.env=t;m.no=1;A.v++;return ok()}
 
  /* el cliente no quiere mensajes de seguimiento (o vuelve a quererlos). Va por su teléfono, en todos sus avisos */
+ /* la furgoneta de un técnico (16-11-2026): llevar la cuenta o dejarla («llevar»), contar lo que hay («cuenta»: lo dicho queda
+    tal cual y lo demás no cambia) o apuntar lo que se carga («carga»: suma). Él, la suya; la oficina, cualquiera */
+ case 'furgo':{
+  if(typeof a.tec!=='string'||!cfg.tec[a.tec])return R('tec');if(!esC&&!(esT&&q.id===a.tec))return R('permiso');
+  const FS=S.furgos&&typeof S.furgos==='object'&&!Array.isArray(S.furgos)?S.furgos:null;
+  let F=FS&&tiene(FS,a.tec)&&FS[a.tec]&&typeof FS[a.tec]==='object'?FS[a.tec]:null;
+  if(a.llevar!=null){if(typeof a.llevar!=='boolean'||a.cuenta!=null||a.carga!=null)return R('furgo');
+   if(a.llevar){if(F&&F.on)return R('estado');if(!F){if(!FS)S.furgos={};F=S.furgos[a.tec]={on:true,st:{},t,cnt:0,h:[]}}else F.on=true;apuntaF(F,t,nom,'Empieza a llevar la cuenta');return ok()}
+   if(!F||!F.on)return R('estado');F.on=false;apuntaF(F,t,nom,'Deja de llevar la cuenta');return ok()}
+  if(!F||!F.on)return R('estado');
+  if((a.cuenta==null)===(a.carga==null))return R('furgo');
+  const L=a.cuenta!=null?a.cuenta:a.carga;if(!L||typeof L!=='object'||Array.isArray(L))return R('furgo');
+  const ord=Object.keys(cfg.cat),ks=Object.keys(L).sort((x,y)=>ord.indexOf(x)-ord.indexOf(y));if(!ks.length||ks.length>80)return R('furgo');
+  for(const k of ks){const it=cfg.cat[k],n=L[k];if(!it||!it.mat||!Number.isInteger(n)||n<(a.carga!=null?1:0)||n>999)return R('furgo')}
+  F.st=F.st&&typeof F.st==='object'&&!Array.isArray(F.st)?F.st:{};
+  if(a.cuenta!=null){const dif=[];ks.forEach(k=>{const antes=hay(F.st,k),n=L[k];if(antes!==n)dif.push(cfg.cat[k].t+': '+antes+' → '+n);if(n)F.st[k]=n;else delete F.st[k]});
+   F.cnt=t;apuntaF(F,t,nom,'Recuento'+(dif.length?'. '+dif.join('; '):': todo cuadra'));return ok({cambios:dif.length})}
+  ks.forEach(k=>{F.st[k]=Math.min(9999,hay(F.st,k)+L[k])});apuntaF(F,t,nom,'Cargado: '+ks.map(k=>L[k]+' × '+cfg.cat[k].t).join('; '));return ok()}
+
  case 'escribir':{
   if(!esC)return R('permiso');if(typeof a.si!=='boolean')return R('si');const t9=tel9(a.tel),L=t9?S.avisos.filter(x=>x.cli&&x.cli.tel===t9):[];if(!L.length)return R('tel');
   const ult=L.reduce((x,y)=>y.t>x.t?y:x);
@@ -736,5 +768,57 @@ function material(S,cfg,dia){const out=Object.create(null);
 function textoMaterial(cfg,g,dia){if(!g||!g.cosas||!g.cosas.length)return'';
  return'Material '+(dia?'para el '+fechaLarga(dia):'de los avisos sin día')+(g.n?', '+g.n:', sin técnico')+':\n'+g.cosas.map(c=>'- '+c.q+' × '+c.t+' ('+c.av.join(', ')+')').join('\n')+'\n'+cfg.N.nombre}
 
-g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+/* ---------- la furgoneta (16-11-2026) ----------
+   Lo que lleva cada trabajo sale de lo que ya sabe la app: con el presupuesto firmado, su material; sin él, el de partida de
+   su avería; y lo apuntado como que falta. «Por si acaso»: las piezas que se suelen añadir en esa avería (sus «chips»), una
+   de cada y sin los aparatos («extra»). Si un técnico quiere, la app lleva la cuenta de su furgoneta («furgos», por técnico):
+   lo que carga suma, lo que usa en un trabajo se descuenta al terminarlo y un recuento pone lo que hay de verdad. Solo cuenta
+   el material del catálogo, por su clave; lo escrito a mano se dice, pero no se cuenta.
+   «furgoneta» en los datos: lo que lleva siempre cada furgoneta, con su mínimo y su máximo. Lo que baja del mínimo sale para
+   reponer hasta el máximo. Un técnico puede tener la suya («furgoneta» en su ficha). */
+const FURGO_H=60;   /* los movimientos que se guardan de cada furgoneta */
+const tiene=(o,k)=>!!o&&typeof o==='object'&&Object.prototype.hasOwnProperty.call(o,k);
+const hay=(st,k)=>tiene(st,k)&&Number.isInteger(st[k])&&st[k]>0?st[k]:0;
+/* la furgoneta de un técnico, solo si lleva la cuenta */
+const furgoDe=(S,tec)=>{const F=S&&typeof tec==='string'&&tiene(S.furgos,tec)?S.furgos[tec]:null;return F&&typeof F==='object'&&F.on===true?F:null};
+const kitDe=(cfg,tec)=>(cfg.kits&&typeof tec==='string'&&tiene(cfg.kits,tec)?cfg.kits[tec]:null)||cfg.kit||{};
+function apuntaF(F,t,q,txt){F.h=Array.isArray(F.h)?F.h:[];F.h.push({t,q,txt});if(F.h.length>FURGO_H)F.h=F.h.slice(-FURGO_H);F.t=t}
+/* lo que lleva un trabajo: {lin:[{k,t,q,fa?}], quiza:[{k,t}], mano:[{t,q}]}. «fa»: cuántos de esos están apuntados como que faltan */
+function lleva(cfg,A){const lin=[],mano=[];if(!A||typeof A!=='object')return{lin,quiza:[],mano};
+ const pon=(k,q,fa)=>{const it=cfg.cat[k];if(!it||!it.mat||!(q>0))return;let x=lin.find(y=>y.k===k);if(x)x.q=fa?Math.max(x.q,q):x.q+q;else lin.push(x={k,t:it.t,q});if(fa)x.fa=Math.max(x.fa||0,q)};
+ (Array.isArray(A.lin)&&A.lin.length?A.lin:iniDe(cfg,A)).forEach(l=>{if(l&&typeof l.k==='string'&&l.k!=='otro'&&cfg.cat[l.k])pon(l.k,Math.round(+l.q||cfg.cat[l.k].min||1))});
+ (Array.isArray(A.falta)?A.falta:[]).forEach(x=>{if(!x)return;if(x.k)pon(x.k,x.q,true);else if(x.t)mano.push({t:x.t,q:x.q})});
+ const av=cfg.av[A.av],quiza=(av&&Array.isArray(av.chips)?av.chips:[]).filter((k,i,L)=>L.indexOf(k)===i&&cfg.cat[k]&&cfg.cat[k].mat&&!cfg.cat[k].extra&&!lin.some(l=>l.k===k)).map(k=>({k,t:cfg.cat[k].t}));
+ return{lin,quiza,mano}}
+/* lo que hay que reponer en una furgoneta: lo que está por debajo del mínimo, hasta el máximo */
+function reponerDe(S,cfg,tec){const F=furgoDe(S,tec);if(!F)return[];const kit=kitDe(cfg,tec);
+ return Object.keys(kit).filter(k=>cfg.cat[k]&&hay(F.st,k)<kit[k][0]).map(k=>({k,t:cfg.cat[k].t,q:kit[k][1]-hay(F.st,k),hay:hay(F.st,k),min:kit[k][0],max:kit[k][1]}))}
+/* lo que lleva un técnico un día (AAAA-MM-DD): sus avisos con cita ese día y, hoy, también las urgencias y lo que ya está en
+   marcha. Con la cuenta de su furgoneta, además: «falta» (lo que necesita menos lo que hay), «reponer» y «cargar» (lo mayor
+   de las dos: lo que conviene cargar) */
+function cargaDe(S,cfg,tec,dia,t){const hoy=madrid(t).date,F=furgoDe(S,tec),ord=Object.keys(cfg.cat),o=(x,y)=>ord.indexOf(x.k)-ord.indexOf(y.k);
+ const av=[],lin=[],quiza=[],mano=[];
+ ((S&&S.avisos)||[]).forEach(A=>{if(!A||A.tec!==tec||!EN_MARCHA.includes(A.e))return;const d=A.e!=='asignado'||!A.cita||A.cita.dia<hoy?hoy:A.cita.dia;if(d!==dia)return;
+  av.push(A.id);const L=lleva(cfg,A);
+  L.lin.forEach(x=>{let y=lin.find(z=>z.k===x.k);if(y){y.q+=x.q;y.av.push(A.id)}else lin.push(y={k:x.k,t:x.t,q:x.q,av:[A.id]});if(x.fa)y.fa=(y.fa||0)+x.fa});
+  L.quiza.forEach(x=>{const y=quiza.find(z=>z.k===x.k);if(y)y.av.push(A.id);else quiza.push({k:x.k,t:x.t,q:1,av:[A.id]})});
+  L.mano.forEach(x=>{const y=mano.find(z=>z.t.toLowerCase()===x.t.toLowerCase());if(y){y.q+=x.q;y.av.push(A.id)}else mano.push({t:x.t,q:x.q,av:[A.id]})})});
+ lin.sort(o);quiza.sort(o);
+ const out={tec,dia,av,lin,quiza,mano,furgo:!!F};
+ if(F){const seg=Object.create(null),todo=Object.create(null),c=Object.create(null);lin.forEach(x=>{seg[x.k]=x.q;todo[x.k]=x.q});quiza.forEach(x=>{todo[x.k]=(todo[x.k]||0)+1});
+  out.falta=Object.keys(todo).map(k=>({k,t:cfg.cat[k].t,q:todo[k]-hay(F.st,k),hay:hay(F.st,k),quiza:(seg[k]||0)<=hay(F.st,k)})).filter(x=>x.q>0).sort(o);
+  out.reponer=reponerDe(S,cfg,tec);
+  out.falta.forEach(x=>{c[x.k]=x.q});out.reponer.forEach(x=>{c[x.k]=Math.max(c[x.k]||0,x.q)});
+  out.cargar=Object.keys(c).map(k=>({k,t:cfg.cat[k].t,q:c[k]})).sort(o)}
+ return out}
+/* la carga de un día, escrita para copiarla o mandarla */
+function textoCarga(cfg,c){if(!c||!c.lin)return'';const T=cfg.tec[c.tec],L=[],ids=x=>x.av&&x.av.length?' ('+x.av.join(', ')+')':'';
+ if(c.furgo&&c.cargar&&c.cargar.length){L.push('Para cargar:');c.cargar.forEach(x=>L.push('- '+x.q+' × '+x.t))}
+ if(c.lin.length){L.push(c.furgo?'Lo que lleva cada trabajo:':'Lo que lleva:');c.lin.forEach(x=>L.push('- '+x.q+' × '+x.t+ids(x)+(x.fa?', apuntado que falta':'')))}
+ if(c.quiza.length){L.push('Por si acaso:');c.quiza.forEach(x=>L.push('- 1 × '+x.t+ids(x)))}
+ if(c.mano.length){L.push('Apuntado a mano:');c.mano.forEach(x=>L.push('- '+x.q+' × '+x.t+ids(x)))}
+ if(!L.length)return'';
+ return'Material para el '+fechaLarga(c.dia)+(T?', '+T.n:'')+':\n'+L.join('\n')+'\n'+cfg.N.nombre}
+
+g.OficioNucleo={VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,lleva,cargaDe,reponerDe,kitDe,furgoDe,textoCarga,FURGO_H,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

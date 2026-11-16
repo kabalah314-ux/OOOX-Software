@@ -245,7 +245,7 @@ async def main():
         await ir(c, f'#/aviso/{suelto}', '.tec'); await c.click(f'.tec[data-tec="{X}"]')
         es(await toast(c, 'Asignado') and await c.evaluate(f"!Oficio.estado().avisos.some(a=>a.reasignar)"), 'ausencia: y ya se le puede volver a asignar; no queda nada por reasignar')
         await ir(c, '#/bandeja', '.cab')
-        es(all('mensaje' in x or 'seguimiento' in x for x in await c.locator('.alertas li').all_inner_texts()), 'bandeja: sin nada pendiente del reparto, en «por hacer» como mucho quedan los mensajes por mandar y el seguimiento')
+        es(all('mensaje' in x or 'seguimiento' in x or 'por reponer' in x for x in await c.locator('.alertas li').all_inner_texts()), 'bandeja: sin nada pendiente del reparto, en «por hacer» como mucho quedan los mensajes por mandar, el seguimiento y lo que toca reponer en las furgonetas')
 
         # ---------- 8. el técnico no ve «Equipo»; anchos; ordenador ----------
         t = await ctx.new_page(); vigila(t, 'técnico'); await t.goto(B + f'app.html?papel=tecnico&tec={tecs[0]}#/equipo/{D1}'); await t.wait_for_selector('#nav a')

@@ -86,6 +86,15 @@ const ROTOS = [
   ['lo que tarda una avería con un solo número', N => { N.averias[0].dur = [45] }],
   ['un suplemento de urgencia que no está en el catálogo', N => { N.tarifa.urgente = 'nada' }],
   ['un suplemento de urgencia por horas', N => { N.tarifa.urgente = 'mo' }],
+  // lo que lleva siempre la furgoneta (16-11-2026)
+  ['la furgoneta como lista', N => { N.furgoneta = ['juntas'] }],
+  ['en la furgoneta, algo que no está en el catálogo', N => { N.furgoneta = { zz: [1, 2] } }],
+  ['en la furgoneta, algo que no es material', N => { N.furgoneta = { desp: [1, 2] } }],
+  ['en la furgoneta, el mínimo por encima del máximo', N => { N.furgoneta = { juntas: [5, 2] } }],
+  ['en la furgoneta, un máximo de cero', N => { N.furgoneta = { juntas: [0, 0] } }],
+  ['en la furgoneta, cantidades con decimales', N => { N.furgoneta = { juntas: [1.5, 3] } }],
+  ['en la furgoneta, un solo número', N => { N.furgoneta = { juntas: 4 } }],
+  ['la furgoneta de un técnico con algo que no es material', N => { N.tecnicos[0].furgoneta = { desp: [1, 2] } }],
 ];
 for (const [que, rompe, base] of ROTOS) {
   const N = clon(base || R); let r;
@@ -100,6 +109,11 @@ for (const [que, rompe, base] of ROTOS) {
 { const M3 = clon(V); M3.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', cada: 2000 }; const M4 = clon(V); M4.servidor = { url: 'https://abc.supabase.co', llave: 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.abcdefghijkl' };
   es(valida(M3, K, HOY).errores.length === 0 && !valida(M3, K, HOY).avisos.some(t => /servidor/.test(t)) && valida(M4, K, HOY).avisos.some(t => /PÚBLICA/.test(t)),
     'un servidor bien puesto vale sin avisos, y con una llave que no parece la pública se avisa') }
+// la furgoneta: la del negocio y la de un técnico valen; vacía o con un aparato, se avisa
+{ const F1 = clon(R); F1.tecnicos[0].furgoneta = { juntas: [2, 4] }; const F2 = clon(R); F2.furgoneta = {}; const F3 = clon(R); F3.furgoneta = Object.assign({}, F3.furgoneta, { termo80: [0, 1] });
+  es(R.furgoneta && valida(R, K, HOY).errores.length === 0 && valida(F1, K, HOY).errores.length === 0 && valida(F2, K, HOY).errores.length === 0 && valida(F2, K, HOY).avisos.some(t => /^furgoneta: está vacía/.test(t))
+    && valida(F3, K, HOY).errores.length === 0 && valida(F3, K, HOY).avisos.some(t => /termo80: es un aparato/.test(t)),
+    'la furgoneta de la demo y la de un técnico valen; vacía o con un aparato, vale pero se avisa') }
 // lo que pide el formulario de desistimiento: el correo, si lo hay, y la dirección completa
 { const C = clon(R); C.email = 'avisos@ramirez.example'; C.dir = 'Carrer de Sants 100, 08014 Barcelona';
   es(valida(R, K, HOY).avisos.some(t => /^email:/.test(t)) && valida(R, K, HOY).avisos.some(t => /^dir:/.test(t)) && valida(C, K, HOY).errores.length === 0 && !valida(C, K, HOY).avisos.some(t => /^(email|dir):/.test(t)),

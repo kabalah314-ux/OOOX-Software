@@ -108,6 +108,18 @@ for (const h of HORAS) {
   es(aus.length >= 2 && aus.every(a => (a.msgs || []).some(m => m.k === 'ausente') || a.e === 'hecho' || a.e === 'cancelado') && aus.filter(a => a.e !== 'ausente').every(a => a.e === 'hecho' || a.e === 'cancelado' || (a.cita && a.cita.dia >= hoy)), q('U23: las visitas sin nadie en casa quedan apuntadas, con su mensaje, y se vuelven a dar (' + aus.length + ')'));
   // U24: el material que falta sale en el día de ese técnico
   const man = A.find(a => Array.isArray(a.falta) && a.falta.length && a.cita && !['hecho', 'cancelado'].includes(a.e));
+  // U68–U70: la furgoneta (16-11-2026). Omar lleva la cuenta desde la segunda semana; Laia y Jordi, no
+  { const F = K.furgoDe(S, 'omar'), usa = a => (a.lin || []).some(l => l.k !== 'otro' && cfg.cat[l.k] && cfg.cat[l.k].mat);
+    es(F && !K.furgoDe(S, 'laia') && !K.furgoDe(S, 'jordi') && F.cnt > 0 && Object.entries(F.st).every(([k, x]) => cfg.cat[k] && cfg.cat[k].mat && Number.isInteger(x) && x > 0) && F.h.length > 10,
+      q('U68: Omar lleva la cuenta de su furgoneta, con lo que hay bien apuntado; los otros dos, no'));
+    if (F) { const desde = F.h[0].t, H2 = H.filter(a => a.tec === 'omar' && !a.sinTrabajo && a.fin >= desde);
+      const malD = H2.filter(a => usa(a) !== a.h.some(x => x.txt.startsWith('Descontado de la furgoneta')) || (usa(a) && !F.h.some(x => x.txt.startsWith(a.id + ': '))));
+      es(H2.filter(usa).length >= 5 && !malD.length, q('U69: cada trabajo suyo con material lo ha descontado de la furgoneta, y los otros no (' + H2.filter(usa).length + ')' + (malD.length ? ': ' + malD.slice(0, 3).map(a => a.id) : '')));
+      const rp = K.reponerDe(S, cfg, 'omar'), CC = [hoy, sigLab(hoy, 1)].map(d => K.cargaDe(S, cfg, 'omar', d, ahora));
+      const cuadra = c => c.furgo && c.cargar.every(x => x.q === Math.max((c.falta.find(y => y.k === x.k) || { q: 0 }).q, (rp.find(y => y.k === x.k) || { q: 0 }).q)) && rp.every(x => c.cargar.some(y => y.k === x.k));
+      es(CC.every(cuadra) && (rp.length || CC.some(c => c.lin.length || c.quiza.length) || K.ausente(S, 'omar', hoy)),
+        q('U70: su furgoneta tiene algo que enseñar, y lo que conviene cargar es lo mayor entre lo que le falta y lo que toca reponer (' + rp.map(x => x.q + ' ' + x.k).join(', ') + ')'));
+      es(!H.some(a => a.tec === 'omar' && a.fin >= desde && a.h.some(x => x.txt.includes('(apuntados había'))), q('U70: lo que usa lo llevaba: lo que no tenía lo compró de camino y lo apuntó')) } }
   if (man) { const gT = K.material(S, cfg, man.cita.dia).find(x => x.tec === (man.tec || '')); es(gT && gT.cosas.some(c => man.falta.some(f => f.k === c.k)), q('U24: el material que falta sale en el día de ' + (man.tec || 'quien no tiene técnico'))) }
   else es(false, q('U24: hay una cita con material que falta'));
   // U02: la misma hora da los mismos datos

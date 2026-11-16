@@ -36,6 +36,9 @@ negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como 
   `{id, v, fuera:true}`, sin datos, para que lo quite de su móvil.
 - **`llave`**: 24 letras al azar que el juez pone a cada aviso nuevo. Es lo que lleva el enlace del cliente.
 - **`vista`**: lo que ve el cliente (`K.vistaCliente`), calculado al guardar. Así se puede leer sin pasar por el juez.
+- **La furgoneta** (16-11-2026): la cuenta de la furgoneta de cada técnico (`furgos`) va en la cabecera del negocio, con
+  los contadores, las ausencias y los contratos. La oficina la recibe entera; cada técnico, solo la suya (`{esq, furgos:
+  {su id: …}}`). La cambian «furgo» (llevar la cuenta, contar, cargar) y «terminar» (lo usado se descuenta).
 - **La marca (`clave`)**: el aparato pone una marca al azar a cada acción. Si la manda dos veces porque se cortó la
   red, la segunda no se hace: se devuelve el resultado de la primera. La marca vale solo para quien la puso y tiene
   que tener 12 letras o más.

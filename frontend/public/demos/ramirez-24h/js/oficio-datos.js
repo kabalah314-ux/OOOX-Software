@@ -54,6 +54,9 @@ g.OFICIO_NEGOCIO={
   grifon:{t:'Grifo monomando',p10:35,mat:1},
   termo80:{t:'Termo eléctrico de 80 litros, instalado',p21:390,mat:1,extra:1,base:'fon-termo',dur:[90,180]},
   revinst:{t:'Revisión de la instalación',p10:45,base:'fon-revision',dur:[40,75],cada:12}},
+ /* la furgoneta: lo que lleva siempre cada una, [mínimo, máximo]. Solo cuenta en la de quien lleva la cuenta en la app (lo decide
+    cada técnico). Lo que baja del mínimo sale para reponer hasta el máximo. Si alguien lleva otra cosa, se le pone la suya en su ficha */
+ furgoneta:{juntas:[6,12],sellador:[2,4],latig:[4,8],llave:[3,6],sifon:[2,4],tubo:[2,4],mecanismo:[2,4],valvula:[2,4],termostato:[1,2],resistencia:[1,2],grifon:[1,2]},
  /* las averías: min y max dan el «de cuánto a cuánto» de la web; ini es el presupuesto que sale ya puesto en la puerta */
  averias:[
   {id:'fuga',n:'Fuga de agua',c:'Fuga',d:'Tubería, llave de paso o latiguillo.',min:[{k:'desp'},{k:'mo',q:1}],max:[{k:'desp'},{k:'mo',q:2},{k:'juntas'},{k:'sellador'}],dur:[45,120],ini:[{k:'desp'},{k:'mo',q:1},{k:'juntas'}],chips:['sellador','latig','llave','tubo']},
@@ -109,6 +112,11 @@ g.OFICIO_MUESTRA=function(K,cfg,ahora){
  completo(ahora-26*H,'termo',{nombre:'Andreu',apellidos:'Soler',tel:'600 00 01 39',dir:'C/ de Sants 131, 1.º 3.ª',cp:'08014'},'jordi',[{k:'desp'},{k:'mo',q:1.5},{k:'termostato'}],'pendiente',85,'El termo no calienta desde ayer.');
  /* hoy: un atasco ya hecho y cobrado con tarjeta */
  completo(ahora-190*M,'atasco',{nombre:'Carmen',apellidos:'Ortiz',tel:'600 00 01 40',dir:'C/ Mallorca 310, 3.º 1.ª',cp:'08037'},'omar',[{k:'desatasco'}],'tarjeta',40,'El fregadero no traga.');
+ /* hace diez días Laia empezó a llevar la cuenta de su furgoneta (Omar y Jordi, no): lo que contó y lo que cargó anteayer.
+    Le quedan pocas llaves de escuadra y un solo tramo de tubo: salen para reponer */
+ {const t=ahora-10*D;haz({tipo:'furgo',tec:'laia',llevar:true},T('laia'),t);
+  haz({tipo:'furgo',tec:'laia',cuenta:{juntas:8,sellador:3,latig:4,llave:2,sifon:2,tubo:1,mecanismo:3,valvula:2,termostato:1,grifon:1}},T('laia'),t+2*M);
+  haz({tipo:'furgo',tec:'laia',carga:{latig:2,resistencia:1}},T('laia'),ahora-2*D-15*H)}
  /* ahora mismo: Laia está con un grifo */
  {const t=ahora-52*M,id=pide(t,'grifo',{nombre:'Núria',apellidos:'Puig',tel:'600 00 01 41',dir:'Rambla del Poblenou 62, 3.º 2.ª',cp:'08005'},{origen:'llamada',nota:'Gotea el grifo de la cocina.'});
   haz({tipo:'asignar',id,tec:'laia'},C,t+3*M);haz({tipo:'voy',id},T('laia'),t+6*M);haz({tipo:'empezar',id,pres:{lineas:[{k:'grifo'},{k:'latig'}],firma:FIRMA}},T('laia'),t+34*M);

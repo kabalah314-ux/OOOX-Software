@@ -181,6 +181,21 @@ if (cfg.mapa || true) {
   X.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, avisos: [] });
   es(X.E.estado().contratos.length === 0, 'al recibirlo todo de nuevo sin contratos, no queda ninguno de antes');
 }
+// 13 ter. la furgoneta (16-11-2026): viaja en la cabecera; el técnico tiene la suya y, al terminar un trabajo aquí, ve ya lo
+// descontado, lo mismo que hará el servidor
+{ const mats = Object.keys(cfg.cat).filter(k => cfg.cat[k].mat), tecE = T1, Y = aparato(tecE, 'tecnico');
+  const FF = { [tecE]: { on: true, st: { [mats[0]]: 4 }, t: 1, cnt: 1, h: [] } };
+  Y.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, furgos: FF }, avisos: [] });
+  es(K.furgoDe(Y.E.estado(), tecE) && K.furgoDe(Y.E.estado(), tecE).st[mats[0]] === 4 && Y.E.guardado().B.furgos[tecE].st[mats[0]] === 4, 'el técnico recibe su furgoneta y se le queda guardada');
+  const r = Y.E.hacer({ tipo: 'furgo', tec: tecE, carga: { [mats[0]]: 2 } });
+  es(r.ok && K.furgoDe(Y.E.estado(), tecE).st[mats[0]] === 6 && Y.E.pendientes() === 1, 'lo que carga se ve al momento y queda por enviar');
+  Y.E.llega({ v: 2, entero: false, cab: { esq: K.ESQ }, avisos: [] });
+  es(K.furgoDe(Y.E.estado(), tecE) && K.furgoDe(Y.E.estado(), tecE).st[mats[0]] === 6, 'si la cabecera no la trae (un servidor de antes), se queda la que tenía');
+  Y.E.llega({ v: 3, entero: true, cab: { esq: K.ESQ, furgos: {} }, avisos: [] });
+  es(mats.length > 0 && !K.furgoDe(copia(Y.E.guardado().B), tecE), 'si el servidor dice que ya no la tiene, se quita');
+  Y.E.llega({ v: 4, entero: true, cab: { esq: K.ESQ, furgos: FF }, avisos: [] }); Y.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ }, avisos: [] });
+  es(!K.furgoDe(Y.E.estado(), tecE) && !('furgos' in Y.E.guardado().B), 'al recibirlo todo de nuevo sin furgoneta, no se queda la de antes');
+}
 // 14. respuestas viejas y respuestas enteras
 { const B = Object.assign(K.nuevo(), { v: 5, avisos: [{ id: 'A', n: 1, x: 'nuevo' }] }), ver = { A: 5 };
   es(!E.mezcla(B, ver, { v: 3, entero: false, cab: {}, avisos: [{ id: 'A', v: 3, datos: { id: 'A', n: 1, x: 'viejo' } }] }) && B.avisos[0].x === 'nuevo' && B.v === 5, 'una respuesta más vieja que lo que hay no pisa nada');

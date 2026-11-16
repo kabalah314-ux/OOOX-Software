@@ -341,6 +341,7 @@ async def main():
         rutas = [('app.html', 'bandeja'), ('app.html#/aviso/R-0142', 'aviso'), ('app.html#/agenda', 'agenda'), ('app.html#/cobros', 'cobros'), ('app.html#/nuevo', 'nuevo'),
                  ('app.html?papel=tecnico&tec=jordi', 'técnico hoy'), ('app.html?papel=tecnico&tec=jordi#/aviso/R-0142', 'técnico aviso'), ('app.html?papel=tecnico&tec=jordi#/hechos', 'técnico hechos'),
                  ('app.html?papel=tecnico&tec=omar#/papel/R-0140/presupuesto', 'presupuesto'), ('app.html?papel=tecnico&tec=omar#/papel/R-0140/parte', 'parte'),
+                 ('app.html?papel=tecnico&tec=laia#/furgo', 'técnico furgoneta'), ('app.html?papel=tecnico&tec=omar#/furgo', 'técnico sin cuenta'), ('app.html#/furgo/laia', 'furgoneta de un técnico'), ('app.html#/equipo', 'equipo'),
                  ('cita.html', 'cita'), (f'cita.html#/aviso/{idc}', 'ficha del cliente'), ('prueba.html', 'tres móviles')]
         m = vigila(await oye(await ctx.new_page(), 'anchos'))
         for w in (320, 375, 390, 430, 768, 1024, 1440):
@@ -354,7 +355,7 @@ async def main():
         for url, nombre in rutas:
             if not await ir(m, url, nombre): continue
             await m.wait_for_timeout(250)
-            r = await m.evaluate("""(()=>{const vis=e=>{const s=getComputedStyle(e);return s.display!=='none'&&s.visibility!=='hidden'&&e.getClientRects().length};
+            r = await m.evaluate("""(()=>{const vis=e=>{const s=getComputedStyle(e),d=e.closest('details:not([open])');return s.display!=='none'&&s.visibility!=='hidden'&&e.getClientRects().length&&!(d&&!e.closest('summary'))};
              const sinNombre=[...document.querySelectorAll('button,a[href],[role=button]')].filter(vis).filter(b=>!(b.getAttribute('aria-label')||b.innerText.trim()||b.title||b.querySelector('img[alt]:not([alt=""])'))).map(b=>b.outerHTML.slice(0,80));
              const sinEtiqueta=[...document.querySelectorAll('input:not([type=hidden]),textarea,select')].filter(i=>!(i.labels&&i.labels.length)&&!i.getAttribute('aria-label')&&!i.getAttribute('aria-labelledby')&&!(i.type==='radio'||i.type==='checkbox')&&!i.closest('label')).filter(i=>i.type!=='file'||vis(i)).map(i=>i.id||i.name||i.type);
              const imgs=[...document.querySelectorAll('img')].filter(i=>!i.hasAttribute('alt')).map(i=>i.src.slice(0,40));

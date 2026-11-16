@@ -49,6 +49,8 @@ g.OFICIO_NEGOCIO={
   regleta:{t:'Regletas y bornes',p10:5,mat:1},
   cuadro:{t:'Cuadro eléctrico de 12 módulos, instalado',p21:290,mat:1,base:'ele-cuadro',dur:[180,360]},
   revinst:{t:'Revisión de la instalación eléctrica',p21:40,base:'ele-revision',dur:[40,75]}},
+ /* la furgoneta: lo que lleva siempre cada una, [mínimo, máximo]. Solo cuenta en la de quien lleva la cuenta en la app */
+ furgoneta:{diferencial:[1,2],magneto:[2,4],mecanismo:[4,10],cable:[2,5],caja:[3,8],regleta:[4,10]},
  averias:[
   {id:'salta',n:'Salta el diferencial',c:'Diferencial',d:'Se va la luz de toda la casa.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:2},{k:'diferencial'}],dur:[30,90],ini:[{k:'visita'},{k:'horas',q:1}],chips:['diferencial','magneto','cable','cuadro']},
   {id:'sinluz',n:'Sin luz en una zona',c:'Sin luz',d:'Una habitación o varios enchufes.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:1.5},{k:'magneto'},{k:'cable'}],dur:[30,90],ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','cable','caja','regleta']},
