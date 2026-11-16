@@ -51,6 +51,25 @@ const R=SV?(function(){
  /* ¿tiene el servidor los mismos datos del negocio que esta app? Si no, se dice en «Tu sesión» (16-11-2026) */
  const miHuella=typeof K.huellaDatos==='function'?K.huellaDatos(N).catch(()=>''):Promise.resolve('');
  function comparaDatos(h){if(typeof h!=='string'||!h)return;miHuella.then(m=>{const mal=!!m&&m!==h;if(mal!==datosMal){datosMal=mal;avisa()}})}
+ /* los datos del negocio que tiene el servidor (16-11-2026). Al entrar, la app manda la huella de los que ya tiene y, si
+    no son los mismos, el servidor se los da: desde ese momento hace las cuentas con ellos (precios, horarios, el equipo) y
+    no con el archivo público, que solo hace falta para pedir cita. Se guardan en el aparato para abrir sin red, y se
+    quitan al salir. Si cambian en el servidor (lo dice su huella al leer o al mandar), se vuelven a pedir */
+ const K_DAT=CLAVE+':datos',N0=JSON.parse(JSON.stringify(N));let hSrv='',pideDatos=0;
+ function ponDatos(d,sin){if(!d||typeof d!=='object'||Array.isArray(d)||d.id!==N.id||!Array.isArray(d.tecnicos))return false;
+  const sv=N.servidor,tx=N.textos,x=Object.assign({},d);if(!sin){x.servidor=sv;if(x.textos===undefined&&tx!==undefined)x.textos=tx}
+  let c;try{c=K.cfgDe(x)}catch(e){return false}   /* unos datos que no valen no se ponen: sigue con los que tenía */
+  for(const k of Object.keys(N))delete N[k];Object.assign(N,x);for(const k of Object.keys(cfg))delete cfg[k];Object.assign(cfg,c);return true}
+ {const x=leeJ(K_DAT);if(x&&typeof x.h==='string'&&ponDatos(x.d))hSrv=x.h}
+ function datosDe(r){if(!r||typeof r.huella!=='string')return false;
+  if(r.datos&&ponDatos(r.datos)){hSrv=r.huella;mem.set(K_DAT,JSON.stringify({h:r.huella,d:r.datos}));return true}
+  /* sin datos: o ya los tenía o el servidor aún no los da (uno de antes del 16-11-2026). En los dos casos se queda con
+     esa huella, para no pedirlos una y otra vez */
+  if(!r.datos)hSrv=r.huella;
+  return false}
+ function vuelveArchivo(){mem.del(K_DAT);hSrv='';pideDatos=0;ponDatos(JSON.parse(JSON.stringify(N0)),true)}
+ function mira(h){comparaDatos(h);if(typeof h!=='string'||!h||h===hSrv||!ses||Date.now()-pideDatos<60000)return;pideDatos=Date.now();const yo=ses;
+  juez({que:'entrar',negocio:N.id,persona:yo.persona,codigo:yo.codigo,huella:hSrv},20000).then(r=>{if(ses===yo&&r&&r.ok&&datosDe(r))avisa()}).catch(()=>{})}
  /* lo que el servidor no aceptó se queda apuntado en el aparato hasta que se lea: un aviso de unos segundos no basta */
  /* las fotos (16-11-2026): el aviso lleva la referencia de cada una («f:…») y la foto se pide al verla, a quien la puede ver.
     Quedan en memoria mientras la app está abierta. Mientras llega, un hueco del mismo tamaño; sin red, se pide otra vez luego */
@@ -87,12 +106,12 @@ const R=SV?(function(){
  function programa(ms){clearTimeout(tm);if(ses)tm=setTimeout(ciclo,ms==null?ritmo():ms)}
  /* el código ya no vale: se vuelve a la pantalla de entrar. Lo que faltaba por enviar se queda guardado para cuando entre otra vez. */
  function fuera(err){if(err==='bloqueo'){motivo='bloqueo';fallos=Math.max(fallos,4);avisa();return}
-  guardaSrv();ses=null;E=null;mem.del(K_SES);motivo='clave';clearTimeout(tm);avisa()}
+  guardaSrv();ses=null;E=null;mem.del(K_SES);vuelveArchivo();motivo='clave';clearTimeout(tm);avisa()}
  /* Una vuelta: si hay algo por enviar, se manda lo primero; si no, se pregunta si hay algo nuevo. Nunca dos llamadas a la vez. */
  async function vuelta(yo){
   const p=E.siguiente();
   if(p){const res=await juez(con({que:'hacer',accion:p.accion,clave:p.clave,desde:p.desde,t:p.t,ya:Date.now()}),45000);if(ses!==yo)return;   /* t y ya: cuándo se hizo y qué hora es ahora, los dos con el reloj del aparato: el servidor mira cuánto hace */
-   const x=E.respuesta(p.clave,res);if(res&&res.ok)comparaDatos(res.huella);
+   const x=E.respuesta(p.clave,res);if(res&&res.ok)mira(res.huella);
    if(x.tipo==='hecha'||x.tipo==='rechazada'){bien();motivo='';ultimo=Date.now();guardaSrv();
     if(x.tipo==='rechazada'&&!x.crea){apuntaRechazo(x);rech.forEach(f=>{try{f({accion:x.accion,err:x.err})}catch(e){console.error(e)}})}
     avisa()}
@@ -104,7 +123,7 @@ const R=SV?(function(){
   if(!r.ok){if(r.err==='clave'||r.err==='bloqueo')fuera(r.err);else mal();return}
   if(r.v===E.v()){bien();if(motivo==='bloqueo'){motivo='';avisa()}return}
   const l=await juez(con({que:'leer',desde:entero?0:E.v()}),45000);if(ses!==yo)return;
-  if(l.ok){entero=false;bien();motivo='';comparaDatos(l.huella);if(E.llega(l.cambios)){ultimo=Date.now();guardaSrv();avisa()}}
+  if(l.ok){entero=false;bien();motivo='';mira(l.huella);if(E.llega(l.cambios)){ultimo=Date.now();guardaSrv();avisa()}}
   else if(l.err==='clave'||l.err==='bloqueo')fuera(l.err);else mal()}
  async function ciclo(){
   if(!ses||!E||vuela)return;vuela=true;const yo=ses;
@@ -116,13 +135,13 @@ const R=SV?(function(){
  const limpia=c=>{c=String(c||'').trim().toLowerCase();const x=c.replace(/[^a-z0-9]/g,'');return x.length===16?x.match(/.{4}/g).join('-'):c};
  async function entrar(persona,codigo){persona=String(persona||'').trim().toLowerCase();codigo=limpia(codigo);
   if(!persona||codigo.length<8)return{ok:false,err:'clave'};
-  const r=await juez({que:'entrar',negocio:N.id,persona,codigo});
-  if(!r.ok)return{ok:false,err:r.err||'red'};comparaDatos(r.huella);
+  const r=await juez({que:'entrar',negocio:N.id,persona,codigo,huella:hSrv});
+  if(!r.ok)return{ok:false,err:r.err||'red'};comparaDatos(r.huella);datosDe(r);
   if((r.rol!=='centralita'&&r.rol!=='tecnico')||(r.rol==='tecnico'&&!cfg.tec[r.id]))return{ok:false,err:'datos'};
   const antes=leeJ(K_SRV);if(antes&&antes.quien&&(antes.quien.rol!==r.rol||antes.quien.id!==r.id)){mem.del(K_SRV);mem.del(K_REC)}   /* lo guardado era de otra persona */
   abre({persona,codigo,rol:r.rol,id:r.rol==='centralita'?'oficina':r.id});mem.set(K_SES,JSON.stringify(ses));mem.set(K_ULT,persona);   /* quién entró la última vez en este aparato: para no tener que elegirlo otra vez */
   await ciclo();miraReglas();avisa();return{ok:true,rol:ses.rol,id:ses.id}}
- function salir(){ses=null;E=null;motivo='';clearTimeout(tm);mem.del(K_SES);mem.del(K_SRV);mem.del(K_REC);avisa()}
+ function salir(){ses=null;E=null;motivo='';clearTimeout(tm);mem.del(K_SES);mem.del(K_SRV);mem.del(K_REC);vuelveArchivo();avisa()}
  /* ¿lleva el servidor las mismas reglas que esta app? Si no, se dice en el menú: evita perseguir fallos que no lo son. */
  function miraReglas(){llama(URLF,{method:'GET'},12000).then(x=>{const v=x&&x.oficio&&x.oficio.reglas;if(typeof v==='string'&&v!==reglas){reglas=v;if(v!==K.VERSION)avisa()}})}
 

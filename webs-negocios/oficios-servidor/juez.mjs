@@ -148,7 +148,13 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
   }
 
   const QUE_HACE = {
-    async entrar(neg, cfg, p) { const w = await quien(neg, cfg, p); if (!w.ok) return w; return { ok: true, rol: w.q.rol, id: w.q.id, v: neg.v || 0, huella: await huella(neg) }; },
+    /* Los datos del negocio van con la respuesta si la app no tiene ya estos (16-11-2026): manda la huella de los suyos y,
+       si no es la misma, se le dan. Así la app hace las cuentas con lo mismo que el servidor, y el archivo público del
+       negocio (el que lee la página de citas) no tiene por qué llevar lo que es solo de dentro, como el equipo */
+    async entrar(neg, cfg, p) { const w = await quien(neg, cfg, p); if (!w.ok) return w; const h = await huella(neg);
+      const r = { ok: true, rol: w.q.rol, id: w.q.id, v: neg.v || 0, huella: h };
+      if (p.huella !== h && neg.datos && typeof neg.datos === 'object' && !Array.isArray(neg.datos)) r.datos = neg.datos;
+      return r; },
 
     async leer(neg, cfg, p) { const w = await quien(neg, cfg, p); if (!w.ok) return w; return { ok: true, huella: await huella(neg), cambios: await cambios(neg, w.q, p.desde) }; },
 

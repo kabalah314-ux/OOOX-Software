@@ -41,6 +41,12 @@ negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como 
 - **La huella de los datos del negocio** va al entrar, al leer y al hacer (`huella`: los datos sin `servidor` ni `textos`,
   con las claves en orden, SHA-256 y 16 letras). La app la compara con la de su archivo y, si no es la misma, lo dice en
   «Tu sesión»: así se ve si alguien ha cambiado un precio en un sitio y no en el otro.
+- **Los datos del negocio, del servidor** (16-11-2026). Al entrar, la app manda la huella de los datos que ya tiene y,
+  si no es la misma, el servidor se los da (`datos`). Desde ese momento la app hace las cuentas con ellos (precios,
+  horarios, el equipo) y no con su archivo, que solo hace falta para pedir cita. Los guarda en el aparato para abrir
+  sin red y los quita al salir. Si la huella cambia al leer o al mandar (alguien ha subido datos nuevos), los vuelve a
+  pedir, como mucho una vez por minuto. Es el primer paso para que el archivo público no lleve al equipo (sus apellidos
+  y horarios): eso se hará cuando esta versión del servidor esté desplegada.
 - **Cada aviso guarda la versión en que cambió por última vez.** Un aparato pide «lo cambiado desde la versión N» y
   recibe solo eso.
 - **`de`**: los técnicos que han llevado alguna vez el aviso. Si deja de ser de uno, a ese le llega
@@ -70,7 +76,7 @@ Contesta siempre `{ok:true, …}` o `{ok:false, err}`. Nunca lanza.
 
 | `que` | Quién | Manda | Recibe |
 |---|---|---|---|
-| `entrar` | Oficina o técnico | `negocio, persona, codigo` | `rol, id, v, huella` |
+| `entrar` | Oficina o técnico | `negocio, persona, codigo` y, si la tiene, la `huella` de sus datos | `rol, id, v, huella` y, si su huella no es la del servidor, `datos` |
 | `hacer` | Oficina o técnico | lo anterior y `accion`, `desde`, `clave`; y `t`, `ya` si se hizo sin conexión | `r` (lo que dicen las reglas), `v`, `cambios`, `huella` |
 | `leer` | Oficina o técnico | `negocio, persona, codigo, desde` | `cambios`, `huella` |
 | `pedir` | Cualquiera, desde la web | `negocio, accion` (solo `pedir`), `clave` | `id, llave` y nada más |
@@ -117,8 +123,15 @@ lleve el equipo), `tel`
 
 ## Dar de alta un negocio en el servidor
 
-Lo hace Claude con el conector de Supabase (o Oscar en el editor de SQL). Hoy es a mano; pasarlo a `copias.mjs` está
-en la lista de lo que falta.
+Desde el 16-11-2026 lo prepara `copias.mjs` y lo pasa Claude con el conector de Supabase (o Oscar en el editor de SQL):
+
+    node copias.mjs alta <id> [--sql <archivo>]          el SQL del alta y, en pantalla y UNA sola vez, el código de cada persona
+    node copias.mjs subir-datos <id> [--sql <archivo>]   el SQL con los datos nuevos de la copia y la huella que dará el servidor
+
+El SQL va a un archivo que solo lee quien lo hace (por defecto, en la carpeta temporal) y no lleva ningún código: solo
+sus huellas. Comprueba antes que el negocio está en el buzón y que no está ya en el servidor, y va entero o nada. Lo
+prueban `prueba-copias.mjs` y, en un Postgres de verdad, `prueba-restaurar.sh`. Lo que hace, paso a paso (y como se
+hacía a mano antes):
 
 1. El negocio tiene que estar ya en `oficios.negocios` (lo crea el alta del buzón de mejoras).
 2. Sus datos, tal cual el archivo `js/oficio-datos.js` pero en JSON y **sin** la línea `servidor`, en `oficios.estados`
@@ -130,8 +143,9 @@ en la lista de lo que falta.
 4. En el archivo de datos de la copia, la línea `servidor:{url:'https://<proyecto>.supabase.co', llave:'<llave pública>'}`.
    Sin ella la app sigue guardando todo en el navegador.
 5. Si después cambian los datos del negocio (precios, técnicos, horarios), hay que cambiarlos en los dos sitios: el
-   archivo de la copia y `oficios.estados.datos`. Si no, la app y el servidor harían cuentas distintas (ganaría el
-   servidor, pero la pantalla bailaría un momento).
+   archivo de la copia y `oficios.estados.datos` (`node copias.mjs subir-datos <id>`). Si no, la app y el servidor
+   harían cuentas distintas (ganaría el servidor, pero la pantalla bailaría un momento), y «Tu sesión» lo avisa. A un
+   técnico nuevo le da su código el dueño desde su app («Equipo y accesos»).
 
 Para retirar el acceso a alguien, desde el 16-11 lo hace el propio negocio: **«Tu sesión» → «Equipo y accesos»** (la
 oficina o el técnico que es el dueño). «Quitar el acceso» y «Código nuevo» piden confirmarlo; el código nuevo sale una

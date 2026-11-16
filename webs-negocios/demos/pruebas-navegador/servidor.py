@@ -146,12 +146,17 @@ async def main():
         es(await pasa(t2, "Oficio.red().rech===0&&document.querySelector('#red').hidden&&!document.querySelector('dialog[open]')"), 'al leerlo, la lista se borra y el aviso de arriba se quita')
         es(await t2.evaluate("Oficio.red().datos===false") and await o.evaluate("Oficio.red().datos===false"), 'los datos del negocio de la app y los del servidor son los mismos: no sale el aviso de datos distintos')
         # si alguien cambia un precio en el servidor y no en la app (o al revés), «Tu sesión» lo dice
-        api('__prueba/precio', {'mas': 1}); await o.reload(); await o.wait_for_selector('[data-a=menu]')
+        P10 = api('__prueba/precio', {'mas': 1})['p10']; await o.reload(); await o.wait_for_selector('[data-a=menu]')
         es(await pasa(o, "Oficio.red().datos===true"), 'con un precio distinto en el servidor, la app se da cuenta (al abrirse, y con cada cambio que lee o manda)')
+        # y desde el 16-11-2026 hace las cuentas con los datos del servidor, que le da al ver que su huella ha cambiado
+        PRIMERO = "(()=>{const c=Oficio.N.catalogo;return c[Object.keys(c)[0]].p10})()"
+        es(await pasa(o, f'{PRIMERO}==={P10}') and f'"p10":{P10}' in (await o.evaluate(f"localStorage.getItem('oficio:{N['id']}:datos')") or ''),
+           'y hace las cuentas con los datos del servidor, que guarda en el aparato para abrir sin red')
         await o.click('[data-a=menu]'); await o.wait_for_selector('#mSal')
         es(await o.locator('#mDatos').count() == 1 and 'no son los del servidor' in await o.inner_text('#mDatos'), 'y en «Tu sesión» dice que avise a OOOX')
         await o.keyboard.press('Escape'); api('__prueba/precio', {'mas': -1}); await o.reload(); await o.wait_for_selector('[data-a=menu]')
         es(await pasa(o, "Oficio.red().datos===false") and await o.locator('#mDatos').count() == 0, 'vuelve a ser el mismo precio: el aviso se quita')
+        es(await pasa(o, f'{PRIMERO}==={P10 - 1}'), 'y vuelve a hacer las cuentas con el precio de siempre')
         await o.click(f'.tec[data-tec={T2}]')
         es(await pasa(t2, tiene(A1, 'asignado')) and await pasa(t1, f"!Oficio.estado().avisos.find(a=>a.id==='{A1}')"), 'la oficina se lo devuelve: vuelve al primero y se le quita al segundo')
 
@@ -395,6 +400,7 @@ async def main():
         await o.goto(B + 'app.html#/bandeja'); await o.wait_for_selector('[data-a=menu]'); await o.click('[data-a=menu]'); await o.wait_for_selector('#mSal'); await o.wait_for_timeout(250); await o.click('#mSal')
         es(await pasa(o, "!!document.querySelector('#fEntra')") and await o.evaluate(f"localStorage.getItem('oficio:{N['id']}:sesion')===null&&localStorage.getItem('oficio:{N['id']}:srv')===null"), 'cerrar la sesión: vuelve a la pantalla de entrar y no deja nada guardado en el aparato')
         es('Marta' not in await o.inner_text('body') and await o.evaluate('Oficio.estado().avisos.length') == 0, 'y no queda a la vista ningún dato de clientes')
+        es(await o.evaluate(f"localStorage.getItem('oficio:{N['id']}:datos')===null"), 'ni los datos del negocio que le dio el servidor (el equipo es de dentro)')
         es(await o.input_value('#e_cod') == '' and await o.input_value('#e_quien') == 'oficina', 'la pantalla de entrar sale limpia: sin el código anterior y con quien usó este aparato')
         # la pantalla se vuelve a pintar sola (cambia la dirección, pasa un minuto): lo elegido y lo escrito no se pueden perder
         await o.select_option('#e_quien', T1); await o.locator('#e_cod').press_sequentially(COD[T1][:9]); await o.locator('h1').first.click()

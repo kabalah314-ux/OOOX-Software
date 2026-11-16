@@ -13,6 +13,9 @@ const SRV = path.resolve(process.env.OFICIOS_SERVIDOR_ORIGEN || path.join(aqui, 
 
 // [qué protección se quita, texto que hay, texto que se pone]
 const M = [
+  // los datos del negocio al entrar (16-11-2026)
+  ['al entrar, los datos del negocio no van nunca', "if (p.huella !== h && neg.datos && typeof neg.datos === 'object' && !Array.isArray(neg.datos)) r.datos = neg.datos;", ''],
+  ['al entrar, los datos del negocio van siempre, aunque la app ya los tenga', "if (p.huella !== h && neg.datos &&", 'if (neg.datos &&'],
   // las fotos, aparte del aviso (16-11-2026)
   ['la foto se queda dentro del aviso y del diario', "if (accion && typeof accion.foto === 'string' && K.esFoto(accion.foto)) { foto = { ref: await refDe(accion.foto), datos: accion.foto }; accion = Object.assign({}, accion, { foto: foto.ref }); }", ''],
   ['desde fuera vale mandar la referencia de una foto', "if (accion && K.esRef && K.esRef(accion.foto)) return { res: R('foto') };", ''],
@@ -25,7 +28,7 @@ const M = [
   ['lo hecho sin conexión puede ser de hace un mes', 'let t = hace > 0 ? n - Math.min(hace, HACE_MAX) : n;', 'let t = hace > 0 ? n - hace : n;'],
   ['lo hecho sin conexión puede quedar antes de lo último del aviso', 'if (A && Array.isArray(A.h)) for (const x of A.h) if (x && Number.isFinite(x.t) && x.t > t) t = Math.min(x.t, n);', ''],
   ['el juez se cree la hora del reloj del aparato', "cuando.t > 0 ? cuando.ya - cuando.t : 0;\n  let t = hace > 0 ? n - Math.min(hace, HACE_MAX) : n;", "cuando.t > 0 ? cuando.ya - cuando.t : 0;\n  let t = hace > 0 ? Math.min(cuando.t, n) : n;"],
-  ['al entrar no se dice la huella de los datos', ", v: neg.v || 0, huella: await huella(neg) }; },", ", v: neg.v || 0 }; },"],
+  ['al entrar no se dice la huella de los datos', "v: neg.v || 0, huella: h };", 'v: neg.v || 0 };'],
   ['al leer no se dice la huella de los datos', "return { ok: true, huella: await huella(neg), cambios:", "return { ok: true, cambios:"],
   ['al hacer no se dice la huella de los datos', "cambios: await cambios(n2, w.q, p.desde), huella: await huella(n2) })", "cambios: await cambios(n2, w.q, p.desde) })"],
   ['tras diez códigos fallados se sigue entrando con el bueno', "if (e === 'bloqueo') return R('bloqueo');", "if (e === 'bloqueo') return { ok: true, q: { rol: 'centralita', id: 'oficina' } };"],

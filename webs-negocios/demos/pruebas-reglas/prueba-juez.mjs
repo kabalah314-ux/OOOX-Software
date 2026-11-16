@@ -435,7 +435,12 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   const ha = await hacer(OV, { tipo: 'anotar', id, obs: 'Lleva la huella' });
   es(/^[0-9a-f]{16}$/.test(hV) && en.huella === hV && le.huella === hV && ha.ok && ha.huella === hV && await K.huellaDatos(NV2) !== hV, 'entrar, leer y hacer dicen la huella de los datos que tiene el servidor: la del archivo; con otro precio, otra');
   const en2 = await J.atiende({ que: 'entrar', negocio: 'voltio-hora', persona: 'oficina', codigo: 'otro' });
-  es(!en2.ok && !('huella' in en2), 'sin código bueno, ni la huella'); }
+  es(!en2.ok && !('huella' in en2), 'sin código bueno, ni la huella');
+  // los datos del negocio al entrar (16-11-2026): van si la app no los tiene ya; con la huella buena, no
+  es(en.ok && en.datos && JSON.stringify(en.datos) === JSON.stringify(NV), 'al entrar sin huella, el servidor da sus datos del negocio, tal cual y en su orden');
+  const en3 = await J.atiende(Object.assign({ que: 'entrar', huella: hV }, OV)), en4 = await J.atiende(Object.assign({ que: 'entrar', huella: 'otra-huella-0000' }, OV));
+  es(en3.ok && en3.huella === hV && !('datos' in en3) && en4.ok && JSON.stringify(en4.datos) === JSON.stringify(NV), 'con la huella de los que tiene, no se los vuelve a dar; con otra, sí');
+  es(!en2.ok && !('datos' in en2), 'sin código bueno, ni los datos'); }
 
 // las fotos, aparte del aviso (16-11-2026): el aviso y el diario llevan la referencia; la foto, una sola vez en el almacén
 { A.alta('voltio-fotos', NV, K.ESQ); A.persona('voltio-fotos', 'oficina', 'centralita', 'oficina', 'codigo-oficina-f'); tecV.forEach(t => A.persona('voltio-fotos', t, 'tecnico', t, 'codigo-f-' + t));
