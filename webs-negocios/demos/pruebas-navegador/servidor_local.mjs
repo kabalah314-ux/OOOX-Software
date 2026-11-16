@@ -74,7 +74,7 @@ async function prueba(req, res, ruta) {
   if (que === 'codigos') return json(res, CODIGOS);
   if (que === 'cuenta') return json(res, cuenta);
   if (que === 'clientes') return json(res, Object.fromEntries([...crudo().clientes.entries()]));   // el código de la zona de cada teléfono
-  if (que === 'estado') { const n = crudo(); return json(res, { v: n.v, cab: n.cab, avisos: [...n.avisos.values()].map(f => Object.assign({}, f.datos, { foto: f.datos.foto ? '(foto)' : '', fotos: (f.datos.fotos || []).map(() => '(foto)') })).sort((a, b) => a.n - b.n), llaves: Object.fromEntries([...n.avisos.values()].map(f => [f.id, f.llave])), diario: n.diario.map(x => ({ v: x.v, q: x.q, tipo: x.accion.tipo, id: x.accion.id || '', clave: x.clave })) }); }
+  if (que === 'estado') { const n = crudo(); return json(res, { v: n.v, fotos: n.fotos ? n.fotos.size : 0, cab: n.cab, avisos: [...n.avisos.values()].map(f => Object.assign({}, f.datos, { foto: f.datos.foto ? '(foto)' : '', fotos: (f.datos.fotos || []).map(() => '(foto)') })).sort((a, b) => a.n - b.n), llaves: Object.fromEntries([...n.avisos.values()].map(f => [f.id, f.llave])), diario: n.diario.map(x => ({ v: x.v, q: x.q, tipo: x.accion.tipo, id: x.accion.id || '', clave: x.clave })) }); }
   if (que === 'reloj') { desfase = Number(c.desfase) || 0; return json(res, { ok: true, ahora: ahora() }); }
   if (que === 'red') { red = c.modo === 'cae' ? 'cae' : 'va'; lento = Math.max(0, Number(c.lento) || 0); return json(res, { ok: true, red, lento }); }
   if (que === 'pierde') { pierde = Math.max(0, Number(c.n) || 0); return json(res, { ok: true, pierde }); }

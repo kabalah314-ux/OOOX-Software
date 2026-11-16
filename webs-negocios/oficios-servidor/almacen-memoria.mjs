@@ -8,7 +8,7 @@ export function creaAlmacen({ ahora = () => Date.now(), estorbo = null } = {}) {
   const neg = id => N.get(id) || null;
   return {
     /* ---- para montar la prueba (el de verdad lo hace con SQL) ---- */
-    alta(id, datos, esq) { N.set(id, { id, activo: true, datos: copia(datos), v: 0, cab: { esq, n: 0, nu: 0, ausencias: [] }, avisos: new Map(), diario: [], personas: new Map(), fallos: [], topes: new Map(), clientes: new Map(), fallosCli: [] }); },
+    alta(id, datos, esq) { N.set(id, { id, activo: true, datos: copia(datos), v: 0, cab: { esq, n: 0, nu: 0, ausencias: [] }, avisos: new Map(), diario: [], personas: new Map(), fallos: [], topes: new Map(), clientes: new Map(), fallosCli: [], fotos: new Map() }); },
     persona(id, persona, rol, quien, codigo) { neg(id).personas.set(persona, { rol, id: quien, codigo }); },
     baja(id) { neg(id).activo = false; },
     crudo: id => neg(id),
@@ -34,9 +34,11 @@ export function creaAlmacen({ ahora = () => Date.now(), estorbo = null } = {}) {
       n.v = cambio.v; n.cab = copia(cambio.cab);
       for (const f of cambio.avisos) n.avisos.set(f.id, copia(f));
       n.diario.push(copia(cambio.diario));
+      for (const f of cambio.fotos || []) if (!n.fotos.has(f.ref)) n.fotos.set(f.ref, { aviso: f.aviso, datos: f.datos });   // la foto, una sola vez
       return { ok: true };
     },
     async cambios(id, desde) { const n = neg(id); return { v: n.v, cab: copia(n.cab), avisos: [...n.avisos.values()].filter(f => f.v > desde).map(copia) }; },
+    async foto(id, ref) { const n = neg(id), f = n && n.fotos.get(ref); return f ? copia(f) : null; },
     async vista(id, aviso, llave) { const n = neg(id), f = n && n.avisos.get(aviso); return f && f.llave && f.llave === llave ? copia(f.vista) : null; },
     async tope(id, clave, max, ventana) { const n = neg(id); if (!n) return false; const t = ahora(), L = (n.topes.get(clave) || []).filter(x => t - x < ventana); if (L.length >= max) { n.topes.set(clave, L); return false; } L.push(t); n.topes.set(clave, L); return true; },
     /* el equipo: quién tiene acceso (sin códigos), dar un código nuevo, quitar el acceso y lo último que se ha hecho */

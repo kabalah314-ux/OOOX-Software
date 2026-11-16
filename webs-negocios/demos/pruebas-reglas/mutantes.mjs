@@ -353,6 +353,9 @@ const M = [
   ['se suelta un aviso que no tiene técnico', "if(A.e!=='asignado')return R('estado');\n  log(A,'Sin técnico: '", "if(!['asignado','nuevo'].includes(A.e))return R('estado');\n  log(A,'Sin técnico: '"],
   ['al soltar el aviso sigue asignado', "A.tec='';A.e='nuevo';delete A.reasignar;sinMsg(A,['cita','vispera']);return ok()}", "A.tec='';delete A.reasignar;sinMsg(A,['cita','vispera']);return ok()}"],
   ['al soltar se quedan los mensajes de la cita', "delete A.reasignar;sinMsg(A,['cita','vispera']);return ok()}", "delete A.reasignar;return ok()}"],
+  // las fotos aparte (16-11-2026)
+  ['vale cualquier cosa que empiece por «f:» como foto', "const esRef=f=>typeof f==='string'&&/^f:[0-9a-f]{16}$/.test(f)", "const esRef=f=>typeof f==='string'&&/^f:/.test(f)"],
+  ['al pedir, la referencia de la foto no vale', "foto:fotoVale(a.foto)?a.foto:'',cli:d.cli,", "foto:esFoto(a.foto)?a.foto:'',cli:d.cli,"],
   // es garantía, corregir la forma de pago y rebajar el precio (16-11-2026)
   ['la garantía la puede poner cualquiera', "case 'garantia':{\n  if(!esC)return R('permiso');", "case 'garantia':{\n  "],
   ['la garantía se pone o se quita con el trabajo empezado', "if(!esC)return R('permiso');if(!['nuevo','asignado','camino','ausente'].includes(A.e))return R('estado');\n  if(a.quitar===true)", "if(!esC)return R('permiso');\n  if(a.quitar===true)"],

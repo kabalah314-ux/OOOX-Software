@@ -146,10 +146,12 @@ begin
   update oficios.avisos set datos = jsonb_set(datos, '{t}', to_jsonb(floor(extract(epoch from now() - interval '40 months') * 1000)::bigint)) where negocio = 'prueba-mant' and id = 'PM-2';
   r := array_append(r, case when (oficios.caducados(36)->>'prueba-mant')::int = 1 and oficios.caducados(48)->>'prueba-mant' is null then '17:ok' else '17:MAL' end);
 
-  -- 18. olvidar: primero se simula y no cambia nada
+  -- 18. olvidar: primero se simula y no cambia nada (con una foto de su aviso, que va aparte desde el 16-11-2026)
+  insert into oficios.fotos(negocio, ref, aviso, datos) values ('prueba-mant', 'f:00000000000000aa', 'PM-1', 'data:image/jpeg;base64,AAAA');
   select v into v1 from oficios.estados where negocio = 'prueba-mant';
   j := oficios.olvidar_cliente('prueba-mant', '+34 600 00 01 99');
-  r := array_append(r, case when (j->>'ok')::boolean and (j->>'simulado')::boolean and j->'avisos' = '["PM-1"]'::jsonb and (j->>'diario')::int = 4 and (j->>'contratos')::int = 1 and (j->>'zona')::boolean
+  r := array_append(r, case when (j->>'ok')::boolean and (j->>'simulado')::boolean and j->'avisos' = '["PM-1"]'::jsonb and (j->>'diario')::int = 4 and (j->>'contratos')::int = 1 and (j->>'zona')::boolean and (j->>'fotos')::int = 1
+                             and exists (select 1 from oficios.fotos where negocio = 'prueba-mant' and ref = 'f:00000000000000aa')
                              and (select datos->'cli'->>'nombre' from oficios.avisos where id = 'PM-1' and negocio = 'prueba-mant') = 'Ana'
                              and (select v from oficios.estados where negocio = 'prueba-mant') = v1 then '18:ok' else '18:MAL ' || j::text end);
   -- 19. con un aviso suyo aún abierto no hace nada, aunque se pida aplicar
@@ -167,7 +169,8 @@ begin
                              and k->>'nota' = '' and k->>'foto' = '' and k->'pres'->>'firma' = '' and (k->>'tot')::numeric = 120.5 and k->>'av' = 'fuga' and k->>'e' = 'hecho'
                              and (select llave from oficios.avisos where negocio = 'prueba-mant' and id = 'PM-1') <> ll
                              and (select v from oficios.avisos where negocio = 'prueba-mant' and id = 'PM-1') = v1 + 1 and (select v from oficios.estados where negocio = 'prueba-mant') = v1 + 1
-                             then '20:ok' else '20:MAL ' || k::text end);
+                             and (j->>'fotos')::int = 1 and not exists (select 1 from oficios.fotos where negocio = 'prueba-mant' and aviso = 'PM-1')
+                             then '20:ok' else '20:MAL ' || k::text || ' ' || j::text end);
   -- 21. …en el diario y en los contratos ya no queda nada suyo, y lo del otro cliente sigue igual
   select string_agg(accion::text || res::text || nuevos::text, ' ') into t from oficios.diario where negocio = 'prueba-mant' and v <= 4;
   r := array_append(r, case when position('600000199' in t) = 0 and position('Falsa' in t) = 0 and position('Pierde' in t) = 0 and position('M1 2 3 4' in t) = 0 and position('llaveoriginaldelaviso1234' in t) = 0

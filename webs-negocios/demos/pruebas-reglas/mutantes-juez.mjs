@@ -13,6 +13,13 @@ const SRV = path.resolve(process.env.OFICIOS_SERVIDOR_ORIGEN || path.join(aqui, 
 
 // [qué protección se quita, texto que hay, texto que se pone]
 const M = [
+  // las fotos, aparte del aviso (16-11-2026)
+  ['la foto se queda dentro del aviso y del diario', "if (accion && typeof accion.foto === 'string' && K.esFoto(accion.foto)) { foto = { ref: await refDe(accion.foto), datos: accion.foto }; accion = Object.assign({}, accion, { foto: foto.ref }); }", ''],
+  ['desde fuera vale mandar la referencia de una foto', "if (accion && K.esRef && K.esRef(accion.foto)) return { res: R('foto') };", ''],
+  ['la foto no se guarda en el almacén', "const fotos = foto ? [{", "const fotos = false ? [{"],
+  ['un técnico ve las fotos de todos los avisos', "(q.rol === 'centralita' || (paraQuien(q, fila) || {}).datos)", "(q.rol === 'centralita' || q.rol === 'tecnico')"],
+  ['el cliente ve las fotos de cualquiera', ": K.tel9(A.cli && A.cli.tel) === tel);", ": true);"],
+  ['la foto se da sin mirar el código', "else { const w = await quien(neg, cfg, p); if (!w.ok) return w; q = w.q; }", "else { q = { rol: 'centralita', id: 'oficina' }; }"],
   // la hora de lo hecho sin conexión y la huella de los datos (16-11-2026)
   ['lo hecho sin conexión se apunta con la hora en que llega', "t = horaDe(ahora(), cuando, typeof accion.id === 'string' ? S.avisos.find(a => a.id === accion.id) : null);", 't = ahora();'],
   ['lo hecho sin conexión puede ser de hace un mes', 'let t = hace > 0 ? n - Math.min(hace, HACE_MAX) : n;', 'let t = hace > 0 ? n - hace : n;'],

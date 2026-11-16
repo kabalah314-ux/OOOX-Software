@@ -23,7 +23,9 @@ function marcaNueva(){let s='';const c=g.crypto;
  if(c&&c.getRandomValues){const b=new Uint8Array(20);c.getRandomValues(b);for(let i=0;i<b.length;i++)s+=ABC[b[i]%ABC.length]}
  else for(let i=0;i<20;i++)s+=ABC[Math.floor(Math.random()*ABC.length)];
  return s}
-const sinFotos=a=>(a.foto||(a.fotos&&a.fotos.length))?Object.assign({},a,{foto:'',fotos:[]}):a;
+/* lo que se guarda en el aparato va sin las fotos; las referencias («f:…», 16-11-2026) sí, que no pesan y sirven para pedirlas */
+const esDato=f=>typeof f==='string'&&f.startsWith('data:');
+const sinFotos=a=>(esDato(a.foto)||(a.fotos||[]).some(esDato))?Object.assign({},a,{foto:esDato(a.foto)?'':a.foto,fotos:(a.fotos||[]).filter(f=>!esDato(f))}):a;
 
 /* Mete en la base lo que manda el servidor: {v, entero, cab, avisos:[{id,v,datos}|{id,v,fuera:true}]}.
    «ver» apunta en qué versión del negocio cambió cada aviso, para que una respuesta vieja no pise una nueva. */

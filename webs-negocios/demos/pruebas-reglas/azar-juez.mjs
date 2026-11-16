@@ -46,6 +46,7 @@ async function tanda(semilla) {
       () => ({ tipo: 'pedir', av: uno(d.N.averias).id, origen: 'llamada', cli: cli(d.N) }),
       () => ({ tipo: 'asignar', id, tec: uno(d.N.tecnicos).id }), () => ({ tipo: 'asignar', id, tec: uno(d.N.tecnicos).id }),
       () => ({ tipo: 'anotar', id, obs: 'Nota ' + Math.floor(rnd() * 1000) }), () => ({ tipo: 'cancelar', id, motivo: 'prueba' }),
+      () => ({ tipo: 'anotar', id, foto: 'data:image/jpeg;base64,' + 'F'.repeat(40 + Math.floor(rnd() * 6) * 4) }),   // fotos (16-11-2026): seis distintas, que se repiten
       () => ({ tipo: 'mover', id, cita: null }), () => ({ tipo: 'ausencia', tec: uno(d.N.tecnicos).id, de: K.madrid(reloj.t).date, a: K.masDias(K.madrid(reloj.t).date, Math.floor(rnd() * 3)), motivo: 'baja' }),
       () => ({ tipo: 'cobrar', id, modo: 'efectivo' }),
       () => furgo(d, uno(d.N.tecnicos).id), () => furgo(d, uno(d.N.tecnicos).id),
@@ -110,6 +111,9 @@ async function tanda(semilla) {
       let vc = 0;
       for (const x of n.diario) { const c0 = JSON.stringify(S.contratos || []), r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(x.accion)), x.q, x.t); ley(r.ok && S.v === x.v, 'el-diario-se-puede-repetir', id + ' v' + x.v); if (JSON.stringify(S.contratos || []) !== c0) vc = x.v; }
       const guardado = [...n.avisos.values()].map(f => f.datos).sort((a, b) => a.n - b.n), sin = a => { const y = Object.assign({}, a); delete y.llave; return y; };
+      /* las fotos (16-11-2026): ni en los avisos ni en el diario; cada referencia, con su foto guardada */
+      ley(!JSON.stringify(guardado).includes('data:image') && !JSON.stringify(n.diario).includes('data:image'), 'las-fotos-van-aparte', id);
+      for (const a of guardado) for (const r of [a.foto].concat(a.fotos || []).filter(Boolean)) ley(n.fotos && n.fotos.has(r) && n.fotos.get(r).datos.startsWith('data:image/'), 'cada-referencia-tiene-su-foto', a.id + ' ' + r);
       ley(igual(S.avisos, guardado.map(sin)), 'lo-guardado-es-el-diario', id);
       ley(igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc, furgos: S.furgos || {} }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0, furgos: {} }, n.cab)), 'la-cabecera-es-el-diario', id);
       const Sg = Object.assign({}, S, { avisos: guardado });

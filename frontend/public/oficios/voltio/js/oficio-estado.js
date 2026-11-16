@@ -52,6 +52,14 @@ const R=SV?(function(){
  const miHuella=typeof K.huellaDatos==='function'?K.huellaDatos(N).catch(()=>''):Promise.resolve('');
  function comparaDatos(h){if(typeof h!=='string'||!h)return;miHuella.then(m=>{const mal=!!m&&m!==h;if(mal!==datosMal){datosMal=mal;avisa()}})}
  /* lo que el servidor no aceptó se queda apuntado en el aparato hasta que se lea: un aviso de unos segundos no basta */
+ /* las fotos (16-11-2026): el aviso lleva la referencia de cada una («f:…») y la foto se pide al verla, a quien la puede ver.
+    Quedan en memoria mientras la app está abierta. Mientras llega, un hueco del mismo tamaño; sin red, se pide otra vez luego */
+ const FOTOS=new Map(),PIDE=new Map(),VACIA='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+ function fotoSrc(x,cli){if(typeof x!=='string'||!x)return'';if(!K.esRef||!K.esRef(x))return x;if(FOTOS.has(x))return FOTOS.get(x);
+  const t=PIDE.get(x);if(!t||Date.now()-t>30000){PIDE.set(x,Date.now());
+   const p=cli&&cli.tel?juez({que:'foto',negocio:N.id,tel:cli.tel,codigo:cli.codigo,ref:x},20000):ses?juez(con({que:'foto',ref:x}),20000):null;
+   if(p)p.then(r=>{if(r&&r.ok&&typeof r.datos==='string'&&K.esFoto(r.datos)){FOTOS.set(x,r.datos);PIDE.delete(x);avisa()}}).catch(()=>{})}
+  return VACIA}
  const rechazos=()=>{const L=leeJ(K_REC);return Array.isArray(L)?L.filter(x=>x&&typeof x==='object'):[]};
  const apuntaRechazo=x=>{const L=rechazos();L.push({t:Date.now(),tipo:String(x.accion&&x.accion.tipo||''),id:String(x.accion&&x.accion.id||''),err:String(x.err||'')});mem.set(K_REC,JSON.stringify(L.slice(-30)))};
  const oculto=()=>typeof document!=='undefined'&&document.hidden;
@@ -168,7 +176,7 @@ const R=SV?(function(){
 
  return{estado:()=>E?E.estado():VACIO,hacer:hacerS,crear:(a,q)=>q&&q.rol==='cliente'?pedirWeb(a):crearS(a),
   sesion:()=>ses?{rol:ses.rol,id:ses.id,persona:ses.persona}:null,ultima:()=>mem.get(K_ULT)||'',entrar,salir,huecos,vista,miraVista,llaveDe,ponLlave,perfil,acceso,equipo,
-  alRechazar:f=>{rech.push(f)},rechazos,olvidaRechazos:()=>{mem.del(K_REC);avisa()},
+  alRechazar:f=>{rech.push(f)},fotoSrc,rechazos,olvidaRechazos:()=>{mem.del(K_REC);avisa()},
   red:()=>({cola:E?E.pendientes():0,sinRed,lleno,motivo,reglas:reglas&&reglas!==K.VERSION?reglas:'',datos:datosMal,rech:rechazos().length,listo:!!E&&!entero})}   /* listo: ya ha leído entero lo del servidor */
 })():null;
 
@@ -200,9 +208,9 @@ const firmaSvg=d=>'<svg viewBox="0 0 300 110" fill="none" stroke="currentColor" 
 /* Lo que usan las pantallas. «crear» es para lo que tiene número propio (un aviso, una ausencia): devuelve una promesa,
    porque con servidor el número lo pone él. Sin servidor contesta al momento, igual que «hacer». */
 g.Oficio=R?{K,N,cfg,DEMO,SRV:true,estado:R.estado,hacer:R.hacer,crear:R.crear,reiniciar(){},suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
-  sesion:R.sesion,ultima:R.ultima,entrar:R.entrar,salir:R.salir,red:R.red,alRechazar:R.alRechazar,rechazos:R.rechazos,olvidaRechazos:R.olvidaRechazos,huecos:R.huecos,vista:R.vista,miraVista:R.miraVista,llaveDe:R.llaveDe,ponLlave:R.ponLlave,perfil:R.perfil,acceso:R.acceso,equipo:R.equipo}
+  sesion:R.sesion,ultima:R.ultima,entrar:R.entrar,salir:R.salir,red:R.red,alRechazar:R.alRechazar,fotoSrc:R.fotoSrc,rechazos:R.rechazos,olvidaRechazos:R.olvidaRechazos,huecos:R.huecos,vista:R.vista,miraVista:R.miraVista,llaveDe:R.llaveDe,ponLlave:R.ponLlave,perfil:R.perfil,acceso:R.acceso,equipo:R.equipo}
  :{K,N,cfg,DEMO,SRV:false,estado,hacer,crear:(a,q)=>Promise.resolve(hacer(a,q)),reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
-  sesion:()=>null,red:()=>null,alRechazar(){},rechazos:()=>[],olvidaRechazos(){}};
+  sesion:()=>null,red:()=>null,alRechazar(){},fotoSrc:x=>typeof x==='string'?x:'',rechazos:()=>[],olvidaRechazos(){}};
 /* Una copia de prueba (prueba:true en los datos del negocio) lo dice arriba en todas sus pantallas: así nadie la toma por un
    negocio en marcha. Va con sus colores puestos aquí para no depender de la hoja de estilos de cada página.
    En la cita y en la zona del cliente, en su idioma (js/oficio-idioma.js); en la oficina, en castellano. */

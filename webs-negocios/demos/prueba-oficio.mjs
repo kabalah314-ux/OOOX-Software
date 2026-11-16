@@ -1500,5 +1500,15 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
       'en el parte, cada línea en garantía dice «Incluido» (no «0,00 €») y que va en la garantía') }
 }
 
+// ---------- 51. las fotos, aparte (16-11-2026): con servidor, el aviso lleva la referencia de la foto («f:» y 16 letras) ----------
+{ const SV = K.nuevo(); let tv = Date.parse('2026-11-16T10:00:00+01:00'); const hv = (a, q) => K.aplicar(SV, cfg, a, q, tv += M), Ax = id => SV.avisos.find(a => a.id === id);
+  const cp = Object.keys(cfg.zonas.cp)[0], cli = n => ({ nombre: 'Fo', apellidos: 'Tos', tel: '60000097' + n, dir: 'C/ de las Fotos ' + n, cp }), REF = 'f:0123456789abcdef';
+  const a1 = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', foto: REF, cli: cli(1) }, C).id, a2 = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', foto: 'f:0123', cli: cli(2) }, C).id;
+  es(Ax(a1).foto === REF && Ax(a2).foto === '' && K.esRef(REF) && !K.esRef('f:0123') && !K.esRef('f:0123456789ABCDEF') && !K.esRef('data:image/png;base64,AAAA'), 'la referencia de una foto vale como foto; mal escrita, no se guarda');
+  const n1 = hv({ tipo: 'anotar', id: a1, foto: REF }, C), n2 = hv({ tipo: 'anotar', id: a1, foto: 'f:xyz' }, C);
+  es(n1.ok && Ax(a1).fotos.join() === REF && n2.err === 'foto' && Ax(a1).fotos.length === 1, 'al anotar, igual: la referencia vale y una mal escrita se rechaza');
+  for (let i = 0; i < 3; i++) hv({ tipo: 'anotar', id: a1, foto: REF }, C);
+  es(hv({ tipo: 'anotar', id: a1, foto: REF }, C).err === 'fotos' && Ax(a1).fotos.length === 4, 'y con referencias también caben cuatro fotos por aviso'); }
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

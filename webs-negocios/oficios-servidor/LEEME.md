@@ -33,6 +33,11 @@ negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como 
   y qué hora tiene al mandarla (`ya`), con su reloj; el juez cuenta cuánto hace (`ya − t`), así da igual que el reloj del
   aparato vaya mal. Como mucho tres días atrás y nunca antes de lo último apuntado en ese aviso (`horaDe`). El diario guarda
   esa hora (la columna `cuando` tiene la de llegada), y repetirlo sigue dando lo mismo.
+- **Las fotos, aparte** (16-11-2026). La foto que trae una acción (la del cliente al pedir, las del trabajo al anotar) se
+  guarda una sola vez en `oficios.fotos`, en la misma operación; el aviso y el diario llevan su referencia («f:» y 16
+  letras, la huella de la foto). Así cargar los avisos no carga las fotos. Una referencia solo la pone el juez: si llega
+  una desde fuera, `foto` (sería pedir la foto de otro). Las fotos no van en la copia de cada noche (pesan); sí en la
+  exportación del negocio, y se borran al olvidar a un cliente.
 - **La huella de los datos del negocio** va al entrar, al leer y al hacer (`huella`: los datos sin `servidor` ni `textos`,
   con las claves en orden, SHA-256 y 16 letras). La app la compara con la de su archivo y, si no es la misma, lo dice en
   «Tu sesión»: así se ve si alguien ha cambiado un precio en un sitio y no en el otro.
@@ -74,6 +79,7 @@ Contesta siempre `{ok:true, …}` o `{ok:false, err}`. Nunca lanza.
 | `acceso` | Solo la oficina | `negocio, persona, codigo, tel` y, para cambiarlo, `cambia: true` | `tel, codigo, nuevo` |
 | `perfil` | El cliente, en su zona | `negocio, tel, codigo` (el suyo) | `perfil`: `{tel, cli, avisos}`; cada aviso, con su `vista` y su `llave` |
 | `equipo` | La oficina o el técnico que es el dueño (`jefe`) | `negocio, persona, codigo` y, para cambiar algo, `hace` (`codigo` o `baja`) y `a` (la persona) | sin `hace`: `yo, equipo` (cada persona con `estado`: `sin`, `activo` o `baja`) y `accesos` (los 20 últimos cambios, sin códigos). Con `hace:'codigo'`: `persona, codigo, tuyo` (el código nuevo sale solo esta vez). Con `hace:'baja'`: `persona` (y `ya` si no tenía acceso) |
+| `foto` | La oficina, un técnico o el cliente en su zona | `negocio, persona, codigo` (o `tel, codigo`) y `ref` | `datos`: la foto, si quien la pide puede ver su aviso; si no, `nadie`, como si no existiera |
 
 `cambios` es `{v, entero, cab, avisos}`. `entero:true` quiere decir «tira lo que tengas y quédate con esto». La oficina
 recibe todos los avisos y la cabecera (contadores, ausencias y, desde el 15-11, los contratos de mantenimiento); un técnico,
@@ -172,9 +178,10 @@ Quince funciones. Devuelven siempre copias.
 | `entra(negocio, persona, codigo, red)` | `{rol, id}`, nada, o `'bloqueo'`. Cuenta los códigos fallados por conexión |
 | `vivos(negocio)` | Los avisos con los que trabajan las reglas: `[{id, v, datos, de, llave, vista}]`. Hoy son todos; cuando pesen, se archivan los cerrados antiguos |
 | `hecha(negocio, clave)` | El resultado guardado de una acción con esa marca, o nada |
-| `guarda(negocio, vAntes, {v, cab, avisos, diario})` | Guarda todo de una vez, solo si la versión sigue siendo `vAntes`. `{ok}` |
+| `guarda(negocio, vAntes, {v, cab, avisos, diario, fotos})` | Guarda todo de una vez, solo si la versión sigue siendo `vAntes`; las fotos (`[{ref, aviso, datos}]`), una sola vez. `{ok}` |
 | `cambios(negocio, desde)` | `{v, cab, avisos}` con los avisos cambiados después de esa versión |
 | `vista(negocio, aviso, llave)` | Lo que ve el cliente, si la llave es la de ese aviso |
+| `foto(negocio, ref)` | `{aviso, datos}` de esa foto, o nada |
 | `tope(negocio, clave, max, ventana)` | Frena abusos: `true` si aún cabe |
 | `cliente(negocio, tel)` | `{codigo, activo}` del código de la zona de ese teléfono, o nada |
 | `ponCliente(negocio, tel, codigo)` | Guarda el código de ese teléfono (el de antes deja de valer). `{ok}` |

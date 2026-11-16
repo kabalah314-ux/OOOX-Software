@@ -204,7 +204,7 @@ function vPapel(Pf,id,tipo){const A=Pf.avisos.find(x=>x.id===id),volver='<a clas
  if(!T.length)return'<div class="noimp">'+volver+'</div><h1>'+esc(avN(A))+'</h1><p class="lead">'+_('Este aviso todavía no tiene papeles: los tendrás cuando el técnico te dé el presupuesto.')+' <a href="'+enlace(A)+'">'+_('Mira cómo va')+'</a>.</p>';
  tipo=P.elige(A,tipo);
  return'<div class="noimp">'+volver+'<nav class="vdocs" aria-label="'+_('Papeles')+'">'+T.map(x=>'<a href="#/aviso/'+esc(A.id)+'/'+x[0]+'"'+(x[0]===tipo?' aria-current="page"':'')+'>'+x[1]+'</a>').join('')+'</nav></div>'+
-  '<article class="papel doc">'+P.doc(A,tipo,{K,N,cfg,firmaSvg:Oficio.firmaSvg})+DEMO_PAPEL()+'</article>'+IMPRIME()}
+  '<article class="papel doc">'+P.doc(A,tipo,{K,N,cfg,firmaSvg:Oficio.firmaSvg,foto:x=>{const se=sesion();return Oficio.fotoSrc?Oficio.fotoSrc(x,se?{tel:se.tel,codigo:se.cod}:null):x}})+DEMO_PAPEL()+'</article>'+IMPRIME()}
 
 function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/');return{v:h[0]||'',a:decodeURIComponent(h[1]||''),b:decodeURIComponent(h[2]||'')}}
 function pinta(){S=Oficio.estado();let r=ruta();

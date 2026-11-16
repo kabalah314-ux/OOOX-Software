@@ -260,6 +260,7 @@ begin
     'datos_negocio', (select e.datos::text from oficios.estados e where e.negocio = p_negocio),
     'cabecera', (select e.cab from oficios.estados e where e.negocio = p_negocio),
     'avisos', (select coalesce(jsonb_agg(a.datos order by a.id), '[]'::jsonb) from oficios.avisos a where a.negocio = p_negocio),
+    'fotos', (select coalesce(jsonb_agg(jsonb_build_object('ref', f.ref, 'aviso', f.aviso, 'datos', f.datos) order by f.cuando, f.ref), '[]'::jsonb) from oficios.fotos f where f.negocio = p_negocio),
     'diario', (select coalesce(jsonb_agg(jsonb_build_object('v', d.v, 'cuando', d.cuando, 'quien', d.q, 'accion', d.accion) order by d.v), '[]'::jsonb) from oficios.diario d where d.negocio = p_negocio),
     'personas', (select coalesce(jsonb_agg(jsonb_build_object('persona', p.persona, 'rol', p.rol, 'activo', p.activo, 'creada', p.creada) order by p.persona), '[]'::jsonb) from oficios.personas p where p.negocio = p_negocio),
     'peticiones', (select coalesce(jsonb_agg(jsonb_build_object('creada', x.creada, 'tipo', x.tipo, 'texto', x.texto, 'estado', x.estado, 'respuesta', x.respuesta) order by x.id), '[]'::jsonb) from oficios.peticiones x where x.negocio = p_negocio));
@@ -315,7 +316,7 @@ returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   t9 text := right(regexp_replace(coalesce(p_tel, ''), '[^0-9]', '', 'g'), 9);
   claves text[] := array['nombre','apellidos','tel','dir','cp','nota','foto','fotos','firma','email','correo','texto'];
-  ids text[]; abiertos text[]; nd int; nc int; zona boolean; ve bigint; cab jsonb;
+  ids text[]; abiertos text[]; nd int; nc int; nf int := 0; zona boolean; ve bigint; cab jsonb;
 begin
   if char_length(t9) <> 9 then return jsonb_build_object('ok', false, 'err', 'tel'); end if;
   select coalesce(array_agg(id order by id), '{}'), coalesce(array_agg(id order by id) filter (where datos->>'e' in ('nuevo','asignado','camino','curso')), '{}')
@@ -329,10 +330,12 @@ begin
   select count(*) into nc from jsonb_array_elements(case when jsonb_typeof(cab->'contratos') = 'array' then cab->'contratos' else '[]'::jsonb end) x
     where right(regexp_replace(coalesce(x->'cli'->>'tel', ''), '[^0-9]', '', 'g'), 9) = t9;
   select exists(select 1 from oficios.clientes c where c.negocio = p_negocio and right(regexp_replace(c.tel, '[^0-9]', '', 'g'), 9) = t9) into zona;
+  -- sus fotos, que van aparte del aviso desde el 16-11-2026 (oficios.fotos, en almacen.sql)
+  if to_regclass('oficios.fotos') is not null then execute 'select count(*) from oficios.fotos f where f.negocio = $1 and f.aviso = any($2)' into nf using p_negocio, ids; end if;
   if cardinality(abiertos) > 0 then
-    return jsonb_build_object('ok', false, 'err', 'abiertos', 'abiertos', to_jsonb(abiertos), 'avisos', to_jsonb(ids), 'diario', nd, 'contratos', nc, 'zona', zona); end if;
+    return jsonb_build_object('ok', false, 'err', 'abiertos', 'abiertos', to_jsonb(abiertos), 'avisos', to_jsonb(ids), 'diario', nd, 'contratos', nc, 'zona', zona, 'fotos', nf); end if;
   if not p_aplicar then
-    return jsonb_build_object('ok', true, 'simulado', true, 'avisos', to_jsonb(ids), 'diario', nd, 'contratos', nc, 'zona', zona); end if;
+    return jsonb_build_object('ok', true, 'simulado', true, 'avisos', to_jsonb(ids), 'diario', nd, 'contratos', nc, 'zona', zona, 'fotos', nf); end if;
   if cardinality(ids) = 0 and nd = 0 and nc = 0 and not zona then return jsonb_build_object('ok', false, 'err', 'nadie'); end if;
 
   select e.v + 1 into ve from oficios.estados e where e.negocio = p_negocio for update;
@@ -360,9 +363,10 @@ begin
       where e.negocio = p_negocio;
   end if;
   delete from oficios.clientes c where c.negocio = p_negocio and right(regexp_replace(c.tel, '[^0-9]', '', 'g'), 9) = t9;
+  if nf > 0 then execute 'delete from oficios.fotos f where f.negocio = $1 and f.aviso = any($2)' using p_negocio, ids; end if;   -- y sus fotos, borradas del todo
   insert into oficios.olvidos(negocio, huella, avisos, diario, contratos, zona)
   values (p_negocio, encode(sha256(convert_to(p_negocio || ':' || t9, 'UTF8')), 'hex'), cardinality(ids), nd, nc, zona);
-  return jsonb_build_object('ok', true, 'simulado', false, 'avisos', to_jsonb(ids), 'diario', nd, 'contratos', nc, 'zona', zona);
+  return jsonb_build_object('ok', true, 'simulado', false, 'avisos', to_jsonb(ids), 'diario', nd, 'contratos', nc, 'zona', zona, 'fotos', nf);
 end $$;
 
 -- Después de restaurar una copia vieja: vuelve a olvidar a los clientes que lo pidieron (los que están en «olvidos»).

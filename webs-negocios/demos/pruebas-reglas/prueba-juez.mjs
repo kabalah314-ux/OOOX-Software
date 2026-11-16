@@ -437,5 +437,36 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   const en2 = await J.atiende({ que: 'entrar', negocio: 'voltio-hora', persona: 'oficina', codigo: 'otro' });
   es(!en2.ok && !('huella' in en2), 'sin código bueno, ni la huella'); }
 
+// las fotos, aparte del aviso (16-11-2026): el aviso y el diario llevan la referencia; la foto, una sola vez en el almacén
+{ A.alta('voltio-fotos', NV, K.ESQ); A.persona('voltio-fotos', 'oficina', 'centralita', 'oficina', 'codigo-oficina-f'); tecV.forEach(t => A.persona('voltio-fotos', t, 'tecnico', t, 'codigo-f-' + t));
+  const OF2 = { negocio: 'voltio-fotos', persona: 'oficina', codigo: 'codigo-oficina-f' }, TF = t => ({ negocio: 'voltio-fotos', persona: t, codigo: 'codigo-f-' + t });
+  const FOTO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==', FOTO2 = 'data:image/jpeg;base64,' + 'B'.repeat(800);
+  const p = await hacer(OF2, { tipo: 'pedir', av: NV.averias[0].id, origen: 'llamada', foto: FOTO, cli: Object.assign(cliDe(NV), { tel: '612345688' }) }), id = p.r && p.r.id;
+  const X = crudo('voltio-fotos'), ref = X.avisos.get(id).datos.foto;
+  es(p.ok && /^f:[0-9a-f]{16}$/.test(ref) && !JSON.stringify([...X.avisos.values()]).includes('base64') && !JSON.stringify(X.diario).includes('base64') && X.fotos.get(ref).datos === FOTO && X.fotos.get(ref).aviso === id,
+    'la foto del cliente se guarda aparte y una vez: el aviso y el diario llevan solo su referencia');
+  es(!JSON.stringify(p.cambios).includes('base64'), 'y lo que se manda a los aparatos va sin la foto');
+  const f1 = await J.atiende(Object.assign({ que: 'foto', ref }, OF2));
+  es(f1.ok && f1.ref === ref && f1.datos === FOTO, 'la oficina pide la foto por su referencia y la recibe');
+  let tec = null; for (const x of tecV) if ((await hacer(OF2, { tipo: 'asignar', id, tec: x })).ok) { tec = x; break }
+  const otro = tecV.find(x => x !== tec), f2 = await J.atiende(Object.assign({ que: 'foto', ref }, TF(tec))), f3 = await J.atiende(Object.assign({ que: 'foto', ref }, TF(otro)));
+  es(tec && f2.ok && f2.datos === FOTO && !f3.ok && f3.err === 'nadie', 'su técnico la recibe; otro técnico no, como si no existiera');
+  const n1 = await hacer(TF(tec), { tipo: 'anotar', id, foto: FOTO2 }), A2 = () => crudo('voltio-fotos').avisos.get(id).datos;
+  es(n1.ok && A2().fotos.length === 1 && /^f:[0-9a-f]{16}$/.test(A2().fotos[0]) && crudo('voltio-fotos').fotos.size === 2, 'una foto del trabajo, igual: aparte, y en el aviso su referencia');
+  await hacer(TF(tec), { tipo: 'anotar', id, foto: FOTO2 });
+  es(crudo('voltio-fotos').fotos.size === 2 && A2().fotos.length === 2 && A2().fotos[0] === A2().fotos[1], 'la misma foto dos veces: el aviso la nombra dos veces y se guarda una');
+  const rr = await hacer(TF(tec), { tipo: 'anotar', id, foto: ref }), rp = await J.atiende({ que: 'pedir', negocio: 'voltio-fotos', red: 'r1', accion: { tipo: 'pedir', av: NV.averias[0].id, origen: 'web', foto: ref, cli: Object.assign(cliDe(NV), { nombre: 'Otra', tel: '612345666' }) } });
+  es(!rr.ok && rr.err === 'foto' && !rp.ok && rp.err === 'foto' && A2().fotos.length === 2, 'desde fuera no vale mandar una referencia (sería ver la foto de otro): solo fotos');
+  const malas = [await J.atiende(Object.assign({ que: 'foto', ref: 'f:123' }, OF2)), await J.atiende(Object.assign({ que: 'foto', ref: 'f:' + '0'.repeat(16) }, OF2)), await J.atiende({ que: 'foto', negocio: 'voltio-fotos', persona: 'oficina', codigo: 'otro-codigo', ref }), await J.atiende({ que: 'foto', negocio: 'voltio-fotos', ref })];
+  es(malas.map(x => x.err).join() === 'foto,nadie,clave,clave', `una referencia mal escrita, una que no existe, un código malo o ninguno: nada (${malas.map(x => x.err)})`);
+  const ac = await J.atiende(Object.assign({ que: 'acceso', tel: '612345688' }, OF2));
+  const fc = await J.atiende({ que: 'foto', negocio: 'voltio-fotos', tel: '612345688', codigo: ac.codigo, ref }), fo = await J.atiende({ que: 'foto', negocio: 'voltio-fotos', tel: '612345677', codigo: ac.codigo, ref });
+  es(ac.ok && fc.ok && fc.datos === FOTO && !fo.ok, 'el cliente, con su teléfono y su código, ve la foto de su aviso; con otro teléfono, no');
+  // otro cliente, con su propio código bueno, no ve la foto de este aviso
+  await hacer(OF2, { tipo: 'pedir', av: NV.averias[0].id, origen: 'llamada', cli: Object.assign(cliDe(NV), { nombre: 'Otro', tel: '612345633' }) });
+  const ac2 = await J.atiende(Object.assign({ que: 'acceso', tel: '612345633' }, OF2)), fx = await J.atiende({ que: 'foto', negocio: 'voltio-fotos', tel: '612345633', codigo: ac2.codigo, ref });
+  es(ac2.ok && !fx.ok && fx.err === 'nadie', 'otro cliente, con su código bueno, no ve la foto de un aviso que no es suyo');
+  es(repite('voltio-fotos', NV), 'repetir el diario da lo mismo, con las referencias'); }
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

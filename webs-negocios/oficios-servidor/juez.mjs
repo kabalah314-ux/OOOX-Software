@@ -17,7 +17,7 @@
 //    vez; se guarda solo su huella) o quitar el acceso. Nadie se queda fuera a sí mismo ni deja el negocio sin quien mande.
 //  - Nunca lanza un error hacia fuera: contesta siempre {ok:true,…} o {ok:false,err}.
 
-export const QUE = ['entrar', 'hacer', 'leer', 'pedir', 'huecos', 'ver', 'acceso', 'perfil', 'equipo'];
+export const QUE = ['entrar', 'hacer', 'leer', 'pedir', 'huecos', 'ver', 'acceso', 'perfil', 'equipo', 'foto'];
 export const TOPES = {
   accion: 400000,     // letras que puede pesar una acción (cabe una foto reducida)
   intentos: 5,        // veces que vuelve a leer si alguien se le adelanta
@@ -32,6 +32,15 @@ export const TOPES = {
    da igual que su reloj vaya adelantado o atrasado. Como mucho tres días atrás, y nunca antes de lo último apuntado en
    ese aviso: el historial del aviso no se desordena. Sin t o con algo raro, la hora del juez. */
 export const HACE_MAX = 3 * 86400000;
+
+/* LAS FOTOS, APARTE (16-11-2026). Una foto que llega en una acción (la del cliente al pedir, las del trabajo al anotar) no
+   se queda en el aviso ni en el diario: se guarda una sola vez en el almacén, junto con la acción, y el aviso lleva su
+   referencia: «f:» y 16 letras, la huella de la foto. Así cargar los avisos no carga las fotos, y una foto se pide al
+   verla (`que: 'foto'`), solo si quien la pide puede ver su aviso. */
+export async function refDe(foto) {
+  const d = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(foto));
+  return 'f:' + [...new Uint8Array(d)].slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 export function horaDe(n, cuando, A) {
   const hace = cuando && Number.isFinite(cuando.t) && Number.isFinite(cuando.ya) && cuando.t > 0 ? cuando.ya - cuando.t : 0;
   let t = hace > 0 ? n - Math.min(hace, HACE_MAX) : n;
@@ -113,7 +122,10 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
   /* pasa una acción por las reglas y la guarda. Si alguien se adelanta, vuelve a leer y lo intenta sobre lo nuevo.
      «clave» es la marca que pone el aparato a cada acción para que, si la manda dos veces, se haga una sola. Vale solo
      para quien la puso: así nadie recibe el resultado de la acción de otro por usar su misma marca. */
-  async function aplica(neg0, q, accion, marca, cuando) {
+  async function aplica(neg0, q, accion0, marca, cuando) {
+    let accion = accion0, foto = null;
+    if (accion && K.esRef && K.esRef(accion.foto)) return { res: R('foto') };   // una referencia solo la pone el juez: desde fuera sería ver la foto de otro
+    if (accion && typeof accion.foto === 'string' && K.esFoto(accion.foto)) { foto = { ref: await refDe(accion.foto), datos: accion.foto }; accion = Object.assign({}, accion, { foto: foto.ref }); }
     const clave = texto(marca, 64) && marca.length >= 12 ? (q.rol === 'cliente' ? 'web' : q.rol + ':' + q.id) + '|' + marca : '';
     for (let i = 0; i < TOPES.intentos; i++) {
       const neg = i ? await negocio(neg0.id) : neg0; if (!neg) return { res: R('clave') };
@@ -128,7 +140,8 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       const guardar = tocados.map(a => { const f = filas.get(a.id), de = new Set((f && f.de) || []); if (a.tec) de.add(a.tec);
         return { id: a.id, v: S.v, datos: a, de: [...de], llave: a.llave || (f && f.llave) || '', vista: K.vistaCliente(S, cfg, a.id) }; });
       const res = { ok: true, r, v: S.v };
-      const g = await almacen.guarda(neg.id, neg.v || 0, { v: S.v, cab: cabDe(S), avisos: guardar, diario: { v: S.v, t, q, accion, clave: clave || '', res, nuevos } });
+      const fotos = foto ? [{ ref: foto.ref, datos: foto.datos, aviso: accion.tipo === 'pedir' ? String(r.id || '') : String(accion.id || '') }] : [];
+      const g = await almacen.guarda(neg.id, neg.v || 0, { v: S.v, cab: cabDe(S), avisos: guardar, diario: { v: S.v, t, q, accion, clave: clave || '', res, nuevos }, fotos });
       if (g && g.ok) return { res, nuevos };
     }
     return { res: R('lleno') };   // demasiada gente a la vez: el aparato lo intenta otra vez
@@ -223,21 +236,42 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       return g && g.ok ? { ok: true, persona: p.a, codigo, tuyo: p.a === p.persona } : R('servidor');
     },
 
+    /* una foto, por su referencia: la oficina, cualquiera de su negocio; un técnico, la de un aviso que puede ver; el
+       cliente (con su teléfono y su código), la de un aviso suyo. A quien no puede verla se le dice lo mismo que si no
+       existiera */
+    async foto(neg, cfg, p) {
+      if (typeof p.ref !== 'string' || !/^f:[0-9a-f]{16}$/.test(p.ref)) return R('foto');
+      let q = null, tel = '';
+      if (p.tel != null) { const c = await cliente(neg, p); if (!c.ok) return c; tel = c.tel; }
+      else { const w = await quien(neg, cfg, p); if (!w.ok) return w; q = w.q; }
+      const f = await almacen.foto(neg.id, p.ref); if (!f || typeof f.datos !== 'string') return R('nadie');
+      const { filas } = await carga(neg), fila = filas.get(f.aviso), A = fila && fila.datos;
+      const puede = A && (q ? (q.rol === 'centralita' || (paraQuien(q, fila) || {}).datos) : K.tel9(A.cli && A.cli.tel) === tel);
+      return puede ? { ok: true, ref: p.ref, datos: f.datos } : R('nadie');
+    },
+
     /* El cliente, en su zona: con su teléfono y su código recibe sus avisos (K.perfilCliente) y nada de nadie más. Los
        códigos fallados los cuenta el almacén por teléfono y por conexión, también los de un teléfono que no es de ningún
        cliente: así el freno no deja averiguar qué teléfonos lo son. */
     async perfil(neg, cfg, p) {
-      const tel = K.tel9(p.tel), codigo = limpiaCodigo(p.codigo);
-      if (!tel || !codigo) return R('clave');
-      const ok = await almacen.clienteEntra(neg.id, tel, codigo, texto(p.red, 80) ? String(p.red) : '');
-      if (ok === 'bloqueo') return R('bloqueo');
-      if (ok !== true) return R('clave');
+      const c = await cliente(neg, p); if (!c.ok) return c; const tel = c.tel;
       const { S, filas } = await carga(neg), Pf = K.perfilCliente(S, cfg, tel);
       if (!Pf) return R('nadie');
       for (const a of Pf.avisos) { const f = filas.get(a.id); a.llave = f && f.llave ? f.llave : ''; }   // la de su enlace: para seguirlo en directo
       return { ok: true, perfil: Pf };
     },
   };
+
+  /* el cliente, con su teléfono y su código (en su zona, y para ver las fotos de sus avisos): {ok, tel} o el error. Los
+     códigos fallados los cuenta el almacén por teléfono y por conexión */
+  async function cliente(neg, p) {
+    const tel = K.tel9(p.tel), codigo = limpiaCodigo(p.codigo);
+    if (!tel || !codigo) return R('clave');
+    const ok = await almacen.clienteEntra(neg.id, tel, codigo, texto(p.red, 80) ? String(p.red) : '');
+    if (ok === 'bloqueo') return R('bloqueo');
+    if (ok !== true) return R('clave');
+    return { ok: true, tel };
+  }
 
   /** La única entrada. Nunca lanza: contesta {ok:true,…} o {ok:false,err}. */
   async function atiende(p) {

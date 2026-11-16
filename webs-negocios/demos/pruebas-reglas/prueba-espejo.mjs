@@ -280,5 +280,16 @@ if (cfg.mapa || true) {
     `el servidor la guarda con esa hora: salió hace dos horas, no ahora (${S && Math.round((S.datos.sal - tv) / 1000)} s de diferencia)`);
 }
 
+// 22. las fotos, aparte (16-11-2026): la foto sale del aparato, el servidor la guarda aparte y al aparato le vuelve su referencia
+{ const FOTO = 'data:image/jpeg;base64,' + 'C'.repeat(600); let id = null;
+  const pc = OF.E.crear({ tipo: 'pedir', av, origen: 'llamada', cli: cli(8) }).then(x => { id = x && x.id; }); await envia(OF); await pc;
+  const h = OF.E.hacer({ tipo: 'anotar', id, foto: FOTO });
+  es(h.ok && de(OF, id).fotos[0] === FOTO, 'sin respuesta aún, el aparato enseña la foto que acaba de hacer');
+  await envia(OF); await lee(OF);
+  const F = de(OF, id).fotos, g = JSON.stringify(OF.E.guardado());
+  es(F.length === 1 && /^f:[0-9a-f]{16}$/.test(F[0]) && A.crudo('voltio').fotos.get(F[0]).datos === FOTO, 'cuando el servidor contesta, el aviso lleva la referencia y la foto está en el servidor');
+  es(!g.includes('CCCCCCCC') && g.includes(F[0]), 'lo que guarda el aparato no lleva la foto, pero sí su referencia');
+}
+
 console.log((mal ? 'FALLAN ' + mal + ' de ' : 'Bien: ') + (ok + mal) + ' comprobaciones del espejo (lo que guarda cada aparato y cómo se pone de acuerdo con el servidor).');
 process.exit(mal ? 1 : 0);

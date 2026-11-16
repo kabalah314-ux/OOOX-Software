@@ -99,6 +99,8 @@ cuándo se espera que vuelva.
    una versión publicada llega a los móviles en cuanto tienen cobertura.
 8. Si un cambio toca los datos de un negocio que vive en el servidor (precios, equipo, averías…), hay que llevarlo también
    a `oficios.estados.datos` (sin `servidor` ni `textos`). Si no, «Tu sesión» avisa de que los datos no son los mismos.
+9. Las fotos van aparte del aviso desde el 16-11-2026 (`oficios.fotos`): la copia de cada noche no las lleva, para no
+   pesar; la exportación del negocio, sí, y «olvidar a un cliente» las borra.
 
 ## Datos personales
 
