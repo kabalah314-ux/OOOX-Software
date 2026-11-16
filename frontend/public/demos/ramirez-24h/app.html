@@ -438,6 +438,7 @@ details[open]>summary.cs::after,.mdet[open]>summary::after{transform:rotate(-135
  <main id="v" tabindex="-1"></main>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
+<script src="js/oficio-vigia.js" data-pagina="app"></script>
 <script src="js/oficio-nucleo.js"></script>
 <script src="js/oficio-datos.js"></script>
 <script src="js/oficio-espejo.js"></script>
@@ -454,6 +455,8 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const P=new URLSearchParams(location.search),FIJO=P.has('fijo');
 if(P.has('solo'))document.documentElement.classList.add('solo');
 let Q=P.get('papel')==='tecnico'?{rol:'tecnico',id:cfg.tec[P.get('tec')]?P.get('tec'):N.tecnicos[0].id}:{rol:'centralita',id:'oficina'};
+/* el vigía de fallos solo sabe el papel (oficina o técnico), nunca quién */
+if(window.OficioVigia&&OficioVigia.pon)OficioVigia.pon({rol:()=>Q&&Q.rol});
 /* con servidor no se elige papel: cada uno entra con su código y la app es la suya */
 const SRV=Oficio.SRV,quienEntra=()=>{const s=SRV?Oficio.sesion():null;if(s)Q={rol:s.rol,id:s.id};return!SRV||!!s};
 quienEntra();

@@ -8,6 +8,14 @@
 //   node copias.mjs actualizar --todas | <id>…     pone al día lo común; cada copia pasa sus pruebas antes de cambiarse
 //   node copias.mjs lista                          qué copias hay, con qué versión, y si van al día
 //   node copias.mjs comprueba                      lo de «lista», pero falla si alguna no va al día o sus datos no valen
+//                                                  (una copia «fijada» puede ir por detrás: no cuenta como fallo)
+//   node copias.mjs atras <id> [--a <commit>]      vuelve esa copia a como estaba antes de su última puesta al día
+//                                                  (o a ese commit), con git; queda fijada para que no se ponga al día sola
+//   node copias.mjs fija <id> [--motivo "…"]       la deja quieta: «actualizar --todas» se la salta
+//   node copias.mjs suelta <id>                    la vuelve a dejar poner al día
+//
+// Publicar por fases: fijar las que esperan, «actualizar --todas» (solo se ponen al día las sueltas), mirar un día y
+// soltar las demás. Si algo va mal en una: «atras <id>».
 //
 //   --plantilla <carpeta>   de dónde sale lo común (por defecto, la demo: frontend/public/demos/ramirez-24h)
 //   --destino <carpeta>     dónde viven las copias (por defecto, frontend/public/oficios)
@@ -23,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import { valida, leeNucleo, leeNegocio } from './pruebas-reglas/valida-negocio.mjs';
 
 const aqui = path.dirname(fileURLToPath(import.meta.url));
-export const COMUNES = ['app.html', 'cita.html', 'cliente.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-espejo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js', 'js/oficio-papeles.js',
+export const COMUNES = ['app.html', 'cita.html', 'cliente.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-espejo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js', 'js/oficio-papeles.js', 'js/oficio-vigia.js',
   'assets/fuentes/barlow-400.woff2', 'assets/fuentes/barlow-500.woff2', 'assets/fuentes/barlow-600.woff2', 'assets/fuentes/barlow-condensed-600.woff2', 'assets/fuentes/barlow-condensed-700.woff2', 'assets/fuentes/barlow-condensed-800.woff2'];
 const DATOS = 'js/oficio-datos.js', FICHA = 'copia.json';
 // la portada de una copia: lleva a pedir cita. La web del negocio, si la tiene, es otra cosa y va aparte.
@@ -81,6 +89,7 @@ export function actualizar({ plantilla, destino, id, conAzar = true }) {
   const carpeta = path.join(destino, id), datos = path.join(carpeta, DATOS);
   if (!fs.existsSync(datos)) return { ok: false, id, errores: ['No hay ninguna copia «' + id + '» en ' + destino], avisos: [] };
   const antes = estado(plantilla, carpeta), dAntes = huella(datos);
+  if (antes.ficha.fijada) return { ok: true, id, cambiada: false, fijada: antes.ficha.fijada, version: antes.version, errores: [], avisos: [] };
   const m = mira(plantilla, datos); if (m.errores.length) return { ok: false, id, cambiada: false, errores: m.errores.map(e => 'Con las reglas nuevas, sus datos no valen: ' + e), avisos: m.avisos };
   if (conAzar) { const a = azar(plantilla, datos); if (!a.ok) return { ok: false, id, cambiada: false, errores: ['Con las reglas nuevas, este negocio no pasa los recorridos al azar:\n' + a.salida.split('\n').filter(l => /ROTA|MAL|FALLA/.test(l)).slice(0, 6).join('\n')], avisos: m.avisos } }
   if (antes.alDia) return { ok: true, id, cambiada: false, version: antes.version, errores: [], avisos: m.avisos };
@@ -91,11 +100,59 @@ export function actualizar({ plantilla, destino, id, conAzar = true }) {
   return { ok: true, id, cambiada: true, de: antes.version, version: v, archivos: antes.dif, errores: [], avisos: m.avisos };
 }
 
+const leeFicha = carpeta => { try { return JSON.parse(fs.readFileSync(path.join(carpeta, FICHA), 'utf8')) } catch (e) { return {} } };
+const ponFicha = (carpeta, ficha) => fs.writeFileSync(path.join(carpeta, FICHA), JSON.stringify(ficha, null, 1) + '\n');
+/** La deja quieta: «actualizar» se la salta hasta que se suelte. */
+export function fija({ destino, id, motivo }) {
+  const carpeta = path.join(destino, id); if (!fs.existsSync(path.join(carpeta, DATOS))) return { ok: false, id, errores: ['No hay ninguna copia «' + id + '» en ' + destino] };
+  const f = leeFicha(carpeta); f.fijada = { motivo: String(motivo || 'Fijada a mano').slice(0, 200), desde: hoy() }; ponFicha(carpeta, f); return { ok: true, id, fijada: f.fijada, errores: [] };
+}
+/** La vuelve a dejar poner al día. */
+export function suelta({ destino, id }) {
+  const carpeta = path.join(destino, id); if (!fs.existsSync(path.join(carpeta, DATOS))) return { ok: false, id, errores: ['No hay ninguna copia «' + id + '» en ' + destino] };
+  const f = leeFicha(carpeta), estaba = !!f.fijada; delete f.fijada; ponFicha(carpeta, f); return { ok: true, id, estaba, errores: [] };
+}
+/** Vuelve lo común de una copia a como estaba antes de su última puesta al día (o al commit «a»), sacándolo de git.
+    Antes valida sus datos con las reglas de esa versión. Su archivo de datos no se toca. Queda fijada. */
+export function atras({ destino, id, a }) {
+  const carpeta = path.join(destino, id), datos = path.join(carpeta, DATOS);
+  if (!fs.existsSync(datos)) return { ok: false, id, errores: ['No hay ninguna copia «' + id + '» en ' + destino], avisos: [] };
+  const git = (...x) => spawnSync('git', x, { cwd: carpeta, encoding: 'utf8' });
+  const raiz = git('rev-parse', '--show-toplevel'); if (raiz.status !== 0) return { ok: false, id, errores: ['Volver atrás necesita el repositorio (git), y aquí no lo hay'], avisos: [] };
+  // las rutas que se le dan a git van desde la raíz del repositorio: las órdenes con rutas se lanzan desde allí
+  const R = raiz.stdout.trim(), rel = f => path.relative(R, path.join(carpeta, f)).split(path.sep).join('/'), rutas = COMUNES.map(rel);
+  const gr = (...x) => spawnSync('git', x, { cwd: R, encoding: 'utf8' });
+  let objetivo = a;
+  if (!objetivo) {
+    // con cambios sin guardar en lo común, atrás es lo último guardado; si no, el commit de antes de su último cambio
+    if (gr('diff', '--quiet', 'HEAD', '--', ...rutas).status !== 0) objetivo = 'HEAD';
+    else { const u = gr('log', '-1', '--format=%H', '--', ...rutas).stdout.trim(); if (!u) return { ok: false, id, errores: ['En git no hay ninguna versión anterior de esta copia'], avisos: [] }; objetivo = u + '^'; }
+  }
+  if (gr('rev-parse', '--verify', '--quiet', objetivo + '^{commit}').status !== 0) return { ok: false, id, errores: ['No encuentro ese commit: ' + objetivo], avisos: [] };
+  const lee = f => { const r = spawnSync('git', ['show', objetivo + ':' + rel(f)], { cwd: R, maxBuffer: 64 * 1024 * 1024 }); return r.status === 0 ? r.stdout : null };
+  // se monta aparte y solo se pone en su sitio si sale entera y sus datos valen con esas reglas
+  const tmp = fs.mkdtempSync(path.join(destino, '.atras-'));
+  try {
+    const puestos = [];
+    for (const f of COMUNES) { const b = lee(f); if (b) { fs.mkdirSync(path.dirname(path.join(tmp, f)), { recursive: true }); fs.writeFileSync(path.join(tmp, f), b); puestos.push(f) } }
+    if (!puestos.includes('js/oficio-nucleo.js')) return { ok: false, id, errores: ['En ' + objetivo + ' esta copia aún no tenía sus archivos comunes'], avisos: [] };
+    fs.mkdirSync(path.join(tmp, 'js'), { recursive: true }); fs.copyFileSync(datos, path.join(tmp, DATOS));
+    const m = mira(tmp, path.join(tmp, DATOS));
+    if (m.errores.length) return { ok: false, id, errores: m.errores.map(e => 'Con las reglas de esa versión, sus datos no valen: ' + e), avisos: m.avisos };
+    const de = version(carpeta), dAntes = huella(datos);
+    for (const f of puestos) fs.copyFileSync(path.join(tmp, f), path.join(carpeta, f));
+    if (huella(datos) !== dAntes) throw new Error('Se ha tocado el archivo de datos de ' + id + ': esto no puede pasar');
+    const v = version(carpeta), f = leeFicha(carpeta);
+    Object.assign(f, { actualizada: hoy(), version: v, fijada: { motivo: 'Vuelta atrás desde la ' + (de || '¿?') + ' (' + objetivo + ')', desde: hoy() } }); ponFicha(carpeta, f);
+    return { ok: true, id, de, version: v, commit: objetivo, archivos: puestos, errores: [], avisos: m.avisos };
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }) }
+}
+
 /** La lista de copias con su estado. */
 export function lista({ plantilla, destino }) {
   const v = version(plantilla);
   return copiasDe(destino).map(id => { const carpeta = path.join(destino, id), e = estado(plantilla, carpeta), m = mira(plantilla, path.join(carpeta, DATOS));
-    return { id, nombre: m.N ? m.N.nombre : (e.ficha.nombre || '¿?'), version: e.version, plantilla: v, alDia: e.alDia, dif: e.dif, prueba: !!(m.N && m.N.prueba === true), errores: m.errores, avisos: m.avisos, creada: e.ficha.creada || '', actualizada: e.ficha.actualizada || '' } });
+    return { id, nombre: m.N ? m.N.nombre : (e.ficha.nombre || '¿?'), version: e.version, plantilla: v, alDia: e.alDia, dif: e.dif, prueba: !!(m.N && m.N.prueba === true), fijada: e.ficha.fijada || null, errores: m.errores, avisos: m.avisos, creada: e.ficha.creada || '', actualizada: e.ficha.actualizada || '' } });
 }
 
 /* ---------- desde la consola ---------- */
@@ -104,7 +161,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   // dónde está cada cosa: en el repositorio o, en la copia del PC, en las carpetas de al lado
   const enRepo = fs.existsSync(path.join(aqui, '../../frontend/public'));
   const plantilla = path.resolve(op('--plantilla') || path.join(aqui, enRepo ? '../../frontend/public/demos/ramirez-24h' : '../site')), destino = path.resolve(op('--destino') || path.join(aqui, enRepo ? '../../frontend/public/oficios' : '../oficios'));
-  const sueltos = args.slice(1).filter((a, i, L) => !a.startsWith('--') && !['--plantilla', '--destino', '--datos'].includes(L[i - 1]));
+  const sueltos = args.slice(1).filter((a, i, L) => !a.startsWith('--') && !['--plantilla', '--destino', '--datos', '--a', '--motivo'].includes(L[i - 1]));
   const di = r => { r.avisos.forEach(a => console.log('   aviso  ' + a)); r.errores.forEach(e => console.log('   ERROR  ' + e)) };
   let mal = 0;
   try {
@@ -125,11 +182,21 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const ids = tiene('--todas') ? copiasDe(destino) : sueltos;
     if (!ids.length) { console.log(tiene('--todas') ? 'No hay ninguna copia en ' + destino : 'Di qué copia: node copias.mjs actualizar <id>  (o --todas)'); mal = tiene('--todas') ? 0 : 2 }
     for (const id of ids) { const r = actualizar({ plantilla, destino, id, conAzar: !tiene('--sin-azar') }); di(r);
+      if (r.fijada) { console.log(`FIJADA, SE QUEDA COMO ESTÁ  ${id} · versión ${r.version} · ${r.fijada.motivo} (desde ${r.fijada.desde}). Para ponerla al día: node copias.mjs suelta ${id}`); continue }
       console.log(r.ok ? (r.cambiada ? `PUESTA AL DÍA  ${id} · de ${r.de || 'sin versión'} a ${r.version} · ${r.archivos.length} archivos` : `YA ESTABA AL DÍA  ${id} · versión ${r.version}`) : `SE QUEDA COMO ESTABA  ${id}`); if (!r.ok) mal++ }
   } else if (orden === 'lista' || orden === 'comprueba') {
     const L = lista({ plantilla, destino }); if (!L.length) console.log('No hay ninguna copia en ' + destino);
-    for (const c of L) { console.log(`${c.alDia && !c.errores.length ? 'BIEN' : 'OJO '}  ${c.id.padEnd(22)} ${c.nombre.padEnd(26)} versión ${c.version || '¿?'}${c.alDia ? '' : ' (la plantilla va por la ' + c.plantilla + '; distintos: ' + c.dif.join(', ') + ')'}${c.prueba ? ' · copia de prueba' : ''}`); c.errores.forEach(e => console.log('   ERROR  ' + e)); if (orden === 'comprueba' && (!c.alDia || c.errores.length)) mal++ }
-  } else { console.log('Uso: node copias.mjs nueva --datos <archivo.js> | actualizar --todas | actualizar <id> | lista | comprueba'); mal = 2 }
+    // una copia fijada puede ir por detrás de la plantilla (se publica por fases o se ha vuelto atrás): no cuenta como fallo
+    for (const c of L) { const espera = !c.alDia && c.fijada; console.log(`${(c.alDia || espera) && !c.errores.length ? (espera ? 'FIJA' : 'BIEN') : 'OJO '}  ${c.id.padEnd(22)} ${c.nombre.padEnd(26)} versión ${c.version || '¿?'}${c.alDia ? '' : ' (la plantilla va por la ' + c.plantilla + '; distintos: ' + c.dif.join(', ') + ')'}${c.fijada ? ' · fijada: ' + c.fijada.motivo : ''}${c.prueba ? ' · copia de prueba' : ''}`); c.errores.forEach(e => console.log('   ERROR  ' + e)); if (orden === 'comprueba' && ((!c.alDia && !c.fijada) || c.errores.length)) mal++ }
+  } else if (orden === 'atras') {
+    if (sueltos.length !== 1) { console.log('Di qué copia: node copias.mjs atras <id> [--a <commit>]'); mal = 2 }
+    else { const r = atras({ destino, id: sueltos[0], a: op('--a') }); di(r);
+      console.log(r.ok ? `VUELTA ATRÁS  ${r.id} · de ${r.de || '¿?'} a ${r.version} (${r.commit}) · ${r.archivos.length} archivos · queda fijada; para volver a ponerla al día: node copias.mjs suelta ${r.id} y actualizar ${r.id}` : `SE QUEDA COMO ESTABA  ${sueltos[0]}`); if (!r.ok) mal = 1 }
+  } else if (orden === 'fija' || orden === 'suelta') {
+    if (!sueltos.length) { console.log(`Di qué copia: node copias.mjs ${orden} <id>`); mal = 2 }
+    for (const id of sueltos) { const r = orden === 'fija' ? fija({ destino, id, motivo: op('--motivo') }) : suelta({ destino, id }); r.errores.forEach(e => console.log('   ERROR  ' + e));
+      console.log(!r.ok ? `NO SE HA PODIDO  ${id}` : orden === 'fija' ? `FIJADA  ${id} · ${r.fijada.motivo}` : `SUELTA  ${id}${r.estaba ? '' : ' (no estaba fijada)'}`); if (!r.ok) mal++ }
+  } else { console.log('Uso: node copias.mjs nueva --datos <archivo.js> | actualizar --todas | actualizar <id> | lista | comprueba | atras <id> | fija <id> | suelta <id>'); mal = 2 }
   } catch (e) { console.log('No se ha podido: ' + e.message); mal = 2 }
   process.exit(mal);
 }

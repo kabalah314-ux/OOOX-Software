@@ -51,7 +51,10 @@ const R=SV?(function(){
  const oculto=()=>typeof document!=='undefined'&&document.hidden;
  /* una llamada con límite de tiempo. Devuelve siempre un objeto: lo que conteste el servidor o {ok:false, err:'red'} */
  function llama(url,o,ms){const ctl=typeof AbortController==='function'?new AbortController():null,t=ctl?setTimeout(()=>ctl.abort(),ms||20000):0;
-  return Promise.resolve().then(()=>fetch(url,Object.assign({signal:ctl?ctl.signal:undefined},o))).then(r=>r.ok?r.json():FALLO).then(x=>x&&typeof x==='object'?x:FALLO,()=>FALLO).then(x=>{clearTimeout(t);return x})}
+  return Promise.resolve().then(()=>fetch(url,Object.assign({signal:ctl?ctl.signal:undefined},o))).then(r=>r.ok?r.json():FALLO).then(x=>x&&typeof x==='object'?x:FALLO,()=>FALLO).then(x=>{clearTimeout(t);
+   /* el servidor dice que algo se le ha roto: que lo apunte el vigía de fallos (js/oficio-vigia.js), sin nada de lo que se mandaba */
+   if(x.err==='servidor'&&g.OficioVigia&&typeof g.OficioVigia.servidor==='function')try{g.OficioVigia.servidor(url,'servidor')}catch(e){}
+   return x})}
  /* al juez (la función del servidor). El cuerpo va como texto: así el navegador no hace una llamada previa de permiso por cada una. */
  const juez=(p,ms)=>llama(URLF,{method:'POST',body:JSON.stringify(p)},ms);
  /* a la base de datos: solo «¿qué versión hay?» y lo que ve el cliente con su enlace. Estas llamadas no tienen límite. */

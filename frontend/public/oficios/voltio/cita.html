@@ -89,6 +89,7 @@ form>.btn{margin-top:16px}
 </header>
 <main id="v" tabindex="-1"></main>
 <div id="toast" role="status" aria-live="polite"></div>
+<script src="js/oficio-vigia.js" data-pagina="cita"></script>
 <script src="js/oficio-nucleo.js"></script>
 <script src="js/oficio-datos.js"></script>
 <script src="js/oficio-espejo.js"></script>
@@ -111,7 +112,7 @@ const B={av:cfg.av[av0]?av0:'',nota:'',foto:'',dia:'',fr:'',alt:[],nombre:'',ape
 const ERR={av:'Elige qué te pasa.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nombre:'Escribe tu nombre.',apellidos:'Escribe tus apellidos.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en '+N.ciudad+'.'};
 /* con servidor: los huecos los da él (días y franjas libres, sin cifras) y el aviso se sigue con la llave del enlace */
 const SRV=Oficio.SRV,H={dias:null,err:'',t:0,va:false};
-Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al '+N.tel+'.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al '+N.tel+' y te damos cita.',red:'No hay conexión. Tu cita no se ha enviado: prueba otra vez.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',grande:'Esa foto pesa demasiado. Quítala y prueba otra vez.'});
+Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al '+N.tel+'.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al '+N.tel+' y te damos cita.',red:'No hay conexión o no podemos recibirla ahora. Tu cita no se ha enviado: prueba otra vez o llámanos al '+N.tel+'.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',grande:'Esa foto pesa demasiado. Quítala y prueba otra vez.'});
 function traeHuecos(){if(!SRV||H.va)return;H.va=true;Oficio.huecos({av:B.av||'',dis:cfg.zonas.cp[B.cp]||''}).then(r=>{H.va=false;H.t=Date.now();
  if(r.ok&&Array.isArray(r.dias)){H.err='';H.urg=r.urg&&Number.isInteger(r.urg.de)&&Number.isInteger(r.urg.a)?{de:r.urg.de,a:r.urg.a}:null;H.dias=r.dias.map(d=>({dia:d.dia,hoy:!!d.hoy,franjas:cfg.franjas.map(f=>{const x=(d.franjas||[]).find(y=>y.id===f.id);return{id:f.id,txt:K.franjaTxt(f),ok:!!(x&&x.ok),libres:null}})}))}else H.err=r.err||'red';
  const a=document.activeElement;if(ruta().v!=='aviso'&&!(a&&a.closest&&a.closest('#f input,#f textarea')))pinta()})}

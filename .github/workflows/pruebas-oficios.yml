@@ -12,6 +12,8 @@ on:
       - 'frontend/public/oficios/**'
       - 'webs-negocios/demos/**'
       - 'webs-negocios/oficios-servidor/**'
+      - 'webs-negocios/oficios-soporte/**'
+      - 'webs-negocios/oficios-mantenimiento/**'
       - '.github/workflows/pruebas-oficios.yml'
   schedule:
     - cron: '23 3 * * *'
@@ -36,6 +38,22 @@ jobs:
           export MUTANTES=1
           if [ "${{ github.event_name }}" = "schedule" ]; then export SEMILLA=$(date -u +%Y%m%d) TANDAS=300; fi
           bash webs-negocios/demos/pruebas.sh reglas
+  copias:
+    # La copia cifrada de cada noche, de punta a punta, en un Postgres de la propia máquina (nunca en Supabase) y con
+    # datos inventados: hacerla, bajarla, descifrarla, restaurarla y comparar fila a fila. Y las pruebas del mantenimiento.
+    name: Copias y mantenimiento
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Postgres de la máquina
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres createuser -s "$USER"
+      - name: Simulacro de restaurar y pruebas del mantenimiento
+        env:
+          PGURL: postgresql:///postgres?host=/var/run/postgresql
+        run: bash webs-negocios/oficios-mantenimiento/prueba-restaurar.sh
   pantallas:
     name: Pantallas en ${{ matrix.motor }}
     runs-on: ubuntu-24.04   # sistema fijo, como la versión del probador: «latest» cambia solo con los años

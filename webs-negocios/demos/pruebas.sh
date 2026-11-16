@@ -28,6 +28,7 @@ if [ "$QUE" != navegador ]; then
   paso "Reglas, con recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$SITIO/js/oficio-datos.js" --negocio "$OTRO" --tandas "${TANDAS:-100}" --semilla "${SEMILLA:-20261113}"
   paso "Restos del negocio de muestra en los archivos comunes" node "$R/restos.mjs" "$SITIO"
   paso "Buzón de mejoras, sin navegador" node "$R/prueba-soporte.mjs" "$SITIO"
+  paso "Vigía de fallos, sin navegador" node "$R/prueba-vigia.mjs" "$SITIO"
   paso "Herramienta de copias" node "$R/prueba-copias.mjs" "$SITIO"
   if [ -d "$COPIAS" ]; then
     paso "Copias: todas al día y con datos que valen" node "$AQUI/copias.mjs" comprueba --plantilla "$SITIO" --destino "$COPIAS"
@@ -60,6 +61,7 @@ if [ "$QUE" != reglas ]; then
   paso "Muestra de la demo" python3 muestra.py
   paso "Zona del cliente: entrar con el teléfono y ver lo suyo" python3 cliente.py
   paso "Vídeo de entrada" python3 entrada.py
+  paso "Vigía de fallos: lo que ve, lo que manda y lo que guarda sin red" python3 vigia.py "$COPIAS"
   paso "Otro negocio, de principio a fin" python3 negocio.py "$OTRO"
   paso "El mismo recorrido con el negocio de muestra" python3 negocio.py "$SITIO/js/oficio-datos.js"
   # cada copia se sirve desde su propia carpeta, no desde la demo: así se ve también si le falta algún archivo

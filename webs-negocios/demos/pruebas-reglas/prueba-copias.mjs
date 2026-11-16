@@ -3,7 +3,7 @@
 // Uso: node prueba-copias.mjs <carpeta del sitio>
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'; import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process'; import { fileURLToPath } from 'node:url';
-import { nueva, actualizar, lista, estado, copiasDe, COMUNES } from '../copias.mjs';
+import { nueva, actualizar, lista, estado, copiasDe, COMUNES, atras, fija, suelta } from '../copias.mjs';
 
 const sitio = path.resolve(process.argv[2] || '.'), aqui = path.dirname(fileURLToPath(import.meta.url));
 let ok = 0; const mal = []; const es = (c, t) => { if (c) ok++; else { mal.push(t); console.log('  MAL ', t) } };
@@ -91,6 +91,39 @@ es(c.status === 1 && /ERROR/.test(c.stdout) && !fs.existsSync(path.join(destino,
 c = cli('baila'); es(c.status === 2 && /Uso:/.test(c.stdout), 'una orden que no existe enseña cómo se usa');
 c = cli('actualizar', '--todas', '--sin-azar', '--plantilla', P3, '--destino', destino);
 es(c.status === 2 && /le falta oficio\.css/.test(c.stdout) && huellas(cv) === huellas(P2), 'con una plantilla incompleta, «actualizar» se para, lo dice y no toca ninguna copia');
+
+// ---- 4b. publicar por fases: fijar, soltar y volver atrás (con git, en un repositorio de prueba)
+{
+  const G = path.join(T, 'repo'), GP = path.join(G, 'plantilla'), GD = path.join(G, 'oficios'), cv2 = path.join(GD, 'voltio');
+  for (const f of COMUNES) { fs.mkdirSync(path.dirname(path.join(GP, f)), { recursive: true }); fs.copyFileSync(path.join(sitio, f), path.join(GP, f)); }
+  const g = (...a) => spawnSync('git', a, { cwd: G, encoding: 'utf8' });
+  g('init', '-q'); g('config', 'user.email', 'prueba@ejemplo.invalid'); g('config', 'user.name', 'Prueba'); g('config', 'commit.gpgsign', 'false');
+  let x = nueva({ plantilla: GP, destino: GD, datos: VOLTIO }); g('add', '-A'); g('commit', '-qm', 'uno');
+  const v1 = huellas(cv2), hd = h(path.join(cv2, 'js/oficio-datos.js'));
+  fs.writeFileSync(path.join(GP, 'js/oficio-nucleo.js'), fs.readFileSync(path.join(GP, 'js/oficio-nucleo.js'), 'utf8').replace(/const VERSION='[^']+'/, "const VERSION='2099.02.02'"));
+  fs.appendFileSync(path.join(GP, 'app.html'), '\n<!-- cambio de la prueba -->\n');
+  x = actualizar({ plantilla: GP, destino: GD, id: 'voltio', conAzar: false }); g('add', '-A'); g('commit', '-qm', 'dos');
+  es(x.ok && x.cambiada && x.version === '2099.02.02', 'fases: la copia se pone al día con la versión nueva');
+  x = atras({ destino: GD, id: 'voltio' });
+  const fi = JSON.parse(fs.readFileSync(path.join(cv2, 'copia.json'), 'utf8'));
+  es(x.ok && x.de === '2099.02.02' && x.version === version0 && huellas(cv2) === v1 && h(path.join(cv2, 'js/oficio-datos.js')) === hd, 'atrás: vuelve a lo común de antes de su última puesta al día, sin tocar sus datos');
+  es(fi.version === version0 && fi.fijada && /Vuelta atrás desde la 2099\.02\.02/.test(fi.fijada.motivo), 'atrás: la ficha dice la versión y queda fijada, con el motivo');
+  es(!fs.readdirSync(GD).some(d => d.startsWith('.atras-')), 'atrás: no deja carpetas a medias');
+  x = actualizar({ plantilla: GP, destino: GD, id: 'voltio', conAzar: false });
+  es(x.ok && !x.cambiada && x.fijada && huellas(cv2) === v1, 'fijada: «actualizar» se la salta');
+  c = cli('comprueba', '--plantilla', GP, '--destino', GD);
+  es(c.status === 0 && /FIJA\s+voltio/.test(c.stdout), '«comprueba» da por buena una copia fijada que va por detrás, y lo dice');
+  c = cli('actualizar', '--todas', '--sin-azar', '--plantilla', GP, '--destino', GD);
+  es(c.status === 0 && /FIJADA, SE QUEDA COMO ESTÁ\s+voltio/.test(c.stdout) && huellas(cv2) === v1, '«actualizar --todas» se salta la fijada y lo dice');
+  c = cli('suelta', 'voltio', '--destino', GD); x = actualizar({ plantilla: GP, destino: GD, id: 'voltio', conAzar: false });
+  es(c.status === 0 && /SUELTA\s+voltio/.test(c.stdout) && x.ok && x.cambiada && x.version === '2099.02.02', 'soltarla: vuelve a ponerse al día');
+  c = cli('fija', 'voltio', '--motivo', 'Espera a que Voltio lo pruebe', '--destino', GD);
+  es(c.status === 0 && JSON.parse(fs.readFileSync(path.join(cv2, 'copia.json'), 'utf8')).fijada.motivo === 'Espera a que Voltio lo pruebe', '«fija» la deja quieta, con su motivo');
+  x = atras({ destino: GD, id: 'voltio', a: 'noexiste123' });
+  es(!x.ok && /No encuentro ese commit/.test(x.errores[0]) && JSON.parse(fs.readFileSync(path.join(cv2, 'copia.json'), 'utf8')).version === '2099.02.02', 'atrás: un commit que no existe, lo dice y no toca nada');
+  x = atras({ destino, id: 'voltio' });
+  es(!x.ok && /necesita el repositorio/.test(x.errores[0]), 'atrás: sin git, lo dice');
+}
 
 // ---- 5. nada de esto ha tocado la plantilla de verdad
 es(huellas(sitio) === P0 && h(VOLTIO) === h(path.join(aqui, 'negocios/voltio.js')), 'la plantilla y los datos de partida siguen como estaban');

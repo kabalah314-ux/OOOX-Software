@@ -7,6 +7,8 @@
 # deja fuentes a medio bajar que salen como errores de consola; visto el 13-11-2026). Se cambia, dentro de cada página,
 # la función con la que la app llama al buzón: si la dirección es la del buzón, contesta ella; lo demás sigue igual.
 #
+# Los fallos que apunta el vigía de la app (oficios_error) también se contestan aquí y se guardan en window.__vigia.
+#
 # La batería soporte.py apaga esto (ACTIVO = False) y pone su propio servidor, con memoria, que sigue las reglas del de
 # verdad (webs-negocios/oficios-soporte/esquema.sql).
 import json
@@ -17,12 +19,17 @@ RUTA = '**/rest/v1/rpc/**'
 CORS = {'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS'}
 VACIO = {'ok': True, 'peticiones': [], 'novedades': [], 'sin_ofertas': False, 'demo': True}
 
-_JS = """(()=>{if(window.__buzonFalso)return;const f=window.fetch;window.__buzonFalso=[];
+_JS = """(()=>{if(window.__buzonFalso)return;const f=window.fetch;window.__buzonFalso=[];window.__vigia=[];
 window.fetch=function(u,o){const s=String(u&&u.url||u);
  /* tampoco sale nada hacia el servidor de los avisos (fase 2): si una copia lo lleva en sus datos, aquí es como si no hubiera red */
  if(s.indexOf('/functions/v1/')>=0){window.__buzonFalso.push('juez');return Promise.resolve(new Response(JSON.stringify({ok:false,err:'red'}),{status:200,headers:{'content-type':'application/json'}}))}
  if(s.indexOf('/rest/v1/rpc/')<0)return f.apply(this,arguments);
  const fn=s.split('/').pop().split('?')[0];window.__buzonFalso.push(fn);
+ /* los fallos que apunta el vigía (js/oficio-vigia.js) se quedan aquí, para mirarlos: window.__vigia */
+ if(fn==='oficios_error'){if(window.__vigiaSinRed)return Promise.reject(new TypeError('Failed to fetch'));let c={};try{c=JSON.parse(o.body)}catch(e){}window.__vigia.push(c);
+  return Promise.resolve(new Response(JSON.stringify({ok:true,n:(c.p_lote||[]).length}),{status:200,headers:{'content-type':'application/json'}}))}
+ /* para probar que el vigía ve un servidor que se rompe */
+ if(window.__falso503)return Promise.resolve(new Response('{}',{status:503,headers:{'content-type':'application/json'}}));
  return Promise.resolve(new Response(JSON.stringify(fn==='oficios_buzon'?%s:{ok:false,err:'servidor'}),{status:200,headers:{'content-type':'application/json'}}))}})()""" % json.dumps(VACIO)
 
 async def contesta(route, datos, estado=200):

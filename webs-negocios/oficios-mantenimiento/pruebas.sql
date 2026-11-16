@@ -199,5 +199,15 @@ begin
   end loop;
   r := array_append(r, case when n = 14 then '26:ok' else '26:MAL' || t end);
 
+  -- 27. lo de un negocio para dárselo: cifrado, sin códigos, y solo desde dentro
+  j := oficios.exportar_negocio('prueba-mant');
+  b := decode(j->>'datos', 'base64');
+  r := array_append(r, case when (j->>'ok')::boolean and octet_length(b) = (j->>'bytes')::int and position(convert_to('Otro', 'UTF8') in b) = 0
+                             and oficios.exportar_negocio('no-existe') = '{"ok":false,"err":"negocio"}'::jsonb then '27:ok' else '27:MAL' end);
+  perform set_config('role', 'anon', true);
+  begin perform oficios.exportar_negocio('prueba-mant'); r := array_append(r, '27b:MAL');
+  exception when insufficient_privilege then r := array_append(r, '27b:ok'); end;
+  perform set_config('role', 'postgres', true);
+
   raise exception 'RESULTADOS %', array_to_string(r, ' | ');
 end $$;

@@ -247,6 +247,26 @@ returns jsonb language sql stable security definer set search_path = '' as $$
     group by negocio) x
 $$;
 
+-- Todo lo de un negocio, para dárselo cuando se va (o cuando lo pida): cifrado con la llave de Oscar, que lo descifra
+-- en su PC y se lo entrega al negocio. Sin los códigos de acceso (ni sus huellas). Devuelve el archivo en base64.
+create or replace function oficios.exportar_negocio(p_negocio text)
+returns jsonb language plpgsql security definer set search_path = '' as $$
+declare k oficios.copias_llave; doc jsonb; c bytea;
+begin
+  select * into k from oficios.copias_llave where id = 1;
+  if not found then raise exception 'falta la llave pública de las copias'; end if;
+  if not exists (select 1 from oficios.negocios where id = p_negocio) then return jsonb_build_object('ok', false, 'err', 'negocio'); end if;
+  doc := jsonb_build_object('formato', 'ooox-oficios-exportacion/1', 'negocio', p_negocio, 'hecha', now(),
+    'datos_negocio', (select e.datos::text from oficios.estados e where e.negocio = p_negocio),
+    'cabecera', (select e.cab from oficios.estados e where e.negocio = p_negocio),
+    'avisos', (select coalesce(jsonb_agg(a.datos order by a.id), '[]'::jsonb) from oficios.avisos a where a.negocio = p_negocio),
+    'diario', (select coalesce(jsonb_agg(jsonb_build_object('v', d.v, 'cuando', d.cuando, 'quien', d.q, 'accion', d.accion) order by d.v), '[]'::jsonb) from oficios.diario d where d.negocio = p_negocio),
+    'personas', (select coalesce(jsonb_agg(jsonb_build_object('persona', p.persona, 'rol', p.rol, 'activo', p.activo, 'creada', p.creada) order by p.persona), '[]'::jsonb) from oficios.personas p where p.negocio = p_negocio),
+    'peticiones', (select coalesce(jsonb_agg(jsonb_build_object('creada', x.creada, 'tipo', x.tipo, 'texto', x.texto, 'estado', x.estado, 'respuesta', x.respuesta) order by x.id), '[]'::jsonb) from oficios.peticiones x where x.negocio = p_negocio));
+  c := extensions.pgp_pub_encrypt(doc::text, extensions.dearmor(k.publica), 'compress-algo=2, compress-level=6, cipher-algo=aes256');
+  return jsonb_build_object('ok', true, 'negocio', p_negocio, 'bytes', octet_length(c), 'huella_llave', k.huella, 'datos', translate(encode(c, 'base64'), E'\n', ''));
+end $$;
+
 -- ---------- 6. OLVIDAR A UN CLIENTE ----------
 -- Lo que queda apuntado de cada olvido: sin el teléfono (solo su huella), para volver a aplicarlo si un día hubiera que
 -- restaurar una copia de antes.
@@ -374,6 +394,7 @@ revoke all on function oficios.caducados(int) from public;
 revoke all on function oficios.tapa(jsonb, text[]) from public;
 revoke all on function oficios.olvidar_cliente(text, text, boolean) from public;
 revoke all on function oficios.reaplicar_olvidos() from public;
+revoke all on function oficios.exportar_negocio(text) from public;
 revoke all on function public.oficios_error(text, jsonb) from public;
 revoke all on function public.oficios_salud() from public;
 revoke all on function public.oficios_copia(bigint) from public;
