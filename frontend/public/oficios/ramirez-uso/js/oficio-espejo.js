@@ -91,7 +91,7 @@ function crea(o){
  function quita(clave){const i=cola.findIndex(p=>p.crea&&p.clave===clave);if(i<0||cola[i].vuela)return false;const p=cola.splice(i,1)[0];p.fin({ok:false,err:'red'});return true}
 
  /* lo siguiente que hay que mandar, o nada */
- function siguiente(){const p=cola[0];if(!p)return null;p.vuela=true;return{que:'hacer',accion:p.accion,clave:p.clave,desde:B.v,crea:!!p.crea}}
+ function siguiente(){const p=cola[0];if(!p)return null;p.vuela=true;return{que:'hacer',accion:p.accion,clave:p.clave,desde:B.v,crea:!!p.crea,t:p.t||0}}   /* t: cuándo se hizo, con el reloj del aparato */
 
  /* la respuesta del servidor a lo que se mandó (o {ok:false, err:'red'} si no llegó).
     Devuelve qué ha pasado: {tipo:'hecha'|'rechazada'|'reintenta'|'sesion'|'nada', err?, accion?} */

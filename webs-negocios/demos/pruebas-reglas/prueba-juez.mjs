@@ -405,5 +405,37 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   es(tope === 'limite', 'como mucho 30 cambios de acceso al día por negocio');
   es(repite('ramirez', NR), 'los accesos no tocan el diario: lo guardado sigue siendo igual a repetirlo'); }
 
+// la hora de lo hecho sin conexión y la huella de los datos del negocio (16-11-2026)
+{ const { horaDe, HACE_MAX } = await import(pathToFileURL(path.join(DIR, 'juez.mjs')).href);
+  const n = Date.parse('2026-11-17T12:00:00+01:00'), H = 3600000;
+  es(typeof horaDe === 'function' && [horaDe(n), horaDe(n, {}), horaDe(n, { t: 'x', ya: n }), horaDe(n, { t: n + 5000, ya: n }), horaDe(n, { t: 0, ya: 5 }), horaDe(n, { t: NaN, ya: n }), horaDe(n, { t: 5, ya: Infinity })].every(x => x === n),
+    'la hora de una acción: sin nada, con algo raro o «del futuro», la del juez');
+  es(horaDe(n, { t: 1000, ya: 1000 + 2 * H }) === n - 2 * H, 'hecha hace dos horas: dos horas antes, aunque el reloj del aparato vaya en 1970 (cuenta cuánto hace)');
+  es(HACE_MAX === 3 * 86400000 && horaDe(n, { t: 1, ya: 10 * 86400000 }) === n - HACE_MAX, 'como mucho tres días atrás');
+  es(horaDe(n, { t: n - 4 * H, ya: n }, { h: [{ t: n - 5 * H }, { t: n - 3 * H }] }) === n - 3 * H && horaDe(n, { t: n - 4 * H, ya: n }, { h: [{ t: n + H }] }) === n, 'nunca antes de lo último apuntado en el aviso, ni después de la hora del juez');
+  // de verdad: un técnico de Voltio sale y empieza sin cobertura, y el móvil lo manda tres horas después
+  // (Voltio está dado de baja desde más arriba: aquí, el mismo negocio dado de alta con otro nombre)
+  A.alta('voltio-hora', NV, K.ESQ); A.persona('voltio-hora', 'oficina', 'centralita', 'oficina', 'codigo-oficina-h'); tecV.forEach(t => A.persona('voltio-hora', t, 'tecnico', t, 'codigo-h-' + t));
+  const OV = { negocio: 'voltio-hora', persona: 'oficina', codigo: 'codigo-oficina-h' }, TV = t => ({ negocio: 'voltio-hora', persona: t, codigo: 'codigo-h-' + t });
+  const p = await hacer(OV, { tipo: 'pedir', av: NV.averias[0].id, origen: 'llamada', cli: Object.assign(cliDe(NV), { tel: '612345699' }) }), id = p.r && p.r.id;
+  let tec = null; for (const x of tecV) { if ((await hacer(OV, { tipo: 'asignar', id, tec: x })).ok) { tec = x; break } }
+  reloj.t += 3 * H; const t0 = reloj.t, ya = 5e9;   // el reloj del aparato, en cualquier sitio: cuenta lo que ha pasado desde entonces
+  const v = await hacer(TV(tec), { tipo: 'voy', id }, { t: ya - 2 * H, ya, clave: 'marca-sin-red-0001' });
+  const e = await hacer(TV(tec), { tipo: 'empezar', id, pres: { lineas: NV.averias[0].ini, firma: 'M10 10L60 40L110 12L160 44', pide: true } }, { t: ya - 2 * H + 20 * 60000, ya, clave: 'marca-sin-red-0002' });
+  const X = (crudo('voltio-hora').avisos.get(id) || { datos: {} }).datos; if (!X.id) console.log('  (aviso de prueba: ' + JSON.stringify({ p: p.err || p.ok, id, tec, v: v.err, e: e.err }) + ')');
+  es(id && tec && v.ok && e.ok && Math.abs(X.sal - (t0 - 2 * H)) < 10000 && Math.abs(X.ini - (t0 - 2 * H + 20 * 60000)) < 10000,
+    `lo hecho sin conexión queda con la hora en que se hizo (salió hace dos horas y empezó veinte minutos después), no con la de cuando llega (${JSON.stringify({ v: v.err, e: e.err, sal: X.sal - t0, ini: X.ini - t0 })})`);
+  es(crudo('voltio-hora').diario.slice(-2).every(d => d.t < t0 - H), 'y así queda en el diario');
+  es(repite('voltio-hora', NV), 'lo guardado sigue siendo igual a repetir el diario');
+  const v2 = await hacer(TV(tec), { tipo: 'voy', id }, { t: ya - 2 * H, ya, clave: 'marca-sin-red-0001' });
+  es(v2.repetida === true, 'mandada otra vez (la red se cortó), no se hace dos veces');
+  // la huella de los datos: la del servidor es la del archivo; con otro precio, otra
+  const hV = await K.huellaDatos(NV), en = await J.atiende(Object.assign({ que: 'entrar' }, OV)), le = await leer(OV, 0);
+  const NV2 = JSON.parse(JSON.stringify(NV)); NV2.catalogo[Object.keys(NV2.catalogo)[0]].p10 += 1;
+  const ha = await hacer(OV, { tipo: 'anotar', id, obs: 'Lleva la huella' });
+  es(/^[0-9a-f]{16}$/.test(hV) && en.huella === hV && le.huella === hV && ha.ok && ha.huella === hV && await K.huellaDatos(NV2) !== hV, 'entrar, leer y hacer dicen la huella de los datos que tiene el servidor: la del archivo; con otro precio, otra');
+  const en2 = await J.atiende({ que: 'entrar', negocio: 'voltio-hora', persona: 'oficina', codigo: 'otro' });
+  es(!en2.ok && !('huella' in en2), 'sin código bueno, ni la huella'); }
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

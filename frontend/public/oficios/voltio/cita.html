@@ -143,10 +143,10 @@ const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
  if(!Oficio.DEMO){document.documentElement.removeAttribute('data-demo');b.addEventListener('click',e=>{e.stopImmediatePropagation();location.href='tel:+34'+K.tel9(N.tel)},true)}}
 const mem={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let S=Oficio.estado();
-const P=new URLSearchParams(location.search),sv=P.get('servicio')||P.get('av'),av0=sv||mem.get('ramirez:av');
+const P=new URLSearchParams(location.search),sv=P.get('servicio')||P.get('av'),av0=sv||mem.get(N.id+':av');
 /* «servicio» (o «av»): la avería que se eligió en la web. Entonces sale arriba «Has elegido…», con un botón para cambiarla */
 const B={av:cfg.av[av0]?av0:'',fijo:!!(sv&&cfg.av[sv]),nota:'',foto:'',dia:'',fr:'',alt:[],altOpen:false,altMas:false,nomap:'',tel:'',dir:'',cp:'',err:'',errs:[],paso:'form'};
-if(B.fijo)mem.set('ramirez:av',B.av);
+if(B.fijo)mem.set(N.id+':av',B.av);
 /* desde «Pedir otra cita» de la zona del cliente: sus datos ya puestos, una sola vez */
 {const y=mem.get('oficio:'+N.id+':yo');if(y){try{const o=JSON.parse(y);['tel','dir','cp'].forEach(k=>{if(o&&typeof o[k]==='string')B[k]=k==='tel'?K.telBonito(o[k]):o[k]});if(o)B.nomap=[o.nombre,o.apellidos].filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()).join(' ')}catch(e){}try{localStorage.removeItem('oficio:'+N.id+':yo')}catch(e){}}}
 const ERR={av:'Elige qué necesitas arreglar.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nomap:'Escribe tu nombre y al menos un apellido.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en {ciudad}.'};
@@ -203,7 +203,7 @@ function vPedir(){
    (elegida||'<div class="avs">'+N.averias.map(a=>'<label class="avc"><img src="assets/img/av-'+a.id+'-s.webp" alt="" width="52" height="52" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>'+esc(_(a.n))+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>')+
    (malEn('av')?'<p class="fallo">'+err('av')+'</p>':'')+
    (B.av?'<p class="rango"><span class="rk">'+_('Precio orientativo')+'</span><b class="num">'+precioTxt(B.av)+'</b><small>'+_(PRECIO_NOTA)+'</small></p>':'')+
-   '<div class="campo"><label for="c_nota">'+(otra?_('Cuéntanos qué pasa'):_('Cuéntanos algo más'))+' <small class="opc">'+_('Opcional')+'</small></label><textarea id="c_nota" data-b="nota" placeholder="'+esc(_('Qué ves, desde cuándo y si el agua sigue saliendo.'))+'">'+esc(B.nota)+'</textarea>'+(otra?'<p class="ayuda">'+_('Si no sabes explicarlo, manda una foto: con eso nos basta para prepararlo.')+'</p>':'')+'</div>'+
+   '<div class="campo"><label for="c_nota">'+(otra?_('Cuéntanos qué pasa'):_('Cuéntanos algo más'))+' <small class="opc">'+_('Opcional')+'</small></label><textarea id="c_nota" data-b="nota" placeholder="'+esc(_('Qué pasa, desde cuándo y cualquier detalle que nos ayude.'))+'">'+esc(B.nota)+'</textarea>'+(otra?'<p class="ayuda">'+_('Si no sabes explicarlo, manda una foto: con eso nos basta para prepararlo.')+'</p>':'')+'</div>'+
    '<div class="fotow"><span class="lb">'+_('Una foto')+' <small class="opc">'+_('Opcional · ayuda a preparar la visita')+'</small></span><div class="fotoz">'+(B.foto?'<img src="'+esc(B.foto)+'" alt="'+_('La foto que has añadido')+'">':'')+
     '<label class="btn peq">'+(B.fotoVa?_('Preparando la foto…'):B.foto?_('Cambiar la foto'):_('Añadir una foto'))+'<input class="vh" type="file" accept="image/*" id="c_foto"></label>'+(B.foto?'<button type="button" class="txt" id="fQuita">'+_('Quitar')+'</button>':'')+'</div>'+
     (B.fotoMal?'<p class="err" role="alert">'+esc(_(B.fotoMal))+'</p>':'')+'</div></fieldset>'+
@@ -238,11 +238,8 @@ function vResumen(dias){const cp=String(B.cp).replace(/\D/g,'');
   '<p class="legal">'+_('Usamos estos datos solo para atender tu aviso.')+' '+(SRV&&N.prueba===true?_('Esto es una copia de prueba: lo que escribas se guarda en el servidor de pruebas de OOOX y no llega a ningún negocio.'):!SRV&&Oficio.DEMO?_('Esto es una web de muestra: lo que escribas se queda en tu navegador y no llega a nadie.'):_('Responsable: {razon}, NIF {nif}.',{razon:esc(N.razon),nif:esc(N.nif)}))+'</p>'+
   '<div class="tras"><button class="btn pri ancho" id="rConfirma"'+(B.va?' disabled':'')+'>'+(B.va?_('Enviando…'):_('Confirmar la cita'))+'</button><button class="btn ancho" id="rVuelve"'+(B.va?' disabled':'')+'>'+_('Cambiar algo')+'</button></div>'}
 
-/* lo que conviene hacer mientras llega el técnico, según la avería (nada que ponga en peligro a nadie) */
-const MIENTRAS={fuga:'Si sale agua, cierra la llave de paso. Si hay agua cerca de enchufes, baja el diferencial del cuadro de la luz.',
- termo:'Si el termo pierde agua, ciérrale la llave de entrada y desenchúfalo.',atasco:'No eches productos desatascadores: pueden estropear la tubería y salpicar a quien lo arregle.',
- cisterna:'Cierra la llave de la cisterna (detrás o debajo) para que no siga corriendo el agua.',grifo:'Si gotea mucho, cierra la llave que tiene debajo.',
- otra:'Si sale agua, cierra la llave de paso. Si hay agua cerca de enchufes, baja el diferencial del cuadro de la luz.'};
+/* lo que conviene hacer mientras llega el técnico: lo pone cada negocio en sus averías («mientras»), porque es de su oficio */
+const mientras=av=>{const a=cfg.av[av];return a&&typeof a.mientras==='string'?a.mientras:''};
 
 /* un mapa sencillo, sin librerías: las nueve teselas de alrededor de un punto, con el punto en el centro */
 function mapaHtml(M,pos,quien){const z=15,n=2**z,x=(pos.lon+180)/360*n,la=pos.lat*Math.PI/180,y=(1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n;
@@ -270,7 +267,7 @@ function bAntes(v,T){if(!['nuevo','asignado'].includes(v.e))return'';
    (v.e==='nuevo'?'<li>'+_('Te confirmamos por WhatsApp quién irá.')+'</li>':'<li>'+(v.cita?_('Irá {quien}, en la franja que has elegido.',{quien:esc(T)}):_('Irá {quien}.',{quien:esc(T)}))+'</li>')+
    (v.cita?'<li>'+_('El día de la cita te escribimos cuando salga hacia tu casa.')+'</li>':'<li>'+_('Te escribimos cuando salga hacia tu casa.')+'</li>')+
    '<li>'+_('Antes de empezar te da el precio cerrado, y lo firmas.')+'</li></ol>'+
-  (MIENTRAS[v.av]?'<h2>'+_('Mientras tanto')+'</h2><p>'+_(MIENTRAS[v.av])+'</p>':'')+
+  (mientras(v.av)?'<h2>'+_('Mientras tanto')+'</h2><p>'+esc(_(mientras(v.av)))+'</p>':'')+
   '<p class="cambia">'+_('¿Tienes que cambiarla o anularla? Llámanos al {tel} y la movemos sin perder nada.',{tel})+'</p></section>'}
 function vAviso(id){const X=SRV?Oficio.vista(id):null,v=SRV?(X&&X.v):K.vistaCliente(S,cfg,id);
  if(SRV&&!v&&(!X||X.err==='red'))return'<h1>'+_('Tu aviso {id}',{id:esc(id)})+'</h1><p class="lead" role="status">'+(X?_('No hay conexión. Lo vuelvo a intentar solo en unos segundos.'):_('Buscando tu aviso…'))+'</p>';
@@ -287,7 +284,7 @@ function vAviso(id){const X=SRV?Oficio.vista(id):null,v=SRV?(X&&X.v):K.vistaClie
  const p=[[_('Recibido'),v.t],[_('Asignado'),0],[_('De camino'),v.sal],[_('En casa'),v.ini],[_('Hecho'),v.fin]];
  return'<article class="papel doc"><div class="dh"><span class="wm">'+MARCA+'</span><p>'+_('Aviso {id}',{id:v.id})+'<br>'+esc(_(av.n))+'</p></div><h1 tabindex="-1" id="tit">'+tit+'</h1><p class="frase">'+frase+'</p>'+
   (v.e==='cancelado'?'':'<ol class="pista" aria-label="'+_('Cómo va tu aviso')+'">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>')+bQuien(v)+bMapa(v,T)+bAntes(v,T)+
-  '<p class="pie">'+(v.e==='hecho'?_('El parte y la garantía te llegan por WhatsApp. ¿Algo no cuadra? Llama al {tel}.',{tel:N.tel}):['nuevo','asignado'].includes(v.e)?_('Esta página se actualiza sola: guárdala para ver cómo va.'):_('Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga. ¿Algo no cuadra? Llama al {tel}.',{tel:N.tel}))+'</p></article>'+
+  '<p class="pie">'+(v.e==='hecho'?(Oficio.DEMO||SRV?_('El parte y la garantía los tienes en {zona}. ¿Algo no cuadra? Llama al {tel}.',{zona:'<a href="cliente.html">'+_('tu zona de cliente')+'</a>',tel:esc(N.tel)}):_('El parte y la garantía te los mandamos por WhatsApp. ¿Algo no cuadra? Llama al {tel}.',{tel:esc(N.tel)})):['nuevo','asignado'].includes(v.e)?_('Esta página se actualiza sola: guárdala para ver cómo va.'):_('Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga. ¿Algo no cuadra? Llama al {tel}.',{tel:N.tel}))+'</p></article>'+
   '<div class="tras">'+(Oficio.DEMO?'<a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">'+_('Ver cómo le llega a {n}',{n:esc(N.marca[0])})+'</a>':'')+'<a class="txt" href="#/">'+_('Pedir otra cita')+'</a></div>'}
 
 function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeURIComponent);return{v:h[0]||'',a:h[1]||'',b:h[2]||''}}
@@ -313,7 +310,7 @@ document.addEventListener('input',e=>{const i=e.target;if(!(i.dataset&&i.dataset
  if(k==='cp'){const d=i.value.replace(/\D/g,'');if(d.length===5){if(zonaDe(d)){if(B.err==='zona')B.err='';B.errs=B.errs.filter(x=>x!=='cp'&&x!=='zona')}else B.err='zona';repinta(i.id)}return}
  if((B.errs.includes(k)||B.err===k)&&campoBien(k)){B.errs=B.errs.filter(x=>x!==k);if(B.err===k)B.err='';repinta(i.id)}});
 document.addEventListener('change',e=>{const i=e.target;
- if(i.name==='av'){B.av=i.value;mem.set('ramirez:av',B.av);B.errs=B.errs.filter(x=>x!=='av');if(B.err==='av')B.err='';if(SRV&&cfg.porTiempo){H.t=0;traeHuecos()}pinta();const n=$('input[name=av]:checked');if(n)n.focus()}
+ if(i.name==='av'){B.av=i.value;mem.set(N.id+':av',B.av);B.errs=B.errs.filter(x=>x!=='av');if(B.err==='av')B.err='';if(SRV&&cfg.porTiempo){H.t=0;traeHuecos()}pinta();const n=$('input[name=av]:checked');if(n)n.focus()}
  if(i.id==='c_foto'&&i.files[0]){const fi=i.files[0];B.fotoVa=true;B.fotoMal='';pinta();
   Oficio.foto(fi).then(f=>{B.foto=f;B.fotoVa=false;pinta()}).catch(()=>{B.fotoVa=false;B.fotoMal='No he podido usar esa foto. Prueba con otra (una foto normal del móvil).';pinta()})}});
 /* ir a un campo desde el aviso de errores, o volver del resumen a la parte que se quiere cambiar */

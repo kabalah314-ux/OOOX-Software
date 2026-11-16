@@ -1,7 +1,7 @@
 // Los idiomas de lo que ve el cliente (js/oficio-idioma.js), sin navegador:
 //  1) que cada texto de la cita, la zona del cliente y los papeles esté en catalán y en inglés, con los mismos datos entre
 //     llaves ({tel}, {fecha}…), y que no sobre ninguno;
-//  2) que lo propio de cada negocio (sus averías, su catálogo, sus planes, su furgoneta y su dirección) esté en los «textos»
+//  2) que lo propio de cada negocio (sus averías y sus consejos, su catálogo, sus planes, su furgoneta y su dirección) esté en los «textos»
 //     de su archivo de datos, si los tiene. Sin «textos», el negocio sale en castellano en los otros idiomas: es un aviso.
 // Lo que se ve de verdad en cada idioma, pantalla a pantalla, lo mira pruebas-navegador/idiomas.py.
 // Uso: node idiomas.mjs <carpeta del sitio> [datos.js …]
@@ -48,7 +48,7 @@ function bloque(s, empieza) {
 // cada archivo: con qué se traduce (_ en las páginas y los papeles; T dentro del propio archivo de idiomas) y qué listas
 // guardan textos en castellano que se traducen al enseñarlos
 const ARCHIVOS = {
-  'cita.html': ['_', 'const ERR=', 'Object.assign(ERR,', 'const MIENTRAS='],
+  'cita.html': ['_', 'const ERR=', 'Object.assign(ERR,'],   // lo de «mientras tanto» va en los datos de cada negocio (16-11-2026)
   'cliente.html': ['_', 'const EST=', 'const ERR='],
   'js/oficio-papeles.js': ['_', 'const PAGO='],
   'js/oficio-estado.js': ['_'],
@@ -86,7 +86,7 @@ for (const f of datos) {
   let N; try { ({ N } = leeNegocio(f)) } catch (e) { falla(f + ': no se puede leer: ' + e.message); continue }
   const suyos = new Set();
   const pon = t => { if (typeof t === 'string' && t.trim()) suyos.add(t) };
-  (N.averias || []).forEach(a => pon(a.n)); Object.values(N.catalogo || {}).forEach(i => pon(i.t));
+  (N.averias || []).forEach(a => { pon(a.n); pon(a.mientras) }); Object.values(N.catalogo || {}).forEach(i => pon(i.t));   // «mientras»: lo que conviene hacer mientras llega el técnico (16-11-2026)
   (N.tecnicos || []).forEach(t => pon(t.coche)); pon(N.dir);
   const MT = N.mantenimiento; if (MT) { if (MT.revision) pon(MT.revision.n); (MT.planes || []).forEach(p => pon(p.n)) }
   const nombre = path.basename(path.dirname(path.dirname(f))) + '/' + path.basename(f);

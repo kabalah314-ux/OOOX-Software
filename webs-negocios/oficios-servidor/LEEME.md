@@ -29,7 +29,13 @@ negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como 
   solo si la versión sigue siendo la que leyó; si otro aparato se adelantó, vuelve a leer y aplica la acción sobre lo
   nuevo (hasta 5 veces; después contesta `lleno` y el aparato reintenta).
 - **Las reglas son las de la app.** `K.aplicar(S, cfg, acción, quién, t)`. Lo que rechazan no se guarda ni se apunta.
-- **La hora es la del servidor.**
+- **La hora es la del servidor, salvo lo hecho sin conexión** (16-11-2026). El aparato manda cuándo hizo cada acción (`t`)
+  y qué hora tiene al mandarla (`ya`), con su reloj; el juez cuenta cuánto hace (`ya − t`), así da igual que el reloj del
+  aparato vaya mal. Como mucho tres días atrás y nunca antes de lo último apuntado en ese aviso (`horaDe`). El diario guarda
+  esa hora (la columna `cuando` tiene la de llegada), y repetirlo sigue dando lo mismo.
+- **La huella de los datos del negocio** va al entrar, al leer y al hacer (`huella`: los datos sin `servidor` ni `textos`,
+  con las claves en orden, SHA-256 y 16 letras). La app la compara con la de su archivo y, si no es la misma, lo dice en
+  «Tu sesión»: así se ve si alguien ha cambiado un precio en un sitio y no en el otro.
 - **Cada aviso guarda la versión en que cambió por última vez.** Un aparato pide «lo cambiado desde la versión N» y
   recibe solo eso.
 - **`de`**: los técnicos que han llevado alguna vez el aviso. Si deja de ser de uno, a ese le llega
@@ -59,9 +65,9 @@ Contesta siempre `{ok:true, …}` o `{ok:false, err}`. Nunca lanza.
 
 | `que` | Quién | Manda | Recibe |
 |---|---|---|---|
-| `entrar` | Oficina o técnico | `negocio, persona, codigo` | `rol, id, v` |
-| `hacer` | Oficina o técnico | lo anterior y `accion`, `desde`, `clave` | `r` (lo que dicen las reglas), `v`, `cambios` |
-| `leer` | Oficina o técnico | `negocio, persona, codigo, desde` | `cambios` |
+| `entrar` | Oficina o técnico | `negocio, persona, codigo` | `rol, id, v, huella` |
+| `hacer` | Oficina o técnico | lo anterior y `accion`, `desde`, `clave`; y `t`, `ya` si se hizo sin conexión | `r` (lo que dicen las reglas), `v`, `cambios`, `huella` |
+| `leer` | Oficina o técnico | `negocio, persona, codigo, desde` | `cambios`, `huella` |
 | `pedir` | Cualquiera, desde la web | `negocio, accion` (solo `pedir`), `clave` | `id, llave` y nada más |
 | `huecos` | Cualquiera | `negocio` | `dias: [{dia, hoy, franjas: [{id, ok}]}]`, sin cifras ni datos |
 | `ver` | El cliente, con su enlace | `negocio, aviso, llave` | `vista` |

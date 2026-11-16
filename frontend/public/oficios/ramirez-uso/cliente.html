@@ -165,7 +165,7 @@ function tjProta(a){const v=a.vista||{},T=v.tec||_('El técnico'),cu=a.cita?I.fe
 /* un trabajo terminado: el pago, el parte y la factura, cada uno con lo suyo (auditoría UX-08): si tiene que pagar, que el
    parte ya lo tiene aquí y quién le hace la factura (la app no la hace: la hace el negocio con su programa) */
 function tjHecho(a,hoy){const gar=a.gar?' · '+(a.gar.hasta>=hoy?_('garantía hasta el {fecha}',{fecha:K.fechaCorta(a.gar.hasta)}):_('garantía terminada')):'';
- const tres=a.tot?[a.pago&&a.pago.cobrado?(a.tot.total?_('Pagado'):_('Nada que pagar: va en tu contrato')):_('Pendiente de pago'),_('Parte de trabajo: aquí'),a.fac?(a.fac.num?_('Factura {num}',{num:esc(a.fac.num)}):_('Factura hecha')):_('Factura: te la hace {razon} aparte',{razon:esc(N.razon)})]:[];
+ const tres=a.tot?[a.pago&&a.pago.cobrado?(a.tot.total?_('Pagado'):a.enGar?_('Nada que pagar: va en la garantía'):_('Nada que pagar: va en tu contrato')):_('Pendiente de pago'),_('Parte de trabajo: aquí'),a.fac?(a.fac.num?_('Factura {num}',{num:esc(a.fac.num)}):_('Factura hecha')):_('Factura: te la hace {razon} aparte',{razon:esc(N.razon)})]:[];
  return'<a class="tj" href="#/aviso/'+esc(a.id)+'"><span class="k"><span>'+esc(a.id)+' · '+K.fechaCorta(K.madrid(a.fin||a.t).date)+'</span><span class="pill hecho">'+_('Terminado')+'</span></span><b>'+esc(avN(a))+'</b><small>'+
   (a.tot?K.eur(a.tot.total):'')+gar+'</small>'+(tres.length?'<span class="tres">'+tres.map((x,i)=>'<span class="'+(i===0&&!(a.pago&&a.pago.cobrado)?'pend':'')+'">'+x+'</span>').join('')+'</span>':'')+'</a>'}
 

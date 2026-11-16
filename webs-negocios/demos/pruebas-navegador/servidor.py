@@ -137,7 +137,21 @@ async def main():
         await c2.set_offline(False)
         es(await pasa(t2, f"!Oficio.estado().avisos.find(a=>a.id==='{A1}')&&Oficio.red().cola===0"), 'al volver la cobertura, el servidor rechaza el «Voy» y el aviso desaparece de su móvil')
         es(await pasa(t2, "/No se ha guardado/.test(document.querySelector('#toast').textContent)", 3000) and 'no es tuyo' in await t2.inner_text('#toast'), 'y la app le dice que no se ha guardado y por qué')
-        es(await pasa(t2, "document.querySelector('#red').hidden") and aviso(A1)['tec'] == T1 and aviso(A1)['e'] == 'asignado' and len(diario('voy')) == 0, 'en el servidor manda lo que hizo la oficina; el aviso de «sin conexión» se quita')
+        es(await pasa(t2, "!/Sin conexión/.test(document.querySelector('#red').textContent)") and aviso(A1)['tec'] == T1 and aviso(A1)['e'] == 'asignado' and len(diario('voy')) == 0, 'en el servidor manda lo que hizo la oficina; el aviso de «sin conexión» se quita')
+        # lo que no se pudo guardar no se pierde con el aviso de unos segundos (16-11-2026): queda dicho arriba y en «Tu sesión» hasta que se lee
+        es(await pasa(t2, "Oficio.red().rech===1&&!document.querySelector('#red').hidden&&/1 cambio no se pudo guardar/.test(document.querySelector('#red').textContent)"), 'y arriba queda dicho que un cambio no se pudo guardar')
+        await t2.click('[data-a=menu]'); await t2.wait_for_selector('#mRech'); tr = await t2.inner_text('#mRech')
+        es('No se pudo guardar' in tr and 'Voy' in tr and A1 in tr, f'en «Tu sesión», qué fue y de qué aviso ({tr[:160]})')
+        await t2.click('#mRechNo')
+        es(await pasa(t2, "Oficio.red().rech===0&&document.querySelector('#red').hidden&&!document.querySelector('dialog[open]')"), 'al leerlo, la lista se borra y el aviso de arriba se quita')
+        es(await t2.evaluate("Oficio.red().datos===false") and await o.evaluate("Oficio.red().datos===false"), 'los datos del negocio de la app y los del servidor son los mismos: no sale el aviso de datos distintos')
+        # si alguien cambia un precio en el servidor y no en la app (o al revés), «Tu sesión» lo dice
+        api('__prueba/precio', {'mas': 1}); await o.reload(); await o.wait_for_selector('[data-a=menu]')
+        es(await pasa(o, "Oficio.red().datos===true"), 'con un precio distinto en el servidor, la app se da cuenta (al abrirse, y con cada cambio que lee o manda)')
+        await o.click('[data-a=menu]'); await o.wait_for_selector('#mSal')
+        es(await o.locator('#mDatos').count() == 1 and 'no son los del servidor' in await o.inner_text('#mDatos'), 'y en «Tu sesión» dice que avise a OOOX')
+        await o.keyboard.press('Escape'); api('__prueba/precio', {'mas': -1}); await o.reload(); await o.wait_for_selector('[data-a=menu]')
+        es(await pasa(o, "Oficio.red().datos===false") and await o.locator('#mDatos').count() == 0, 'vuelve a ser el mismo precio: el aviso se quita')
         await o.click(f'.tec[data-tec={T2}]')
         es(await pasa(t2, tiene(A1, 'asignado')) and await pasa(t1, f"!Oficio.estado().avisos.find(a=>a.id==='{A1}')"), 'la oficina se lo devuelve: vuelve al primero y se le quita al segundo')
 

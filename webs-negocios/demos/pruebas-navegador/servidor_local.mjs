@@ -8,7 +8,7 @@
 //
 // Lo mismo que el servidor de verdad:      POST /functions/v1/oficio      GET /functions/v1/oficio
 //                                          POST /rest/v1/rpc/oficios_v    POST /rest/v1/rpc/oficios_vista
-// Solo para las pruebas, bajo /__prueba/:  negocio, codigos, estado, cuenta, clientes (GET) · reloj, persona, red, pierde (POST)
+// Solo para las pruebas, bajo /__prueba/:  negocio, codigos, estado, cuenta, clientes (GET) · reloj, persona, red, pierde, precio (POST)
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
@@ -78,6 +78,8 @@ async function prueba(req, res, ruta) {
   if (que === 'reloj') { desfase = Number(c.desfase) || 0; return json(res, { ok: true, ahora: ahora() }); }
   if (que === 'red') { red = c.modo === 'cae' ? 'cae' : 'va'; lento = Math.max(0, Number(c.lento) || 0); return json(res, { ok: true, red, lento }); }
   if (que === 'pierde') { pierde = Math.max(0, Number(c.n) || 0); return json(res, { ok: true, pierde }); }
+  /* cambia el precio del primer servicio en los datos que tiene el servidor (y no en el archivo): datos distintos de los de la app */
+  if (que === 'precio') { const n = crudo(), k = Object.keys(n.datos.catalogo)[0]; n.datos.catalogo[k].p10 += Number(c.mas) || 0; return json(res, { ok: true, p10: n.datos.catalogo[k].p10 }); }
   if (que === 'persona') { const p = crudo().personas.get(String(c.persona)); if (!p) return json(res, { ok: false }, 404);
     if (typeof c.codigo === 'string') { p.codigo = c.codigo; p.activo = true; } return json(res, { ok: true }); }
   return json(res, { ok: false, err: 'no existe' }, 404);

@@ -36,7 +36,7 @@ const con = (d, p) => Object.assign({ negocio: 'voltio', persona: d.persona, cod
 async function envia(d, fallo) {
   const p = d.E.siguiente(); if (!p) return { tipo: 'vacia' };
   let res = { ok: false, err: 'red' };
-  if (fallo !== 'ida') { const r = await J.atiende(con(d, { que: 'hacer', accion: p.accion, clave: p.clave, desde: p.desde })); if (fallo !== 'vuelta') res = r; }
+  if (fallo !== 'ida') { const r = await J.atiende(con(d, { que: 'hacer', accion: p.accion, clave: p.clave, desde: p.desde, t: p.t, ya: reloj.t })); if (fallo !== 'vuelta') res = r; }   // t y ya, como la app (16-11-2026)
   return d.E.respuesta(p.clave, res);
 }
 const lee = async d => { const r = await J.atiende(con(d, { que: 'leer', desde: d.E.v() })); return r.ok ? d.E.llega(r.cambios) : false; };
@@ -263,6 +263,21 @@ if (cfg.mapa || true) {
   es(igual(OF.E.estado().avisos, todo), 'la oficina acaba con todos los avisos, iguales que en el servidor');
   es(igual(P1.E.estado().avisos, todo.filter(a => a.tec === T1)) && igual(P2.E.estado().avisos, todo.filter(a => a.tec === T2)), 'y cada técnico, con los suyos y nada más');
   es(new Set(diario().map(x => x.clave).filter(Boolean)).size === diario().filter(x => x.clave).length, 'ninguna acción está dos veces en el diario');
+}
+
+// 21. lo hecho sin conexión llega con la hora en que se hizo, no con la de cuando vuelve la red (16-11-2026)
+{ let id = null; const pc = OF.E.crear({ tipo: 'pedir', av, origen: 'llamada', cli: cli(7) }).then(x => { id = x && x.id; }); await envia(OF); await pc;
+  let d = null, tv = 0;
+  for (const [tec, dev] of [[T1, P1], [T2, P2]]) {
+    if (!OF.E.hacer({ tipo: 'asignar', id, tec }).ok) continue; await envia(OF); await lee(dev);
+    tv = reloj.t; if (dev.E.hacer({ tipo: 'voy', id }).ok) { d = dev; break; }
+  }
+  const p = d && d.E.siguiente();
+  es(p && p.accion.tipo === 'voy' && p.t === tv, 'lo que va a salir lleva la hora en que se hizo, con el reloj del aparato');
+  reloj.t += 2 * 3600000;   // dos horas sin cobertura
+  const x = d ? await envia(d) : null, S = id && A.crudo('voltio').avisos.get(id);
+  es(x && x.tipo === 'hecha' && S && Math.abs(S.datos.sal - tv) < 5000 && diario().slice(-1)[0].t < reloj.t - 3600000,
+    `el servidor la guarda con esa hora: salió hace dos horas, no ahora (${S && Math.round((S.datos.sal - tv) / 1000)} s de diferencia)`);
 }
 
 console.log((mal ? 'FALLAN ' + mal + ' de ' : 'Bien: ') + (ok + mal) + ' comprobaciones del espejo (lo que guarda cada aparato y cómo se pone de acuerdo con el servidor).');

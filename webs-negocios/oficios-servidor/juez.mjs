@@ -26,6 +26,19 @@ export const TOPES = {
   dias: 5,            // días con huecos que se enseñan a quien pide cita
 };
 
+/* LA HORA DE UNA ACCIÓN (16-11-2026). Lo hecho sin conexión se apunta con la hora en que se hizo, no con la de cuando llega:
+   un trabajo terminado a las 14:00 en un sótano sin cobertura no puede quedar terminado a las 18:00. El aparato manda
+   cuándo lo hizo (t) y qué hora tiene al mandarlo (ya), los dos con su reloj; lo que cuenta es cuánto hace (ya − t), así
+   da igual que su reloj vaya adelantado o atrasado. Como mucho tres días atrás, y nunca antes de lo último apuntado en
+   ese aviso: el historial del aviso no se desordena. Sin t o con algo raro, la hora del juez. */
+export const HACE_MAX = 3 * 86400000;
+export function horaDe(n, cuando, A) {
+  const hace = cuando && Number.isFinite(cuando.t) && Number.isFinite(cuando.ya) && cuando.t > 0 ? cuando.ya - cuando.t : 0;
+  let t = hace > 0 ? n - Math.min(hace, HACE_MAX) : n;
+  if (A && Array.isArray(A.h)) for (const x of A.h) if (x && Number.isFinite(x.t) && x.t > t) t = Math.min(x.t, n);
+  return Math.round(t);
+}
+
 const LETRAS = 'abcdefghjkmnpqrstuvwxyz23456789';   // sin la i, la l, la o, el 0 ni el 1: no se confunden al copiarlas
 /** Una llave que no se puede adivinar: 24 letras al azar (unos 118 bits). */
 export function llaveNueva(n = 24) {
@@ -82,6 +95,11 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
     return { S, filas: new Map(filas.map(f => [f.id, f])) };
   }
 
+  /* la huella de los datos del negocio que tiene el servidor (precios, horarios, equipo…): va al entrar, al leer y al hacer;
+     la app la compara con la suya y, si no es la misma, lo dice en «Tu sesión». Sin ella (reglas de antes), cadena vacía y la
+     app no dice nada. */
+  async function huella(neg) { try { return typeof K.huellaDatos === 'function' ? await K.huellaDatos(neg.datos || {}) : ''; } catch (e) { return ''; } }
+
   /* lo cambiado desde una versión, ya recortado para quien lo pide */
   async function cambios(neg, q, desde) {
     const d = Number.isInteger(desde) && desde > 0 && desde <= (neg.v || 0) ? desde : 0;
@@ -95,12 +113,12 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
   /* pasa una acción por las reglas y la guarda. Si alguien se adelanta, vuelve a leer y lo intenta sobre lo nuevo.
      «clave» es la marca que pone el aparato a cada acción para que, si la manda dos veces, se haga una sola. Vale solo
      para quien la puso: así nadie recibe el resultado de la acción de otro por usar su misma marca. */
-  async function aplica(neg0, q, accion, marca) {
+  async function aplica(neg0, q, accion, marca, cuando) {
     const clave = texto(marca, 64) && marca.length >= 12 ? (q.rol === 'cliente' ? 'web' : q.rol + ':' + q.id) + '|' + marca : '';
     for (let i = 0; i < TOPES.intentos; i++) {
       const neg = i ? await negocio(neg0.id) : neg0; if (!neg) return { res: R('clave') };
       if (clave) { const ya = await almacen.hecha(neg.id, clave); if (ya) return { res: Object.assign({}, ya.res, { repetida: true }), nuevos: ya.nuevos || [] }; }
-      const cfg = K.cfgDe(neg.datos), { S, filas } = await carga(neg), t = ahora();
+      const cfg = K.cfgDe(neg.datos), { S, filas } = await carga(neg), t = horaDe(ahora(), cuando, typeof accion.id === 'string' ? S.avisos.find(a => a.id === accion.id) : null);
       const antes = new Map(S.avisos.map(a => [a.id, JSON.stringify(a)])), contAntes = JSON.stringify(S.contratos || []);
       const r = K.aplicar(S, cfg, accion, q, t);
       if (!r.ok) return { res: R(r.err, { v: neg.v || 0 }) };
@@ -117,17 +135,17 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
   }
 
   const QUE_HACE = {
-    async entrar(neg, cfg, p) { const w = await quien(neg, cfg, p); if (!w.ok) return w; return { ok: true, rol: w.q.rol, id: w.q.id, v: neg.v || 0 }; },
+    async entrar(neg, cfg, p) { const w = await quien(neg, cfg, p); if (!w.ok) return w; return { ok: true, rol: w.q.rol, id: w.q.id, v: neg.v || 0, huella: await huella(neg) }; },
 
-    async leer(neg, cfg, p) { const w = await quien(neg, cfg, p); if (!w.ok) return w; return { ok: true, cambios: await cambios(neg, w.q, p.desde) }; },
+    async leer(neg, cfg, p) { const w = await quien(neg, cfg, p); if (!w.ok) return w; return { ok: true, huella: await huella(neg), cambios: await cambios(neg, w.q, p.desde) }; },
 
     async hacer(neg, cfg, p) {
       const w = await quien(neg, cfg, p); if (!w.ok) return w;
       const a = p.accion; if (!a || typeof a !== 'object' || Array.isArray(a) || typeof a.tipo !== 'string') return R('accion');
       if (p.clave != null && !texto(p.clave, 64)) return R('accion');
-      const { res } = await aplica(neg, w.q, a, p.clave || '');
+      const { res } = await aplica(neg, w.q, a, p.clave || '', { t: p.t, ya: p.ya });
       const n2 = await negocio(neg.id);
-      return n2 ? Object.assign({}, res, { cambios: await cambios(n2, w.q, p.desde) }) : res;
+      return n2 ? Object.assign({}, res, { cambios: await cambios(n2, w.q, p.desde), huella: await huella(n2) }) : res;
     },
 
     /* pedir cita desde la web: sin código, solo esa acción, y con freno */

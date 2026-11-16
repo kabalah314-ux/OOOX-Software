@@ -45,9 +45,15 @@ if(!SV)g.addEventListener&&g.addEventListener('storage',e=>{if(e.key===CLAVE)avi
 const R=SV?(function(){
  const mem={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
  const leeJ=k=>{try{return JSON.parse(mem.get(k))}catch(e){return null}};
- const K_SES=CLAVE+':sesion',K_SRV=CLAVE+':srv',K_LLA=CLAVE+':llaves',K_ULT=CLAVE+':persona',URLF=SV.url.replace(/\/+$/,'')+'/functions/v1/'+(SV.funcion||'oficio'),URLR=SV.url.replace(/\/+$/,'')+'/rest/v1/rpc/';
+ const K_SES=CLAVE+':sesion',K_SRV=CLAVE+':srv',K_LLA=CLAVE+':llaves',K_ULT=CLAVE+':persona',K_REC=CLAVE+':rechazos',URLF=SV.url.replace(/\/+$/,'')+'/functions/v1/'+(SV.funcion||'oficio'),URLR=SV.url.replace(/\/+$/,'')+'/rest/v1/rpc/';
  const VACIO=K.nuevo(),FALLO={ok:false,err:'red'},rech=[],vistas={};
- let ses=null,E=null,vuela=false,fallos=0,sinRed=false,lleno=false,motivo='',entero=true,ultimo=Date.now(),tm=null,reglas='';
+ let ses=null,E=null,vuela=false,fallos=0,sinRed=false,lleno=false,motivo='',entero=true,ultimo=Date.now(),tm=null,reglas='',datosMal=false;
+ /* ¿tiene el servidor los mismos datos del negocio que esta app? Si no, se dice en «Tu sesión» (16-11-2026) */
+ const miHuella=typeof K.huellaDatos==='function'?K.huellaDatos(N).catch(()=>''):Promise.resolve('');
+ function comparaDatos(h){if(typeof h!=='string'||!h)return;miHuella.then(m=>{const mal=!!m&&m!==h;if(mal!==datosMal){datosMal=mal;avisa()}})}
+ /* lo que el servidor no aceptó se queda apuntado en el aparato hasta que se lea: un aviso de unos segundos no basta */
+ const rechazos=()=>{const L=leeJ(K_REC);return Array.isArray(L)?L.filter(x=>x&&typeof x==='object'):[]};
+ const apuntaRechazo=x=>{const L=rechazos();L.push({t:Date.now(),tipo:String(x.accion&&x.accion.tipo||''),id:String(x.accion&&x.accion.id||''),err:String(x.err||'')});mem.set(K_REC,JSON.stringify(L.slice(-30)))};
  const oculto=()=>typeof document!=='undefined'&&document.hidden;
  /* una llamada con límite de tiempo. Devuelve siempre un objeto: lo que conteste el servidor o {ok:false, err:'red'} */
  function llama(url,o,ms){const ctl=typeof AbortController==='function'?new AbortController():null,t=ctl?setTimeout(()=>ctl.abort(),ms||20000):0;
@@ -77,10 +83,10 @@ const R=SV?(function(){
  /* Una vuelta: si hay algo por enviar, se manda lo primero; si no, se pregunta si hay algo nuevo. Nunca dos llamadas a la vez. */
  async function vuelta(yo){
   const p=E.siguiente();
-  if(p){const res=await juez(con({que:'hacer',accion:p.accion,clave:p.clave,desde:p.desde}),45000);if(ses!==yo)return;
-   const x=E.respuesta(p.clave,res);
+  if(p){const res=await juez(con({que:'hacer',accion:p.accion,clave:p.clave,desde:p.desde,t:p.t,ya:Date.now()}),45000);if(ses!==yo)return;   /* t y ya: cuándo se hizo y qué hora es ahora, los dos con el reloj del aparato: el servidor mira cuánto hace */
+   const x=E.respuesta(p.clave,res);if(res&&res.ok)comparaDatos(res.huella);
    if(x.tipo==='hecha'||x.tipo==='rechazada'){bien();motivo='';ultimo=Date.now();guardaSrv();
-    if(x.tipo==='rechazada'&&!x.crea)rech.forEach(f=>{try{f({accion:x.accion,err:x.err})}catch(e){console.error(e)}});
+    if(x.tipo==='rechazada'&&!x.crea){apuntaRechazo(x);rech.forEach(f=>{try{f({accion:x.accion,err:x.err})}catch(e){console.error(e)}})}
     avisa()}
    else if(x.tipo==='sesion')fuera(x.err);
    else{mal();if(x.crea){guardaSrv();avisa()}}
@@ -90,7 +96,7 @@ const R=SV?(function(){
   if(!r.ok){if(r.err==='clave'||r.err==='bloqueo')fuera(r.err);else mal();return}
   if(r.v===E.v()){bien();if(motivo==='bloqueo'){motivo='';avisa()}return}
   const l=await juez(con({que:'leer',desde:entero?0:E.v()}),45000);if(ses!==yo)return;
-  if(l.ok){entero=false;bien();motivo='';if(E.llega(l.cambios)){ultimo=Date.now();guardaSrv();avisa()}}
+  if(l.ok){entero=false;bien();motivo='';comparaDatos(l.huella);if(E.llega(l.cambios)){ultimo=Date.now();guardaSrv();avisa()}}
   else if(l.err==='clave'||l.err==='bloqueo')fuera(l.err);else mal()}
  async function ciclo(){
   if(!ses||!E||vuela)return;vuela=true;const yo=ses;
@@ -103,12 +109,12 @@ const R=SV?(function(){
  async function entrar(persona,codigo){persona=String(persona||'').trim().toLowerCase();codigo=limpia(codigo);
   if(!persona||codigo.length<8)return{ok:false,err:'clave'};
   const r=await juez({que:'entrar',negocio:N.id,persona,codigo});
-  if(!r.ok)return{ok:false,err:r.err||'red'};
+  if(!r.ok)return{ok:false,err:r.err||'red'};comparaDatos(r.huella);
   if((r.rol!=='centralita'&&r.rol!=='tecnico')||(r.rol==='tecnico'&&!cfg.tec[r.id]))return{ok:false,err:'datos'};
-  const antes=leeJ(K_SRV);if(antes&&antes.quien&&(antes.quien.rol!==r.rol||antes.quien.id!==r.id))mem.del(K_SRV);   /* lo guardado era de otra persona */
+  const antes=leeJ(K_SRV);if(antes&&antes.quien&&(antes.quien.rol!==r.rol||antes.quien.id!==r.id)){mem.del(K_SRV);mem.del(K_REC)}   /* lo guardado era de otra persona */
   abre({persona,codigo,rol:r.rol,id:r.rol==='centralita'?'oficina':r.id});mem.set(K_SES,JSON.stringify(ses));mem.set(K_ULT,persona);   /* quién entró la última vez en este aparato: para no tener que elegirlo otra vez */
   await ciclo();miraReglas();avisa();return{ok:true,rol:ses.rol,id:ses.id}}
- function salir(){ses=null;E=null;motivo='';clearTimeout(tm);mem.del(K_SES);mem.del(K_SRV);avisa()}
+ function salir(){ses=null;E=null;motivo='';clearTimeout(tm);mem.del(K_SES);mem.del(K_SRV);mem.del(K_REC);avisa()}
  /* ¿lleva el servidor las mismas reglas que esta app? Si no, se dice en el menú: evita perseguir fallos que no lo son. */
  function miraReglas(){llama(URLF,{method:'GET'},12000).then(x=>{const v=x&&x.oficio&&x.oficio.reglas;if(typeof v==='string'&&v!==reglas){reglas=v;if(v!==K.VERSION)avisa()}})}
 
@@ -162,8 +168,8 @@ const R=SV?(function(){
 
  return{estado:()=>E?E.estado():VACIO,hacer:hacerS,crear:(a,q)=>q&&q.rol==='cliente'?pedirWeb(a):crearS(a),
   sesion:()=>ses?{rol:ses.rol,id:ses.id,persona:ses.persona}:null,ultima:()=>mem.get(K_ULT)||'',entrar,salir,huecos,vista,miraVista,llaveDe,ponLlave,perfil,acceso,equipo,
-  alRechazar:f=>{rech.push(f)},
-  red:()=>({cola:E?E.pendientes():0,sinRed,lleno,motivo,reglas:reglas&&reglas!==K.VERSION?reglas:''})}
+  alRechazar:f=>{rech.push(f)},rechazos,olvidaRechazos:()=>{mem.del(K_REC);avisa()},
+  red:()=>({cola:E?E.pendientes():0,sinRed,lleno,motivo,reglas:reglas&&reglas!==K.VERSION?reglas:'',datos:datosMal,rech:rechazos().length})}
 })():null;
 
 /* una foto del móvil, reducida para que quepa: 720 px de lado mayor */
@@ -194,9 +200,9 @@ const firmaSvg=d=>'<svg viewBox="0 0 300 110" fill="none" stroke="currentColor" 
 /* Lo que usan las pantallas. «crear» es para lo que tiene número propio (un aviso, una ausencia): devuelve una promesa,
    porque con servidor el número lo pone él. Sin servidor contesta al momento, igual que «hacer». */
 g.Oficio=R?{K,N,cfg,DEMO,SRV:true,estado:R.estado,hacer:R.hacer,crear:R.crear,reiniciar(){},suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
-  sesion:R.sesion,ultima:R.ultima,entrar:R.entrar,salir:R.salir,red:R.red,alRechazar:R.alRechazar,huecos:R.huecos,vista:R.vista,miraVista:R.miraVista,llaveDe:R.llaveDe,ponLlave:R.ponLlave,perfil:R.perfil,acceso:R.acceso,equipo:R.equipo}
+  sesion:R.sesion,ultima:R.ultima,entrar:R.entrar,salir:R.salir,red:R.red,alRechazar:R.alRechazar,rechazos:R.rechazos,olvidaRechazos:R.olvidaRechazos,huecos:R.huecos,vista:R.vista,miraVista:R.miraVista,llaveDe:R.llaveDe,ponLlave:R.ponLlave,perfil:R.perfil,acceso:R.acceso,equipo:R.equipo}
  :{K,N,cfg,DEMO,SRV:false,estado,hacer,crear:(a,q)=>Promise.resolve(hacer(a,q)),reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
-  sesion:()=>null,red:()=>null,alRechazar(){}};
+  sesion:()=>null,red:()=>null,alRechazar(){},rechazos:()=>[],olvidaRechazos(){}};
 /* Una copia de prueba (prueba:true en los datos del negocio) lo dice arriba en todas sus pantallas: así nadie la toma por un
    negocio en marcha. Va con sus colores puestos aquí para no depender de la hoja de estilos de cada página.
    En la cita y en la zona del cliente, en su idioma (js/oficio-idioma.js); en la oficina, en castellano. */

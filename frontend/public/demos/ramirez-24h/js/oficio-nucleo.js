@@ -34,7 +34,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.16c';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.16d';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
@@ -101,12 +101,12 @@ function precio(cfg,lineas,o){o=o||{};const L=[];let mat=0,todo=0;
   if(l.k==='otro'){const p=cts(Math.max(0,Math.min(+l.p||0,5000)));if(!p)return;it={k:'otro',t:(txt(l.t).trim()||'Otro material').slice(0,60),p10:p,p21:red(p*1.1),u:false,mat:true,un:'',min:1,paso:1}}
   else it=typeof l.k==='string'?cfg.cat[l.k]:null;
   if(!it)return;
-  const gr=Array.isArray(o.gratis)&&o.gratis.includes(it.k);
+  const gr=Array.isArray(o.gratis)&&o.gratis.includes(it.k),gg=!gr&&Array.isArray(o.garan)&&o.garan.includes(it.k);
   let q=+l.q||it.min;q=Math.max(o.sinMin?it.paso:it.min,Math.round(q/it.paso)*it.paso);q=Math.min(q,it.un==='h'?12:20);
-  const f=o.urg&&it.u?1+cfg.recargo:1,b=gr?0:it.p10*q*f;todo+=b;if(it.mat)mat+=b;L.push({it,q,f,p:l.p,gr})});
+  const f=o.urg&&it.u?1+cfg.recargo:1,b=gr||gg?0:it.p10*q*f;todo+=b;if(it.mat)mat+=b;L.push({it,q,f,p:l.p,gr,gg})});
  const pmat=todo?mat/todo:0,tipo=o.tipo||(o.local||pmat>.4?21:10),motivo=o.local?'local':pmat>.4?'material':'vivienda';
  let total=0;
- const out=L.map(({it,q,f,p,gr})=>{const imp=gr?0:red((tipo===21?it.p21:it.p10)*q*f);total+=imp;const r={k:it.k,t:it.t,q,un:it.un,mat:it.mat,u:it.u&&!!o.urg&&!gr,imp};if(it.k==='otro')r.p=+p;if(gr)r.con=true;return r});
+ const out=L.map(({it,q,f,p,gr,gg})=>{const imp=gr||gg?0:red((tipo===21?it.p21:it.p10)*q*f);total+=imp;const r={k:it.k,t:it.t,q,un:it.un,mat:it.mat,u:it.u&&!!o.urg&&!gr&&!gg,imp};if(it.k==='otro')r.p=+p;if(gr)r.con=true;if(gg)r.gar=true;return r});
  const base=red(total/(1+tipo/100));
  return{lineas:out,total,base,iva:total-base,tipo,motivo,pmat,urg:!!o.urg,local:!!o.local}}
 /* lo que la web enseña de cada avería: de cuánto a cuánto */
@@ -151,6 +151,9 @@ function conDe(S,cfg,A,t){const d=madrid(t).date,C=contratoDe(S,A.cli,d),P=C&&pl
 /* lo que no se cobra en un aviso: en la revisión incluida, la revisión y el desplazamiento; en una urgencia, el desplazamiento
    y el suplemento de urgencia (una revisión de más no es una urgencia: se paga entera) */
 const gratisDe=A=>!A||!A.con?[]:A.con.rev?[A.con.rev,A.con.desp].filter(Boolean):A.urg&&A.av!==REV?[A.con.desp,A.con.urge].filter(Boolean):[];
+/* lo que no se cobra en un trabajo en garantía (16-11-2026): la visita, la mano de obra, el suplemento de urgencia y lo que se
+   hizo y se puso en el trabajo que está en garantía. Lo decide la oficina con «Es garantía» y queda en el aviso (enGar) */
+const garanDe=A=>A&&A.enGar&&Array.isArray(A.enGar.k)?A.enGar.k:[];
 
 /* ---------- citas sin prisa: días y franjas ---------- */
 const laborable=(cfg,f)=>{const w=diaSem(f);return w>=1&&w<=5&&!cfg.festivos.includes(f)};
@@ -371,21 +374,25 @@ function urgenciasMes(S,cfg,mes){let n=0,base=0;
 
 /* ---------- los mensajes al cliente, ya escritos ---------- */
 function mensaje(cfg,A,k){const N=cfg.N,n=(A.cli.nombre||'').split(' ')[0],hola=n?'Hola, '+n+'. ':'Hola. ',tec=cfg.tec[A.tec],T=tec?tec.n:'El técnico',av=cfg.av[A.av],fr=A.cita&&cfg.franjas.find(f=>f.id===A.cita.fr),frt=fr?franjaTxt(fr):'';
- const tot=A.tot?eur(A.tot.total):'';
+ const tot=A.tot?eur(A.tot.total):'',pg=N.pago&&typeof N.pago==='object'?N.pago:{},via=[tel9(pg.bizum)?'por Bizum al '+telBonito(pg.bizum):'',typeof pg.iban==='string'&&pg.iban?'por transferencia a la cuenta '+pg.iban:''].filter(Boolean);
  switch(k){
   case 'recibido':return hola+'Hemos recibido tu aviso '+A.id+(av?' ('+av.n.toLowerCase()+')':'')+'. '+(A.cita?'Te confirmamos enseguida quién irá.':'Te decimos enseguida quién va y a qué hora llega.')+' '+N.nombre+'.';
   case 'cita':if(!A.cita)return'';return hola+'Tu cita queda para el '+fechaLarga(A.cita.dia)+', '+frt+'. Irá '+T+'. Con cita, la tarifa es la normal. Si necesitas cambiarla, contesta a este mensaje. '+N.nombre+'.';
   case 'vispera':if(!A.cita)return'';return hola+'Te recordamos la cita de mañana, '+frt+', en '+A.cli.dir+'. Irá '+T+'. '+N.nombre+'.';
   case 'camino':return hola+T+' va de camino'+(A.eta?' y llega sobre las '+hora(A.eta):'')+'. '+N.nombre+'.';
   case 'ausente':return hola+T+' ha estado en '+A.cli.dir+' a las '+hora(A.aus||A.t)+' y no ha encontrado a nadie. ¿Cuándo te va bien que volvamos?';
-  case 'hecho':return A.tot?(A.sinTrabajo?hola+'Hoy solo hemos cobrado el desplazamiento: '+tot+'. ':hola+'Trabajo terminado. Total: '+tot+', IVA incluido. ')+(A.pago&&A.pago.cobrado?'Pagado ('+A.pago.modo+'). ':'Queda pendiente de pago. ')+(A.gar?'Tienes garantía hasta el '+fechaCorta(A.gar.hasta)+'. Te adjuntamos el parte. ':'')+N.nombre+'.'
-   :hola+'Trabajo terminado. Gracias por confiar en '+N.nombre+'.';
+  case 'hecho':{if(!A.tot)return hola+'Trabajo terminado. Gracias por confiar en '+N.nombre+'.';
+   /* a cero (va en el contrato o en la garantía) no hay total ni forma de pago que decir (16-11-2026: decía «Total: 0,00 €. Pagado ().») */
+   const cero=!A.tot.total,por=A.enGar?'va en la garantía':'va en tu contrato de mantenimiento';
+   return hola+(A.sinTrabajo?(cero?'Al final no se ha hecho el trabajo y la visita '+por+': no hay nada que pagar. ':'Hoy solo hemos cobrado el desplazamiento: '+tot+'. ')
+    :'Trabajo terminado. '+(cero?'No hay nada que pagar: '+por+'. ':'Total: '+tot+', IVA incluido. '))
+    +(cero?'':A.pago&&A.pago.cobrado?'Pagado ('+A.pago.modo+'). ':'Queda pendiente de pago. ')+(A.gar?'Tienes garantía hasta el '+fechaCorta(A.gar.hasta)+'. ':'')+N.nombre+'.'}
   case 'resena':return hola+'¿Todo bien con la reparación? Si tienes un minuto, tu opinión en Google nos ayuda mucho: '+N.resenas+' Gracias.';
   case 'seguimiento':return hola+'Hace una semana '+(av?'del arreglo ('+av.n.toLowerCase()+')':'del trabajo')+'. ¿Sigue todo bien? Si algo falla, contesta a este mensaje y volvemos'+(A.gar?': tienes garantía hasta el '+fechaCorta(A.gar.hasta):'')+'.\n\n'
    +'Si aún no has podido, tu opinión en Google nos ayuda mucho:\n'+N.resenas+'\n\nY si conoces a alguien que nos necesite, puedes pasarle este número.\n\nSi prefieres que no te escribamos para esto, dínoslo. '+N.nombre+'.';
   case 'presupuesto':if(!A.noPres)return'';return hola+'¿Has podido pensar lo del presupuesto'+(av?' ('+av.n.toLowerCase()+')':'')+'? Eran '+eur(A.noPres.total)+', IVA incluido. Si quieres hacerlo, contesta a este mensaje y te damos cita.\n\nSi prefieres que no te escribamos para esto, dínoslo. '+N.nombre+'.';
   case 'proxima':{const P=A.prox,it=P&&cfg.cat[P.k];if(!P)return'';return hola+'El '+fechaCorta(P.dia)+' toca '+(it?'la próxima '+it.t.toLowerCase():'volver a pasar')+': la última fue el '+fechaCorta(madrid(A.fin).date)+'. ¿Quieres que vayamos? Contesta con el día que te va bien.\n\nSi prefieres que no te avisemos más, dínoslo. '+N.nombre+'.'}
-  case 'cobro':if(!A.tot)return'';return hola+'Te recordamos que queda pendiente el pago del trabajo '+A.id+': '+tot+'. Puedes hacerlo por Bizum o por transferencia. Gracias. '+N.nombre+'.';
+  case 'cobro':if(!A.tot)return'';return hola+'Te recordamos que queda pendiente el pago del trabajo '+A.id+': '+tot+'. '+(via.length?'Puedes pagarlo '+via.join(' o ')+'. ':'Contesta a este mensaje y te decimos cómo pagarlo. ')+'Gracias. '+N.nombre+'.';
  }return''}
 const MSG={recibido:'Aviso recibido',cita:'Cita confirmada',vispera:'Recordatorio de la víspera',camino:'Va de camino',ausente:'No había nadie',hecho:'Trabajo terminado',resena:'Pedir reseña',cobro:'Recordar el pago',
  seguimiento:'Seguimiento a la semana',presupuesto:'Presupuesto sin respuesta',proxima:'Toca volver'};
@@ -401,6 +408,15 @@ function porMandar(S,ahora){const no=new Set(S.avisos.filter(x=>x.noMsg&&x.cli&&
 /* ---------- el tiempo de trabajo, sin las pausas ---------- */
 function minutos(A,t){if(!A.ini)return 0;const fin=A.fin||t||Date.now();let ms=fin-A.ini;(A.pausas||[]).forEach(p=>{ms-=(p[1]||fin)-p[0]});return Math.max(0,Math.round(ms/MIN))}
 const enPausa=A=>!!(A.pausas&&A.pausas.length&&!A.pausas[A.pausas.length-1][1]);
+
+/* ---------- la huella de los datos del negocio (16-11-2026) ----------
+   La misma en la app y en el servidor si los dos tienen los mismos datos. Sin «servidor» ni «textos», que solo usa la app,
+   y con las claves en orden, así no importa cómo se guardaron. La app avisa si no coincide (oficio-estado.js). */
+function canon(x){if(Array.isArray(x))return'['+x.map(y=>y===undefined||typeof y==='function'?'null':canon(y)).join(',')+']';
+ if(x&&typeof x==='object')return'{'+Object.keys(x).filter(k=>x[k]!==undefined&&typeof x[k]!=='function').sort().map(k=>JSON.stringify(k)+':'+canon(x[k])).join(',')+'}';
+ return JSON.stringify(x)}
+async function huellaDatos(N){const c=Object.assign({},N);delete c.servidor;delete c.textos;const s=g.crypto&&g.crypto.subtle;if(!s||typeof TextEncoder!=='function')return'';
+ const d=await s.digest('SHA-256',new TextEncoder().encode(canon(c)));return[...new Uint8Array(d)].slice(0,8).map(b=>b.toString(16).padStart(2,'0')).join('')}
 
 /* ---------- las acciones ---------- */
 const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato','escribir','furgo'].concat(CON_ACC);
@@ -506,7 +522,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   if(!mio)return R('permiso');if(A.e!=='camino'&&A.e!=='asignado')return R('estado');
   if(S.avisos.some(x=>x.id!==A.id&&x.tec===A.tec&&(x.e==='camino'||x.e==='curso')))return R('ocupado');
   const p=a.pres&&typeof a.pres==='object'?a.pres:{};if(typeof p.firma!=='string'||p.firma.length<12)return R('firma');
-  const pr=precio(cfg,p.lineas,{urg:tarifaDe(cfg,A),local:!!p.local,gratis:gratisDe(A)});if(!pr.lineas.length||(!pr.total&&!pr.lineas.some(l=>l.con)))return R('lineas');
+  const pr=precio(cfg,p.lineas,{urg:tarifaDe(cfg,A),local:!!p.local,gratis:gratisDe(A),garan:garanDe(A)});if(!pr.lineas.length||(!pr.total&&!pr.lineas.some(l=>l.con||l.gar)))return R('lineas');
   const des=desiste(cfg,A,p.lineas);if(pideYa(des)&&p.pide!==true)return R('pide');
   A.lin=pr.lineas.map(l=>l.k==='otro'?{k:'otro',t:l.t,p:l.p,q:1}:{k:l.k,q:l.q});A.local=!!p.local;
   A.pres=Object.assign({t,firma:p.firma,des:{c:des,pide:pideYa(des)?t:0}},pr);A.tot=pr;
@@ -515,11 +531,11 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
  case 'noacepta':{
   if(!mio)return R('permiso');if(A.e!=='camino'&&A.e!=='asignado')return R('estado');
-  const pr=precio(cfg,[{k:cfg.N.sinTrabajo,q:1}],{urg:tarifaDe(cfg,A),local:!!a.local,gratis:gratisDe(A)});
+  const pr=precio(cfg,[{k:cfg.N.sinTrabajo,q:1}],{urg:tarifaDe(cfg,A),local:!!a.local,gratis:gratisDe(A),garan:garanDe(A)});
   if(pr.total&&!PAGOS.includes(a.modo))return R('modo');
   A.tot=pr;A.lin=[{k:cfg.N.sinTrabajo,q:1}];A.local=!!a.local;A.sinTrabajo=true;A.e='hecho';A.fin=t;if(!A.sal)A.sal=t;delete A.pos;delete A.posNo;
   A.pago=pr.total?{modo:a.modo,t,cobrado:a.modo!=='pendiente'}:{modo:'',t,cobrado:true};sinMsg(A,['camino','recibido','cita','vispera']);msg(A,'hecho');if(!A.pago.cobrado)msg(A,'cobro',t+3*1440*MIN);
-  {const p=a.pres&&typeof a.pres==='object'?a.pres:null,pq=p&&Array.isArray(p.lineas)?precio(cfg,p.lineas,{urg:tarifaDe(cfg,A),local:!!a.local,gratis:gratisDe(A)}):null;
+  {const p=a.pres&&typeof a.pres==='object'?a.pres:null,pq=p&&Array.isArray(p.lineas)?precio(cfg,p.lineas,{urg:tarifaDe(cfg,A),local:!!a.local,gratis:gratisDe(A),garan:garanDe(A)}):null;
    if(pq&&pq.lineas.length&&pq.total>0){A.noPres={t,total:pq.total,lin:pq.lineas.map(l=>l.k==='otro'?{k:'otro',t:l.t,p:l.p,q:1}:{k:l.k,q:l.q})};msg(A,'presupuesto',t+3*DIA,t+14*DIA)}}
   log(A,'No acepta el precio. '+(pr.total?'Solo el desplazamiento: '+eur(pr.total):'El desplazamiento va en su contrato: no se cobra nada'));return ok()}
 
@@ -530,8 +546,8 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   const des=desiste(cfg,A,mas);if(pideYa(des)&&a.pide!==true)return R('pide');
   const junto=A.lin.map(l=>Object.assign({},l));
   mas.forEach(l=>{const ya=l.k!=='otro'&&junto.find(x=>x.k===l.k);if(ya)ya.q+=(+l.q||cfg.cat[l.k].min);else junto.push(l.k==='otro'?{k:'otro',t:l.t,p:+l.p,q:1}:{k:l.k,q:+l.q||cfg.cat[l.k].min})});
-  const gr=gratisDe(A),pr=precio(cfg,junto,{urg:A.tot.urg,local:A.local,gratis:gr}),dif=pr.total-A.tot.total;if(dif<=0)return R('lineas');
-  A.amp=A.amp||[];A.amp.push({t,firma:a.firma,dif,des:{c:des,pide:pideYa(des)?t:0},lineas:precio(cfg,mas,{urg:A.tot.urg,tipo:pr.tipo,sinMin:A.lin.some(l=>cfg.cat[l.k]&&cfg.cat[l.k].un==='h'),gratis:gr}).lineas,tipo:pr.tipo});
+  const gr=gratisDe(A),ga=garanDe(A),pr=precio(cfg,junto,{urg:A.tot.urg,local:A.local,gratis:gr,garan:ga}),dif=pr.total-A.tot.total;if(dif<=0)return R('lineas');
+  A.amp=A.amp||[];A.amp.push({t,firma:a.firma,dif,des:{c:des,pide:pideYa(des)?t:0},lineas:precio(cfg,mas,{urg:A.tot.urg,tipo:pr.tipo,sinMin:A.lin.some(l=>cfg.cat[l.k]&&cfg.cat[l.k].un==='h'),gratis:gr,garan:ga}).lineas,tipo:pr.tipo});
   A.lin=pr.lineas.map(l=>l.k==='otro'?{k:'otro',t:l.t,p:l.p,q:1}:{k:l.k,q:l.q});A.tot=pr;
   log(A,'Ampliación firmada: '+eur(dif)+' más');return ok({dif})}
 
@@ -590,6 +606,42 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
  /* La factura la hace el programa del negocio, no esta app. La oficina apunta que ya está hecha, con su número si quiere,
     para que ningún trabajo se quede sin facturar. «quitar» lo deshace si se marcó por error. */
+ /* «Es garantía» (16-11-2026): la oficina decide que el aviso vuelve sobre un trabajo que sigue en garantía. Antes de empezar:
+    con el aviso ya en marcha, el precio está firmado. Se quita con «quitar» */
+ case 'garantia':{
+  if(!esC)return R('permiso');if(!['nuevo','asignado','camino','ausente'].includes(A.e))return R('estado');
+  if(a.quitar===true){if(!A.enGar)return R('estado');const de=A.enGar.de;delete A.enGar;log(A,'Ya no va en la garantía de '+de);return ok()}
+  const de=typeof a.de==='string'?a.de:A.gar0,G=de&&garantiaDe(S,cfg,A.cli,t,A.id).includes(de)?S.avisos.find(x=>x.id===de):null;
+  if(!G||!G.tot)return R('garantia');
+  const k=new Set([cfg.N.sinTrabajo,cfg.horas,cfg.urge].filter(x=>x&&cfg.cat[x]));(G.tot.lineas||[]).forEach(l=>{if(l.k!=='otro'&&cfg.cat[l.k])k.add(l.k)});
+  A.enGar={de:G.id,k:[...k]};log(A,'En garantía del trabajo '+G.id+': no se cobra la visita, la mano de obra ni lo que se puso entonces');return ok()}
+
+ /* corregir la forma de pago de un trabajo ya cobrado, o dejarlo otra vez por cobrar (16-11-2026). Lo hace la oficina.
+    Lo que está por cobrar se apunta con «cobrar», no aquí */
+ case 'corregirPago':{
+  if(!esC)return R('permiso');if(A.e!=='hecho'||!A.tot||!A.tot.total||!A.pago||!A.pago.cobrado)return R('estado');
+  if(!PAGOS.includes(a.modo))return R('modo');if(a.modo===A.pago.modo)return R('igual');
+  const antes=A.pago.modo;A.pago=a.modo==='pendiente'?{modo:'pendiente',t,cobrado:false}:{modo:a.modo,t:A.pago.t,cobrado:true};
+  if(!A.pago.cobrado)msg(A,'cobro',t+3*1440*MIN);   /* otra vez por cobrar: el recordatorio, como al terminar sin cobrar */
+  log(A,'Forma de pago corregida: '+antes+' → '+a.modo);return ok()}
+
+ /* rebajar el precio (16-11-2026): la oficina, en un trabajo empezado o terminado, o su técnico mientras trabaja (el cliente
+    desiste a medias, al final no hizo falta una pieza…). Solo a la baja, con motivo y sin facturar: una factura hecha se
+    corrige en el programa de facturas. Si ya estaba cobrado, queda apuntado lo que hay que devolver */
+ case 'rebajar':{
+  if(!esC&&!(mio&&A.e==='curso'))return R('permiso');if((A.e!=='curso'&&A.e!=='hecho')||!A.tot||!A.lin)return R('estado');
+  if(A.fac)return R('facturado');
+  const mot=txt(a.motivo).trim().replace(/\s+/g,' ').slice(0,120);if(mot.length<3)return R('motivo');
+  const L=(Array.isArray(a.lineas)?a.lineas:[]).filter(l=>l&&typeof l==='object'&&(l.q==null||+l.q>0)&&(l.k==='otro'?+l.p>0:typeof l.k==='string'&&!!cfg.cat[l.k]));
+  const pr=precio(cfg,L,{urg:A.tot.urg,local:A.local,gratis:gratisDe(A),garan:garanDe(A)});   /* con las reglas de siempre (la primera hora, entera) */
+  if(!pr.lineas.length||pr.total>=A.tot.total)return R('lineas');
+  const r0={t,antes:A.tot.total,ahora:pr.total,motivo:mot};
+  if(A.e==='hecho'&&A.pago){if(A.pago.cobrado&&A.pago.modo)r0.devolver=A.tot.total-pr.total;
+   /* a cero (lo que queda va en el contrato o en la garantía): no hay nada que cobrar; si había pagado, se apunta cómo, para devolvérselo */
+   if(!pr.total){if(A.pago.cobrado&&A.pago.modo)r0.modo=A.pago.modo;A.pago={modo:'',t:A.pago.cobrado?A.pago.t:t,cobrado:true};sinMsg(A,['cobro'])}}
+  A.rebajas=(A.rebajas||[]).concat([r0]);A.lin=pr.lineas.map(l=>l.k==='otro'?{k:'otro',t:l.t,p:l.p,q:1}:{k:l.k,q:l.q});A.tot=pr;
+  log(A,'Precio rebajado de '+eur(r0.antes)+' a '+eur(r0.ahora)+': '+mot+(r0.devolver?'. Hay que devolverle '+eur(r0.devolver):''));return ok()}
+
  case 'facturar':{
   if(!esC)return R('permiso');if(A.e!=='hecho'||!A.tot||!A.tot.total)return R('estado');
   if(a.quitar===true){if(!A.fac)return R('estado');delete A.fac;log(A,'Ya no consta como facturado');return ok()}
@@ -700,7 +752,7 @@ function vistaCliente(S,cfg,id){const A=S.avisos.find(x=>x.id===id);if(!A)return
 /* Lo que es de un cliente lo decide su teléfono. Se le da lo que ya lleva en sus papeles (presupuesto, parte y garantía)
    y la vista de cada aviso. Nunca el diario interno, los mensajes, la nota con la que entró el aviso ni nada de otro cliente.
    Se devuelve una copia: tocarla no cambia los avisos. */
-const PERFIL=['id','av','e','urg','t','cita','tec','ini','fin','min','sinTrabajo','pres','amp','tot','pago','gar','obs','conf','fotos','fac','cli','con'];
+const PERFIL=['enGar','rebajas','id','av','e','urg','t','cita','tec','ini','fin','min','sinTrabajo','pres','amp','tot','pago','gar','obs','conf','fotos','fac','cli','con'];
 const CONT=['id','plan','cli','t','acepta','firma','des','e','per','baja'];   /* lo que el cliente ve de su contrato: no el historial */
 const CLIENTE_DEMO='2468-1357';   /* en la demo, sin servidor, los clientes de muestra entran con este código */
 /* el edificio de una dirección: la calle y su número, sin el piso ni la puerta («C/ Verdi 28, 2.º 1.ª» y «C/ Verdi 28, bajos», la misma finca) */
@@ -847,5 +899,5 @@ function textoCarga(cfg,c){if(!c||!c.lin)return'';const T=cfg.tec[c.tec],L=[],id
  if(!L.length)return'';
  return'Material para el '+fechaLarga(c.dia)+(T?', '+T.n:'')+':\n'+L.join('\n')+'\n'+cfg.N.nombre}
 
-g.OficioNucleo={VOY_ANTES,voyDesde,voyYa,voyTarde,VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,lleva,cargaDe,reponerDe,kitDe,furgoDe,textoCarga,FURGO_H,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,parteNombre,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+g.OficioNucleo={canon,huellaDatos,garanDe,VOY_ANTES,voyDesde,voyYa,voyTarde,VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,lleva,cargaDe,reponerDe,kitDe,furgoDe,textoCarga,FURGO_H,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,parteNombre,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

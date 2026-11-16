@@ -13,6 +13,14 @@ const SRV = path.resolve(process.env.OFICIOS_SERVIDOR_ORIGEN || path.join(aqui, 
 
 // [qué protección se quita, texto que hay, texto que se pone]
 const M = [
+  // la hora de lo hecho sin conexión y la huella de los datos (16-11-2026)
+  ['lo hecho sin conexión se apunta con la hora en que llega', "t = horaDe(ahora(), cuando, typeof accion.id === 'string' ? S.avisos.find(a => a.id === accion.id) : null);", 't = ahora();'],
+  ['lo hecho sin conexión puede ser de hace un mes', 'let t = hace > 0 ? n - Math.min(hace, HACE_MAX) : n;', 'let t = hace > 0 ? n - hace : n;'],
+  ['lo hecho sin conexión puede quedar antes de lo último del aviso', 'if (A && Array.isArray(A.h)) for (const x of A.h) if (x && Number.isFinite(x.t) && x.t > t) t = Math.min(x.t, n);', ''],
+  ['el juez se cree la hora del reloj del aparato', "cuando.t > 0 ? cuando.ya - cuando.t : 0;\n  let t = hace > 0 ? n - Math.min(hace, HACE_MAX) : n;", "cuando.t > 0 ? cuando.ya - cuando.t : 0;\n  let t = hace > 0 ? Math.min(cuando.t, n) : n;"],
+  ['al entrar no se dice la huella de los datos', ", v: neg.v || 0, huella: await huella(neg) }; },", ", v: neg.v || 0 }; },"],
+  ['al leer no se dice la huella de los datos', "return { ok: true, huella: await huella(neg), cambios:", "return { ok: true, cambios:"],
+  ['al hacer no se dice la huella de los datos', "cambios: await cambios(n2, w.q, p.desde), huella: await huella(n2) })", "cambios: await cambios(n2, w.q, p.desde) })"],
   ['tras diez códigos fallados se sigue entrando con el bueno', "if (e === 'bloqueo') return R('bloqueo');", "if (e === 'bloqueo') return { ok: true, q: { rol: 'centralita', id: 'oficina' } };"],
   ['un bloqueo se confunde con un código malo', "if (e === 'bloqueo') return R('bloqueo');", ''],
   ['el juez no le dice al almacén desde qué conexión llaman', "texto(p.red, 80) ? p.red : ''", "''"],
@@ -42,7 +50,7 @@ const M = [
   ['el cliente ve una foto vieja de su aviso', 'vista: K.vistaCliente(S, cfg, a.id) };', 'vista: (f && f.vista) || K.vistaCliente(S, cfg, a.id) };'],
   ['los contadores no se guardan', 'cab: cabDe(S), avisos: guardar,', 'cab: neg.cab, avisos: guardar,'],
   ['los avisos se guardan con la versión vieja', 'return { id: a.id, v: S.v, datos: a, de: [...de],', 'return { id: a.id, v: neg.v || 0, datos: a, de: [...de],'],
-  ['la respuesta no trae lo cambiado', "return n2 ? Object.assign({}, res, { cambios: await cambios(n2, w.q, p.desde) }) : res;", 'return res;'],
+  ['la respuesta no trae lo cambiado', "return n2 ? Object.assign({}, res, { cambios: await cambios(n2, w.q, p.desde), huella: await huella(n2) }) : res;", 'return res;'],
   ['por la puerta de la web pasa cualquier acción', "|| a.tipo !== 'pedir') return R('permiso');", ") return R('permiso');"],
   ['la web puede decir que la cita entró por teléfono', "{ origen: a.origen === 'web' ? 'web' : 'cita' }", '{}'],
   ['quien pide en la web entra como si fuera la oficina', "{ rol: 'cliente', id: '' }, Object.assign", "{ rol: 'centralita', id: 'oficina' }, Object.assign"],

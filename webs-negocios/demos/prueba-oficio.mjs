@@ -1386,5 +1386,119 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   const a1 = libres.find(x => hv({ tipo: 'asignar', id: w, tec: x }, C).ok), a2 = libres.find(x => x !== a1 && hv({ tipo: 'asignar', id: w, tec: x }, C).ok);
   es(a1 && a2 && hv({ tipo: 'asignar', id: w, tec: a1 }, C).ok && Ax(w).tec === a1 && Ax(w).e === 'asignado', 'deshacer un cambio: se vuelve a asignar a quien lo llevaba') }
 
+// ---------- 50. lo del repaso del 16-11-2026: es garantía, corregir la forma de pago, rebajar el precio, el recordatorio
+//      del cobro con el Bizum o la cuenta del negocio, la huella de los datos y el plazo de la garantía en los papeles ----------
+{ const SV = K.nuevo(); let tv = Date.parse('2026-11-16T10:00:00+01:00'); const hv = (a, q) => K.aplicar(SV, cfg, a, q, tv += M), Ax = id => SV.avisos.find(a => a.id === id);
+  const cp = Object.keys(cfg.zonas.cp)[0], cli = n => ({ nombre: 'Gar', apellidos: 'Antía', tel: '60000098' + n, dir: 'C/ de la Garantía ' + n + ', 1.º', cp });
+  const libre = () => Object.keys(cfg.tec).find(x => !SV.avisos.some(a => a.tec === x && (a.e === 'camino' || a.e === 'curso')));
+  const asigna = id => { const x = Object.keys(cfg.tec).filter(y => y === libre() || !SV.avisos.some(a => a.tec === y && (a.e === 'camino' || a.e === 'curso'))).find(y => hv({ tipo: 'asignar', id, tec: y }, C).ok); return x };
+  // un trabajo de punta a punta: pedir, asignar, voy, empezar con su presupuesto y terminar
+  const hecho = (c, lineas, modo) => { const id = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: c }, C).id, tec = asigna(id); hv({ tipo: 'voy', id }, T(tec));
+    const e = hv({ tipo: 'empezar', id, pres: { lineas, firma: F, pide: true } }, T(tec)), f = hv({ tipo: 'terminar', id, modo, firma: F }, T(tec)); return { id, tec, ok: !!(e.ok && f.ok) } };
+
+  // es garantía
+  const G1 = hecho(cli(1), [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'juntas' }, { k: 'latig' }], 'tarjeta');
+  es(G1.ok && Ax(G1.id).gar.hasta === K.masMeses(K.madrid(Ax(G1.id).fin).date, cfg.meses), 'un trabajo terminado queda en garantía los meses del negocio');
+  tv += 7 * D;
+  const g = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: cli(1) }, C).id;
+  es(Ax(g).gar0 === G1.id && !Ax(g).enGar, 'el mismo cliente vuelve a llamar: la oficina ve que puede ser garantía, pero no lo es hasta que ella lo decide');
+  const r1 = [hv({ tipo: 'garantia', id: g }, T(G1.tec)), hv({ tipo: 'garantia', id: g }, CLI), hv({ tipo: 'garantia', id: g, de: 'X-999' }, C), hv({ tipo: 'garantia', id: g, de: G1.id + 'x' }, C), hv({ tipo: 'garantia', id: g, quitar: true }, C)];
+  es(r1.map(r => r.err).join() === 'permiso,permiso,garantia,garantia,estado' && !Ax(g).enGar, `es garantía: solo la oficina y solo de un trabajo de ese cliente que siga en garantía; quitar lo que no está, no (${r1.map(r => r.err)})`);
+  const OTRO = hecho(cli(9), [{ k: 'desp' }, { k: 'mo', q: 1 }], 'efectivo');
+  es(OTRO.ok && hv({ tipo: 'garantia', id: g, de: OTRO.id }, C).err === 'garantia' && !Ax(g).enGar, 'no vale la garantía del trabajo de otro cliente');
+  const r2 = hv({ tipo: 'garantia', id: g }, C), EG = Ax(g).enGar;
+  es(r2.ok && EG.de === G1.id && ['desp', 'mo', 'juntas', 'latig', cfg.urge].every(k => EG.k.includes(k)) && !EG.k.includes('sellador') && /^En garantía del trabajo /.test(Ax(g).h[Ax(g).h.length - 1].txt),
+    'es garantía: no se cobra la visita, la mano de obra, la urgencia ni lo que se puso entonces; lo nuevo, sí; y queda en su historial');
+  es(hv({ tipo: 'garantia', id: g, quitar: true }, C).ok && !Ax(g).enGar && hv({ tipo: 'garantia', id: g }, C).ok && Ax(g).enGar, 'se puede quitar y volver a poner mientras no ha empezado');
+  const tg = asigna(g); hv({ tipo: 'voy', id: g }, T(tg));
+  const eg = hv({ tipo: 'empezar', id: g, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'juntas' }, { k: 'sellador' }], firma: F, pide: true } }, T(tg)), Tg = Ax(g).tot;
+  es(eg.ok && Tg.total === K.precio(cfg, [{ k: 'sellador' }], { urg: Tg.urg }).total && Tg.lineas.filter(l => l.gar).map(l => l.k).sort().join() === 'desp,juntas,mo' && Tg.lineas.every(l => l.gar ? l.imp === 0 : l.imp > 0),
+    `en garantía, el presupuesto cobra solo lo nuevo (${JSON.stringify(Tg.lineas.map(l => [l.k, l.imp, !!l.gar]))})`);
+  es(hv({ tipo: 'garantia', id: g, quitar: true }, C).err === 'estado', 'empezado el trabajo, la garantía ya no se quita ni se pone');
+  hv({ tipo: 'terminar', id: g, modo: 'tarjeta', firma: F }, T(tg));
+  { const tot = Ax(g).tot.total, rz = hv({ tipo: 'rebajar', id: g, lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'juntas' }], motivo: 'El sellador también va en la garantía' }, C), X = Ax(g);
+    es(rz.ok && tot > 0 && X.tot.total === 0 && X.pago.modo === '' && X.pago.cobrado && X.rebajas[0].devolver === tot && X.rebajas[0].modo === 'tarjeta' && !X.msgs.some(m => m.k === 'cobro' && !m.env),
+      'rebajado a cero lo ya cobrado: nada que cobrar, y queda apuntado que hay que devolverle lo pagado y cómo lo pagó') }
+  { const g4 = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: cli(1) }, C).id; hv({ tipo: 'garantia', id: g4 }, C); const t4 = asigna(g4); hv({ tipo: 'voy', id: g4 }, T(t4));
+    hv({ tipo: 'empezar', id: g4, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'sellador' }], firma: F, pide: true } }, T(t4)); hv({ tipo: 'terminar', id: g4, modo: 'pendiente', firma: F }, T(t4));
+    const debe = Ax(g4).msgs.some(m => m.k === 'cobro' && !m.env), rz = hv({ tipo: 'rebajar', id: g4, lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], motivo: 'No se cobra el sellador' }, C), X = Ax(g4);
+    es(debe && rz.ok && X.tot.total === 0 && X.pago.cobrado && X.pago.modo === '' && !('devolver' in X.rebajas[0]) && !X.msgs.some(m => m.k === 'cobro' && !m.env),
+      'rebajado a cero lo que estaba por cobrar: ya no se debe nada y se quita el recordatorio') }
+  const g2 = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: cli(1) }, C).id; hv({ tipo: 'garantia', id: g2, de: G1.id }, C); /* de cuál: el primero (el último terminado es otro) */ const t2 = asigna(g2); hv({ tipo: 'voy', id: g2 }, T(t2));
+  const e2 = hv({ tipo: 'empezar', id: g2, pres: { lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'juntas' }], firma: F, pide: true } }, T(t2)), f2 = hv({ tipo: 'terminar', id: g2, firma: F }, T(t2));
+  es(e2.ok && f2.ok && Ax(g2).tot.total === 0 && Ax(g2).pago.cobrado && !Ax(g2).msgs.some(m => m.k === 'cobro'), 'todo en garantía: total cero, se empieza y se termina sin cobrar y sin recordatorio de pago');
+  const g3 = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: cli(1) }, C).id; hv({ tipo: 'garantia', id: g3, de: G1.id }, C); const t3 = asigna(g3); hv({ tipo: 'voy', id: g3 }, T(t3));
+  const n3 = hv({ tipo: 'noacepta', id: g3, firma: F }, T(t3));
+  es(n3.ok && Ax(g3).e === 'hecho' && Ax(g3).tot.total === 0, 'en garantía, si al final no se hace nada, la visita tampoco se cobra');
+  // la mano de obra va siempre en la garantía, aunque el trabajo de entonces fuera un servicio cerrado (sin horas)
+  { const G5 = hecho(cli(5), [{ k: 'grifo' }], 'tarjeta'), g5 = hv({ tipo: 'pedir', av: 'grifo', origen: 'llamada', cli: cli(5) }, C).id;
+    es(G5.ok && hv({ tipo: 'garantia', id: g5 }, C).ok && ['grifo', cfg.horas, N.sinTrabajo].every(k => Ax(g5).enGar.k.includes(k)), 'la garantía cubre la mano de obra y la visita aunque el trabajo de entonces no las llevara aparte') }
+  // pasado el plazo, ya no hay garantía
+  { const fin = K.masMeses(K.madrid(Ax(G1.id).fin).date, cfg.meses); tv = Date.parse(K.masDias(fin, 1) + 'T11:00:00Z');
+    const gx = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: cli(1) }, C).id, r = hv({ tipo: 'garantia', id: gx, de: G1.id }, C);
+    es(r.err === 'garantia' && !Ax(gx).enGar && Ax(gx).gar0 !== G1.id, 'pasado el plazo de la garantía, ya no se puede poner en garantía'); }
+  const zona = K.perfilCliente(SV, cfg, cli(1).tel), zg = zona && zona.avisos.find(x => x.id === g);
+  es(zg && zg.enGar && zg.enGar.de === G1.id, 'el cliente ve en su zona que va en garantía');
+
+  // corregir la forma de pago
+  const P1 = hecho(cli(2), [{ k: 'desp' }, { k: 'mo', q: 1 }], 'efectivo'), P = () => Ax(P1.id).pago, tp = P().t;
+  const rp = [hv({ tipo: 'corregirPago', id: P1.id, modo: 'bizum' }, T(P1.tec)), hv({ tipo: 'corregirPago', id: P1.id, modo: 'efectivo' }, C), hv({ tipo: 'corregirPago', id: P1.id, modo: 'cheque' }, C), hv({ tipo: 'corregirPago', id: g2, modo: 'bizum' }, C)];
+  es(rp.map(r => r.err).join() === 'permiso,igual,modo,estado', `corregir la forma de pago: solo la oficina, a otra que exista y en un trabajo terminado, con algo que cobrar y cobrado (${rp.map(r => r.err)})`);
+  es(hv({ tipo: 'corregirPago', id: P1.id, modo: 'bizum' }, C).ok && P().modo === 'bizum' && P().cobrado && P().t === tp && /^Forma de pago corregida: efectivo → bizum$/.test(Ax(P1.id).h[Ax(P1.id).h.length - 1].txt),
+    'de efectivo a Bizum: sigue cobrado, con la fecha del cobro de entonces, y queda en el historial');
+  es(hv({ tipo: 'corregirPago', id: P1.id, modo: 'pendiente' }, C).ok && !P().cobrado && Ax(P1.id).msgs.some(m => m.k === 'cobro' && !m.env), 'si al final no había pagado: queda por cobrar y vuelve el recordatorio');
+  es(hv({ tipo: 'corregirPago', id: P1.id, modo: 'tarjeta' }, C).err === 'estado' && hv({ tipo: 'cobrar', id: P1.id, modo: 'tarjeta' }, C).ok && P().cobrado && !Ax(P1.id).msgs.some(m => m.k === 'cobro' && !m.env),
+    'lo que está por cobrar se apunta con «Apuntar cobro», no corrigiendo');
+
+  // rebajar el precio
+  const B1 = hv({ tipo: 'pedir', av: 'fuga', origen: 'llamada', cli: cli(3) }, C).id, tb = asigna(B1); hv({ tipo: 'voy', id: B1 }, T(tb));
+  const LB = [{ k: 'desp' }, { k: 'mo', q: 2 }, { k: 'juntas' }, { k: 'sifon' }], menos = [{ k: 'desp' }, { k: 'mo', q: 1 }, { k: 'juntas' }];
+  hv({ tipo: 'empezar', id: B1, pres: { lineas: LB, firma: F, pide: true } }, T(tb)); const tot0 = Ax(B1).tot.total, otroT = Object.keys(cfg.tec).find(x => x !== tb);
+  const rb = [hv({ tipo: 'rebajar', id: B1, lineas: menos, motivo: 'no hizo falta' }, T(otroT)), hv({ tipo: 'rebajar', id: B1, lineas: menos, motivo: ' no ' }, C), hv({ tipo: 'rebajar', id: B1, lineas: LB, motivo: 'lo mismo' }, C),
+    hv({ tipo: 'rebajar', id: B1, lineas: LB.concat([{ k: 'latig' }]), motivo: 'más caro' }, C), hv({ tipo: 'rebajar', id: B1, lineas: [], motivo: 'nada de nada' }, C), hv({ tipo: 'rebajar', id: B1, lineas: [{ k: 'nada' }], motivo: 'no existe' }, C), hv({ tipo: 'rebajar', id: B1, lineas: menos, motivo: 'no hizo falta' }, CLI)];
+  es(rb.map(r => r.err).join() === 'permiso,motivo,lineas,lineas,lineas,lineas,permiso' && Ax(B1).tot.total === tot0 && !Ax(B1).rebajas, `rebajar: otro técnico no; con motivo; solo a la baja y con algo; si no, no cambia nada (${rb.map(r => r.err)})`);
+  const rb1 = hv({ tipo: 'rebajar', id: B1, lineas: menos, motivo: '  Al final   no hizo falta el sifón ' }, T(tb)), XB = Ax(B1), esp = K.precio(cfg, menos, { urg: XB.tot.urg });
+  es(rb1.ok && XB.tot.total === esp.total && esp.total < tot0 && XB.rebajas.length === 1 && XB.rebajas[0].antes === tot0 && XB.rebajas[0].ahora === esp.total && XB.rebajas[0].motivo === 'Al final no hizo falta el sifón' && !('devolver' in XB.rebajas[0]) && XB.lin.map(l => l.k).join() === 'desp,mo,juntas',
+    'su técnico, trabajando, lo rebaja: queda el precio nuevo, el de antes y el motivo; aún no ha pagado, no hay nada que devolver');
+  hv({ tipo: 'terminar', id: B1, modo: 'tarjeta', firma: F }, T(tb)); const t1 = Ax(B1).tot.total;
+  es(hv({ tipo: 'rebajar', id: B1, lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], motivo: 'descuento' }, T(tb)).err === 'permiso', 'terminado, el técnico ya no lo rebaja: lo hace la oficina');
+  const rb2 = hv({ tipo: 'rebajar', id: B1, lineas: [{ k: 'desp' }, { k: 'mo', q: 1 }], motivo: 'Descuento por la espera' }, C), XB2 = Ax(B1);
+  es(rb2.ok && XB2.rebajas.length === 2 && XB2.rebajas[1].devolver === t1 - XB2.tot.total && XB2.pago.cobrado && XB2.pago.modo === 'tarjeta', 'la oficina, ya cobrado: queda apuntado lo que hay que devolverle');
+  hv({ tipo: 'facturar', id: B1, num: '2026-0001' }, C);
+  es(hv({ tipo: 'rebajar', id: B1, lineas: [{ k: 'desp' }], motivo: 'otra vez' }, C).err === 'facturado', 'facturado ya no se rebaja: eso es una factura rectificativa');
+  { const zb = K.perfilCliente(SV, cfg, cli(3).tel).avisos.find(x => x.id === B1); es(zb && zb.rebajas && zb.rebajas.length === 2 && zb.rebajas[1].devolver > 0, 'el cliente ve las rebajas en su zona, y lo que se le devuelve') }
+
+  // el recordatorio del cobro dice cómo pagar; el de trabajo terminado no promete nada adjunto
+  const AP = Object.assign({}, Ax(P1.id), { tot: Object.assign({}, Ax(P1.id).tot, { total: 5000 }) });
+  const NB = JSON.parse(JSON.stringify(N)); NB.pago = { bizum: '611223344', iban: 'ES96 0000 0000 0001 2345 6789' };
+  const NS = JSON.parse(JSON.stringify(N)); delete NS.pago; const mB = K.mensaje(K.cfgDe(NB), AP, 'cobro'), mS = K.mensaje(K.cfgDe(NS), AP, 'cobro');
+  es(mB.includes('Puedes pagarlo por Bizum al 611 22 33 44 o por transferencia a la cuenta ES96 0000 0000 0001 2345 6789. ') && mS.includes('Contesta a este mensaje y te decimos cómo pagarlo. ') && !/Bizum|transferencia/.test(mS),
+    'el recordatorio del cobro: con el Bizum y la cuenta del negocio; sin ellos, que conteste y se le dice cómo');
+  es(!/adjunt/i.test(K.mensaje(cfg, Ax(P1.id), 'hecho')), 'el mensaje de trabajo terminado no dice que lleve el parte adjunto (no lo lleva)');
+  { const m2 = K.mensaje(cfg, Ax(g2), 'hecho'), m3 = K.mensaje(cfg, Ax(g3), 'hecho'), m1 = K.mensaje(cfg, Ax(P1.id), 'hecho');
+    es(m2.includes('Trabajo terminado. No hay nada que pagar: va en la garantía. ') && m3.includes('no se ha hecho el trabajo y la visita va en la garantía: no hay nada que pagar') && ![m2, m3].some(m => /\(\)|0,00 €|Pagado/.test(m)) && /Total: .+, IVA incluido\. Pagado \(tarjeta\)\./.test(m1),
+      `a cero, el mensaje de terminado dice que no hay nada que pagar y por qué, sin «Total: 0,00 €» ni «Pagado ()» (${m2} | ${m3})`) }
+
+  // la huella de los datos del negocio: la misma con otro orden y sin «servidor» ni «textos»; otra si cambia un precio
+  const h0 = await K.huellaDatos(PUB), R2 = Object.fromEntries(Object.entries(JSON.parse(JSON.stringify(PUB))).reverse()); R2.servidor = { url: 'https://x.test' }; R2.textos = [['a', 'b', 'c']];
+  const R3 = JSON.parse(JSON.stringify(PUB)), k3 = Object.keys(R3.catalogo)[0]; R3.catalogo[k3].p10 += 1;
+  es(/^[0-9a-f]{16}$/.test(h0) && await K.huellaDatos(R2) === h0 && await K.huellaDatos(R3) !== h0, 'la huella de los datos: igual con otro orden, con o sin «servidor» y «textos»; otra si cambia un precio');
+  es(K.canon({ b: 1, a: [1, undefined, { d: 2, c: undefined }], f: () => 1 }) === '{"a":[1,null,{"d":2}],"b":1}', 'canon: claves en orden, sin lo indefinido ni funciones (en una lista, null), como JSON');
+
+  // el plazo de la garantía en los papeles: el del negocio, no siempre «un año»
+  globalThis.OficioIdioma = undefined; require(path.join(sitio, 'js/oficio-papeles.js')); const PP = globalThis.OficioPapeles;
+  es(PP.plazo(6) === '6 meses' && PP.plazo(12) === '1 año' && PP.plazo(18) === '18 meses' && PP.plazo(24) === '2 años' && PP.plazo(1) === '1 mes' && PP.plazo(0) === '' && PP.meses('2026-11-17', '2027-05-17') === 6,
+    'el plazo dicho como se dice: 6 meses, 1 año, 18 meses, 2 años');
+  const txt = h => h.replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '), A6 = JSON.parse(JSON.stringify(Ax(G1.id)));
+  A6.gar.hasta = K.masMeses(K.madrid(A6.fin).date, 6);
+  const gp = txt(PP.doc(A6, 'garantia', { K, N, cfg, firmaSvg: () => '' })), pa = txt(PP.doc(A6, 'parte', { K, N, cfg, firmaSvg: () => '' })), g12 = txt(PP.doc(Ax(G1.id), 'garantia', { K, N, cfg, firmaSvg: () => '' }));
+  es(gp.includes(' 6 meses ') && !gp.includes('1 año') && pa.includes('Garantía de 6 meses, hasta el ') && g12.includes(' 1 año ') && gp.includes('antes de esa fecha'), 'el papel de la garantía y el parte dicen el plazo de verdad (6 meses o 1 año)');
+  const pg = txt(PP.doc(Ax(g), 'parte', { K, N, cfg, firmaSvg: () => '' })), pz = txt(PP.doc(Ax(g2), 'parte', { K, N, cfg, firmaSvg: () => '' })), pb = txt(PP.doc(Ax(B1), 'parte', { K, N, cfg, firmaSvg: () => '' }));
+  es(pg.includes('va en la garantía') && pz.includes('No hay nada que pagar: va en la garantía.') && /Precio rebajado el .+, de .+ a .+: Al final no hizo falta el sifón/.test(pb), 'los papeles dicen lo que va en garantía y las rebajas, con su motivo');
+  { const h = PP.doc(Ax(g2), 'parte', { K, N, cfg, firmaSvg: () => '' }), n = Ax(g2).tot.lineas.length;
+    es((h.match(/<b>Incluido<\/b>/g) || []).length === n && (h.match(/<small>[^<]*va en la garantía<\/small>/g) || []).length === n && !/<b>0,00 €<\/b>/.test(h),
+      'en el parte, cada línea en garantía dice «Incluido» (no «0,00 €») y que va en la garantía') }
+}
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

@@ -45,11 +45,11 @@ g.OFICIO_NEGOCIO={
  /* la furgoneta: lo que lleva siempre cada una, [mínimo, máximo]. Pau, que hace guardias, lleva la suya (en su ficha) */
  furgoneta:{diferencial:[1,2],magneto:[2,4],mecanismo:[4,10],cable:[2,5],caja:[3,8],regleta:[4,10]},
  averias:[
-  {id:'salta',n:'Salta el diferencial',c:'Diferencial',d:'Se va la luz de toda la casa.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:2},{k:'diferencial'}],ini:[{k:'visita'},{k:'horas',q:1}],chips:['diferencial','magneto','cable','cuadro']},
-  {id:'sinluz',n:'Sin luz en una zona',c:'Sin luz',d:'Una habitación o varios enchufes.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:1.5},{k:'magneto'},{k:'cable'}],ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','cable','caja','regleta']},
-  {id:'enchufe',n:'Enchufe o interruptor',c:'Enchufe',d:'Suelto, quemado o que no funciona.',min:[{k:'enchufe'}],max:[{k:'enchufe'},{k:'mecanismo'},{k:'caja'}],ini:[{k:'enchufe'}],chips:['mecanismo','caja','cable']},
+  {id:'salta',n:'Salta el diferencial',c:'Diferencial',d:'Se va la luz de toda la casa.',mientras:'Desenchufa los aparatos que estaban funcionando y prueba a subir el diferencial una vez. Si vuelve a saltar, déjalo bajado hasta que llegue el técnico.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:2},{k:'diferencial'}],ini:[{k:'visita'},{k:'horas',q:1}],chips:['diferencial','magneto','cable','cuadro']},
+  {id:'sinluz',n:'Sin luz en una zona',c:'Sin luz',d:'Una habitación o varios enchufes.',mientras:'Mira en el cuadro de la luz si hay algún interruptor bajado. Si huele a quemado o ves humo, baja el interruptor general y no toques nada.',min:[{k:'visita'},{k:'horas',q:.5}],max:[{k:'visita'},{k:'horas',q:1.5},{k:'magneto'},{k:'cable'}],ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','cable','caja','regleta']},
+  {id:'enchufe',n:'Enchufe o interruptor',c:'Enchufe',d:'Suelto, quemado o que no funciona.',mientras:'No uses ese enchufe ni ese interruptor. Si está caliente, huele a quemado o hace chispas, baja su interruptor en el cuadro de la luz.',min:[{k:'enchufe'}],max:[{k:'enchufe'},{k:'mecanismo'},{k:'caja'}],ini:[{k:'enchufe'}],chips:['mecanismo','caja','cable']},
   {id:'lampara',n:'Instalar una lámpara',c:'Lámpara',d:'Colgar y conectar una lámpara o un plafón.',min:[{k:'lampara'}],max:[{k:'lampara'},{k:'regleta'},{k:'cable'}],ini:[{k:'lampara'}],chips:['regleta','cable']},
-  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',min:[{k:'visita'},{k:'horas',q:.5}],max:null,ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','mecanismo','cable','caja','regleta']}],
+  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',mientras:'Si huele a quemado o ves humo, baja el interruptor general del cuadro de la luz y espera al técnico.',min:[{k:'visita'},{k:'horas',q:.5}],max:null,ini:[{k:'visita'},{k:'horas',q:.5}],chips:['magneto','mecanismo','cable','caja','regleta']}],
  /* lo de este negocio en catalán y en inglés, para lo que ve el cliente (la cita, su zona y sus papeles). En cada fila:
     el texto en castellano tal cual está arriba, el catalán y el inglés. Lo que falte sale en castellano. Lo común de las
     pantallas ya va traducido (js/oficio-idioma.js) */
@@ -70,6 +70,10 @@ g.OFICIO_NEGOCIO={
   ['Cable, tramo hasta 5 m','Cable, tram fins a 5 m','Cable, up to 5 m'],
   ['Caja de empalmes','Caixa d’empalmaments','Junction box'],
   ['Regletas y bornes','Regletes i borns','Terminal strips and connectors'],
-  ['Cuadro eléctrico de 12 módulos, instalado','Quadre elèctric de 12 mòduls, instal·lat','12-module consumer unit, installed']]
+  ['Cuadro eléctrico de 12 módulos, instalado','Quadre elèctric de 12 mòduls, instal·lat','12-module consumer unit, installed'],
+  ['Desenchufa los aparatos que estaban funcionando y prueba a subir el diferencial una vez. Si vuelve a saltar, déjalo bajado hasta que llegue el técnico.','Desendolla els aparells que estaven funcionant i prova d’apujar el diferencial una vegada. Si torna a saltar, deixa’l abaixat fins que arribi el tècnic.','Unplug the appliances that were on and try switching the breaker back on once. If it trips again, leave it off until the technician arrives.'],
+  ['Mira en el cuadro de la luz si hay algún interruptor bajado. Si huele a quemado o ves humo, baja el interruptor general y no toques nada.','Mira al quadre de la llum si hi ha algun interruptor abaixat. Si fa olor de cremat o veus fum, abaixa l’interruptor general i no toquis res.','Check the fuse box for a switch that’s down. If you smell burning or see smoke, switch off the main switch and don’t touch anything.'],
+  ['No uses ese enchufe ni ese interruptor. Si está caliente, huele a quemado o hace chispas, baja su interruptor en el cuadro de la luz.','No facis servir aquest endoll ni aquest interruptor. Si és calent, fa olor de cremat o fa espurnes, abaixa’n l’interruptor al quadre de la llum.','Don’t use that socket or switch. If it’s hot, smells of burning or sparks, switch off its breaker in the fuse box.'],
+  ['Si huele a quemado o ves humo, baja el interruptor general del cuadro de la luz y espera al técnico.','Si fa olor de cremat o veus fum, abaixa l’interruptor general del quadre de la llum i espera el tècnic.','If you smell burning or see smoke, switch off the main switch in the fuse box and wait for the technician.']]
 };
 })(typeof globalThis!=='undefined'?globalThis:this);

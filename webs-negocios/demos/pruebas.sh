@@ -61,6 +61,7 @@ if [ "$QUE" != reglas ]; then
   for h in ${HORAS:-2026-11-14T23:30:00+01:00 2026-12-31T23:58:30+01:00}; do paso "App a otra hora ($h)" env AHORA="$h" python3 app.py; done
   paso "Lo del 15-11: desistimiento, «Facturada», el mes para la gestoría, fincas y quién va" python3 novedades.py
   paso "Auditoría UX: «Ahora» y «Después», «Deshacer», la barra de la ficha, el tablero, los mensajes y los papeles" python3 auditoria.py
+  paso "Lo del repaso del 16-11: es garantía, rebajar, corregir el cobro, el enlace en los mensajes y el plazo de la garantía" python3 repaso.py
   paso "Web y página de los tres móviles" python3 web.py
   paso "Muestra de la demo" python3 muestra.py
   paso "Zona del cliente: entrar con el teléfono y ver lo suyo" python3 cliente.py

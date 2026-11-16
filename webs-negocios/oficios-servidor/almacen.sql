@@ -41,7 +41,7 @@ create table if not exists oficios.personas (
 create table if not exists oficios.diario (
   negocio text not null references oficios.estados(negocio),
   v       bigint not null,
-  t       bigint not null,                        -- la hora del juez, en milisegundos
+  t       bigint not null,                        -- la hora con la que se aplicó, en milisegundos: la del juez, o la de cuando se hizo en el aparato si iba sin conexión (horaDe, en juez.mjs)
   q       jsonb not null,                         -- quién: {rol, id}
   accion  jsonb not null,
   clave   text not null default '',               -- la marca del aparato, para no hacer dos veces lo mismo

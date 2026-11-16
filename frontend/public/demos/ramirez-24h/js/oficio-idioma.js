@@ -13,7 +13,8 @@
 (function(g){
 'use strict';
 const LANGS=['es','ca','en'],NOMBRE={es:'Castellano',ca:'Català',en:'English'};
-const LLAVE='ramirez:lang';   /* la misma que usa la web del negocio (index.html) para el idioma elegido */
+/* la misma llave que usa la web del negocio (index.html) para el idioma elegido: «<id del negocio>:lang» */
+const LLAVE=((g.OFICIO_NEGOCIO&&typeof g.OFICIO_NEGOCIO.id==='string'&&g.OFICIO_NEGOCIO.id)||'oficio')+':lang';
 const mem={get(){try{return g.localStorage.getItem(LLAVE)}catch(e){return null}},set(v){try{g.localStorage.setItem(LLAVE,v)}catch(e){}}};
 function deEntrada(){
  const q=((g.location&&g.location.search||'').match(/[?&]lang=(es|ca|en)(?:&|$)/)||[])[1];if(q){mem.set(q);return q}
@@ -102,7 +103,7 @@ const D={ca:{},en:{}};
 ['IVA incluido, en una vivienda. Con cita, tarifa normal. El precio final se cierra y lo firmas antes de empezar.','IVA inclòs, en un habitatge. Amb cita, tarifa normal. El preu final es tanca i el signes abans de començar.','VAT included, for a home. Booked visit, standard rate. The final price is agreed and you sign it before we start.'],
 ['Cuéntanos qué pasa','Explica’ns què passa','Tell us what’s wrong'],
 ['Cuéntanos algo más','Explica’ns alguna cosa més','Tell us more'],
-['Qué ves, desde cuándo y si el agua sigue saliendo.','Què veus, des de quan i si l’aigua continua sortint.','What you can see, since when, and whether water is still coming out.'],
+['Qué pasa, desde cuándo y cualquier detalle que nos ayude.','Què passa, des de quan i qualsevol detall que ens ajudi.','What’s happening, since when, and any detail that helps us.'],
 ['Si no sabes explicarlo, manda una foto: con eso nos basta para prepararlo.','Si no saps explicar-ho, envia una foto: amb això ja en tenim prou per preparar-ho.','If it’s hard to explain, send a photo: that’s enough for us to prepare.'],
 ['Una foto','Una foto','A photo'],
 ['Opcional · ayuda a preparar la visita','Opcional · ajuda a preparar la visita','Optional · helps us prepare the visit'],
@@ -220,7 +221,9 @@ const D={ca:{},en:{}};
 ['Antes de empezar te da el precio cerrado, y lo firmas.','Abans de començar et dona el preu tancat, i el signes.','Before starting, they give you a fixed price, and you sign it.'],
 ['Mientras tanto','Mentrestant','In the meantime'],
 ['¿Tienes que cambiarla o anularla? Llámanos al {tel} y la movemos sin perder nada.','Has de canviar-la o anul·lar-la? Truca’ns al {tel} i la movem sense perdre res.','Need to change or cancel it? Call us on {tel} and we’ll move it at no cost.'],
-['El parte y la garantía te llegan por WhatsApp. ¿Algo no cuadra? Llama al {tel}.','El part i la garantia t’arriben per WhatsApp. Alguna cosa no quadra? Truca al {tel}.','The job sheet and guarantee will reach you on WhatsApp. Something not right? Call {tel}.'],
+['El parte y la garantía los tienes en {zona}. ¿Algo no cuadra? Llama al {tel}.','El part i la garantia els tens a {zona}. Alguna cosa no quadra? Truca al {tel}.','Your job sheet and guarantee are in {zona}. Something not right? Call {tel}.'],
+['tu zona de cliente','la teva zona de client','your customer area'],
+['El parte y la garantía te los mandamos por WhatsApp. ¿Algo no cuadra? Llama al {tel}.','El part i la garantia te’ls enviem per WhatsApp. Alguna cosa no quadra? Truca al {tel}.','We’ll send you the job sheet and guarantee on WhatsApp. Something not right? Call {tel}.'],
 ['Esta página se actualiza sola: guárdala para ver cómo va.','Aquesta pàgina s’actualitza sola: desa-la per veure com va.','This page updates itself: save it to see how it’s going.'],
 ['Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga. ¿Algo no cuadra? Llama al {tel}.','Aquesta pàgina s’actualitza sola. També t’avisem per WhatsApp quan el tècnic surti. Alguna cosa no quadra? Truca al {tel}.','This page updates itself. We’ll also let you know on WhatsApp when the technician sets off. Something not right? Call {tel}.'],
 ['Ver cómo le llega a {n}','Veure com li arriba a {n}','See how {n} receives it'],
@@ -229,12 +232,6 @@ const D={ca:{},en:{}};
 ['Última posición de {quien}','Última posició de {quien}','{quien}’s last location'],
 ['Puede que tenga la app cerrada mientras conduce.','Potser té l’app tancada mentre condueix.','They may have the app closed while driving.'],
 ['Abrirla en un mapa','Obrir-la en un mapa','Open it on a map'],
-/* Mientras llega el técnico (según la avería) */
-['Si sale agua, cierra la llave de paso. Si hay agua cerca de enchufes, baja el diferencial del cuadro de la luz.','Si surt aigua, tanca la clau de pas. Si hi ha aigua a prop d’endolls, abaixa el diferencial del quadre de la llum.','If water is coming out, turn off the stopcock. If there’s water near sockets, switch off the main breaker in the fuse box.'],
-['Si el termo pierde agua, ciérrale la llave de entrada y desenchúfalo.','Si el termo perd aigua, tanca-li la clau d’entrada i desendolla’l.','If the water heater is leaking, turn off its inlet valve and unplug it.'],
-['No eches productos desatascadores: pueden estropear la tubería y salpicar a quien lo arregle.','No hi tiris productes desembussadors: poden fer malbé la canonada i esquitxar qui ho arregli.','Don’t pour in drain cleaners: they can damage the pipe and splash whoever fixes it.'],
-['Cierra la llave de la cisterna (detrás o debajo) para que no siga corriendo el agua.','Tanca la clau de la cisterna (al darrere o a sota) perquè l’aigua no continuï corrent.','Turn off the cistern’s valve (behind or underneath) so the water stops running.'],
-['Si gotea mucho, cierra la llave que tiene debajo.','Si goteja molt, tanca la clau que té a sota.','If it drips a lot, turn off the valve underneath it.'],
 /* La zona del cliente: entrar */
 ['Tu zona','La teva zona','Your area'],
 ['Entra en tu zona','Entra a la teva zona','Sign in to your area'],
@@ -293,6 +290,7 @@ const D={ca:{},en:{}};
 ['garantía terminada','garantia acabada','guarantee expired'],
 ['Pagado','Pagat','Paid'],
 ['Nada que pagar: va en tu contrato','Res a pagar: va amb el teu contracte','Nothing to pay: covered by your contract'],
+['Nada que pagar: va en la garantía','Res a pagar: va amb la garantia','Nothing to pay: covered by the guarantee'],
 ['Pendiente de pago','Pendent de pagament','Payment pending'],
 ['Parte de trabajo: aquí','Part de treball: aquí','Job sheet: here'],
 ['Factura {num}','Factura {num}','Invoice {num}'],
@@ -340,6 +338,7 @@ const D={ca:{},en:{}};
 ['{n} unidades','{n} unitats','{n} units'],
 ['con el {pct} % de urgencia','amb el {pct} % d’urgència','with the {pct}% emergency surcharge'],
 ['va en tu contrato de mantenimiento','va amb el teu contracte de manteniment','covered by your maintenance contract'],
+['va en la garantía','va amb la garantia','covered by the guarantee'],
 ['Total','Total','Total'],
 ['IVA del {tipo} % incluido: base {base} + IVA {iva}','IVA del {tipo} % inclòs: base {base} + IVA {iva}','Includes {tipo}% VAT: net {base} + VAT {iva}'],
 ['El material pasa del 40 % del trabajo.','El material supera el 40 % de la feina.','Parts exceed 40% of the job.'],
@@ -363,6 +362,8 @@ const D={ca:{},en:{}};
 ['Trabajo y material','Feina i material','Labour and parts'],
 ['Pago','Pagament','Payment'],
 ['No hay nada que pagar: va en tu contrato de mantenimiento.','No hi ha res a pagar: va amb el teu contracte de manteniment.','Nothing to pay: it’s covered by your maintenance contract.'],
+['No hay nada que pagar: va en la garantía.','No hi ha res a pagar: va amb la garantia.','Nothing to pay: it’s covered by the guarantee.'],
+['Precio rebajado el {fecha}, de {antes} a {ahora}: {motivo}','Preu rebaixat el {fecha}, de {antes} a {ahora}: {motivo}','Price reduced on {fecha}, from {antes} to {ahora}: {motivo}'],
 ['Cobrado el {fecha}: {modo}.','Cobrat el {fecha}: {modo}.','Paid on {fecha}: {modo}.'],
 ['Efectivo','Efectiu','Cash'],
 ['Tarjeta','Targeta','Card'],
@@ -379,14 +380,17 @@ const D={ca:{},en:{}};
 ['La factura la emite {razon} con su programa de facturas{num}.','La factura l’emet {razon} amb el seu programa de factures{num}.','The invoice is issued by {razon} with its invoicing software{num}.'],
 ['(factura n.º {num})','(factura núm. {num})','(invoice no. {num})'],
 ['(ya está hecha)','(ja està feta)','(already issued)'],
-['Garantía de un año, hasta el {fecha}.','Garantia d’un any, fins al {fecha}.','One-year guarantee, until {fecha}.'],
+['Garantía de {plazo}, hasta el {fecha}.','Garantia de {plazo}, fins al {fecha}.','{plazo} guarantee, until {fecha}.'],
 ['Trabajo {id} · terminado el {fecha}','Feina {id} · acabada el {fecha}','Job {id} · finished on {fecha}'],
 ['1 año','1 any','1 year'],
+['{n} años','{n} anys','{n} years'],
+['1 mes','1 mes','1 month'],
+['{n} meses','{n} mesos','{n} months'],
 ['Hasta el {fecha}.','Fins al {fecha}.','Until {fecha}.'],
 ['Qué cubre','Què cobreix','What it covers'],
 ['{averia}: la mano de obra y el material que pusimos ({material}).','{averia}: la mà d’obra i el material que vam posar ({material}).','{averia}: the labour and the parts we fitted ({material}).'],
 ['{averia}: la mano de obra.','{averia}: la mà d’obra.','{averia}: the labour.'],
-['Si lo que arreglamos vuelve a fallar dentro del año, volvemos sin cobrar el desplazamiento ni la mano de obra.','Si el que vam arreglar torna a fallar dins de l’any, tornem sense cobrar el desplaçament ni la mà d’obra.','If what we fixed fails again within the year, we come back without charging for the call-out or the labour.'],
+['Si lo que arreglamos vuelve a fallar antes de esa fecha, volvemos sin cobrarte la visita ni la mano de obra.','Si el que vam arreglar torna a fallar abans d’aquesta data, tornem sense cobrar-te la visita ni la mà d’obra.','If what we fixed fails again before that date, we’ll come back without charging you for the visit or the labour.'],
 ['Cómo pedirla','Com demanar-la','How to claim it'],
 ['Llama al {tel} o escribe por WhatsApp con el número del trabajo: {id}.','Truca al {tel} o escriu per WhatsApp amb el número de la feina: {id}.','Call {tel} or message us on WhatsApp with the job number: {id}.'],
 ['Garantía de {n}','Garantia de {n}','{n} guarantee'],

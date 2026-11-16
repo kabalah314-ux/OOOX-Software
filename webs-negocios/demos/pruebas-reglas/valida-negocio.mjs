@@ -10,8 +10,12 @@ import { TODOS as BASE } from '../../oficios-base/servicios.mjs';   // la base d
 
 const require = createRequire(import.meta.url);
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento', 'furgoneta', 'textos'];
+const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento', 'furgoneta', 'textos', 'pago'];
 const esTexto = (x, min = 1, max = 200) => typeof x === 'string' && x.trim().length >= min && x.length <= max;
+/* una cuenta IBAN bien escrita: letras del país, dos cifras de control y el resto, y el control (módulo 97) cuadra */
+const ibanOk = x => { if (typeof x !== 'string') return false; const s = x.replace(/\s/g, '').toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(s) || (s.startsWith('ES') && s.length !== 24)) return false;
+  let m = 0; for (const c of s.slice(4) + s.slice(0, 4)) { const d = /[A-Z]/.test(c) ? String(c.charCodeAt(0) - 55) : c; for (const x of d) m = (m * 10 + +x) % 97; } return m === 1; };
 const esNum = x => typeof x === 'number' && Number.isFinite(x);
 const esEntero = x => Number.isInteger(x);
 const fechaReal = f => FECHA.test(f) && new Date(f + 'T12:00:00Z').toISOString().slice(0, 10) === f;
@@ -41,6 +45,18 @@ export function valida(N, K, hoy) {
   if (!['pro', 'asistente'].includes(N.pack)) E('pack: tiene que ser «pro» o «asistente» (desde el 13-11-2026 hay dos planes: Pro, y Pro con asistente de llamadas).');
   else if (N.pack === 'asistente') A('pack «asistente»: la app lo trata hoy igual que Pro; el asistente de llamadas todavía no está hecho.');
   if (!esEntero(N.garantiaMeses) || N.garantiaMeses < 1 || N.garantiaMeses > 60) E('garantiaMeses: un número entero de 1 a 60.');
+  else if (N.garantiaMeses < 6) A('garantiaMeses: menos de 6 meses. En Cataluña, el Codi de consum da al menos 6 meses de garantía a una reparación: revísalo con el abogado antes de ponerlo.');
+
+  // ---- cómo se paga lo que queda pendiente (16-11-2026): sale en el recordatorio del cobro
+  if (N.pago != null) {
+    if (typeof N.pago !== 'object' || Array.isArray(N.pago)) E('pago: tiene que ser {bizum, iban}; los dos son opcionales.');
+    else {
+      Object.keys(N.pago).forEach(k => { if (!['bizum', 'iban'].includes(k)) A('pago.' + k + ': no es un dato que la app conozca (bizum o iban). ¿Es una errata?') });
+      if (N.pago.bizum != null && !(typeof N.pago.bizum === 'string' && /^[67]\d{8}$/.test(N.pago.bizum.replace(/\s/g, '')))) E('pago.bizum: el móvil del Bizum, 9 cifras que empiezan por 6 o 7.');
+      if (N.pago.iban != null && !ibanOk(N.pago.iban)) E('pago.iban: no es una cuenta IBAN bien escrita (ES y 22 cifras; se comprueban las cifras de control).');
+      if (N.pago.bizum == null && N.pago.iban == null) A('pago: está vacío; el recordatorio del cobro pide al cliente que conteste para saber cómo pagar.');
+    }
+  } else A('pago: sin Bizum ni cuenta, el recordatorio del cobro pide al cliente que conteste para saber cómo pagar.');
   if (N.zona != null && N.zona !== 'Europe/Madrid') E('zona: la app solo trabaja hoy con la hora peninsular (Europe/Madrid). Canarias necesita un cambio en las reglas.');
 
   // ---- horario y tarifa
@@ -279,6 +295,7 @@ export function valida(N, K, hoy) {
       if (!esTexto(a.n, 3, 40)) E(cual + ': falta el nombre (n).');
       if (!esTexto(a.c, 2, 14)) E(cual + ': falta el nombre corto (c), de hasta 14 letras.');
       if (!esTexto(a.d, 3, 80)) E(cual + ': falta la descripción (d).');
+      if (a.mientras != null && !esTexto(a.mientras, 10, 300)) E(cual + '.mientras: lo que conviene hacer mientras llega el técnico, un texto de 10 a 300 letras (o nada).');
       const m = lineasOk(a.min, cual + '.min'), x = a.max === null ? true : lineasOk(a.max, cual + '.max'), n = lineasOk(a.ini, cual + '.ini');
       if (a.dur !== undefined && !(Array.isArray(a.dur) && a.dur.length === 2 && a.dur.every(esEntero) && a.dur[0] >= 5 && a.dur[0] <= a.dur[1] && a.dur[1] <= 600)) E(cual + '.dur: lo que tarda, [mínimo, máximo] en minutos (entre 5 y 600), por ejemplo [45, 120].');
       if (a.dur === undefined) A(cual + '.dur: falta lo que tarda (mínimo y máximo en minutos). Sin eso, el tiempo de llegada a una urgencia sale de las horas del presupuesto.');
