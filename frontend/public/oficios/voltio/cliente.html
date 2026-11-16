@@ -165,8 +165,9 @@ function vPerfil(Pf){const c=Pf.cli,hoy=K.madrid().date,n=(c.nombre||'').split('
  let h='<h1>Hola'+(n?', '+esc(n):'')+'.</h1><p class="lead">Lo tuyo con '+esc(N.nombre)+': tus avisos, tus presupuestos, tus partes y tus garantías.</p>'+
   (SRV&&Z.err?'<p class="ojo" role="status">'+(Z.err==='red'?'Sin conexión: ves lo último que llegó.':'No se ha podido poner al día: ves lo último que llegó.')+'</p>':'')+
   '<div class="acciones"><button class="btn pri" id="otra">Pedir otra cita</button><button class="btn" id="salir">Salir</button></div>';
- {const o=ahora.slice().sort((x,y)=>(ORDEN[x.e]-ORDEN[y.e])||((x.cita?x.cita.dia:'')<(y.cita?y.cita.dia:'')?-1:1)),p0=o[0],resto=o.slice(1);
-  h+='<section class="sec"><h2>Ahora</h2>'+(p0?tjProta(p0)+(resto.length?'<div style="margin-top:10px">'+grupo(resto,tjAhora)+'</div>':''):'<p class="vacio">No tienes ningún aviso abierto.</p>')+'</section>'}
+ /* un administrador de fincas (varias direcciones) lo ve agrupado por finca, sin tarjeta grande: la grande es para quien tiene una casa */
+ {const o=ahora.slice().sort((x,y)=>(ORDEN[x.e]-ORDEN[y.e])||((x.cita?x.cita.dia:'')<(y.cita?y.cita.dia:'')?-1:1)),p0=F.length<2?o[0]:null,resto=F.length<2?o.slice(1):o;
+  h+='<section class="sec"><h2>Ahora</h2>'+(o.length?(p0?tjProta(p0):'')+(resto.length?'<div'+(p0?' style="margin-top:10px"':'')+'>'+grupo(resto,tjAhora)+'</div>':''):'<p class="vacio">No tienes ningún aviso abierto.</p>')+'</section>'}
  h+='<section class="sec"><h2>Tus trabajos</h2>'+(hechos.length?grupo(hechos,a=>tjHecho(a,hoy)):'<p class="vacio">Todavía no hay ningún trabajo terminado.</p>')+
   (canc.length?'<p class="vacio" style="margin-top:10px">'+(canc.length===1?'Un aviso cancelado':canc.length+' avisos cancelados')+': '+canc.map(a=>esc(a.id)).join(', ')+'.</p>':'')+'</section>';
  const CS=Pf.contratos||[];

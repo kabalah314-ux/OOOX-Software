@@ -156,7 +156,7 @@ html.snap{scroll-snap-type:y mandatory}
 .svl{max-width:52ch;color:#c9ced3}
 .svs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .svc{position:relative;display:grid;grid-template-rows:auto auto 1fr auto auto;gap:6px;padding:0 12px 12px;border-radius:16px;border:1px solid var(--asfalto-3);background:#050607;transition:border-color var(--t-ui) var(--ease-out)}
-.svc img{width:calc(100% + 24px);max-width:none;height:auto;margin:0 -12px 4px;aspect-ratio:5/4;object-fit:contain;border-radius:15px 15px 0 0;background:#000;-webkit-user-drag:none}
+.svc img{width:calc(100% + 24px);max-width:none;height:auto;margin:0 -12px 4px;aspect-ratio:5/4;object-fit:cover;border-radius:15px 15px 0 0;background:#000;-webkit-user-drag:none} /* la foto de cada servicio: el técnico haciéndolo (Flow, 16-11) */
 .svc h3{font:700 var(--s-mid)/.95 var(--fd);letter-spacing:.005em;text-wrap:balance}
 .svd{font-size:var(--s-small);line-height:1.3;color:#b8bec4}
 .svp{font:800 1.5rem/1 var(--fd);font-variant-numeric:tabular-nums;color:var(--texto);margin-top:4px}
@@ -398,42 +398,42 @@ html.snap{scroll-snap-type:y mandatory}
       </div>
       <ul class="svs" id="svs">
         <li class="svc" data-av="fuga" data-paso>
-          <img src="assets/img/av-fuga-s.webp" srcset="assets/img/av-fuga-s.webp 600w,assets/img/av-fuga.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <img src="assets/img/sv-fuga-s.webp" srcset="assets/img/sv-fuga-s.webp 600w,assets/img/sv-fuga.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="480" loading="lazy" decoding="async">
           <h3 data-t="av.fuga">Fuga de agua</h3>
           <p class="svd" data-t="av.fuga.d">Una tubería, una llave de paso o un latiguillo que pierde agua.</p>
           <p class="svp" data-precio="fuga"></p>
           <div class="sva"><a class="btn" href="cita.html?servicio=fuga" data-reserva="fuga" aria-label="Reservar Fuga de agua"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="fuga" data-t="sv.inc">Qué incluye</button></div>
         </li>
         <li class="svc" data-av="atasco" data-paso>
-          <img src="assets/img/av-atasco-s.webp" srcset="assets/img/av-atasco-s.webp 600w,assets/img/av-atasco.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <img src="assets/img/sv-atasco-s.webp" srcset="assets/img/sv-atasco-s.webp 600w,assets/img/sv-atasco.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="480" loading="lazy" decoding="async">
           <h3 data-t="av.atasco">Atasco</h3>
           <p class="svd" data-t="av.atasco.d">El fregadero, la ducha, el váter o el bajante no tragan.</p>
           <p class="svp" data-precio="atasco"></p>
           <div class="sva"><a class="btn" href="cita.html?servicio=atasco" data-reserva="atasco" aria-label="Reservar Atasco"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="atasco" data-t="sv.inc">Qué incluye</button></div>
         </li>
         <li class="svc" data-av="termo" data-paso>
-          <img src="assets/img/av-termo-s.webp" srcset="assets/img/av-termo-s.webp 600w,assets/img/av-termo.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <img src="assets/img/sv-termo-s.webp" srcset="assets/img/sv-termo-s.webp 600w,assets/img/sv-termo.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="480" loading="lazy" decoding="async">
           <h3 data-t="av.termo">Sin agua caliente</h3>
           <p class="svd" data-t="av.termo.d">El termo eléctrico no calienta, hace saltar la luz o pierde agua.</p>
           <p class="svp" data-precio="termo"></p>
           <div class="sva"><a class="btn" href="cita.html?servicio=termo" data-reserva="termo" aria-label="Reservar Sin agua caliente"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="termo" data-t="sv.inc">Qué incluye</button></div>
         </li>
         <li class="svc" data-av="cisterna" data-paso>
-          <img src="assets/img/av-cisterna-s.webp" srcset="assets/img/av-cisterna-s.webp 600w,assets/img/av-cisterna.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <img src="assets/img/sv-cisterna-s.webp" srcset="assets/img/sv-cisterna-s.webp 600w,assets/img/sv-cisterna.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="480" loading="lazy" decoding="async">
           <h3 data-t="av.cisterna">Cisterna que pierde</h3>
           <p class="svd" data-t="av.cisterna.d">No para de correr el agua o no se llena.</p>
           <p class="svp" data-precio="cisterna"></p>
           <div class="sva"><a class="btn" href="cita.html?servicio=cisterna" data-reserva="cisterna" aria-label="Reservar Cisterna que pierde"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="cisterna" data-t="sv.inc">Qué incluye</button></div>
         </li>
         <li class="svc" data-av="grifo" data-paso>
-          <img src="assets/img/av-grifo-s.webp" srcset="assets/img/av-grifo-s.webp 600w,assets/img/av-grifo.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <img src="assets/img/sv-grifo-s.webp" srcset="assets/img/sv-grifo-s.webp 600w,assets/img/sv-grifo.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="480" loading="lazy" decoding="async">
           <h3 data-t="av.grifo">Grifo que gotea</h3>
           <p class="svd" data-t="av.grifo.d">Gotea, está duro o hay que cambiarlo.</p>
           <p class="svp" data-precio="grifo"></p>
           <div class="sva"><a class="btn" href="cita.html?servicio=grifo" data-reserva="grifo" aria-label="Reservar Grifo que gotea"><span data-t="sv.res">Reservar</span></a><button class="txt" type="button" data-incluye="grifo" data-t="sv.inc">Qué incluye</button></div>
         </li>
         <li class="svc" data-av="otra" data-paso>
-          <img src="assets/img/av-otra-s.webp" srcset="assets/img/av-otra-s.webp 600w,assets/img/av-otra.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="600" loading="lazy" decoding="async">
+          <img src="assets/img/sv-otra-s.webp" srcset="assets/img/sv-otra-s.webp 600w,assets/img/sv-otra.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,46vw" alt="" width="600" height="480" loading="lazy" decoding="async">
           <h3 data-t="av.otra">Otra avería</h3>
           <p class="svd" data-t="av.otra.d">¿No sabes qué es? Cuéntanoslo con una nota o una foto.</p>
           <p class="svp" data-precio="otra"></p>

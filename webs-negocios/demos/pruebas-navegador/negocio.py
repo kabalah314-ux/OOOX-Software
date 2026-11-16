@@ -6,6 +6,7 @@ import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')
 import asyncio, sys, re, json
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from playwright.async_api import async_playwright
 import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
 import buzon_falso     # el buzón de mejoras no sale a internet en las pruebas: ver buzon_falso.py
@@ -109,7 +110,16 @@ async def main():
 
         # ---------- 3. el técnico: los tres toques, con los precios del negocio ----------
         tl = await pagina(ctx, 'tecnico', False)
-        await tl.goto(B + f'app.html?papel=tecnico&tec={tec}#/aviso/{idc}'); await tl.wait_for_selector('[data-a=voy]')
+        await tl.goto(B + f'app.html?papel=tecnico&tec={tec}#/aviso/{idc}'); await tl.wait_for_selector('.accion button')
+        antes = await tl.evaluate("(()=>{const b=document.querySelector('.accion button');return{t:b.textContent,d:b.disabled,voy:!!document.querySelector('[data-a=voy]')}})()")
+        es(antes['d'] and 'Disponible' in antes['t'] and not antes['voy'], f'técnico: con la cita de otro día, «Voy» sale apagado y dice cuándo se enciende ({antes["t"]})')
+        # a la hora de abrir (media hora antes de su franja, hora de Madrid) se enciende
+        d = await tl.evaluate(f"(()=>{{const A=Oficio.estado().avisos.find(a=>a.id==='{idc}');return OficioNucleo.voyDesde(Oficio.cfg,A)}})()")
+        m = d['min'] + 1; h = datetime.fromisoformat(d['dia']).replace(hour=m // 60, minute=m % 60, tzinfo=ZoneInfo('Europe/Madrid'))
+        # (la demo se rehace sola si su estado tiene más de 8 horas: al adelantar el reloj, se marca como recién abierta)
+        await pon_hora(ctx, h.isoformat()); await tl.evaluate(f"(()=>{{const x=JSON.parse(localStorage.getItem('{clave}'));x.t0=Date.now();localStorage.setItem('{clave}',JSON.stringify(x))}})()")
+        await tl.reload(); await tl.wait_for_selector('[data-a=voy]')
+        es(not await tl.locator('.accion button[disabled]').count(), f'técnico: a las {m // 60}:{m % 60:02d} del día de la cita, «Voy» ya se puede pulsar')
         await tl.click('[data-a=voy]'); await tl.wait_for_selector('[data-a=empezar]'); await guarda(tl, 'de camino')
         await tl.click('[data-a=empezar]'); await tl.wait_for_selector('#pF'); await tl.wait_for_timeout(250)
         t = await guarda(tl, 'presupuesto')

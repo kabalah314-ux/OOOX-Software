@@ -233,7 +233,7 @@ async def main():
         es('Urgencias de este mes' in await texto(c, '#urgMes') and 'OOOX' in await texto(c, '#urgMes'), 'en «Cobros», las urgencias cobradas del mes y la parte de OOOX')
         k9 = oye(await ctx.new_page(), 'cita, urgencia'); await k9.goto(B + 'cita.html'); await k9.wait_for_selector('#urgLead')
         tl = await texto(k9, '#urgLead')
-        es(('ahora llegamos en unos' in tl or 'te lo decimos al llamar' in tl) and 'suplemento de 30,00' in tl, 'la página de citas dice en cuánto llegamos ahora a una urgencia, y su suplemento')
+        es(('ahora llegamos en unos' in tl or 'te lo decimos al llamar' in tl) and 'suplemento de 30 €' in tl, 'la página de citas dice en cuánto llegamos ahora a una urgencia, y su suplemento')
 
         # ---------- 10. el tablero del día: todo el equipo en el mismo eje de horas, y a qué hora llegaría cada uno a una cita ----------
         rc = await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:'grifo',origen:'llamada',cli:{{nombre:'Tablero',apellidos:'Prueba',tel:'611000041',dir:'C/ Tablero 1',cp:'{cp1}'}},cita:{{dia:'{dia}',fr:OficioNucleo.franjasDe(Oficio.estado(),OficioNucleo.cfgDe(OFICIO_NEGOCIO),'{dia}',Date.now()).find(f=>f.okOf).id}}}},{{rol:'centralita',id:'oficina'}})")
