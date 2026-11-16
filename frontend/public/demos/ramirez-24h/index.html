@@ -79,6 +79,8 @@ body[data-hdr="averias"] .top{background:#000}
 .navb{display:grid;place-items:center;width:44px;height:44px;margin-right:-8px;border-radius:10px}
 .navb svg{width:26px;height:26px}
 @media (min-width:900px){.top{display:grid;grid-template-columns:1fr auto 1fr}.tlinks{display:flex}.tact{justify-self:end}.langs{display:flex}.calltop{display:inline-flex}.navb{display:none}}
+/* tabletas en horizontal (900–1099 px): el nombre no se parte en dos líneas; un poco más pequeño y los enlaces más juntos */
+@media (min-width:900px) and (max-width:1099px){.wm{white-space:nowrap;font-size:clamp(1.6rem,2.85vw,2.5rem)}.tlinks{gap:clamp(12px,1.6vw,22px)}}
 
 /* ===== llamar, siempre a mano del pulgar (móvil) ===== */
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:45;display:flex;gap:8px;padding:8px var(--m) calc(8px + var(--sb));background:var(--asfalto)}
@@ -87,30 +89,27 @@ body[data-hdr="averias"] .top{background:#000}
 .bar .wa{flex:1}
 @media (min-width:900px){.bar{display:none}}
 
-/* ===== entrada: la furgoneta cruza la calle y frena en tu portal ===== */
-.track{position:relative;height:400svh}
+/* ===== entrada: al abrir, la furgoneta llega, el técnico baja y se planta delante; acaba en la portada ===== */
+.track{position:relative;height:100svh}
 .stage{position:sticky;top:0;isolation:isolate;height:100svh;overflow:hidden;background:#0b0d0f}
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(11,13,15,.62),rgba(11,13,15,0) 22%)} /* taste-skill-ignore: velo bajo la cabecera */
-.scrim.b{background:linear-gradient(rgba(11,13,15,0) 34%,rgba(11,13,15,.6) 62%,rgba(11,13,15,.9))} /* taste-skill-ignore: velo para leer la entrada sobre el vídeo */
-.veil{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s ease;background:linear-gradient(0deg,rgba(11,13,15,.9) 6%,rgba(11,13,15,.56) 46%,rgba(11,13,15,.08) 80%)} /* taste-skill-ignore: velo para leer la bienvenida sin tapar a Jordi */
-@media (min-width:900px) and (min-aspect-ratio:1/1){.veil{background:linear-gradient(90deg,rgba(11,13,15,.86) 6%,rgba(11,13,15,.5) 44%,rgba(11,13,15,0) 70%)}} /* taste-skill-ignore: el mismo velo, de lado en pantallas anchas */
+.veil{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s ease;background:linear-gradient(0deg,rgba(11,13,15,.9) 6%,rgba(11,13,15,.56) 46%,rgba(11,13,15,.08) 80%)} /* taste-skill-ignore: velo para leer la bienvenida sin tapar al técnico */
+@media (min-width:900px) and (min-aspect-ratio:1/1){.veil{background:linear-gradient(90deg,rgba(11,13,15,.88) 4%,rgba(11,13,15,.55) 30%,rgba(11,13,15,0) 47%)}} /* taste-skill-ignore: el mismo velo, de lado en pantallas anchas; el técnico, en el centro, queda limpio */
 .ready .veil{opacity:1}
-.intro{position:absolute;left:var(--m);right:var(--m);top:0;z-index:2;height:100svh;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:16px;padding-bottom:calc(var(--bar) + 30px);pointer-events:none}
-.intro>*{pointer-events:auto}
-.h1{font:800 var(--s-disp)/.86 var(--fd);letter-spacing:-.005em;max-width:9.4em;text-wrap:balance}
+.h1{font:800 var(--s-mid)/.95 var(--fd);letter-spacing:.005em;color:#e4e7ea;text-wrap:balance}
 .lead{font-size:var(--s-lead);line-height:1.36;max-width:34ch}
-.intro .lead{color:#d8dbde}
 .hint{display:flex;align-items:center;gap:10px;font-size:var(--s-body);color:#c6cbd0}
 .hint svg{width:18px;height:18px;flex:none;animation:baja 1.8s var(--ease-out) infinite}
 @keyframes baja{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
 @media (prefers-reduced-motion:reduce){.hint svg{animation:none}}
 .stage-acts{display:none}
-@media (min-width:900px){.stage-acts{display:flex}.intro{padding-bottom:56px}}
-@media (max-height:600px){.intro .lead{display:none}}
-/* al pararse la furgoneta: la hora de llegada, enorme y en vivo */
-.index{position:absolute;left:var(--m);right:var(--m);bottom:calc(var(--bar) + 30px);display:grid;justify-items:start;gap:16px;opacity:0;visibility:hidden;transition:opacity .4s ease,visibility 0s .4s}
-.ready .index{opacity:1;visibility:visible;transition:opacity .5s ease .1s,visibility 0s}
+@media (min-width:900px){.stage-acts{display:flex}}
+/* al acabar la entrada: quiénes somos y la hora de llegada, enorme y en vivo. Mientras corre el vídeo no se ve
+   (ni se toca), pero está en la página: el título y los botones existen desde el principio */
+.index{position:absolute;left:var(--m);right:var(--m);bottom:calc(var(--bar) + 30px);display:grid;justify-items:start;gap:16px;opacity:0;pointer-events:none;transition:opacity .4s ease}
+.ready .index{opacity:1;pointer-events:auto;transition:opacity .5s ease .1s}
+.index .h1{margin-bottom:-4px}
 .hola{font:800 var(--s-disp)/.86 var(--fd);letter-spacing:-.01em;max-width:7.2em;text-wrap:balance}
 @media (min-width:900px){.hola{font-size:min(var(--s-disp),7.6vw);max-width:9.6em}}
 .hola b{color:var(--senal);font-weight:800;font-variant-numeric:tabular-nums}
@@ -121,6 +120,8 @@ body[data-hdr="averias"] .top{background:#000}
 .espera b{font-weight:700;color:var(--texto);text-decoration:underline 2px;text-underline-offset:5px;text-decoration-color:var(--senal)}
 @media (hover:hover) and (pointer:fine){.espera:hover b{text-decoration-thickness:3px}}
 @media (min-width:900px){.index{bottom:56px;max-width:66vw}}
+/* en pantallas anchas el técnico está en el centro: el texto, en el tercio de la izquierda */
+@media (min-width:900px) and (min-aspect-ratio:1/1){.index{max-width:min(40vw,620px)}.hola{font-size:min(var(--s-disp),5.4vw);max-width:6.4em}}
 
 /* ===== pantallas apiladas: la que llega pasa por encima, con la cinta de aviso en el borde ===== */
 main{position:relative}
@@ -342,7 +343,7 @@ html.snap{scroll-snap-type:y mandatory}
 .toast{position:fixed;left:50%;bottom:calc(var(--bar) + 18px);z-index:90;transform:translate(-50%,20px);max-width:min(92vw,440px);padding:12px 16px;border-radius:12px;background:var(--texto);color:var(--negro);font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s var(--ease-out)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
-.shot .track{height:100svh}.shot .intro{display:none}.shot .veil{opacity:1}.shot .scrim.b{opacity:0}.shot .hint svg{animation:none}
+.shot .veil{opacity:1}.shot .hint svg{animation:none}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}.tind{transition:opacity .2s ease}.sheet,.sheet.on{transition:visibility 0s,opacity .2s ease}}
 </style>
 </head>
@@ -368,9 +369,9 @@ html.snap{scroll-snap-type:y mandatory}
     <div class="stage" id="stage">
       <video id="v" muted playsinline preload="auto" aria-hidden="true"></video>
       <div class="scrim"></div>
-      <div class="scrim b" id="scrimB"></div>
       <div class="veil"></div>
-      <div class="index" id="index" aria-hidden="true" inert>
+      <div class="index" id="index">
+        <h1 class="h1" id="h1" data-t="in.t">Fontaneros 24 horas.</h1>
         <p class="hola" id="hola">Llegamos antes de las <b data-eta>03:52</b>.</p>
         <p class="guardia"><i aria-hidden="true"></i><span id="guardia">3 técnicos de guardia ahora mismo.</span></p>
         <a class="espera" href="cita.html"><span data-t="in.esp">¿Puede esperar?</span> <b data-t="nav.cita">Pedir cita</b></a>
@@ -380,16 +381,6 @@ html.snap{scroll-snap-type:y mandatory}
         </div>
         <p class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg><span data-t="w.sig">Precio, barrio y garantía: desliza.</span></p>
       </div>
-    </div>
-    <div class="intro" id="intro">
-      <h1 class="h1" data-t="in.t">Fontaneros 24 horas.</h1>
-      <p class="lead" data-t="in.l">Fugas, atascos y averías en Barcelona. Llegamos en 25–40 minutos.</p>
-      <a class="espera" href="cita.html"><span data-t="in.esp">¿Puede esperar?</span> <b data-t="nav.cita">Pedir cita</b></a>
-      <div class="acts stage-acts">
-        <a class="btn pri" href="tel:+34930000000" data-call><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span data-t="b.llamar">Llamar</span></a>
-        <a class="btn" href="https://wa.me/34930000000" data-wa><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5A2 2 0 0 1 5.5 6.5h2l1.6-2h5.8l1.6 2h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.8" r="3.6"/></svg><span data-t="b.foto">Mandar foto</span></a>
-      </div>
-      <p class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg><span data-t="in.h">Desliza y mira a qué hora llegamos.</span></p>
     </div>
     <div class="snapT"></div>
     <div class="snap0"></div>
@@ -471,7 +462,7 @@ html.snap{scroll-snap-type:y mandatory}
         <button class="btn" id="verRes" data-t="ga.res">Leer reseñas</button>
       </div>
       <div class="gcard" id="gcard" data-ui>
-        <img class="gfoto" src="assets/img/jordi.webp" alt="Jordi Ramírez, el fundador, en la puerta de un portal" data-ta="alt:ga.alt" width="640" height="857" loading="lazy">
+        <img class="gfoto" src="assets/img/jordi.webp" alt="Jordi Ramírez, el fundador, de noche en una calle de Barcelona" data-ta="alt:ga.alt" width="640" height="857" loading="lazy">
         <div class="gtx">
           <p class="k" data-t="ga.k">Garantía de Ramírez 24 h</p>
           <p class="fig" data-t="ga.big">1 año</p>
@@ -597,7 +588,7 @@ html.snap{scroll-snap-type:y mandatory}
 </section>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script type="application/json" id="i18n">{"ca":{"a.home":"Ramírez 24 h: tornar a l’entrada","a.nav":"Seccions","a.lang":"Idioma","a.menu":"Obrir el menú","a.menuT":"Menú","a.track":"Entrada: la furgoneta arriba al teu portal","a.averias":"Avaries","a.prev":"Avaria anterior","a.next":"Avaria següent","a.bar":"Trucar o escriure","a.cerrar":"Tancar","a.s5":"5 de 5","a.s4":"4 de 5","a.mapa":"Mapa dels districtes de Barcelona","nav.precio":"Preu","nav.barrio":"Barri","nav.garantia":"Garantia","nav.averias":"Avaries","b.llamar":"Trucar","b.foto":"Enviar foto","bar.llamar":"Trucar ara","bar.foto":"Foto","in.t":"Lampistes 24 hores.","in.l":"Fuites, embussos i avaries a Barcelona. Arribem en 25–40 minuts.","in.h":"Llisca i mira a quina hora arribem.","hola":"Arribem abans de les <b data-eta>{t}</b>.","guardia":"{n} tècnics de guàrdia ara mateix.","w.sig":"Preu, barri i garantia: llisca.","av.m":"Arribem en {m}.","av.m.d":"A {b}, arribem en {m}.","av.t":"Què et passa?","av.precio":"Preu","av.llegamos":"Arribem en","av.es":"És això","desde":"des de {p}","urg":"Tarifa d’urgència: +40 %","av.fuga":"Fuita d’aigua","av.atasco":"Embús","av.termo":"Sense aigua calenta","av.cisterna":"Cisterna que perd","av.grifo":"Aixeta que goteja","av.otra":"Una altra avaria","av.fuga.l":"Canonada, clau de pas o flexo.","av.atasco.l":"Aigüera, vàter, dutxa o baixant.","av.termo.l":"Termo elèctric o escalfador.","av.cisterna.l":"L’aigua no para de córrer o no carrega.","av.grifo.l":"Goteja, perd o s’ha de canviar.","av.otra.l":"Explica-ho i et donem el preu al moment.","cu.t":"El que costa.","cu.n":"Ara, tarifa normal.","cu.u":"Ara, tarifa d’urgència: +40 %.","cu.l":"Preu tancat abans de començar.","cu.ej":"Veure l’exemple","cu.ej2":"Amagar l’exemple","p.t":"Part de treball","p.r1":"Desplaçament a Barcelona","p.r2":"Mà d’obra","p.r3":"De 20 a 8 h, caps de setmana i festius","p.sello":"Preu tancat","ej.t":"Una fuita d’1 h 30 min, un dimarts","ej.r1":"Desplaçament","ej.r2":"Mà d’obra, 1 h 30 min","ej.tot":"Total","ej.dom":"La mateixa feina un diumenge: {p}.","ba.t":"A quin barri ets?","ba.toca":"Toca el teu barri.","ba.toca2":"I et diem a quina hora arribem.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si truques ara, arribem abans de les {t}.","ba.cp":"O escriu el teu codi postal","ba.no":"Aquest codi no és de Barcelona. Truca’ns: també anem a L’Hospitalet, Esplugues i Sant Adrià.","ba.ley":"Minuts per arribar des del taller de Sants, amb trànsit normal.","ba.taller":"Taller","ba.mar":"MAR","ga.t":"Ho signem.","ga.d1":"Empresa instal·ladora autoritzada","ga.d2":"Factura amb IVA","ga.d3":"en 540 ressenyes","ga.p1":"Truques","ga.p2":"Arribem","ga.p3":"Preu tancat","ga.p4":"Garantia","ga.res":"Llegir ressenyes","ga.k":"Garantia de Ramírez 24 h","ga.big":"1 any","ga.s":"A cada feina, per escrit i a la teva factura.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, el fundador, a la porta d’un portal","mi.t":"Mentre arribem.","mi.1":"Tanca la clau de pas.","mi.1s":"Gira la roda cap a la dreta, fins al final.","mi.2":"Aigua a prop d’un endoll?","mi.2s":"Abaixa el diferencial del quadre de la llum.","mi.3":"Fes una foto i envia-la’ns.","mi.3s":"Així venim amb la peça que toca.","mi.btn":"Enviar la foto","fi.t":"Fuita ara?","fi.l":"24 hores, 365 dies. Taller a Sants.","fi.wa":"WhatsApp","fi.top":"Tornar a l’entrada","fi.demo":"Web de mostra feta per OOOX: empresa, telèfon, preus i ressenyes són d’exemple.","fi.cta":"En vull una així","fi.mapa":"Mapa: Ajuntament de Barcelona (CC BY 4.0).","d.t":"{a}, ara.","d.n":"Tarifa normal.","d.u":"Tarifa d’urgència: +40 % en desplaçament i mà d’obra.","d.alt.n":"De nit, en cap de setmana o festiu: {p}.","d.alt.u":"En horari normal, de dilluns a divendres de 8 a 20 h: {p}.","d.tot":"Total","d.cerrado":"El preu exacte te’l tanquem abans de començar.","re.t":"El que diuen.","re.1":"Van venir a les dues de la matinada. Ens van donar el preu abans de tocar res i va ser aquest.","re.1a":"Núria, Les Corts","re.2":"Vaig enviar una foto del termo per WhatsApp i van venir amb la peça. En una hora, aigua calenta.","re.2a":"Andrés, Sants","re.3":"Ràpids i nets. El preu final va ser el del pressupost.","re.3a":"Claire, Eixample","re.ej":"Ressenyes d’exemple: aquesta web és una mostra.","wa.full":"{a} a {b}, ara. Us envio foto.","wa.av":"{a}, ara. Us envio foto.","wa.b":"Avaria a {b}, ara. Us envio foto.","wa.none":"Tinc una avaria, ara. Us envio foto.","wa.fuga":"Fuita","wa.atasco":"Embús","wa.termo":"Sense aigua calenta","wa.cisterna":"Cisterna que perd","wa.grifo":"Aixeta que goteja","wa.otra":"Avaria","dm.callT":"Trucada directa","dm.callN":"A la web real, aquest botó truca amb un toc. A la demo no truquem a ningú.","dm.waT":"Així li arriba el missatge a Ramírez","dm.waN":"A la web real, aquest botó obre WhatsApp amb el missatge ja escrit. La foto l’afegeixes tu.","dm.cta":"En vull una així","dm.close":"Tancar","dm.online":"en línia","min":"min","d.iva":"Preus amb IVA per a un habitatge (10 %). Si el material passa del 40 % de la feina o és un local, l’IVA és del 21 %.","d.cita":"Pot esperar? Demana cita amb tarifa normal","fi.cita":"Pot esperar? Demana cita","nav.cita":"Demanar cita","nav.zona":"La teva zona","fi.dentro":"Veure l’app per dins","dm.band":"Veure-ho arribar a la safata de Ramírez","in.esp":"Pot esperar?","a.barrios":"Barris"},"en":{"a.home":"Ramírez 24 h: back to the start","a.nav":"Sections","a.lang":"Language","a.menu":"Open the menu","a.menuT":"Menu","a.track":"Intro: the van pulls up at your door","a.averias":"Problems","a.prev":"Previous problem","a.next":"Next problem","a.bar":"Call or message","a.cerrar":"Close","a.s5":"5 out of 5","a.s4":"4 out of 5","a.mapa":"Map of Barcelona’s districts","nav.precio":"Prices","nav.barrio":"Area","nav.garantia":"Guarantee","nav.averias":"Problems","b.llamar":"Call","b.foto":"Send a photo","bar.llamar":"Call now","bar.foto":"Photo","in.t":"24-hour plumbers.","in.l":"Leaks, blockages and breakdowns in Barcelona. We get there in 25–40 minutes.","in.h":"Swipe and see when we’ll arrive.","hola":"We’ll be there by <b data-eta>{t}</b>.","guardia":"{n} plumbers on call right now.","w.sig":"Prices, area and guarantee: swipe.","av.m":"We get there in {m}.","av.m.d":"To {b}: {m}.","av.t":"What’s wrong?","av.precio":"Price","av.llegamos":"We arrive in","av.es":"That’s it","desde":"from {p}","urg":"Emergency rate: +40%","av.fuga":"Water leak","av.atasco":"Blockage","av.termo":"No hot water","av.cisterna":"Leaking cistern","av.grifo":"Dripping tap","av.otra":"Another problem","av.fuga.l":"Pipe, stopcock or flexi hose.","av.atasco.l":"Sink, toilet, shower or soil stack.","av.termo.l":"Electric water heater or boiler.","av.cisterna.l":"Water keeps running or it won’t fill.","av.grifo.l":"Dripping, leaking or needs replacing.","av.otra.l":"Tell us and we’ll quote you on the spot.","cu.t":"What it costs.","cu.n":"Right now: standard rate.","cu.u":"Right now: emergency rate, +40%.","cu.l":"Fixed price before we start.","cu.ej":"See an example","cu.ej2":"Hide the example","p.t":"Job sheet","p.r1":"Call-out within Barcelona","p.r2":"Labour","p.r3":"8 pm to 8 am, weekends and public holidays","p.sello":"Fixed price","ej.t":"A 1 h 30 min leak, on a Tuesday","ej.r1":"Call-out","ej.r2":"Labour, 1 h 30 min","ej.tot":"Total","ej.dom":"The same job on a Sunday: {p}.","ba.t":"Which area are you in?","ba.toca":"Tap your area.","ba.toca2":"We’ll tell you when we’ll arrive.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Call now and we’ll be there by {t}.","ba.cp":"Or type your postcode","ba.no":"That postcode isn’t in Barcelona. Call us: we also cover L’Hospitalet, Esplugues and Sant Adrià.","ba.ley":"Minutes to reach you from our Sants workshop, in normal traffic.","ba.taller":"Workshop","ba.mar":"SEA","ga.t":"We put it in writing.","ga.d1":"Licensed plumbing company","ga.d2":"VAT invoice","ga.d3":"from 540 reviews","ga.p1":"You call","ga.p2":"We arrive","ga.p3":"Fixed price","ga.p4":"Guarantee","ga.res":"Read reviews","ga.k":"Ramírez 24 h guarantee","ga.big":"1 year","ga.s":"On every job, in writing, on your invoice.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, the founder, at the door of an apartment building","mi.t":"Until we get there.","mi.1":"Turn off the stopcock.","mi.1s":"Turn the wheel clockwise, all the way.","mi.2":"Water near a socket?","mi.2s":"Switch off the main breaker in the fuse box.","mi.3":"Take a photo and send it.","mi.3s":"So we bring the right part.","mi.btn":"Send the photo","fi.t":"Leak right now?","fi.l":"24 hours, 365 days. Workshop in Sants.","fi.wa":"WhatsApp","fi.top":"Back to the start","fi.demo":"Sample website made by OOOX: the company, phone number, prices and reviews are examples.","fi.cta":"I want one like this","fi.mapa":"Map: Ajuntament de Barcelona (CC BY 4.0).","d.t":"{a}, right now.","d.n":"Standard rate.","d.u":"Emergency rate: +40% on call-out and labour.","d.alt.n":"At night, at weekends or on public holidays: {p}.","d.alt.u":"Standard hours, Monday to Friday 8 am to 8 pm: {p}.","d.tot":"Total","d.cerrado":"We agree the exact price with you before we start.","re.t":"What people say.","re.1":"They came at two in the morning. They gave us the price before touching anything, and that’s what we paid.","re.1a":"Núria, Les Corts","re.2":"I sent a photo of the water heater on WhatsApp and they came with the part. Hot water again within the hour.","re.2a":"Andrés, Sants","re.3":"Quick and tidy. The final price matched the quote.","re.3a":"Claire, Eixample","re.ej":"Sample reviews: this website is a demo.","wa.full":"{a} in {b}, right now. Sending you a photo.","wa.av":"{a}, right now. Sending you a photo.","wa.b":"Plumbing problem in {b}, right now. Sending you a photo.","wa.none":"I have a plumbing problem, right now. Sending you a photo.","wa.fuga":"Leak","wa.atasco":"Blockage","wa.termo":"No hot water","wa.cisterna":"Leaking cistern","wa.grifo":"Dripping tap","wa.otra":"Problem","dm.callT":"One-tap call","dm.callN":"On the real site, this button calls the business in one tap. In the demo we don’t call anyone.","dm.waT":"This is the message Ramírez gets","dm.waN":"On the real site, this button opens WhatsApp with the message already written. You add the photo.","dm.cta":"I want one like this","dm.close":"Close","dm.online":"online","min":"min","d.iva":"Prices include VAT for a home (10%). If parts exceed 40% of the job, or it is business premises, VAT is 21%.","d.cita":"Can it wait? Book a visit at the standard rate","fi.cita":"Can it wait? Book a visit","nav.cita":"Book a visit","nav.zona":"Your area","fi.dentro":"See the app behind it","dm.band":"See it arrive in Ramírez’s inbox","in.esp":"Can it wait?","a.barrios":"Areas"},"es":{"av.m":"Llegamos en {m}.","av.m.d":"A {b} llegamos en {m}.","hola":"Llegamos antes de las <b data-eta>{t}</b>.","guardia":"{n} técnicos de guardia ahora mismo.","desde":"desde {p}","urg":"Tarifa de urgencia: +40 %","av.fuga":"Fuga de agua","av.atasco":"Atasco","av.termo":"Sin agua caliente","av.cisterna":"Cisterna que pierde","av.grifo":"Grifo que gotea","av.otra":"Otra avería","av.fuga.l":"Tubería, llave de paso o latiguillo.","av.atasco.l":"Fregadero, váter, ducha o bajante.","av.termo.l":"Termo eléctrico o calentador.","av.cisterna.l":"No para de correr el agua o no carga.","av.grifo.l":"Gotea, pierde o hay que cambiarlo.","av.otra.l":"Cuéntanoslo y te damos el precio al momento.","cu.n":"Ahora, tarifa normal.","cu.u":"Ahora, tarifa de urgencia: +40 %.","cu.ej2":"Ocultar el ejemplo","ej.dom":"El mismo trabajo un domingo: {p}.","ba.toca":"Toca tu barrio.","ba.toca2":"Y te decimos a qué hora llegamos.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si llamas ahora, llegamos antes de las {t}.","ba.no":"Ese código no es de Barcelona. Llámanos: también vamos a L’Hospitalet, Esplugues y Sant Adrià.","ba.taller":"Taller","ba.mar":"MAR","a.mapa":"Mapa de los distritos de Barcelona","mi.1":"Cierra la llave de paso.","mi.1s":"Gira la rueda a la derecha, hasta el final.","mi.2":"¿Agua cerca de un enchufe?","mi.2s":"Baja el diferencial del cuadro de la luz.","mi.3":"Haz una foto y mándanosla.","mi.3s":"Así venimos con la pieza que toca.","d.alt.n":"De noche, en fin de semana o festivo: {p}.","d.alt.u":"En horario normal, de lunes a viernes de 8 a 20 h: {p}.","d.t":"{a}, ahora.","d.n":"Tarifa normal.","d.u":"Tarifa de urgencia: +40 % en desplazamiento y mano de obra.","wa.full":"{a} en {b}, ahora. Os mando foto.","wa.av":"{a}, ahora. Os mando foto.","wa.b":"Avería en {b}, ahora. Os mando foto.","wa.none":"Tengo una avería, ahora. Os mando foto.","wa.fuga":"Fuga","wa.atasco":"Atasco","wa.termo":"Sin agua caliente","wa.cisterna":"Cisterna que pierde","wa.grifo":"Grifo que gotea","wa.otra":"Avería","dm.callT":"Llamada directa","dm.callN":"En la web real, este botón llama con un toque. En la demo no llamamos a nadie.","dm.waT":"Así le llega el mensaje a Ramírez","dm.waN":"En la web real, este botón abre WhatsApp con el mensaje ya escrito. La foto la añades tú.","dm.cta":"Quiero una web así","dm.close":"Cerrar","dm.online":"en línea","min":"min","dm.band":"Verlo llegar a la bandeja de Ramírez","in.esp":"¿Puede esperar?"}}</script>
+<script type="application/json" id="i18n">{"ca":{"a.home":"Ramírez 24 h: tornar a l’entrada","a.nav":"Seccions","a.lang":"Idioma","a.menu":"Obrir el menú","a.menuT":"Menú","a.track":"Entrada: la furgoneta arriba al teu portal","a.averias":"Avaries","a.prev":"Avaria anterior","a.next":"Avaria següent","a.bar":"Trucar o escriure","a.cerrar":"Tancar","a.s5":"5 de 5","a.s4":"4 de 5","a.mapa":"Mapa dels districtes de Barcelona","nav.precio":"Preu","nav.barrio":"Barri","nav.garantia":"Garantia","nav.averias":"Avaries","b.llamar":"Trucar","b.foto":"Enviar foto","bar.llamar":"Trucar ara","bar.foto":"Foto","in.t":"Lampistes 24 hores.","hola":"Arribem abans de les <b data-eta>{t}</b>.","guardia":"{n} tècnics de guàrdia ara mateix.","w.sig":"Preu, barri i garantia: llisca.","av.m":"Arribem en {m}.","av.m.d":"A {b}, arribem en {m}.","av.t":"Què et passa?","av.precio":"Preu","av.llegamos":"Arribem en","av.es":"És això","desde":"des de {p}","urg":"Tarifa d’urgència: +40 %","av.fuga":"Fuita d’aigua","av.atasco":"Embús","av.termo":"Sense aigua calenta","av.cisterna":"Cisterna que perd","av.grifo":"Aixeta que goteja","av.otra":"Una altra avaria","av.fuga.l":"Canonada, clau de pas o flexo.","av.atasco.l":"Aigüera, vàter, dutxa o baixant.","av.termo.l":"Termo elèctric o escalfador.","av.cisterna.l":"L’aigua no para de córrer o no carrega.","av.grifo.l":"Goteja, perd o s’ha de canviar.","av.otra.l":"Explica-ho i et donem el preu al moment.","cu.t":"El que costa.","cu.n":"Ara, tarifa normal.","cu.u":"Ara, tarifa d’urgència: +40 %.","cu.l":"Preu tancat abans de començar.","cu.ej":"Veure l’exemple","cu.ej2":"Amagar l’exemple","p.t":"Part de treball","p.r1":"Desplaçament a Barcelona","p.r2":"Mà d’obra","p.r3":"De 20 a 8 h, caps de setmana i festius","p.sello":"Preu tancat","ej.t":"Una fuita d’1 h 30 min, un dimarts","ej.r1":"Desplaçament","ej.r2":"Mà d’obra, 1 h 30 min","ej.tot":"Total","ej.dom":"La mateixa feina un diumenge: {p}.","ba.t":"A quin barri ets?","ba.toca":"Toca el teu barri.","ba.toca2":"I et diem a quina hora arribem.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si truques ara, arribem abans de les {t}.","ba.cp":"O escriu el teu codi postal","ba.no":"Aquest codi no és de Barcelona. Truca’ns: també anem a L’Hospitalet, Esplugues i Sant Adrià.","ba.ley":"Minuts per arribar des del taller de Sants, amb trànsit normal.","ba.taller":"Taller","ba.mar":"MAR","ga.t":"Ho signem.","ga.d1":"Empresa instal·ladora autoritzada","ga.d2":"Factura amb IVA","ga.d3":"en 540 ressenyes","ga.p1":"Truques","ga.p2":"Arribem","ga.p3":"Preu tancat","ga.p4":"Garantia","ga.res":"Llegir ressenyes","ga.k":"Garantia de Ramírez 24 h","ga.big":"1 any","ga.s":"A cada feina, per escrit i a la teva factura.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, el fundador, de nit en un carrer de Barcelona","mi.t":"Mentre arribem.","mi.1":"Tanca la clau de pas.","mi.1s":"Gira la roda cap a la dreta, fins al final.","mi.2":"Aigua a prop d’un endoll?","mi.2s":"Abaixa el diferencial del quadre de la llum.","mi.3":"Fes una foto i envia-la’ns.","mi.3s":"Així venim amb la peça que toca.","mi.btn":"Enviar la foto","fi.t":"Fuita ara?","fi.l":"24 hores, 365 dies. Taller a Sants.","fi.wa":"WhatsApp","fi.top":"Tornar a l’entrada","fi.demo":"Web de mostra feta per OOOX: empresa, telèfon, preus i ressenyes són d’exemple.","fi.cta":"En vull una així","fi.mapa":"Mapa: Ajuntament de Barcelona (CC BY 4.0).","d.t":"{a}, ara.","d.n":"Tarifa normal.","d.u":"Tarifa d’urgència: +40 % en desplaçament i mà d’obra.","d.alt.n":"De nit, en cap de setmana o festiu: {p}.","d.alt.u":"En horari normal, de dilluns a divendres de 8 a 20 h: {p}.","d.tot":"Total","d.cerrado":"El preu exacte te’l tanquem abans de començar.","re.t":"El que diuen.","re.1":"Van venir a les dues de la matinada. Ens van donar el preu abans de tocar res i va ser aquest.","re.1a":"Núria, Les Corts","re.2":"Vaig enviar una foto del termo per WhatsApp i van venir amb la peça. En una hora, aigua calenta.","re.2a":"Andrés, Sants","re.3":"Ràpids i nets. El preu final va ser el del pressupost.","re.3a":"Claire, Eixample","re.ej":"Ressenyes d’exemple: aquesta web és una mostra.","wa.full":"{a} a {b}, ara. Us envio foto.","wa.av":"{a}, ara. Us envio foto.","wa.b":"Avaria a {b}, ara. Us envio foto.","wa.none":"Tinc una avaria, ara. Us envio foto.","wa.fuga":"Fuita","wa.atasco":"Embús","wa.termo":"Sense aigua calenta","wa.cisterna":"Cisterna que perd","wa.grifo":"Aixeta que goteja","wa.otra":"Avaria","dm.callT":"Trucada directa","dm.callN":"A la web real, aquest botó truca amb un toc. A la demo no truquem a ningú.","dm.waT":"Així li arriba el missatge a Ramírez","dm.waN":"A la web real, aquest botó obre WhatsApp amb el missatge ja escrit. La foto l’afegeixes tu.","dm.cta":"En vull una així","dm.close":"Tancar","dm.online":"en línia","min":"min","d.iva":"Preus amb IVA per a un habitatge (10 %). Si el material passa del 40 % de la feina o és un local, l’IVA és del 21 %.","d.cita":"Pot esperar? Demana cita amb tarifa normal","fi.cita":"Pot esperar? Demana cita","nav.cita":"Demanar cita","nav.zona":"La teva zona","fi.dentro":"Veure l’app per dins","dm.band":"Veure-ho arribar a la safata de Ramírez","in.esp":"Pot esperar?","a.barrios":"Barris"},"en":{"a.home":"Ramírez 24 h: back to the start","a.nav":"Sections","a.lang":"Language","a.menu":"Open the menu","a.menuT":"Menu","a.track":"Intro: the van pulls up at your door","a.averias":"Problems","a.prev":"Previous problem","a.next":"Next problem","a.bar":"Call or message","a.cerrar":"Close","a.s5":"5 out of 5","a.s4":"4 out of 5","a.mapa":"Map of Barcelona’s districts","nav.precio":"Prices","nav.barrio":"Area","nav.garantia":"Guarantee","nav.averias":"Problems","b.llamar":"Call","b.foto":"Send a photo","bar.llamar":"Call now","bar.foto":"Photo","in.t":"24-hour plumbers.","hola":"We’ll be there by <b data-eta>{t}</b>.","guardia":"{n} plumbers on call right now.","w.sig":"Prices, area and guarantee: swipe.","av.m":"We get there in {m}.","av.m.d":"To {b}: {m}.","av.t":"What’s wrong?","av.precio":"Price","av.llegamos":"We arrive in","av.es":"That’s it","desde":"from {p}","urg":"Emergency rate: +40%","av.fuga":"Water leak","av.atasco":"Blockage","av.termo":"No hot water","av.cisterna":"Leaking cistern","av.grifo":"Dripping tap","av.otra":"Another problem","av.fuga.l":"Pipe, stopcock or flexi hose.","av.atasco.l":"Sink, toilet, shower or soil stack.","av.termo.l":"Electric water heater or boiler.","av.cisterna.l":"Water keeps running or it won’t fill.","av.grifo.l":"Dripping, leaking or needs replacing.","av.otra.l":"Tell us and we’ll quote you on the spot.","cu.t":"What it costs.","cu.n":"Right now: standard rate.","cu.u":"Right now: emergency rate, +40%.","cu.l":"Fixed price before we start.","cu.ej":"See an example","cu.ej2":"Hide the example","p.t":"Job sheet","p.r1":"Call-out within Barcelona","p.r2":"Labour","p.r3":"8 pm to 8 am, weekends and public holidays","p.sello":"Fixed price","ej.t":"A 1 h 30 min leak, on a Tuesday","ej.r1":"Call-out","ej.r2":"Labour, 1 h 30 min","ej.tot":"Total","ej.dom":"The same job on a Sunday: {p}.","ba.t":"Which area are you in?","ba.toca":"Tap your area.","ba.toca2":"We’ll tell you when we’ll arrive.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Call now and we’ll be there by {t}.","ba.cp":"Or type your postcode","ba.no":"That postcode isn’t in Barcelona. Call us: we also cover L’Hospitalet, Esplugues and Sant Adrià.","ba.ley":"Minutes to reach you from our Sants workshop, in normal traffic.","ba.taller":"Workshop","ba.mar":"SEA","ga.t":"We put it in writing.","ga.d1":"Licensed plumbing company","ga.d2":"VAT invoice","ga.d3":"from 540 reviews","ga.p1":"You call","ga.p2":"We arrive","ga.p3":"Fixed price","ga.p4":"Guarantee","ga.res":"Read reviews","ga.k":"Ramírez 24 h guarantee","ga.big":"1 year","ga.s":"On every job, in writing, on your invoice.","ga.firma":"Jordi Ramírez","ga.alt":"Jordi Ramírez, the founder, on a Barcelona street at night","mi.t":"Until we get there.","mi.1":"Turn off the stopcock.","mi.1s":"Turn the wheel clockwise, all the way.","mi.2":"Water near a socket?","mi.2s":"Switch off the main breaker in the fuse box.","mi.3":"Take a photo and send it.","mi.3s":"So we bring the right part.","mi.btn":"Send the photo","fi.t":"Leak right now?","fi.l":"24 hours, 365 days. Workshop in Sants.","fi.wa":"WhatsApp","fi.top":"Back to the start","fi.demo":"Sample website made by OOOX: the company, phone number, prices and reviews are examples.","fi.cta":"I want one like this","fi.mapa":"Map: Ajuntament de Barcelona (CC BY 4.0).","d.t":"{a}, right now.","d.n":"Standard rate.","d.u":"Emergency rate: +40% on call-out and labour.","d.alt.n":"At night, at weekends or on public holidays: {p}.","d.alt.u":"Standard hours, Monday to Friday 8 am to 8 pm: {p}.","d.tot":"Total","d.cerrado":"We agree the exact price with you before we start.","re.t":"What people say.","re.1":"They came at two in the morning. They gave us the price before touching anything, and that’s what we paid.","re.1a":"Núria, Les Corts","re.2":"I sent a photo of the water heater on WhatsApp and they came with the part. Hot water again within the hour.","re.2a":"Andrés, Sants","re.3":"Quick and tidy. The final price matched the quote.","re.3a":"Claire, Eixample","re.ej":"Sample reviews: this website is a demo.","wa.full":"{a} in {b}, right now. Sending you a photo.","wa.av":"{a}, right now. Sending you a photo.","wa.b":"Plumbing problem in {b}, right now. Sending you a photo.","wa.none":"I have a plumbing problem, right now. Sending you a photo.","wa.fuga":"Leak","wa.atasco":"Blockage","wa.termo":"No hot water","wa.cisterna":"Leaking cistern","wa.grifo":"Dripping tap","wa.otra":"Problem","dm.callT":"One-tap call","dm.callN":"On the real site, this button calls the business in one tap. In the demo we don’t call anyone.","dm.waT":"This is the message Ramírez gets","dm.waN":"On the real site, this button opens WhatsApp with the message already written. You add the photo.","dm.cta":"I want one like this","dm.close":"Close","dm.online":"online","min":"min","d.iva":"Prices include VAT for a home (10%). If parts exceed 40% of the job, or it is business premises, VAT is 21%.","d.cita":"Can it wait? Book a visit at the standard rate","fi.cita":"Can it wait? Book a visit","nav.cita":"Book a visit","nav.zona":"Your area","fi.dentro":"See the app behind it","dm.band":"See it arrive in Ramírez’s inbox","in.esp":"Can it wait?","a.barrios":"Areas"},"es":{"av.m":"Llegamos en {m}.","av.m.d":"A {b} llegamos en {m}.","hola":"Llegamos antes de las <b data-eta>{t}</b>.","guardia":"{n} técnicos de guardia ahora mismo.","desde":"desde {p}","urg":"Tarifa de urgencia: +40 %","av.fuga":"Fuga de agua","av.atasco":"Atasco","av.termo":"Sin agua caliente","av.cisterna":"Cisterna que pierde","av.grifo":"Grifo que gotea","av.otra":"Otra avería","av.fuga.l":"Tubería, llave de paso o latiguillo.","av.atasco.l":"Fregadero, váter, ducha o bajante.","av.termo.l":"Termo eléctrico o calentador.","av.cisterna.l":"No para de correr el agua o no carga.","av.grifo.l":"Gotea, pierde o hay que cambiarlo.","av.otra.l":"Cuéntanoslo y te damos el precio al momento.","cu.n":"Ahora, tarifa normal.","cu.u":"Ahora, tarifa de urgencia: +40 %.","cu.ej2":"Ocultar el ejemplo","ej.dom":"El mismo trabajo un domingo: {p}.","ba.toca":"Toca tu barrio.","ba.toca2":"Y te decimos a qué hora llegamos.","ba.r":"{b}: <b>{m}</b>.","ba.eta":"Si llamas ahora, llegamos antes de las {t}.","ba.no":"Ese código no es de Barcelona. Llámanos: también vamos a L’Hospitalet, Esplugues y Sant Adrià.","ba.taller":"Taller","ba.mar":"MAR","a.mapa":"Mapa de los distritos de Barcelona","mi.1":"Cierra la llave de paso.","mi.1s":"Gira la rueda a la derecha, hasta el final.","mi.2":"¿Agua cerca de un enchufe?","mi.2s":"Baja el diferencial del cuadro de la luz.","mi.3":"Haz una foto y mándanosla.","mi.3s":"Así venimos con la pieza que toca.","d.alt.n":"De noche, en fin de semana o festivo: {p}.","d.alt.u":"En horario normal, de lunes a viernes de 8 a 20 h: {p}.","d.t":"{a}, ahora.","d.n":"Tarifa normal.","d.u":"Tarifa de urgencia: +40 % en desplazamiento y mano de obra.","wa.full":"{a} en {b}, ahora. Os mando foto.","wa.av":"{a}, ahora. Os mando foto.","wa.b":"Avería en {b}, ahora. Os mando foto.","wa.none":"Tengo una avería, ahora. Os mando foto.","wa.fuga":"Fuga","wa.atasco":"Atasco","wa.termo":"Sin agua caliente","wa.cisterna":"Cisterna que pierde","wa.grifo":"Grifo que gotea","wa.otra":"Avería","dm.callT":"Llamada directa","dm.callN":"En la web real, este botón llama con un toque. En la demo no llamamos a nadie.","dm.waT":"Así le llega el mensaje a Ramírez","dm.waN":"En la web real, este botón abre WhatsApp con el mensaje ya escrito. La foto la añades tú.","dm.cta":"Quiero una web así","dm.close":"Cerrar","dm.online":"en línea","min":"min","dm.band":"Verlo llegar a la bandeja de Ramírez","in.esp":"¿Puede esperar?"}}</script>
 <script src="assets/gsap.min.js"></script>
 <script>
 (function(){'use strict';
@@ -753,46 +744,36 @@ $('#mapaW').addEventListener('keydown',e=>{const g=e.target.closest('.d');if(g&&
 $('#cp').addEventListener('input',()=>{const i=$('#cp'),v=i.value.replace(/\D/g,'').slice(0,5);if(i.value!==v)i.value=v;
  if(v.length<5){$('#cpMsg').textContent='';return}const id=CP[v];if(id){elige(id,'cp');$('#cpMsg').textContent='';i.blur()}else $('#cpMsg').textContent=t('ba.no')});
 
-/* ===== entrada: el vídeo avanza con un gesto y se para en el portal ===== */
-const v=$('#v'),intro=$('#intro'),index=$('#index'),scrimB=$('#scrimB');let dur=5,target=0,cur=0,ready=false,auto=0,autoT=0,preTw=null;
+/* ===== entrada: al abrir la web, la furgoneta llega, el técnico baja y se planta delante (3,4 s); acaba en la portada ===== */
+const v=$('#v'),index=$('#index');let ready=false,acabada=false,vigia=0,gliding=false,holdUntil=0;
 const wide=matchMedia('(min-aspect-ratio:1/1)');let ori='';const enteros={};
-/* Si el servidor no da el vídeo por trozos (las vistas previas de Cloudflare Pages no lo hacen), Chrome no deja saltar dentro de él
-   y el iPhone ni lo reproduce. Se pregunta antes: si contesta con el archivo entero, ese mismo archivo es el que se usa. */
-const salta=()=>{const s=v.seekable;return s.length>0&&s.end(s.length-1)>.5};
-function pon(o){const u=`assets/entrada-${o}.mp4`,va=s=>{if(o!==ori)return;v.src=s;v.load();if(auto){const p=v.play();if(p&&p.catch)p.catch(()=>{})}};
+/* Si el servidor no da el vídeo por trozos (las vistas previas de Cloudflare Pages no lo hacen), el iPhone no lo reproduce.
+   Se pregunta antes: si contesta con el archivo entero, ese mismo archivo es el que se usa. */
+function pon(o){const u=`assets/entrada-${o}.mp4`,va=s=>{if(o!==ori||acabada)return;v.src=s;v.load();const p=v.play();if(p&&p.catch)p.catch(e=>{if(!(e&&e.name==='AbortError'))llega()})};
  if(enteros[o])return va(enteros[o]);
  fetch(u,{headers:{Range:'bytes=0-1'}}).then(r=>r.status===206||!r.ok?va(u):r.blob().then(b=>va(enteros[o]=URL.createObjectURL(b)))).catch(()=>va(u))}
-function setOri(){const o=wide.matches?'h':'v';if(o===ori)return;if(auto||preTw)llega();ori=o;if(SHOT){v.poster=`assets/img/fin-${o}.webp`;return}v.poster=`assets/entrada-${o}-poster.jpg`;if(v.getAttribute('src')){v.removeAttribute('src');v.load()}pon(o)}
-const vt=()=>Math.min(1,Math.max(0,cur))*(dur-.05);
-v.addEventListener('loadedmetadata',()=>{dur=v.duration||dur;if(salta())v.currentTime=vt()});
-wide.addEventListener('change',setOri);setOri();
-const tmax=()=>$('#track').offsetHeight-innerHeight;
-const prog=()=>Math.min(1,Math.max(0,scrollY/tmax()));
-function tick(){
- if(auto&&v.readyState>=2){const k=Math.min(1,v.currentTime/Math.max(.1,dur-.05));target=cur=k;scrollTo(0,k*tmax());
-  if(k>=1||v.ended)llega()}
- if(auto&&v.currentTime<.05&&performance.now()-autoT>3000){auto=0;v.pause();sinVideo()}
- cur+=(target-cur)*.12;if(Math.abs(target-cur)<.001)cur=target;
- if(!auto&&v.readyState>=1&&!isNaN(v.duration)&&salta()){const q=vt();if(Math.abs(v.currentTime-q)>.02)v.currentTime=q}
- const o=Math.max(0,1-cur*6.2);intro.style.opacity=o;intro.style.visibility=o<.02?'hidden':'visible';scrimB.style.opacity=ready?0:Math.max(0,1-cur*4);
- if(cur>.985&&!ready)arrive();pila();requestAnimationFrame(tick)}
-let gliding=false,holdUntil=0,inTrack=true;
-function onScroll(){target=prog();if(Math.abs(target-cur)>.4)cur=target;
- const tr=scrollY<tmax()-4;if(inTrack&&!tr&&!gliding)holdUntil=performance.now()+1100;inTrack=tr;
- if(!gliding)HTML.classList.toggle('snap',scrollY>=tmax()-4);if(ready&&target<.9)leave();spy();pila()}
+/* la portada quieta: la foto del último fotograma (sin vídeo cargado, se ve el póster) */
+function portada(){v.pause();v.poster=`assets/img/fin-${ori}.webp`;if(v.getAttribute('src')){v.removeAttribute('src');v.load()}}
+/* la entrada acaba sola al terminar el vídeo; antes, con cualquier gesto (se la salta), si el vídeo no arranca o falla */
+function llega(gesto){if(acabada)return;acabada=true;clearTimeout(vigia);if(!v.ended)portada();if(gesto)holdUntil=performance.now()+900;arrive()}
+function setOri(){const o=wide.matches?'h':'v';if(o===ori)return;ori=o;if(acabada){portada();return}
+ v.poster=`assets/entrada-${o}-poster.jpg`;if(v.getAttribute('src')){v.removeAttribute('src');v.load()}pon(o)}
+v.addEventListener('ended',()=>llega());v.addEventListener('error',()=>{if(v.getAttribute('src'))llega()});
+/* si ya corre, se le da lo que le queda y un margen; si se atasca, la portada sale igual */
+v.addEventListener('playing',()=>{clearTimeout(vigia);vigia=setTimeout(()=>llega(),Math.max(1,(v.duration||4)-v.currentTime)*1000+2500)});
+wide.addEventListener('change',setOri);
+$('#stage').addEventListener('click',()=>{if(!acabada)llega(true)});
+const tmax=()=>Math.max(0,$('#track').offsetHeight-innerHeight);
+function onScroll(){if(!gliding)HTML.classList.add('snap');spy();pila()}
 if(!SHOT)addEventListener('scroll',onScroll,{passive:true});
-function arrive(){if(ready)return;ready=true;document.body.classList.add('ready');index.removeAttribute('aria-hidden');index.inert=false;
- if(!RM){gsap.fromTo('#hola',{y:46,opacity:0},{y:0,opacity:1,duration:1,ease:'expo.out',delay:.12});
-  gsap.fromTo('#index .guardia,#index .acts,#index .hint',{y:24,opacity:0},{y:0,opacity:1,stagger:.07,duration:.7,ease:'power3.out',delay:.45})}}
-function leave(){ready=false;document.body.classList.remove('ready');index.setAttribute('aria-hidden','true');index.inert=true}
-function corta(){if(preTw){preTw.kill();preTw=null}if(auto){auto=0;v.pause()}}
-function entrar(){if(gliding||auto)return;if(ready||RM){glide(tmax(),RM?0:.6);return}
- gliding=true;HTML.classList.remove('snap');holdUntil=0;
- if(salta())v.currentTime=vt();else if(v.currentTime>.1)v.load();
- auto=1;autoT=performance.now();const p=v.play();if(p&&p.catch)p.catch(e=>{if(auto&&!(e&&e.name==='AbortError')){auto=0;sinVideo()}})}
-function sinVideo(){const tw={y:scrollY},k=1-prog();preTw=gsap.to(tw,{y:tmax(),duration:Math.max(.3,k*(dur-.05)),ease:'none',onUpdate:()=>scrollTo(0,tw.y),onComplete:llega})}
-function llega(){preTw=null;auto=0;v.pause();target=cur=1;scrollTo(0,tmax());gliding=false;holdUntil=performance.now()+1200;onScroll();arrive()}
-function salir(){if(gliding||auto||scrollY<4)return;glide(0,1.5)}
+function arrive(){if(ready)return;ready=true;document.body.classList.add('ready');
+ if(!RM){gsap.fromTo('#h1',{y:30,opacity:0},{y:0,opacity:1,duration:.9,ease:'expo.out',delay:.04});
+  gsap.fromTo('#hola',{y:46,opacity:0},{y:0,opacity:1,duration:1,ease:'expo.out',delay:.12});
+  gsap.fromTo('#index .guardia,#index .espera,#index .acts,#index .hint',{y:24,opacity:0},{y:0,opacity:1,stagger:.07,duration:.7,ease:'power3.out',delay:.45})}}
+function corta(){if(!acabada)llega()}
+/* con movimiento reducido (y en las capturas), la portada directamente; si no, el vídeo, y si en 3,5 s no ha empezado, la portada */
+if(SHOT||RM){ori=wide.matches?'h':'v';llega()}
+else{setOri();vigia=setTimeout(()=>{if(!acabada&&v.paused)llega()},3500)}
 
 /* ===== pila: la pantalla que llega pasa por encima; la de atrás casi no se mueve, encoge y se oscurece ===== */
 const SECS=['averias','cuesta','barrio','garantia','mientras','fin'];
@@ -819,16 +800,16 @@ function page(dir){const y=scrollY,P=stops(),to=dir>0?P.find(x=>x>y+4):[...P].re
  if(to==null)return false;if(dir<0&&y<=tmax()+4)return false;glide(to,1.05,'power3.inOut');return true}
 let wLock=false,wQ=0,wAcc=0;
 function onWheelDy(dy,ev){if(ev)ev.preventDefault();clearTimeout(wQ);wQ=setTimeout(()=>{wLock=false;wAcc=0},260);
- if(wLock||gliding||auto)return;if(performance.now()<holdUntil){wAcc=0;return}
- const entrada=scrollY<tmax()-4||(scrollY<=tmax()+4&&dy<0);wAcc+=dy;if(Math.abs(wAcc)<(entrada?12:30))return;
- const d=Math.sign(wAcc);wAcc=0;wLock=true;if(!entrada)page(d);else if(d>0)entrar();else salir()}
+ if(wLock||gliding)return;if(performance.now()<holdUntil){wAcc=0;return}
+ wAcc+=dy;if(Math.abs(wAcc)<(acabada?30:12))return;
+ const d=Math.sign(wAcc);wAcc=0;wLock=true;if(!acabada){llega(true);return}page(d)}
 addEventListener('wheel',e=>{if(SHOT||blocked()||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;onWheelDy(e.deltaY,e)},{passive:false});
-addEventListener('keydown',e=>{if(e.key==='Escape'){closeAll();return}const ae=document.activeElement||document.body;if(SHOT||blocked()||/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;const k=e.key;
+addEventListener('keydown',e=>{if(e.key==='Escape'){closeAll();return}const ae=document.activeElement||document.body;if(!acabada&&e.key==='Tab')llega(true);if(SHOT||blocked()||/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;const k=e.key;
  if(e.repeat&&/Arrow|Page| /.test(k)){e.preventDefault();return}
  if((k==='ArrowLeft'||k==='ArrowRight')&&curSec==='averias'&&(ae===document.body||ae===HTML||ae.closest('#averias'))){e.preventDefault();irAv(avIdx()+(k==='ArrowRight'?1:-1),k==='ArrowRight'?1:-1);return}
  if(k===' '&&ae!==document.body&&ae!==HTML)return;
  const d=(k==='ArrowDown'||k==='PageDown'||(k===' '&&!e.shiftKey))?1:(k==='ArrowUp'||k==='PageUp'||(k===' '&&e.shiftKey))?-1:0;if(!d)return;e.preventDefault();
- if(scrollY<tmax()-4||(d<0&&scrollY<=tmax()+4)){if(!gliding&&!auto){if(d>0)entrar();else salir()}return}
+ if(!acabada){llega(true);return}
  if(!gliding)page(d)});
 let ts=null;
 addEventListener('touchstart',e=>{if(blocked())return;const q=e.touches[0];ts={x:q.clientX,y:q.clientY}},{passive:true});
@@ -836,8 +817,8 @@ addEventListener('touchmove',e=>{if(SHOT||!ts||blocked())return;const q=e.touche
  if(dy>0&&scrollY<=0)return;if(e.target.closest&&e.target.closest('.chips')&&Math.abs(dx)>Math.abs(dy))return;
  if(Math.abs(dy)>Math.abs(dx)&&e.cancelable)e.preventDefault()},{passive:false});
 addEventListener('touchend',e=>{if(SHOT||!ts)return;const q=e.changedTouches[0],dx=q.clientX-ts.x,dy=q.clientY-ts.y;ts=null;
- if(blocked()||gliding||auto||Math.abs(dy)<40||Math.abs(dy)<Math.abs(dx)*1.2)return;
- if(scrollY<tmax()-4||(dy>0&&scrollY<=tmax()+4)){if(dy<0)entrar();else salir();return}
+ if(blocked()||gliding||Math.abs(dy)<40||Math.abs(dy)<Math.abs(dx)*1.2)return;
+ if(!acabada){llega(true);return}
  page(dy<0?1:-1)},{passive:true});
 function glide(y,d,ease){corta();gliding=true;HTML.classList.remove('snap');const tw={v:scrollY};gsap.to(tw,{v:y,duration:RM?0:(d||1.1),ease:ease||'power2.inOut',onUpdate:()=>scrollTo(0,tw.v),onComplete:()=>{gliding=false;onScroll()}})}
 const yOf=id=>topOf(document.getElementById(id));
@@ -893,7 +874,7 @@ else HEADS.forEach(s=>partir($(s)));
 
 /* llegar con enlace (#cuesta, #barrio, #garantia...) */
 (function(){const h=location.hash.slice(1);if(!h||SHOT)return;history.replaceState(null,'',location.pathname+location.search);if(!SECS.includes(h)&&h!=='dentro')return;
- v.addEventListener('loadedmetadata',()=>{if(salta())v.currentTime=v.duration-.05},{once:true});scrollTo(0,tmax());target=cur=1;arrive();
+ llega();
  if(h!=='dentro')setTimeout(()=>{scrollTo(0,yOf(h));onScroll()},120)})();
 
 /* Cada pantalla tiene que entrar entera entre la cabecera y la barra de abajo: el título a la vista y ningún botón ni
@@ -907,9 +888,9 @@ function cabe(){const movil=innerWidth<900,h=Math.min(SVH(),innerHeight);
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(cabe);addEventListener('load',cabe)}
 applyLang();langFns.push(pintaVivo);pintaVivo();cabe();
 setInterval(pintaVivo,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pintaVivo()});
-if(SHOT){document.body.classList.add('ready');index.removeAttribute('aria-hidden');index.inert=false;document.body.dataset.hdr=SHOT_AT||'track';
+if(SHOT){document.body.dataset.hdr=SHOT_AT||'track';
  if(SHOT_AT&&SECS.includes(SHOT_AT)){$('#track').style.display='none';for(const id of SECS){if(id===SHOT_AT)break;document.getElementById(id).style.display='none'}}scrollTo(0,0)}
-else{requestAnimationFrame(tick);onScroll()}
+else onScroll()
 })();
 </script>
 </body>

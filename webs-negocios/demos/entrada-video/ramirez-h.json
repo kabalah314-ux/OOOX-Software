@@ -1,12 +1,12 @@
 {
-  "video": "../../originales/flow-2026-11-13/entrada-h-omni12flash-360p-borrador.mp4",
-  "primera": "../../originales/flow-2026-11-13/llega-h.jpg",
-  "ultima": "../../originales/flow-2026-11-13/finalH.jpg",
+  "video": "../../originales/flow-2026-11-16/entrada-h-veo31lite-720p.mp4",
+  "primera": "../../originales/flow-2026-11-16/calle-vacia-h.jpg",
+  "ultima": "../../originales/flow-2026-11-16/portada-h.jpg",
   "salida": "salida/entrada-h",
   "ancho": 1280,
   "alto": 720,
   "fps": 30,
-  "velocidad": [[0, 2.0], [1.6, 2.0], [3.0, 1.25], [6.9999, 1.25], [7.0, 2.0]],
-  "rotulos": [[202, 166, 283, 207]],
+  "velocidad": [[0, 3.0], [0.45, 3.0], [0.5, 2.0], [1.85, 2.0], [2.05, 1.5], [2.25, 1.8], [5.3, 1.8], [5.6, 5.0], [7.92, 5.0]],
+  "clave": 60,
   "crf": 25.5
 }

@@ -1,8 +1,11 @@
-# Vídeo de entrada (la portada que se reproduce con un gesto)
+# Vídeo de entrada (la portada en vídeo)
 
 `entrada.py` convierte un clip de IA hecho **entre dos fotos** (primer y último fotograma, cámara fija)
-en el vídeo de portada de una web: nítido, sin saltos al empezar ni al acabar y listo para que el
-scroll lo mueva.
+en el vídeo de portada de una web: nítido y sin saltos al empezar ni al acabar.
+
+Desde el 16-11-2026 la web de Ramírez lo **reproduce sola al abrirse** (3,4 s: la furgoneta llega, el
+técnico baja y se planta delante) y se queda en la portada con la bienvenida encima. Antes lo movía
+el scroll con el primer gesto; para eso sigue valiendo el mismo script con `"clave": 8`.
 
 ## Por qué hace falta
 
@@ -19,9 +22,14 @@ python3 entrada.py ramirez-h.json      (o ramirez-v.json, el vertical)
 
 Necesita `ffmpeg`, `numpy` y `opencv`. Tarda unos 2 minutos. Deja, junto a la ruta de `salida`:
 
-- `<salida>.mp4`: H.264, una clave cada 8 fotogramas, arranque rápido, color etiquetado.
+- `<salida>.mp4`: H.264, una clave cada `clave` fotogramas (8 por defecto), arranque rápido, color etiquetado.
 - `<salida>-poster.jpg`: el primer fotograma (la foto de llegada, encajada).
+- `<salida>-final.png`: el último fotograma (la foto final, encajada). De ahí sale `assets/img/fin-<o>.webp`,
+  la portada quieta que se ve si la entrada se salta, si el vídeo no llega o con movimiento reducido:
+  es el mismo encuadre que el último fotograma, así que no salta al cambiar.
 - `<salida>-hoja.jpg`: hoja de control para mirarlo de un vistazo.
+
+La portada quieta para la web: `python3 -c "from PIL import Image; Image.open('salida/entrada-v-final.png').save('fin-v.webp', quality=80, method=6)"` (y lo mismo con `h`).
 
 ## El archivo de configuración
 
@@ -38,7 +46,8 @@ Necesita `ffmpeg`, `numpy` y `opencv`. Tarda unos 2 minutos. Deja, junto a la ru
 | `cola` | Fotogramas finales del clip en los que todo funde hacia la foto final (23) |
 | `cola_corta` | Si es menor que `cola`: lo que aún se mueve al final (el fontanero que todavía se coloca) espera y funde en estos últimos fotogramas, y lo quieto sigue fundiendo despacio. Así no se ven dos caras a la vez cuando el clip no acaba justo en la postura de la foto (10 en el vertical) |
 | `nitidez` | Enfoque suave de lo que se mueve (0,6) |
-| `crf` | Calidad de H.264 (25,5 ≈ 2,8 MB para 5,5 s) |
+| `crf` | Calidad de H.264 (25,5 ≈ 2,8 MB para 5,5 s con clave cada 8; ≈ 1,4–1,7 MB para 3,4 s con clave cada 60) |
+| `clave` | Una clave cada tantos fotogramas: 8 si el scroll mueve el vídeo (saltar a cualquier punto); 60 si solo se reproduce (pesa menos) |
 
 Las rutas son relativas a la carpeta del archivo de configuración.
 `ramirez-h.json` y `ramirez-v.json` llevan las rutas del PC: allí esta carpeta está en
@@ -51,17 +60,65 @@ Las rutas son relativas a la carpeta del archivo de configuración.
    bajar `rotulo_igual`.
 3. La hoja de control y recortes al 100 %: una sola furgoneta, nadie aparece de la nada, rótulo limpio
    y el final es la foto final.
-4. En la web: el vídeo arranca con el primer gesto, acaba en el fotograma del portal y vuelve al
-   principio al subir (`prueba` de siempre con Playwright).
+4. En la web: el vídeo arranca solo al abrir, acaba en la portada con la bienvenida, un gesto mientras
+   corre se lo salta y, sin vídeo o con movimiento reducido, sale la portada quieta
+   (`pruebas-navegador/entrada.py`).
 
-## En la página
+## En la página (16-11-2026)
 
 - El vídeo se carga con `pon()` (web de Ramírez): antes pregunta al servidor si lo da por trozos y, si
-  contesta con el archivo entero, usa ese archivo. Sin eso, en las vistas previas `*.pages.dev` Chrome no
-  deja saltar dentro del vídeo en la primera visita (el scroll no lo mueve) y el iPhone no lo reproduce.
-  En ooox.es el vídeo sí llega por trozos.
-- La página deja el vídeo parado 0,05 s antes del final: por eso los últimos fotogramas son iguales y
-  llevan más calidad que el resto.
+  contesta con el archivo entero, usa ese archivo. Sin eso, en las vistas previas `*.pages.dev` el
+  iPhone no lo reproduce. En ooox.es el vídeo sí llega por trozos.
+- Se reproduce sin sonido (`muted playsinline`), una vez. Mientras corre no hay nada encima, solo la
+  cabecera; al acabar (`llega()`), el título, la hora de llegada, «¿Puede esperar?» y los botones.
+- `llega()` también se dispara con cualquier gesto mientras corre (rueda, teclas, dedo, un toque o el
+  tabulador: se la salta y se queda arriba), si el vídeo falla, si en 3,5 s no ha empezado (red lenta,
+  ahorro de batería del iPhone) y al llegar con un enlace a una sección. Sin el vídeo terminado, quita
+  el vídeo y deja la foto `fin-<o>.webp` como póster.
+- Con movimiento reducido (y en las capturas, `?shot`) no hay vídeo: la portada quieta desde el principio.
+- Si la pantalla gira después, se pone la portada de la otra orientación.
+- Los últimos fotogramas van con más calidad que el resto (el vídeo se queda parado en el último).
+
+## Receta en Flow (16-11-2026, la entrada que arranca sola)
+
+- Fotos con **Nano Banana 2.1** (0 puntos), en Flow:
+  - Portada: el técnico centrado delante de la furgoneta. Para dejarle el uniforme limpio, la portada
+    como referencia y «Edit this exact photo: make the plumber's work clothes perfectly clean and neat…
+    Keep everything else identical». Sale con el mismo encuadre.
+  - Foto de llegada (la calle vacía): la portada como referencia, con su mismo formato, y «Edit this exact
+    photo: remove the man and the yellow van completely, so the street is empty. Keep everything else
+    identical: same camera position, same framing…». Encaja con la portada (diferencia media ≈ 2 en lo
+    que no se mueve).
+- Vídeo · **Fotogramas** · inicio = calle vacía, fin = portada. Modelo **Veo 3.1 - Lite**: 10 puntos por
+  clip de 8 s a 720p (los gratis del día son 50). Omni 1.2 Flash a 720p cuesta 3 puntos por segundo.
+- Petición del horizontal (salió bien a la primera):
+
+  > Use the first image as the opening frame and the second image as the closing frame. One continuous
+  > static shot from a locked-off camera: no cuts, no zoom, no camera movement. Night, wet cobblestone
+  > street in Barcelona. A single yellow RAMIREZ 24H van enters fast from the right edge of the frame,
+  > driving from right to left along the kerb, seen side-on, and brakes hard exactly where it is parked in
+  > the closing frame. It is the only vehicle in the shot. Straight away the driver door opens, the
+  > plumber jumps out with his yellow toolbox, leaves the door open and strides quickly straight towards
+  > the camera, stopping in the exact centre of the frame, facing the camera with a friendly smile,
+  > exactly as in the closing frame. Fast, energetic pace, realistic motion. Quiet street ambience only,
+  > no music, no speech.
+
+- En vertical se hicieron tres. Se quedó el primero, con esta petición:
+
+  > Locked-off static camera, no camera movement, no cuts. Night, wet cobblestone street in Barcelona. A
+  > yellow RAMIREZ 24H van speeds in fast from the right edge of the frame with its headlights on and
+  > brakes hard at the kerb. At once the driver door swings open and the plumber jumps out with his
+  > yellow toolbox, leaves the door open, and strides quickly and confidently straight towards the
+  > camera, stopping in the exact centre of the frame, facing the camera with a friendly smile. Fast,
+  > energetic pace, realistic motion, cinematic night lighting.
+
+  En el segundo y el tercero (con la petición del horizontal y una variante) la furgoneta se acerca de
+  frente y luego «se recoloca» en su sitio: se nota. En vertical la calle es estrecha y Veo tiende a
+  traerla hacia la cámara. Gasto del día: 40 de los 50 puntos gratis (cuatro clips).
+- Ritmo (`velocidad`): lo quieto del principio a ×3, la furgoneta a ×2, la frenada a ×1,5, el técnico a
+  ×1,8 y la cola a ×5. De 7,9 s a 3,4 s.
+- Para bajar los clips desde el navegador integrado: abrir el clip en Flow, leer la dirección del
+  `<video>` y descargarlo con `fetch` → blob → `<a download>`; llega a Descargas (un rato como `.tmp`).
 
 ## Receta en Flow (probada el 13-11-2026 con Ramírez)
 
@@ -100,10 +157,16 @@ Las rutas son relativas a la carpeta del archivo de configuración.
 
 ## Lo que se publicó de Ramírez
 
-- Horizontal: Omni 1.2 Flash a 360p + este script (`ramirez-h.json`). 5,47 s, 2,8 MB. Con los valores
+- **Desde el 16-11-2026** (arranca sola): Veo 3.1 Lite a 720p + este script (`ramirez-h.json` y
+  `ramirez-v.json`). 3,43 s cada uno; 1,67 MB el horizontal y 1,38 MB el vertical. Originales en el PC,
+  en `OOOX\02-Business\webs-negocios\assets\ramirez\originales\flow-2026-11-16\` (con `REGISTRO.md`).
+
+Hasta el 16-11-2026 (se movía con el scroll):
+
+- Horizontal: Omni 1.2 Flash a 360p + este script (`ramirez-h-13-11.json`). 5,47 s, 2,8 MB. Con los valores
   por defecto, la versión de `entrada.py` del 14-11 lo deja igual (como mucho 4 niveles de diferencia
   en el rótulo, en 9 fotogramas).
-- Vertical (14-11-2026): Omni 1.2 Flash a 360p + este script (`ramirez-v.json`). 5,53 s, 2,9 MB.
+- Vertical (14-11-2026): Omni 1.2 Flash a 360p + este script (`ramirez-v-14-11.json`). 5,53 s, 2,9 MB.
   Una sola furgoneta. Lo que queda: el fontanero no baja de la furgoneta, entra andando por la
   derecha, junto al portal.
 - El vertical anterior (Veo 3.1 Fast a 720p, con una segunda furgoneta que llega por la derecha) se

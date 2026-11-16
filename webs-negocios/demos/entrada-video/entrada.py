@@ -13,8 +13,9 @@ y último fotograma solo se parecen a las fotos. Este script lo deja listo para 
      vídeo. El primer fotograma es exactamente la foto de llegada y el último
      exactamente la del final.
   4. Cambia el ritmo (más deprisa lo lejano, natural lo cercano, cola comprimida).
-  5. Codifica H.264 con una clave cada 8 fotogramas (el scroll mueve el vídeo), arranque
-     rápido y color etiquetado, y saca el póster (= primer fotograma).
+  5. Codifica H.264 con una clave cada 8 fotogramas si el scroll mueve el vídeo (o cada
+     «clave» si solo se reproduce), arranque rápido y color etiquetado, y saca el póster
+     (= primer fotograma) y la foto final encajada (= último fotograma, para la portada fija).
 
 Necesita ffmpeg, numpy y opencv. El clip puede venir a 360p o a 720p.
 """
@@ -42,6 +43,7 @@ ROT_IGUAL = float(C.get('rotulo_igual', 0.97))   # parte del rótulo que tiene q
 ROT_ESPERA = int(C.get('rotulo_espera', 3))      # fotogramas del clip que se espera con el rótulo ya en su sitio
 ROT_RAMPA = float(C.get('rotulo_rampa', 6))      # y fotogramas del clip en los que entra el de la foto
 CRF = float(C.get('crf', 25.5))
+CLAVE = int(C.get('clave', 8))                   # una clave cada tantos fotogramas: 8 si el scroll mueve el vídeo; más si solo se reproduce
 
 
 def sonda(path):
@@ -234,7 +236,7 @@ while True:
     if not idx or i > idx[-1]: idx.append(i)
     for _ in range(8): s += vel(s) / FPS / 8
 idx += [N - 1] * 3                                                     # el último, y se queda quieto
-while (len(idx) - 1) % 8 in (0, 1): idx.append(N - 1)                  # que el fotograma de reposo no caiga en una clave
+while (len(idx) - 1) % CLAVE in (0, 1): idx.append(N - 1)                  # que el fotograma de reposo no caiga en una clave
 n_out = len(idx)
 print(f'{n_out} fotogramas de salida, {n_out / FPS:.2f} s')
 
@@ -250,11 +252,12 @@ p.stdin.close(); p.wait()
 # ---------- 5. para la web ----------
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', inter, '-an',
                 '-vf', 'scale=out_color_matrix=bt709:out_range=tv:flags=accurate_rnd+full_chroma_int+lanczos,format=yuv420p',
-                '-c:v', 'libx264', '-preset', 'slower', '-profile:v', 'high', '-level', '4.0', '-g', '8', '-keyint_min', '8', '-sc_threshold', '0',
+                '-c:v', 'libx264', '-preset', 'slower', '-profile:v', 'high', '-level', '4.0', '-g', str(CLAVE), '-keyint_min', str(min(CLAVE, 8)), '-sc_threshold', '0',
                 '-crf', str(CRF), '-x264-params', f'zones=0,0,q=21/{n_out - 4},{n_out - 1},q=18',
                 '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'iec61966-2-1', '-color_range', 'tv',
                 '-movflags', '+faststart', SALIDA + '.mp4'], check=True)
 cv2.imwrite(SALIDA + '-poster.jpg', np.rint(A).astype(np.uint8), [cv2.IMWRITE_JPEG_QUALITY, 80, cv2.IMWRITE_JPEG_PROGRESSIVE, 1, cv2.IMWRITE_JPEG_OPTIMIZE, 1])
+cv2.imwrite(SALIDA + '-final.png', np.rint(B).astype(np.uint8))              # el último fotograma tal cual (para la portada fija)
 cols = 6; filas = int(np.ceil(n_out / (FPS / 3) / cols))
 subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', SALIDA + '.mp4', '-vf', f'fps=3,scale={320 if W >= H else 180}:-1,tile={cols}x{max(1, filas)}', '-frames:v', '1', SALIDA + '-hoja.jpg'])
 if not C.get('guardar_intermedio'): os.remove(inter)

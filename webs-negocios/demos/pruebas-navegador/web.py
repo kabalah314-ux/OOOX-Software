@@ -172,7 +172,8 @@ async def main():
         for w, h in ((360, 640), (375, 667), (390, 844)):
             ctx = await br.new_context(viewport={'width': w, 'height': h}, is_mobile=True, has_touch=True, timezone_id='Europe/Madrid'); await pon_hora(ctx)
             pg = oye(await ctx.new_page(), f'pantallas {w}x{h}')
-            await pg.goto(B + 'index.html'); await pg.wait_for_timeout(1500)
+            await pg.goto(B + 'index.html')   # se espera a que acabe la entrada: un gesto mientras corre solo se la salta
+            await pg.wait_for_function("document.body.classList.contains('ready')", timeout=12000); await pg.wait_for_timeout(1000)
             malas = {}; vistas = set(); y0 = -1
             for _ in range(16):
                 r = await pg.evaluate("""(()=>{const top=document.querySelector('.top').getBoundingClientRect().bottom,bt=document.querySelector('.bar').getBoundingClientRect().top;
@@ -190,8 +191,11 @@ async def main():
             await ctx.close()
         # la entrada lleva también a la cita; los barrios, también en lista; las averías se llaman como en la cita y la app
         ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True, timezone_id='Europe/Madrid'); await pon_hora(ctx)
-        pg = oye(await ctx.new_page(), 'entrada y barrios'); await pg.goto(B + 'index.html'); await pg.wait_for_timeout(1200)
-        es(await pg.locator('#intro a.espera[href="cita.html"]').count() == 1 and 'Pedir cita' in await pg.locator('#intro a.espera').inner_text() and await pg.locator('#intro a.espera').is_visible(), 'entrada: además de llamar y la foto, «¿Puede esperar? Pedir cita», a la vista')
+        pg = oye(await ctx.new_page(), 'entrada y barrios'); await pg.goto(B + 'index.html')
+        # la entrada (16-11-2026) es un vídeo corto que arranca solo; al acabar, la portada con la bienvenida
+        await pg.wait_for_function("document.body.classList.contains('ready')", timeout=12000); await pg.wait_for_timeout(900)
+        es(await pg.locator('#index a.espera[href="cita.html"]').count() == 1 and 'Pedir cita' in await pg.locator('#index a.espera').inner_text() and await pg.locator('#index a.espera').is_visible() and await pg.evaluate("getComputedStyle(document.querySelector('#index')).opacity==='1'"), 'entrada: al acabar el vídeo, además de llamar y la foto, «¿Puede esperar? Pedir cita», a la vista')
+        es('Fontaneros 24 horas.' == (await pg.locator('#index h1').inner_text()).strip(), 'entrada: el título («Fontaneros 24 horas.») va en la portada, encima de la hora de llegada')
         nb = await pg.locator('#baLista button').count()
         es(nb == await pg.locator('#mapa .d').count() == 10 and 'min' in await pg.locator('#baLista').inner_text(), f'barrio: debajo del mapa, la lista de los diez distritos con sus minutos ({nb})')
         await pg.evaluate("document.querySelector('#barrio').scrollIntoView()"); await pg.wait_for_timeout(500)
@@ -201,9 +205,9 @@ async def main():
         es(all(x in chips for x in ('Fuga de agua', 'Sin agua caliente', 'Cisterna que pierde', 'Grifo que gotea', 'Otra avería')), f'averías: los mismos nombres que en la cita y en la app ({chips[:80]!r})')
         # la cita va solo en castellano: desde la web en catalán, el enlace lo dice y la cita lo avisa en catalán
         await pg.evaluate("document.querySelector('[data-lang=ca]').click()"); await pg.wait_for_timeout(200)
-        hca = await pg.get_attribute('#intro a.espera', 'href')
+        hca = await pg.get_attribute('#index a.espera', 'href')
         await pg.evaluate("document.querySelector('[data-lang=es]').click()"); await pg.wait_for_timeout(200)
-        hes = await pg.get_attribute('#intro a.espera', 'href')
+        hes = await pg.get_attribute('#index a.espera', 'href')
         es(hca == 'cita.html?lang=ca' and hes == 'cita.html', f'idioma: en catalán, la cita se abre con ?lang=ca; en castellano, sin nada ({hca}, {hes})')
         await pg.goto(B + 'cita.html?lang=ca'); await pg.wait_for_selector('#f')
         es('encara és en castellà' in await pg.locator('.nota-lang').inner_text() and await pg.get_attribute('.nota-lang', 'lang') == 'ca', 'idioma: la cita avisa en catalán de que el formulario va en castellano, con el teléfono')
