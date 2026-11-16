@@ -3,7 +3,7 @@
 // Uso: node prueba-copias.mjs <carpeta del sitio>
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'; import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process'; import { fileURLToPath } from 'node:url';
-import { nueva, actualizar, lista, estado, copiasDe, COMUNES, atras, fija, suelta } from '../copias.mjs';
+import { nueva, actualizar, lista, estado, copiasDe, COMUNES, atras, fija, suelta, ponApp, manifiesto } from '../copias.mjs';
 
 const sitio = path.resolve(process.argv[2] || '.'), aqui = path.dirname(fileURLToPath(import.meta.url));
 let ok = 0; const mal = []; const es = (c, t) => { if (c) ok++; else { mal.push(t); console.log('  MAL ', t) } };
@@ -124,6 +124,25 @@ es(c.status === 2 && /le falta oficio\.css/.test(c.stdout) && huellas(cv) === hu
   x = atras({ destino, id: 'voltio' });
   es(!x.ok && /necesita el repositorio/.test(x.errores[0]), 'atrás: sin git, lo dice');
 }
+
+// ---- 4 bis. la app en el móvil (16-11-2026): cada copia lleva su manifiesto y su icono, sacados de sus datos
+{ const cw = path.join(destino, 'voltio-prueba'), M = JSON.parse(fs.readFileSync(path.join(cw, 'manifest.webmanifest'), 'utf8')), svg = fs.readFileSync(path.join(cw, 'assets/icono.svg'), 'utf8');
+  es(M.name === 'Voltio Sur' && M.short_name === 'Voltio Sur' && M.start_url === 'app.html' && M.display === 'standalone' && M.icons.length === 1 && M.icons[0].src === 'assets/icono.svg' && />V<\/text>/.test(svg),
+    'app: una copia nueva lleva su manifiesto (con su nombre, que abre la app) y su icono con la letra de su marca; sin PNG, solo el SVG');
+  es(COMUNES.includes('sw.js') && fs.existsSync(path.join(cw, 'sw.js')), 'app: el trabajador de la app (sw.js) es de lo común');
+  // el manifiesto viejo o tocado a mano: la lista lo ve y «actualizar» lo pone bien sin tocar los datos
+  fs.writeFileSync(path.join(cw, 'manifest.webmanifest'), '{"name":"Otro"}');
+  const e1 = estado(sitio, cw);
+  es(!e1.alDia && e1.dif.includes('manifest.webmanifest'), 'app: un manifiesto que no es el de sus datos cuenta como copia por poner al día');
+  const dh = h(path.join(cw, 'js/oficio-datos.js')), r1 = actualizar({ plantilla: sitio, destino, id: 'voltio-prueba', conAzar: false });
+  es(r1.ok && JSON.parse(fs.readFileSync(path.join(cw, 'manifest.webmanifest'), 'utf8')).name === 'Voltio Sur' && estado(sitio, cw).alDia && h(path.join(cw, 'js/oficio-datos.js')) === dh, 'app: «actualizar» lo vuelve a poner, sin tocar sus datos');
+  // con los iconos PNG (los hace iconos.py), el manifiesto los nombra, también para Android («maskable»)
+  for (const n of [192, 512]) fs.copyFileSync(path.join(sitio, 'assets/icono-' + n + '.png'), path.join(cw, 'assets/icono-' + n + '.png'));
+  const M2 = JSON.parse(manifiesto(cw, { nombre: 'Voltio Sur', marca: ['Voltio', 'Sur'] }));
+  es(M2.icons.some(i => i.src === 'assets/icono-512.png' && i.purpose === 'maskable') && M2.icons.some(i => i.src === 'assets/icono-192.png' && i.purpose === 'any'), 'app: con los PNG, el manifiesto los nombra (y el recortable de Android)');
+  es(!estado(sitio, cw).alDia && ponApp(cw, { nombre: 'Voltio Sur', marca: ['Voltio', 'Sur'] }).join() === 'manifest.webmanifest' && ponApp(cw, { nombre: 'Voltio Sur', marca: ['Voltio', 'Sur'] }).length === 0, 'app: ponerlo dos veces no cambia nada la segunda');
+  // un nombre largo: el corto, la primera palabra de la marca
+  es(JSON.parse(manifiesto(cw, { nombre: 'Fontanería y Calefacción Martínez', marca: ['Fontanería', 'Martínez Hermanos'] })).short_name === 'Fontanería', 'app: con una marca larga, el nombre corto es su primera palabra'); }
 
 // ---- 5. nada de esto ha tocado la plantilla de verdad
 es(huellas(sitio) === P0 && h(VOLTIO) === h(path.join(aqui, 'negocios/voltio.js')), 'la plantilla y los datos de partida siguen como estaban');

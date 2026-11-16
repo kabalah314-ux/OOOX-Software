@@ -51,6 +51,16 @@ create table if not exists oficios.diario (
   primary key (negocio, v)
 );
 create unique index if not exists diario_marca on oficios.diario (negocio, clave) where clave <> '';
+-- las fotos, aparte del aviso (16-11-2026): el aviso lleva su referencia («f:» y 16 letras, la huella de la foto) y la
+-- foto vive aquí, una sola vez. Se guarda en la misma operación que la acción que la trae; se pide al verla.
+create table if not exists oficios.fotos (
+  negocio text not null references oficios.estados(negocio),
+  ref     text not null check (ref ~ '^f:[0-9a-f]{16}$'),
+  aviso   text not null,
+  datos   text not null check (char_length(datos) < 140000 and datos like 'data:image/%'),
+  cuando  timestamptz not null default now(),
+  primary key (negocio, ref)
+);
 create table if not exists oficios.topes (         -- frenos: citas pedidas desde la web
   id      bigint generated always as identity primary key,
   negocio text not null,
@@ -82,6 +92,7 @@ alter table oficios.estados          enable row level security;
 alter table oficios.avisos           enable row level security;
 alter table oficios.personas         enable row level security;
 alter table oficios.diario           enable row level security;
+alter table oficios.fotos            enable row level security;
 alter table oficios.topes            enable row level security;
 alter table oficios.intentos_persona enable row level security;
 alter table oficios.clientes         enable row level security;
@@ -189,6 +200,9 @@ begin
       x := c -> 'diario';
       insert into oficios.diario(negocio, v, t, q, accion, clave, res, nuevos)
         values (neg, v0 + 1, (x ->> 't')::bigint, x -> 'q', x -> 'accion', coalesce(x ->> 'clave', ''), x -> 'res', coalesce(x -> 'nuevos', '[]'::jsonb));
+      insert into oficios.fotos(negocio, ref, aviso, datos)   -- las fotos que trae la acción, una sola vez
+        select neg, f ->> 'ref', f ->> 'aviso', f ->> 'datos' from jsonb_array_elements(coalesce(c -> 'fotos', '[]'::jsonb)) f
+      on conflict (negocio, ref) do nothing;
       return jsonb_build_object('ok', true);
     exception when unique_violation or not_null_violation or check_violation or invalid_text_representation or foreign_key_violation then
       return jsonb_build_object('ok', false);
@@ -199,6 +213,8 @@ begin
       from oficios.avisos a where a.negocio = neg and a.v > coalesce((p_a ->> 'desde')::bigint, 0)), '[]'::jsonb));
   when 'vista' then
     return (select a.vista from oficios.avisos a where a.negocio = neg and a.id = p_a ->> 'aviso' and a.llave = p_a ->> 'llave');
+  when 'foto' then
+    return (select jsonb_build_object('aviso', f.aviso, 'datos', f.datos) from oficios.fotos f where f.negocio = neg and f.ref = p_a ->> 'ref');
   when 'tope' then
     select count(*) into cuantos from oficios.topes t where t.negocio = neg and t.clave = left(p_a ->> 'clave', 120) and t.cuando > now() - make_interval(secs => (p_a ->> 'ventana')::numeric / 1000.0);
     if cuantos >= (p_a ->> 'max')::int then return 'false'::jsonb; end if;

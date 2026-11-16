@@ -7,6 +7,11 @@
 <meta name="description" content="La app del negocio: los avisos llegan a la oficina, se reparten y el técnico los cierra con tres toques.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#14171a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icono.svg" type="image/svg+xml">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preload" href="assets/fuentes/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fuentes/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="oficio.css">
@@ -351,6 +356,9 @@ main.papelv{max-width:760px}
 /* ===== el menú de la demo ===== */
 .mrol{display:grid;gap:8px}
 .mnota{font-size:.9375rem;color:var(--suave)}
+/* los avisos de este aparato, en «Tu sesión» (16-11-2026) */
+.mavi{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:12px 14px;border:1px solid var(--linea);border-radius:10px}
+.mavi p{margin:0}.mavi small{color:var(--suave);font-size:.875rem}.mavi .btn{flex:none}
 .pets{display:grid;gap:8px}
 .pet{padding:12px 14px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2)}
 .pet.nueva{border-color:var(--agua)}
@@ -1266,16 +1274,71 @@ function pRed(){const e=$('#red');if(!e||!SRV)return;const r=Oficio.red();let t=
   else if(r.lleno)t='Este aparato se ha quedado sin sitio para guardar. No cierres la app hasta que vuelva la conexión.';
   else if(r.rech)t=(r.rech===1?'1 cambio no se pudo guardar':r.rech+' cambios no se pudieron guardar')+': míralo en «Tu sesión».'}
  if(e.textContent!==t)e.textContent=t;e.hidden=!t;document.body.classList.toggle('conred',!!t)}
+/* ===== la app en el móvil (16-11-2026): que se pueda instalar, que abra sin cobertura y que avise de lo que llega =====
+   El «trabajador» (sw.js) guarda las pantallas al usarlas y las sirve sin red. En las pruebas (127.0.0.1) no se registra,
+   salvo con ?sw=1: así las demás pruebas miran la app sin él y la suya lo mira con él. */
+const APP_ES=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const APPI={ev:null,ios:/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),reg:null};
+if('serviceWorker' in navigator&&location.protocol!=='file:'&&(!/^(127\.0\.0\.1|localhost|\[::1\])$/.test(location.hostname)||/[?&]sw=1\b/.test(location.search))){
+ navigator.serviceWorker.register('sw.js').then(r=>{APPI.reg=r}).catch(()=>{});
+ navigator.serviceWorker.addEventListener('message',e=>{const id=e.data&&e.data.abre;if(typeof id==='string'&&id)location.hash='#/aviso/'+encodeURIComponent(id)})}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();APPI.ev=e});
+/* el icono del iPhone, solo si el negocio tiene sus iconos PNG (los nombra su manifiesto): si no, el iPhone usa una captura */
+fetch('manifest.webmanifest').then(r=>r.ok?r.json():null).then(m=>{if(m&&Array.isArray(m.icons)&&m.icons.some(i=>/icono-192\.png$/.test(i.src||''))&&!document.querySelector('link[rel=apple-touch-icon]')){
+ const l=document.createElement('link');l.rel='apple-touch-icon';l.href='assets/icono-180.png';document.head.append(l)}}).catch(()=>{});
+addEventListener('appinstalled',()=>{APPI.ev=null});
+/* avisar de lo que llega: a la oficina, un aviso nuevo; al técnico, uno que le asignan. Suena, vibra, se cuenta en el título
+   y, con permiso, sale una notificación. Con la app abierta o en segundo plano: si se cierra del todo, no avisa (para eso
+   haría falta un servidor de notificaciones). Lo enciende cada aparato en «Tu sesión» y queda guardado en él. Lo que hace
+   uno mismo no se avisa, ni lo que ya estaba al abrir la app */
+const AV={clave:'oficio:'+N.id+':avisar',vistos:null,ses:null,n:0,ctx:null};
+const avisarOn=()=>{try{return localStorage.getItem(AV.clave)==='1'}catch(e){return false}};
+const guardaAvisar=si=>{try{si?localStorage.setItem(AV.clave,'1'):localStorage.removeItem(AV.clave)}catch(e){}};
+function avisosHtml(){const on=avisarOn(),np='Notification' in window?Notification.permission:'';
+ return'<div class="mavi" id="mAvi"><p><b>Avisos en este aparato</b><br><small>'+(on?(Q.rol==='tecnico'?'Suena cuando te asignan un aviso':'Suena cuando entra un aviso nuevo')+
+  (np==='granted'?' y sale una notificación':np==='denied'?'. Las notificaciones están bloqueadas en este navegador':'')+'. Con la app abierta o en segundo plano.':'Apagados: no suena nada.')+'</small></p>'+
+  '<button class="btn peq" id="mAviB" type="button">'+(on?'Apagar':'Encender')+'</button></div>'}
+function pita(){try{const C=AV.ctx||(AV.ctx=new (window.AudioContext||window.webkitAudioContext)());if(C.state==='suspended')C.resume();
+ [0,.2].forEach(s=>{const o=C.createOscillator(),gn=C.createGain(),t=C.currentTime+s;o.frequency.value=880;gn.gain.setValueAtTime(.0001,t);
+  gn.gain.exponentialRampToValueAtTime(.3,t+.02);gn.gain.exponentialRampToValueAtTime(.0001,t+.16);o.connect(gn).connect(C.destination);o.start(t);o.stop(t+.17)})}catch(e){}}
+addEventListener('pointerdown',()=>{if(AV.ctx&&AV.ctx.state==='suspended')AV.ctx.resume()},{passive:true});
+function notifica(tit,cuerpo,id){if(!('Notification' in window)||Notification.permission!=='granted')return;
+ const o={body:cuerpo,tag:'aviso-'+id,data:{aviso:id},icon:'assets/icono-192.png'};
+ (APPI.reg&&APPI.reg.showNotification?APPI.reg.showNotification(tit,o):Promise.reject(0)).catch(()=>{try{const x=new Notification(tit,o);x.onclick=()=>{focus();location.hash='#/aviso/'+encodeURIComponent(id);x.close()}}catch(e){}})}
+function cuentaTitulo(){const t=document.title.replace(/^\(\d+\) /,'');document.title=AV.n&&document.hidden?'('+AV.n+') '+t:t}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){AV.n=0;cuentaTitulo()}});
+function miraLlegadas(){const se=SRV&&Oficio.sesion();if(!se){AV.ses=null;return}
+ /* al entrar, y hasta haber leído entero lo del servidor, lo que hay no es nuevo: se apunta y no suena */
+ if(AV.ses!==se.persona){AV.ses=se.persona;AV.vistos=null}
+ if(!(Oficio.red()||{}).listo){AV.vistos=null;return}
+ const S=Oficio.estado(),yo=Q.rol==='tecnico'?(cfg.tec[Q.id]||{}).n:'Centralita';
+ const L=Q.rol==='tecnico'?S.avisos.filter(a=>a.tec===Q.id&&(a.e==='asignado'||a.e==='camino')):S.avisos.filter(a=>a.e==='nuevo');
+ const ids=new Set(L.map(a=>a.id)),antes=AV.vistos;AV.vistos=ids;
+ if(!antes)return;
+ const nuevos=L.filter(a=>!antes.has(a.id)&&!(Array.isArray(a.h)&&a.h.length&&a.h[a.h.length-1].q===yo));
+ if(!nuevos.length||!avisarOn())return;
+ document.dispatchEvent(new CustomEvent('oficio:avisa',{detail:{avisos:nuevos.map(a=>a.id)}}));   /* para quien quiera enterarse (las pruebas lo cuentan) */
+ pita();try{navigator.vibrate&&navigator.vibrate([120,80,120])}catch(e){}
+ const txt=a=>(Q.rol==='tecnico'?'Te han asignado ':'Aviso nuevo: ')+a.id+' · '+((cfg.av[a.av]||{}).n||'')+(a.cita?', cita el '+K.fechaCorta(a.cita.dia):', urgente');
+ if(document.hidden){AV.n+=nuevos.length;cuentaTitulo();nuevos.forEach(a=>notifica(Q.rol==='tecnico'?'Te han asignado un aviso':'Aviso nuevo',txt(a),a.id))}
+ else toast(nuevos.length===1?txt(nuevos[0]):(Q.rol==='tecnico'?'Te han asignado ':'Han entrado ')+nuevos.length+' avisos')}
+Oficio.suscribir(()=>setTimeout(miraLlegadas,0));
+
 /* lo que el servidor no aceptó, dicho con palabras (16-11-2026) */
 const QUE_ES={empezar:'Empezar, con el precio firmado',terminar:'Terminado',ampliar:'Añadir al trabajo',noacepta:'No acepta el precio',voy:'Voy',ausente:'No había nadie',anotar:'Nota o foto',falta:'Material que falta',pausa:'Pausa',cobrar:'Apuntar cobro',asignar:'Asignar',mover:'Cambiar la hora',cancelar:'Cancelar',completar:'Datos del cliente',facturar:'Facturada',rebajar:'Rebajar el precio',corregirPago:'Corregir la forma de pago',garantia:'Es garantía',enviado:'Mensaje enviado',contrato:'Contrato',furgo:'Furgoneta'};
 function hSesion(){const esT=Q.rol==='tecnico',t=cfg.tec[Q.id],r=Oficio.red(),RC=Oficio.rechazos?Oficio.rechazos():[];
  const d=hoja(hc('Tu sesión')+'<div class="hb"><div class="mrol"><div class="tec">'+(esT?ava(Q.id):'<i class="av c" aria-hidden="true">C</i>')+'<span><b>'+(esT?esc(t.n+' '+t.ap):'Centralita')+'</b><small>'+(esT?'Técnico'+(t.jefe?' y dueño':''):'Quien coge el teléfono y reparte')+'</small></span></div></div>'+
   '<p class="mnota" id="mCola" style="margin-top:14px">'+(r.cola?(r.cola===1?'Queda 1 cambio por enviar.':'Quedan '+r.cola+' cambios por enviar.')+' Saldrán solos en cuanto haya conexión.':'Todo lo que has hecho está guardado en el servidor.')+'</p>'+
+  avisosHtml()+(APP_ES?'':APPI.ev?'<button class="btn ancho" id="mInst" style="margin-top:12px">Instalar la app en este aparato</button>':APPI.ios?'<p class="mnota" id="mIos">Para tenerla como una app: botón Compartir y «Añadir a pantalla de inicio».</p>':'')+
   (r.reglas?'<p class="ojo">La app lleva las reglas '+esc(K.VERSION)+' y el servidor, las '+esc(r.reglas)+'. Avisa a OOOX.</p>':'')+
   (r.datos?'<p class="ojo" id="mDatos">Los datos del negocio de esta app (precios, horarios o equipo) no son los del servidor. Avisa a OOOX.</p>':'')+
   (RC.length?'<div class="ojo" id="mRech"><p><b>No se pudo guardar</b> lo que sigue: lo hecho sin conexión que el servidor no aceptó, porque el aviso había cambiado.</p><ul>'+RC.slice(-10).reverse().map(x=>'<li>'+cuandoT(x.t)+': '+esc(QUE_ES[x.tipo]||x.tipo)+(x.id?' ('+esc(x.id)+')':'')+'. '+esc(ERR[x.err]||'El aviso había cambiado.')+'</li>').join('')+'</ul><button class="txt" id="mRechNo">Entendido, borrar la lista</button></div>':'')+
   '</div><div class="hp">'+(manda()?'<button class="btn ancho" id="mEq">Equipo y accesos</button>':'')+'<button class="btn ancho" id="mSal">Cerrar la sesión</button></div>');
  let seguro=false;
+ {const b=$('#mAviB',d);if(b)b.onclick=async()=>{if(avisarOn())guardaAvisar(false);else{guardaAvisar(true);pita();
+   if('Notification' in window&&Notification.permission==='default'){try{await Notification.requestPermission()}catch(e){}}}
+   const p=$('#mAvi',d);if(p){p.outerHTML=avisosHtml();const n=$('#mAviB',d);if(n){n.onclick=b.onclick;n.focus()}}}}
+ {const b=$('#mInst',d);if(b)b.onclick=()=>{const e=APPI.ev;APPI.ev=null;d.close();if(e){e.prompt();e.userChoice.catch(()=>{})}}}
  {const b=$('#mRechNo',d);if(b)b.onclick=()=>{Oficio.olvidaRechazos();d.close();pRed();toast('Lista borrada.')}}
  if(manda())$('#mEq',d).onclick=()=>{d.close();hEquipo()};
  $('#mSal',d).onclick=()=>{const n=Oficio.red().cola;

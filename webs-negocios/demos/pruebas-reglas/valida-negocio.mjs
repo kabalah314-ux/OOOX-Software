@@ -4,6 +4,8 @@
 //       (el núcleo se lee de <carpeta del sitio>/js/oficio-nucleo.js)
 // Sale con error (1) si algún archivo tiene errores. Los «avisos» no paran nada: son cosas a mirar.
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
+import vm from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TODOS as BASE } from '../../oficios-base/servicios.mjs';   // la base de servicios de OOOX: para «base» del catálogo
@@ -363,8 +365,10 @@ export function valida(N, K, hoy) {
 /** Lee un archivo de datos tal como lo cargaría el navegador y devuelve OFICIO_NEGOCIO. */
 export function leeNegocio(archivo) {
   const ruta = path.resolve(archivo);
-  delete require.cache[ruta]; delete globalThis.OFICIO_NEGOCIO; delete globalThis.OFICIO_MUESTRA;
-  require(ruta);
+  /* se ejecuta como lo hace el navegador, como un script: así se puede leer otra vez el mismo archivo. Con require, en una
+     carpeta de módulos (la de frontend lo es) Node se queda con la primera lectura y la segunda no define nada (16-11-2026) */
+  delete globalThis.OFICIO_NEGOCIO; delete globalThis.OFICIO_MUESTRA;
+  vm.runInThisContext(fs.readFileSync(ruta, 'utf8'), { filename: ruta });
   return { N: globalThis.OFICIO_NEGOCIO, muestra: globalThis.OFICIO_MUESTRA || null };
 }
 export function leeNucleo(sitio) {

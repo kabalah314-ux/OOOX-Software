@@ -92,6 +92,13 @@ cuándo se espera que vuelva.
 5. Si algo va mal en una copia: `node webs-negocios/demos/copias.mjs atras <id>` la vuelve a su versión anterior.
 6. Los cambios en la base de datos, siempre «añadiendo»: columnas o funciones nuevas que la versión anterior de la
    app no use. Nunca se quita ni se cambia algo que la versión anterior necesita en el mismo paso.
+7. La app instalable (16-11-2026): cada copia lleva su `manifest.webmanifest` y su `assets/icono.svg`, que pone
+   `copias.mjs` desde sus datos al crearla o ponerla al día (`node copias.mjs app <carpeta>` para la plantilla). Los iconos
+   PNG, que el iPhone necesita, los hace `python3 webs-negocios/demos/iconos.py <carpeta>` (con Pillow); sin ellos la app
+   se instala igual con el SVG. El trabajador de la app (`sw.js`) va con lo común: con red siempre baja lo nuevo, así que
+   una versión publicada llega a los móviles en cuanto tienen cobertura.
+8. Si un cambio toca los datos de un negocio que vive en el servidor (precios, equipo, averías…), hay que llevarlo también
+   a `oficios.estados.datos` (sin `servidor` ni `textos`). Si no, «Tu sesión» avisa de que los datos no son los mismos.
 
 ## Datos personales
 

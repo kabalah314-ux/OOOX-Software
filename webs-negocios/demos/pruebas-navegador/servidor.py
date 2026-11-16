@@ -179,6 +179,9 @@ async def main():
         es(await pasa(o, f"(()=>{{const a=Oficio.estado().avisos.find(a=>a.id==='{A1}');return a&&OficioNucleo.enPausa(a)}})()"), 'la oficina ve la pausa')
 
         # ---------- 9. el cliente pide cita desde la web ----------
+        # (los avisos que suenan, 16-11-2026: en la oficina y en el técnico, encendidos; cada aviso que suena se cuenta)
+        for pg_ in (o, t1):
+            await pg_.evaluate(f"localStorage.setItem('oficio:{N['id']}:avisar','1');window.__pitos=0;document.addEventListener('oficio:avisa',()=>{{window.__pitos++}})")
         ck = await contexto(br); k = await pagina(ck, 'cliente'); h0 = cuenta()['huecos']
         await k.goto(B + 'cita.html'); await k.wait_for_selector('#f')
         es(cuenta()['huecos'] == h0 + 1 and await k.locator('[data-dia]').count() >= 3 and await k.locator('[data-fr]:not([disabled])').count() >= 1, 'el cliente ve los días y las franjas libres que da el servidor')
@@ -194,6 +197,12 @@ async def main():
         es(await k.evaluate(f"Oficio.llaveDe('{A2}')") == estado()['llaves'][A2] and len(estado()['llaves'][A2]) == 24, 'su navegador guarda la llave de su aviso')
         await k.reload(); es(await pasa(k, "/Cita pedida/.test(document.querySelector('#v').textContent)"), 'al recargar lo sigue viendo')
         es(await pasa(o, tiene(A2, 'nuevo')), 'a la oficina le aparece la cita nueva sin recargar')
+        # suena; y lo dice: con la pantalla a la vista, en un aviso de abajo; en segundo plano, con la cuenta en el título de la pestaña
+        DICE = lambda txt: f"window.__pitos===1&&(document.hidden?/^\\(1\\) /.test(document.title):document.querySelector('#toast').textContent.includes({json.dumps(txt)}))"
+        es(await pasa(o, DICE('Aviso nuevo: ' + A2)), 'con los avisos encendidos, le suena y lo dice')
+        await o.click('[data-a=menu]'); await o.wait_for_selector('#mAvi')
+        es('Suena cuando entra un aviso nuevo' in await o.inner_text('#mAvi') and await o.inner_text('#mAviB') == 'Apagar', 'en «Tu sesión» se ve que están encendidos, con el botón para apagarlos')
+        await o.keyboard.press('Escape')
         await o.goto(B + f'app.html#/aviso/{A2}'); await o.wait_for_selector(f'.tec[data-tec={T1}]')
         es(await pasa(o, "!!document.querySelector('#v img[src^=\"data:image\"]')"), 'con la foto que mandó el cliente')
         await o.reload(); await o.wait_for_selector('#nav a')
@@ -202,6 +211,8 @@ async def main():
         await o.click(f'.tec[data-tec={T1}]')
         es(await pasa(k, "/Cita confirmada/.test(document.querySelector('#v').textContent)", 12000) and N['tecnicos'][0]['n'] in await k.inner_text('#v'), 'la oficina la asigna y la página del cliente se pone al día sola, con el nombre de quien irá')
         es(await pasa(t1, tiene(A2, 'asignado')), 'y al técnico le llega')
+        es(await pasa(t1, DICE('Te han asignado ' + A2)), 'y, con los avisos encendidos, le suena y lo dice')
+        es(await o.evaluate("window.__pitos===undefined||window.__pitos<=1"), 'a la oficina no le suena lo que hace ella misma')
 
         # ---------- 10. el enlace del cliente: con la llave se ve; sin ella o con otra, no ----------
         cx = await contexto(br); x = await pagina(cx, 'enlace'); LL = estado()['llaves']

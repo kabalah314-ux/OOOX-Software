@@ -169,7 +169,7 @@ const R=SV?(function(){
  return{estado:()=>E?E.estado():VACIO,hacer:hacerS,crear:(a,q)=>q&&q.rol==='cliente'?pedirWeb(a):crearS(a),
   sesion:()=>ses?{rol:ses.rol,id:ses.id,persona:ses.persona}:null,ultima:()=>mem.get(K_ULT)||'',entrar,salir,huecos,vista,miraVista,llaveDe,ponLlave,perfil,acceso,equipo,
   alRechazar:f=>{rech.push(f)},rechazos,olvidaRechazos:()=>{mem.del(K_REC);avisa()},
-  red:()=>({cola:E?E.pendientes():0,sinRed,lleno,motivo,reglas:reglas&&reglas!==K.VERSION?reglas:'',datos:datosMal,rech:rechazos().length})}
+  red:()=>({cola:E?E.pendientes():0,sinRed,lleno,motivo,reglas:reglas&&reglas!==K.VERSION?reglas:'',datos:datosMal,rech:rechazos().length,listo:!!E&&!entero})}   /* listo: ya ha leído entero lo del servidor */
 })():null;
 
 /* una foto del móvil, reducida para que quepa: 720 px de lado mayor */

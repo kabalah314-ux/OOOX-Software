@@ -62,6 +62,7 @@ if [ "$QUE" != reglas ]; then
   paso "Lo del 15-11: desistimiento, «Facturada», el mes para la gestoría, fincas y quién va" python3 novedades.py
   paso "Auditoría UX: «Ahora» y «Después», «Deshacer», la barra de la ficha, el tablero, los mensajes y los papeles" python3 auditoria.py
   paso "Lo del repaso del 16-11: es garantía, rebajar, corregir el cobro, el enlace en los mensajes y el plazo de la garantía" python3 repaso.py
+  paso "La app en el móvil: manifiesto, iconos y abrir sin cobertura" python3 instalable.py
   paso "Web y página de los tres móviles" python3 web.py
   paso "Muestra de la demo" python3 muestra.py
   paso "Zona del cliente: entrar con el teléfono y ver lo suyo" python3 cliente.py

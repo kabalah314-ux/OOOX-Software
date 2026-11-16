@@ -13,6 +13,8 @@
 //                                                  (o a ese commit), con git; queda fijada para que no se ponga al día sola
 //   node copias.mjs fija <id> [--motivo "…"]       la deja quieta: «actualizar --todas» se la salta
 //   node copias.mjs suelta <id>                    la vuelve a dejar poner al día
+//   node copias.mjs app <carpeta>…                 pone el manifiesto y el icono de la app de esa carpeta (la plantilla o una
+//                                                  copia), sacados de sus datos; los iconos PNG los hace iconos.py
 //
 // Publicar por fases: fijar las que esperan, «actualizar --todas» (solo se ponen al día las sueltas), mirar un día y
 // soltar las demás. Si algo va mal en una: «atras <id>».
@@ -31,7 +33,7 @@ import { fileURLToPath } from 'node:url';
 import { valida, leeNucleo, leeNegocio } from './pruebas-reglas/valida-negocio.mjs';
 
 const aqui = path.dirname(fileURLToPath(import.meta.url));
-export const COMUNES = ['app.html', 'cita.html', 'cliente.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-espejo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js', 'js/oficio-papeles.js', 'js/oficio-vigia.js', 'js/oficio-idioma.js',
+export const COMUNES = ['app.html', 'cita.html', 'cliente.html', 'oficio.css', 'sw.js', 'js/oficio-nucleo.js', 'js/oficio-espejo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js', 'js/oficio-papeles.js', 'js/oficio-vigia.js', 'js/oficio-idioma.js',
   'assets/fuentes/barlow-400.woff2', 'assets/fuentes/barlow-500.woff2', 'assets/fuentes/barlow-600.woff2', 'assets/fuentes/barlow-condensed-600.woff2', 'assets/fuentes/barlow-condensed-700.woff2', 'assets/fuentes/barlow-condensed-800.woff2'];
 const DATOS = 'js/oficio-datos.js', FICHA = 'copia.json';
 // la portada de una copia: lleva a pedir cita. La web del negocio, si la tiene, es otra cosa y va aparte.
@@ -46,10 +48,34 @@ function copiaComunes(plantilla, destino) {
   for (const f of COMUNES) { const a = path.join(plantilla, f), b = path.join(destino, f); if (!fs.existsSync(a)) throw new Error('A la plantilla le falta ' + f); fs.mkdirSync(path.dirname(b), { recursive: true }); fs.copyFileSync(a, b) }
 }
 const version = sitio => { try { return leeNucleo(sitio).VERSION || '' } catch (e) { return '' } };
+/* la app en el móvil (16-11-2026): su manifiesto (nombre, icono y colores, para instalarla) y su icono en SVG, sacados de
+   los datos del negocio. Los iconos PNG (el iPhone los necesita) los hace iconos.py; el manifiesto los nombra si están */
+const ASFALTO = '#14171a', SENAL = '#ffc400';
+const letraDe = N => (String((Array.isArray(N.marca) && N.marca[0]) || N.nombre || '?').trim()[0] || '?').toUpperCase();
+export const iconoSvg = N => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="${ASFALTO}"/>`
+  + `<text x="256" y="300" text-anchor="middle" font-family="'Barlow Condensed','Arial Narrow',Arial,sans-serif" font-weight="800" font-size="270" fill="${SENAL}">${esc(letraDe(N))}</text>`
+  + `<rect x="179" y="362" width="154" height="23" rx="11.5" fill="${SENAL}"/></svg>\n`;
+export function manifiesto(carpeta, N) {
+  const marca = (Array.isArray(N.marca) ? N.marca.join(' ') : String(N.nombre || '')).trim(), png = n => fs.existsSync(path.join(carpeta, 'assets/icono-' + n + '.png'));
+  const iconos = [{ src: 'assets/icono.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }];
+  for (const n of [192, 512]) if (png(n)) iconos.push({ src: 'assets/icono-' + n + '.png', sizes: n + 'x' + n, type: 'image/png', purpose: 'any' }, { src: 'assets/icono-' + n + '.png', sizes: n + 'x' + n, type: 'image/png', purpose: 'maskable' });
+  return JSON.stringify({ name: N.nombre, short_name: marca.length <= 14 ? marca : String((N.marca && N.marca[0]) || N.nombre).slice(0, 14), description: 'La app de ' + N.nombre + ': avisos, citas y trabajos.',
+    lang: 'es', start_url: 'app.html', scope: './', display: 'standalone', background_color: ASFALTO, theme_color: ASFALTO, icons: iconos }, null, 1) + '\n';
+}
+const APP = ['manifest.webmanifest', 'assets/icono.svg'];
+const appDe = (carpeta, N) => ({ 'manifest.webmanifest': manifiesto(carpeta, N), 'assets/icono.svg': iconoSvg(N) });
+/** Pone (o pone al día) el manifiesto y el icono de la app de una carpeta. Devuelve los archivos que ha cambiado. */
+export function ponApp(carpeta, N) {
+  const hechos = [];
+  for (const [f, t] of Object.entries(appDe(carpeta, N))) { const p = path.join(carpeta, f); if (!fs.existsSync(p) || fs.readFileSync(p, 'utf8') !== t) { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, t); hechos.push(f) } }
+  return hechos;
+}
+const appMal = carpeta => { let N; try { ({ N } = leeNegocio(path.join(carpeta, DATOS))) } catch (e) { return [] } const A = appDe(carpeta, N);
+  return APP.filter(f => { const p = path.join(carpeta, f); return !fs.existsSync(p) || fs.readFileSync(p, 'utf8') !== A[f] }) };
 /** Cómo está una copia frente a la plantilla: qué archivos comunes le faltan o son distintos. */
 export function estado(plantilla, carpeta) {
   for (const f of COMUNES) if (!fs.existsSync(path.join(plantilla, f))) throw new Error('A la plantilla le falta ' + f);
-  const dif = COMUNES.filter(f => !fs.existsSync(path.join(carpeta, f)) || huella(path.join(carpeta, f)) !== huella(path.join(plantilla, f)));
+  const dif = COMUNES.filter(f => !fs.existsSync(path.join(carpeta, f)) || huella(path.join(carpeta, f)) !== huella(path.join(plantilla, f))).concat(appMal(carpeta));
   let ficha = {}; try { ficha = JSON.parse(fs.readFileSync(path.join(carpeta, FICHA), 'utf8')) } catch (e) {}
   return { alDia: dif.length === 0, dif, ficha, version: version(carpeta) };
 }
@@ -76,7 +102,7 @@ export function nueva({ plantilla, destino, datos }) {
     copiaComunes(plantilla, tmp); fs.mkdirSync(path.join(tmp, 'js'), { recursive: true }); fs.copyFileSync(datos, path.join(tmp, DATOS));
     // sus fotos de averías, si están junto al archivo de datos (en ../assets/img o en ./img)
     for (const d of [path.join(path.dirname(datos), '../assets/img'), path.join(path.dirname(datos), 'img')]) if (fs.existsSync(d)) for (const f of fs.readdirSync(d)) if (/^av-[a-z0-9-]+-s\.webp$/.test(f)) { fs.mkdirSync(path.join(tmp, 'assets/img'), { recursive: true }); fs.copyFileSync(path.join(d, f), path.join(tmp, 'assets/img', f)) }
-    fs.writeFileSync(path.join(tmp, 'index.html'), PORTADA(esc(m.N.nombre)));
+    fs.writeFileSync(path.join(tmp, 'index.html'), PORTADA(esc(m.N.nombre))); ponApp(tmp, m.N);
     const v = version(plantilla);
     fs.writeFileSync(path.join(tmp, FICHA), JSON.stringify({ id, nombre: m.N.nombre, creada: hoy(), actualizada: hoy(), version: v, prueba: m.N.prueba === true }, null, 1) + '\n');
     fs.chmodSync(tmp, 0o755); fs.renameSync(tmp, carpeta);
@@ -93,7 +119,7 @@ export function actualizar({ plantilla, destino, id, conAzar = true }) {
   const m = mira(plantilla, datos); if (m.errores.length) return { ok: false, id, cambiada: false, errores: m.errores.map(e => 'Con las reglas nuevas, sus datos no valen: ' + e), avisos: m.avisos };
   if (conAzar) { const a = azar(plantilla, datos); if (!a.ok) return { ok: false, id, cambiada: false, errores: ['Con las reglas nuevas, este negocio no pasa los recorridos al azar:\n' + a.salida.split('\n').filter(l => /ROTA|MAL|FALLA/.test(l)).slice(0, 6).join('\n')], avisos: m.avisos } }
   if (antes.alDia) return { ok: true, id, cambiada: false, version: antes.version, errores: [], avisos: m.avisos };
-  copiaComunes(plantilla, carpeta);
+  copiaComunes(plantilla, carpeta); ponApp(carpeta, m.N);
   if (huella(datos) !== dAntes) throw new Error('Se ha tocado el archivo de datos de ' + id + ': esto no puede pasar');
   const v = version(carpeta), ficha = Object.assign({ id, nombre: m.N.nombre, creada: hoy() }, antes.ficha, { nombre: m.N.nombre, actualizada: hoy(), version: v, prueba: m.N.prueba === true });
   fs.writeFileSync(path.join(carpeta, FICHA), JSON.stringify(ficha, null, 1) + '\n');
@@ -196,7 +222,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (!sueltos.length) { console.log(`Di qué copia: node copias.mjs ${orden} <id>`); mal = 2 }
     for (const id of sueltos) { const r = orden === 'fija' ? fija({ destino, id, motivo: op('--motivo') }) : suelta({ destino, id }); r.errores.forEach(e => console.log('   ERROR  ' + e));
       console.log(!r.ok ? `NO SE HA PODIDO  ${id}` : orden === 'fija' ? `FIJADA  ${id} · ${r.fijada.motivo}` : `SUELTA  ${id}${r.estaba ? '' : ' (no estaba fijada)'}`); if (!r.ok) mal++ }
-  } else { console.log('Uso: node copias.mjs nueva --datos <archivo.js> | actualizar --todas | actualizar <id> | lista | comprueba | atras <id> | fija <id> | suelta <id>'); mal = 2 }
+  } else if (orden === 'app') {
+    if (!sueltos.length) { console.log('Di qué carpeta: node copias.mjs app <carpeta>…'); mal = 2 }
+    for (const c of sueltos) { const carpeta = path.resolve(c); let N; try { ({ N } = leeNegocio(path.join(carpeta, DATOS))) } catch (e) { console.log('NO SE HA PODIDO  ' + c + ': ' + e.message); mal++; continue }
+      const h = ponApp(carpeta, N); console.log((h.length ? 'PUESTO  ' + h.join(', ') : 'YA ESTABA') + '  ' + c + (fs.existsSync(path.join(carpeta, 'assets/icono-192.png')) ? '' : ' · sin iconos PNG: python3 iconos.py ' + c)) }
+  } else { console.log('Uso: node copias.mjs nueva --datos <archivo.js> | actualizar --todas | actualizar <id> | lista | comprueba | atras <id> | fija <id> | suelta <id> | app <carpeta>'); mal = 2 }
   } catch (e) { console.log('No se ha podido: ' + e.message); mal = 2 }
   process.exit(mal);
 }
