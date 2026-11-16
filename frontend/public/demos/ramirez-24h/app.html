@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>La app por dentro · OOOX Oficios</title>
-<meta name="description" content="La app de gestión de un fontanero, de ejemplo: los avisos llegan a la centralita, se reparten y el técnico los cierra con tres toques.">
+<meta name="description" content="La app del negocio: los avisos llegan a la oficina, se reparten y el técnico los cierra con tres toques.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#14171a">
 <link rel="preload" href="assets/fuentes/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
@@ -26,7 +26,7 @@ body.det{padding-bottom:0}
 #nav a[aria-current]{color:var(--texto)}
 #nav a[aria-current]::before{content:"";position:absolute;top:-1px;left:22%;right:22%;height:2px;background:var(--senal)}
 #nav svg{width:24px;height:24px}
-#nav .n{position:absolute;top:8px;left:calc(50% + 8px);min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--senal);color:var(--negro);font-size:.75rem;line-height:20px;text-align:center}
+#nav .n{position:absolute;top:8px;left:calc(50% + 8px);min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--texto);color:var(--negro);font-size:.75rem;line-height:20px;text-align:center}
 body.det #nav{display:none}
 .lado .demo{display:none}
 main{display:block;max-width:720px;margin:0 auto;padding:18px 16px 26px}
@@ -63,7 +63,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .fila{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 12px;min-height:68px;padding:11px 14px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2);text-decoration:none}
 .fila .f1{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fila .f2{grid-column:1;font-size:.9375rem;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fila .f3{grid-column:1;font-size:.9375rem;font-weight:600;color:var(--senal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fila .f3{grid-column:1;font-size:.9375rem;font-weight:600;color:var(--texto);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fila .fd{grid-column:2;grid-row:1/3;display:grid;justify-items:end;gap:3px;font-weight:600}
 .fila .mini{font-size:.875rem;font-weight:400;color:var(--suave)}
 .fila.urg{padding-left:24px}
@@ -81,7 +81,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .blq .cita{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .dice{margin-top:12px;padding-left:12px;border-left:3px solid var(--control);color:var(--texto)}
 .fotoc{margin-top:12px;width:132px;height:99px;object-fit:cover;border-radius:8px}
-.ojo{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--aviso-f);color:var(--senal-2)}
+.ojo{margin-top:12px;padding:12px 14px 12px 16px;border-radius:12px;background:var(--asfalto-3);color:var(--texto);box-shadow:inset 4px 0 0 var(--control)}
 .ojo a{font-weight:600}
 .tecs{display:grid;gap:8px}
 .tec{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:60px;padding:8px 12px;border-radius:12px;border:2px solid var(--control)}
@@ -89,7 +89,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .tec b{font-weight:600}
 .tec[aria-pressed=true]{border-color:var(--senal);background:var(--asfalto-3)}
 .tec.no{border-style:dashed}
-.tec .va{font-size:.875rem;font-weight:600;color:var(--senal-2)}
+.tec .va{font-size:.875rem;font-weight:600;color:var(--agua)}
 .gordo{font:700 2.25rem/1 var(--fd)}
 .lins{margin-top:10px}
 .lins li{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-top:1px solid var(--linea);font-size:.9375rem}
@@ -141,9 +141,44 @@ main>*:has(+ .accion){margin-bottom:18px}
 .cch b,.cch small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cch b{font-weight:600}
 .cch small{font-size:.875rem;color:var(--suave)}
-.cch.sin small{color:var(--senal-2)}
+.cch.sin small{color:var(--agua)}
 .sem .hueco{padding:9px 12px;font-size:.875rem}
 .hueco.of{border-color:var(--senal);color:var(--senal-2)}
+/* la capacidad de una franja: una barra y una línea */
+.cap{display:grid;gap:6px;margin-top:2px}
+.capb{display:flex;gap:3px;height:8px}
+.capb i{min-width:6px;border-radius:3px}
+.capb .co{background:var(--agua)}
+.capb .cl{border:1.5px solid var(--control)}
+.capb .cr{background:repeating-linear-gradient(-45deg,var(--senal) 0 4px,var(--asfalto) 4px 7px)}
+.capb .cx{background:repeating-linear-gradient(-45deg,var(--control) 0 2px,var(--asfalto) 2px 5px);opacity:.6}
+.capt{font-size:.9375rem;color:var(--suave)}
+.sem .cap .capt{font-size:.8125rem}
+.dlargo{margin-top:14px;font:600 1.0625rem/1.2 var(--fb);color:var(--texto)}
+.semd i{display:block;font-style:normal;font-size:.75rem;color:var(--texto)}
+/* el resumen de la bandeja */
+.resumen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+.resumen .rs{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;height:100%;min-height:84px;padding:10px 12px 10px 14px;border:1px solid var(--linea);border-radius:12px;background:var(--asfalto-2);color:var(--texto);font:inherit;text-align:left;text-decoration:none;overflow:hidden}
+.resumen a.rs:hover,.resumen button.rs:hover{background:var(--asfalto-3)}
+.resumen .rs b{font:700 1.875rem/1 var(--fd)}
+.resumen .rs span{font-weight:600;font-size:.9375rem;line-height:1.2}
+.resumen .rs small{font-size:.8125rem;line-height:1.25;color:var(--suave)}
+.resumen .rs.u:not(.cero){padding-left:20px}
+.resumen .rs.u:not(.cero)::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--cinta-fina)}
+.resumen .rs.c:not(.cero) b{color:var(--agua)}
+.resumen .rs.cero{background:none;border-style:dashed}
+.resumen .rs.cero b,.resumen .rs.cero span{color:var(--tenue)}
+/* en Cobros, las tres cifras son también las pestañas: la elegida, con borde amarillo */
+.resumen.r3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.resumen.r3 .rs{min-height:78px;padding:10px 10px 10px 12px}
+.resumen.r3 .rs b{font-size:1.375rem;white-space:nowrap}
+.pest .rs[aria-current]{border-color:var(--senal);box-shadow:inset 0 0 0 1px var(--senal);background:var(--asfalto-3)}
+/* Contratos: lo pendiente, en su caja y aparte de la lista */
+.dosc .tareas{padding:12px 12px 14px;border-radius:16px;background:var(--asfalto-2);border:1px solid var(--linea)}
+.dosc .tareas>h2{color:var(--texto)}
+.dosc .tareas .porhacer{background:var(--asfalto)}
+.dosc .todos{margin-top:24px}
+@media (min-width:1200px){.dosc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}.dosc .tareas{position:sticky;top:20px}.dosc .todos{margin-top:22px}}
 .seg a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:9px;font-weight:600;color:var(--suave);text-decoration:none}
 .seg a[aria-current]{background:var(--asfalto-3);color:var(--texto)}
 .segv{margin-top:14px}
@@ -154,7 +189,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .porhacer small{font-size:.875rem;color:var(--suave)}
 .porhacer small a{color:inherit;font-weight:600}
 .porhacer .btn{flex:none}
-.porhacer li.atn{box-shadow:inset 4px 0 0 var(--senal)}
+.porhacer li.atn{box-shadow:inset 4px 0 0 var(--mal)}
 button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
 .alertas{margin-top:10px;border:1px solid var(--linea);border-radius:12px;background:var(--asfalto-2);overflow:hidden}
 .alertas li+li{border-top:1px solid var(--linea)}
@@ -163,8 +198,8 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .alertas a:hover,.alertas button:hover{background:var(--asfalto-3)}
 .alertas b{font-weight:600}
 .alertas small{font-size:.875rem;color:var(--suave)}
-.alertas li.atn a,.alertas li.atn button{box-shadow:inset 4px 0 0 var(--senal)}
-.alertas li.atn b{color:var(--senal-2)}
+.alertas li.atn a,.alertas li.atn button{box-shadow:inset 4px 0 0 var(--mal)}
+.alertas li.atn b{color:var(--mal)}
 .busca{position:relative;margin-top:14px}
 .busca svg{position:absolute;left:13px;top:50%;width:20px;height:20px;transform:translateY(-50%);color:var(--suave);pointer-events:none}
 .busca input{width:100%;min-height:48px;padding:0 14px 0 42px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2);color:var(--texto);font:inherit}
@@ -185,9 +220,10 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .dia .dt{position:absolute;top:0;bottom:0;background:var(--asfalto-3)}
 .dia .dv{position:absolute;top:17px;height:4px;border-radius:2px;background:var(--tenue)}
 .dia .dj{position:absolute;top:4px;bottom:4px;min-width:4px;border-radius:5px;background:var(--agua);color:var(--negro);font:600 .8125rem/26px var(--fb);padding:0 6px;overflow:hidden;white-space:nowrap;text-decoration:none;container-type:inline-size}
+.dia .dj span{display:block;overflow:hidden;text-overflow:ellipsis}
 @container (max-width:50px){.dia .dj span{visibility:hidden}}
 .dia .dg{position:absolute;top:0;bottom:0;width:1px;background:var(--linea);opacity:.7}
-.dia .dj.u{background:var(--senal)}
+.dia .dj.u{background:repeating-linear-gradient(-45deg,var(--senal) 0 6px,#e8b400 6px 12px)}
 .dia .dj.h{background:var(--control);color:var(--texto)}
 .dj.n{background:repeating-linear-gradient(-45deg,var(--control) 0 4px,var(--asfalto) 4px 7px)}
 .dia .dj.t{box-shadow:inset 0 0 0 2px var(--mal);background:var(--mal-f);color:var(--mal)}
@@ -202,7 +238,7 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .tabx{color:var(--tenue);font-size:.9375rem}
 .tabl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:12px;font-size:.8125rem;color:var(--suave)}
 .tabl i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:-8px}
-.tabl .lc{background:var(--agua)}.tabl .lu{background:var(--senal)}.tabl .lh{background:var(--control)}
+.tabl .lc{background:var(--agua)}.tabl .lu{background:repeating-linear-gradient(-45deg,var(--senal) 0 4px,#e8b400 4px 8px)}.tabl .lh{background:var(--control)}
 .tabl .ln{background:repeating-linear-gradient(-45deg,var(--control) 0 3px,var(--asfalto) 3px 5px)}
 .tabl .lr{background:repeating-linear-gradient(-45deg,var(--asfalto) 0 3px,var(--control) 3px 5px)}
 .tab .ojo{margin-top:12px}
@@ -212,7 +248,8 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .tfr{display:grid;gap:6px;margin-top:10px}
 .tfr li{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;align-items:start}
 .tfr li>.num{padding-top:10px;font-size:.9375rem;color:var(--suave)}
-.tfr li>div{display:grid;gap:6px}
+.tfr li>div{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.cch{min-width:0}
 .tfr .hueco{padding:9px 12px;font-size:.875rem}
 .tfr .eqn{padding:9px 12px;border-radius:12px;background:repeating-linear-gradient(135deg,transparent 0 6px,var(--asfalto-3) 6px 7px);color:var(--tenue);font-size:.875rem}
 .tecd .acts{margin-top:12px}
@@ -236,21 +273,28 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .ops{display:flex;flex-wrap:wrap;gap:8px}
 .op{min-height:48px;padding:0 14px;border-radius:999px;border:2px solid var(--control);font-weight:600}
 .op small{font-weight:400;color:var(--suave);margin-left:4px}
-.op[aria-pressed=true]{border-color:var(--senal);background:var(--asfalto-3)}
+.op[aria-pressed=true],.op[aria-checked=true]{border-color:var(--senal);background:var(--asfalto-3)}
+/* una sola opción (role=radio): lo dice el círculo de delante; las que admiten varias no lo llevan */
+.op[role=radio]{display:inline-flex;align-items:center;gap:8px}
+.op[role=radio]::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--control);box-sizing:border-box}
+.op[role=radio][aria-checked=true]::before{border-color:var(--senal);background:radial-gradient(circle,var(--senal) 0 3.5px,transparent 4.5px)}
+.campo.mal [role=radiogroup] .op,.campo.mal .seg{border-color:var(--mal)}
 .op[disabled]{border-style:dashed;color:var(--tenue);cursor:not-allowed}
 .seg{display:inline-flex;padding:4px;border-radius:12px;background:var(--asfalto-2);border:1px solid var(--linea)}
 .seg button{min-height:44px;padding:0 16px;border-radius:9px;font-weight:600;color:var(--suave)}
-.seg button[aria-pressed=true]{background:var(--asfalto-3);color:var(--texto)}
+.seg button[aria-pressed=true],.seg button[aria-checked=true]{background:var(--asfalto-3);color:var(--texto);box-shadow:inset 0 0 0 2px var(--senal)}
 .seg.tres{display:flex}.seg.tres button{flex:1 1 auto;min-width:0;padding:0 8px}
 .duo{display:grid;grid-template-columns:1fr 120px;gap:12px}
 .lb{font-size:.9375rem;font-weight:600}
 .hoja .ops .op{border-color:var(--control)}
 /* lo elegido se tiene que ver de un vistazo, también dentro de una hoja (la forma de pago, el plan, cómo dice que sí) */
-.hoja .ops .op[aria-pressed=true]{border-color:var(--senal);box-shadow:inset 0 0 0 1px var(--senal)}
-.hoja.papel .ops .op[aria-pressed=true]{border-color:var(--tinta);box-shadow:inset 0 0 0 1px var(--tinta)}
+.hoja .ops .op[aria-pressed=true],.hoja .ops .op[aria-checked=true]{border-color:var(--senal);box-shadow:inset 0 0 0 1px var(--senal)}
+.hoja.papel .ops .op[aria-pressed=true],.hoja.papel .ops .op[aria-checked=true]{border-color:var(--tinta);box-shadow:inset 0 0 0 1px var(--tinta)}
 .hoja.papel .op{border-color:#aeb4ba}
 .hoja.papel .op small{color:var(--tinta-2)}
-.hoja.papel .op[aria-pressed=true]{border-color:var(--tinta);background:var(--papel-2)}
+.hoja.papel .op[role=radio]::before{border-color:#aeb4ba}
+.hoja.papel .op[role=radio][aria-checked=true]::before{border-color:var(--tinta);background:radial-gradient(circle,var(--tinta) 0 3.5px,transparent 4.5px)}
+.hoja.papel .op[aria-pressed=true],.hoja.papel .op[aria-checked=true]{border-color:var(--tinta);background:var(--papel-2)}
 .hoja.papel .op[disabled]{color:#70777e}
 
 /* ===== el precio que firma el cliente (papel) ===== */
@@ -285,7 +329,7 @@ main.papelv{max-width:760px}
 .mnota{font-size:.9375rem;color:var(--suave)}
 .pets{display:grid;gap:8px}
 .pet{padding:12px 14px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2)}
-.pet.nueva{border-color:var(--senal)}
+.pet.nueva{border-color:var(--agua)}
 .pet .pc{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .pet .pt{font-weight:600}
 .pet .px{margin-top:6px;white-space:pre-line;overflow-wrap:anywhere}
@@ -312,7 +356,9 @@ main.papelv{max-width:760px}
  .lado .demo{display:block;margin-top:auto;padding:0 8px;font-size:.875rem;color:var(--tenue)}
  .cab h1,.cab .h1{font-size:1.75rem}
  main{margin:0;max-width:1240px;padding:30px 36px 40px}
- main.estrecha{max-width:760px;margin:0 auto}
+ main.estrecha{max-width:760px;margin:0}
+ /* Contratos: lo pendiente a un lado y la lista al otro, con sitio */
+ main.estrecha:has(.dosc){max-width:1240px}
  .tecds{grid-template-columns:repeat(auto-fit,minmax(250px,1fr));align-items:start}
  .cifras{grid-template-columns:repeat(4,1fr)}
  .cifras div{border-top:0}
@@ -328,7 +374,7 @@ main.papelv{max-width:760px}
  .tabla{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 /* con servidor: el aviso de conexión y la pantalla de entrar */
-#red{position:absolute;left:0;right:0;top:100%;margin:0;padding:7px 16px;background:var(--aviso-f);color:var(--senal-2);border-bottom:1px solid var(--linea);font-size:.8125rem;line-height:1.35;text-align:center}
+#red{position:absolute;left:0;right:0;top:100%;margin:0;padding:7px 16px;background:var(--asfalto-3);color:var(--texto);border-bottom:1px solid var(--linea);font-size:.8125rem;line-height:1.35;text-align:center}
 body.conred main,body.conred main.dos>.col{padding-top:52px}
 body.conred main.dos{padding-top:0}
 .entra{max-width:420px;margin:0 auto}
@@ -369,9 +415,9 @@ summary.cs{min-height:44px;display:flex;align-items:center;font-weight:600;curso
 summary.cs::after,.mdet summary::after{content:"";flex:none;width:7px;height:7px;margin:0 0 3px 10px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .2s var(--ease-out)}
 details[open]>summary.cs::after,.mdet[open]>summary::after{transform:rotate(-135deg);margin-bottom:-3px}
 @media (prefers-reduced-motion:reduce){summary.cs::after,.mdet summary::after{transition:none}}
-.mfa{margin-top:6px;font-weight:700;color:var(--senal-2)}.mok{margin-top:6px;color:var(--bien)}
+.mfa{margin-top:6px;font-weight:700;color:var(--mal)}.mok{margin-top:6px;color:var(--bien)}
 .fgq{margin-top:10px}
-.fst li.bajo span.num{color:var(--senal-2);font-weight:700}
+.fst li.bajo span.num{color:var(--mal);font-weight:700}
 .fzl{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
 .fzr{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .fzr label{font-size:.9375rem}.fzr label small{display:block;color:var(--suave);font-size:.8125rem}
@@ -427,7 +473,7 @@ const dur=m=>m<1?'menos de 1 min':m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+
 const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?K.franjaTxt(f):''};
 /* cuántas citas caben: un número fijo, o lo que salga de los horarios de cada técnico */
 const CABEN=cfg.conHorario?'Los huecos salen del horario de cada técnico':'Caben '+cfg.cupo+' por franja';
-const D3=['dom','lun','mar','mié','jue','vie','sáb'];
+const D3=['dom','lun','mar','mié','jue','vie','sáb'],MES3=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const diaTxt=f=>{const h=K.madrid().date;return f===h?'hoy':f===K.masDias(h,1)?'mañana':'el '+K.fechaLarga(f)};
 const diaCorto=f=>{const h=K.madrid().date;return f===h?'hoy':f===K.masDias(h,1)?'mañana':D3[new Date(f+'T12:00:00Z').getUTCDay()]+' '+(+f.slice(8))};
 const cuandoT=t=>{const f=K.madrid(t).date,h=K.madrid().date;return(f===h?'':f===K.masDias(h,-1)?'ayer, ':K.fechaCorta(f)+', ')+K.hora(t)};
@@ -483,7 +529,7 @@ function fila(A,sel,o){o=o||{};if(o.tec)return filaTec(A,o);const av=cfg.av[A.av
 function filaTec(A,o){const av=cfg.av[A.av],ll=o.llega&&o.llega[A.id];
  const cuando=A.e==='camino'?'llegas sobre las '+K.hora(A.eta):A.e==='curso'?'trabajando':ll!=null?'hacia las '+K.hhmm(ll)+(A.cita?' ('+frTxt(A.cita.fr)+')':''):A.cita?diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente, '+hace(A.t);
  return'<li><a class="fila'+(A.urg?' urg':'')+'" href="#/aviso/'+A.id+'"><span class="f1">'+esc(av.n)+(barrio(A)?' · '+esc(barrio(A)):'')+'</span><span class="f2">'+esc(cuando)+' · '+esc(A.cli.dir||'Aún sin dirección')+'</span>'+(A.e!=='asignado'?'<span class="fd"><span class="pill '+A.e+'">'+EST[A.e]+'</span></span>':'')+'</a></li>'}
-const sec=(tit,L,sel,vacio,o)=>'<section class="sec"><h2>'+tit+' <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(a=>fila(a,sel,o)).join('')+'</ul>':'<p class="hueco">'+vacio+'</p>')+'</section>';
+const sec=(tit,L,sel,vacio,o)=>'<section class="sec"'+(o&&o.id?' id="'+o.id+'" tabindex="-1"':'')+'><h2>'+tit+' <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(a=>fila(a,sel,o)).join('')+'</ul>':'<p class="hueco">'+vacio+'</p>')+'</section>';
 function tira(){const r=K.resumen(S,cfg,Date.now()),U={urg:true,cli:{dis:''}};
  return'<ul class="tira" aria-label="Dónde está cada técnico">'+N.tecnicos.map(t=>{const x=r.tec[t.id],A=x.aviso&&el(x.aviso);
   const lib=K.ocupacion(S,cfg,t.id,Date.now()),fin=lib?' · libre ~'+K.hora(Date.now()+lib*60000):'';
@@ -519,13 +565,23 @@ function vBandeja(sel){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),hoy=K.mad
  const sub=urg.length?(urg.length===1?'1 urgencia sin repartir, ':urg.length+' urgencias sin repartir, la primera ')+hace(urg[0].t)+'.':citas.length?n(citas.length)+' sin técnico entre hoy y '+diaCorto(p)+'.':'Nada urgente ni por repartir.';
  return'<div class="cab"><div><'+H+'>Bandeja</'+Hc+'><p class="sub">'+sub+'</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+
   '<form class="busca" id="fBusca" role="search"><label class="vh" for="busca">Buscar un aviso</label>'+I.lupa+'<input id="busca" type="search" value="'+esc(BQ)+'" placeholder="Nombre, teléfono, calle o nº de aviso" autocomplete="off" enterkeyhint="search"></form>'+
-  '<div id="bRes">'+resB(R,sel)+'</div><div id="bResto"'+(R?' hidden':'')+'>'+
-  (urg.length?sec('Urgente',urg,sel,'',{dar:1,sinPill:1}):'')+
+  '<div id="bRes">'+resB(R,sel)+'</div><div id="bResto"'+(R?' hidden':'')+'>'+bResumen(urg,citas,luego,p,r)+
+  (urg.length?sec('Urgente',urg,sel,'',{dar:1,sinPill:1,id:'sUrg'}):'')+
   '<section class="sec"><h2>Por hacer</h2>'+(bAlertas()||'<p class="hueco">Todo al día.</p>')+'</section>'+
   '<section class="sec"><h2>El equipo ahora</h2>'+tira()+'</section>'+
-  sec('Sin técnico · hoy y '+diaCorto(p),citas,sel,'Las citas de hoy y de '+diaCorto(p)+' ya tienen técnico.',{sinPill:1})+
+  sec('Sin técnico · hoy y '+diaCorto(p),citas,sel,'Las citas de hoy y de '+diaCorto(p)+' ya tienen técnico.',{sinPill:1,id:'sSinTec'})+
   (luego.length?'<a class="mas" href="#/agenda/'+d1+'"><span>Más adelante: '+n(luego.length)+' sin técnico</span><span aria-hidden="true">›</span></a>':'')+
   sec('En marcha',marcha,sel,'Ahora no hay ningún aviso en marcha.')+sec('Hechos hoy',hechos,sel,'Hoy todavía no se ha terminado ninguno.')+'</div>'}
+/* Lo primero de la bandeja: cuatro cifras que contestan a «¿qué hago ahora?», cada una con su acceso directo.
+   Rayas amarillas, la urgencia; azul, lo que es de citas; el resto, neutro. A cero quedan apagadas y no llevan a nada. */
+function bResumen(urg,citas,luego,p,r){const ahora=Date.now(),M=porMandar(ahora),Mo=M.filter(x=>!esSeg(x)),Ms=M.filter(esSeg),d1=luego.map(a=>a.cita.dia).sort()[0];
+ const T=(cl,n,lb,sm,ir)=>'<li>'+(ir?(ir.href?'<a class="rs '+cl+'" href="'+ir.href+'">':'<button type="button" class="rs '+cl+'" data-a="'+ir.a+'"'+(ir.sec?' data-sec="'+ir.sec+'"':'')+'>'):'<div class="rs '+cl+' cero">')+
+  '<b class="num">'+n+'</b><span>'+lb+'</span><small>'+sm+'</small>'+(ir?(ir.href?'</a>':'</button>'):'</div>')+'</li>';
+ const L=[T('u',urg.length,'Urgencias',urg.length?(urg.length===1?'sin repartir, ':'sin repartir; la primera, ')+hace(urg[0].t):'ninguna sin repartir',urg.length?{href:'#/aviso/'+urg[0].id}:null),
+  T('c',citas.length,'Citas sin técnico','hoy y '+diaCorto(p)+(luego.length?' · '+luego.length+' más adelante':''),citas.length?{a:'irSec',sec:'sSinTec'}:luego.length?{href:'#/agenda/'+d1}:null),
+  T('m',Mo.length+Ms.length,'Mensajes pendientes',Mo.length||Ms.length?[Mo.length?Mo.length+' por mandar':'',Ms.length?Ms.length+' de seguimiento':''].filter(Boolean).join(' · '):'nada por mandar',Mo.length?{a:'mensajes'}:Ms.length?{a:'seguir'}:null)];
+ if(pro())L.push(T('p',r.pend.n,'Cobros pendientes',r.pend.n?K.eur(r.pend.total):'todo cobrado',r.pend.n?{href:'#/cobros'}:null));
+ return'<ul class="resumen" aria-label="Lo pendiente, de un vistazo">'+L.join('')+'</ul>'}
 function vElige(){const r=K.resumen(S,cfg,Date.now());
  return'<p class="hueco">Elige un aviso de la lista para verlo. Hoy: '+r.hechos+(r.hechos===1?' hecho':' hechos')+', '+r.marcha+' en marcha'+(pro()&&r.pend.n?' y '+r.pend.n+' por cobrar ('+K.eur(r.pend.total)+')':'')+'.</p>'}
 
@@ -588,7 +644,7 @@ function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
  let h='<section class="blq"><h2>'+(A.e==='hecho'?(A.sinTrabajo?'Solo el desplazamiento':'Total del trabajo'):'Presupuesto firmado')+'</h2><p class="gordo num">'+K.eur(T.total)+'</p><p class="ln">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+(p?' · '+(p.cobrado?(T.total?'cobrado, '+PAGO[p.modo].toLowerCase():'nada que cobrar: va en su contrato'):'pendiente de pago'):'')+'</p>';
  h+='<ul class="lins">'+T.lineas.map(l=>'<li><span>'+esc(l.t)+(lq(l)?', '+lq(l):'')+(l.con?', en su contrato':'')+'</span><span class="num">'+(l.con?'Incluido':K.eur(l.imp))+'</span></li>').join('')+'</ul>';
  if(p&&!p.cobrado)h+='<div class="acts"><button class="btn pri" data-a="cobrar" data-id="'+A.id+'">Marcar como cobrado</button></div>';
- if(Q.rol==='centralita'&&A.e==='hecho'&&T.total>0)h+='<div class="acts" id="fac">'+(A.fac?'<span class="ln">Facturado'+(A.fac.num?': n.º '+esc(A.fac.num):'')+'.</span> <button class="txt" data-a="desfacturar" data-id="'+A.id+'">Quitar</button>':'<button class="btn peq" data-a="copiaFac" data-id="'+A.id+'">Copiar los datos de la factura</button><button class="btn peq pri" data-a="facturar" data-id="'+A.id+'">Facturada</button>')+'</div>';
+ if(Q.rol==='centralita'&&A.e==='hecho'&&T.total>0)h+='<div class="acts" id="fac">'+(A.fac?'<span class="ln">Facturado'+(A.fac.num?': n.º '+esc(A.fac.num):'')+'.</span> <button class="txt" data-a="desfacturar" data-id="'+A.id+'">Quitar</button>':'<button class="btn peq" data-a="copiaFac" data-id="'+A.id+'">Copiar los datos de la factura</button><button class="btn peq pri" data-a="facturar" data-id="'+A.id+'">Marcar como facturada</button>')+'</div>';
  h+='<div class="docs">'+(A.pres?'<a class="btn peq" href="#/papel/'+A.id+'/presupuesto">Presupuesto</a>':'')+(A.e==='hecho'?'<a class="btn peq" href="#/papel/'+A.id+'/parte">Parte</a>':'')+(A.gar?'<a class="btn peq" href="#/papel/'+A.id+'/garantia">Garantía</a>':'')+'</div>';
  return h+'</section>'}
 function bMensajes(A){const L=A.msgs.filter(m=>pro()||m.k!=='resena');if(!L.length)return'';const ahora=Date.now();
@@ -605,11 +661,11 @@ function bFalta(A){const L=A.falta||[],puede=!['hecho','cancelado'].includes(A.e
   :'<p class="ln">Nada apuntado. Lo que se apunte sale en la lista del día.</p>')+
   (puede?'<div class="acts"><button class="btn peq" data-a="falta" data-id="'+A.id+'">'+I.mas+'Apuntar material</button>'+(L.length?'<button class="btn peq" data-a="faltaListo" data-id="'+A.id+'">Ya está todo</button>':'')+'</div>':'')+'</section>'}
 function hFalta(A){const mats=Object.keys(cfg.cat).filter(x=>cfg.cat[x].mat);let k='',q=1;
- const d=hoja(hc('Apuntar material')+'<form class="hb" id="faF" novalidate>'+(mats.length?'<div class="campo"><span class="lb" id="fa_l">¿Qué falta?</span><div class="ops" role="group" aria-labelledby="fa_l">'+mats.map(x=>'<button type="button" class="op" data-fk="'+x+'" aria-pressed="false">'+esc(cfg.cat[x].t)+'</button>').join('')+'</div></div>':'')+
+ const d=hoja(hc('Apuntar material')+'<form class="hb" id="faF" novalidate>'+(mats.length?'<div class="campo"><span class="lb" id="fa_l">¿Qué falta?</span><div class="ops" role="radiogroup" aria-labelledby="fa_l">'+mats.map(x=>'<button type="button" class="op" data-fk="'+x+'" role="radio" aria-checked="false">'+esc(cfg.cat[x].t)+'</button>').join('')+'</div></div>':'')+
   '<div class="campo"><label for="fa_t">'+(mats.length?'O escríbelo':'¿Qué falta?')+'</label><input id="fa_t" maxlength="60" placeholder="Por ejemplo, un latiguillo de 40 cm" autocomplete="off"></div>'+
   '<div class="campo"><span class="lb" id="fa_ql">Cuántos</span><div class="mq"><span class="st" role="group" aria-labelledby="fa_ql"><button type="button" data-fq="-1" aria-label="Uno menos">−</button><button type="button" data-fq="1" aria-label="Uno más">+</button></span><b class="num" id="fa_q">1</b></div></div>'+
   '<p class="err" id="fa_err" style="color:var(--mal)" hidden></p></form><div class="hp"><button class="btn pri ancho" form="faF">Apuntar</button></div>');
- const marca=()=>$$('[data-fk]',d).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.fk===k)));
+ const marca=()=>$$('[data-fk]',d).forEach(x=>x.setAttribute('aria-checked',String(x.dataset.fk===k)));
  d.addEventListener('click',e=>{const b=e.target.closest('[data-fk]');if(b){k=k===b.dataset.fk?'':b.dataset.fk;marca();if(k)$('#fa_t',d).value='';$('#fa_err',d).hidden=true;return}
   const m=e.target.closest('[data-fq]');if(m){q=Math.max(1,Math.min(20,q+ +m.dataset.fq));$('#fa_q',d).textContent=q}});
  $('#fa_t',d).addEventListener('input',e=>{$('#fa_err',d).hidden=true;if(e.target.value.trim()&&k){k='';marca()}});
@@ -758,23 +814,25 @@ function vHechos(){const hoy=K.madrid().date,L=S.avisos.filter(a=>a.tec===Q.id&&
 /* los días de la agenda: los próximos laborables, y hoy aunque ya no queden huecos */
 function diasAg(ahora){const hoy=K.madrid().date,dias=K.diasDe(S,cfg,ahora,6).map(x=>x.dia);if(!dias.includes(hoy)&&K.laborable(cfg,hoy))dias.unshift(hoy);return dias}
 const segAg=(v,d)=>'<nav class="seg segv" aria-label="Qué ver de la agenda"><a href="#/agenda/'+d+'"'+(v==='agenda'?' aria-current="page"':'')+'>Citas</a><a href="#/equipo/'+d+'"'+(v==='equipo'?' aria-current="page"':'')+'>Equipo</a></nav>';
-const navDias=(v,dias,d,cuenta)=>{const hoy=K.madrid().date;return'<nav class="dias" aria-label="Días">'+dias.map(x=>'<a href="#/'+v+'/'+x+'"'+(x===d?' aria-current="true"':'')+'>'+(x===hoy?'hoy':D3[new Date(x+'T12:00:00Z').getUTCDay()])+'<b class="num">'+(+x.slice(8))+'</b><small>'+cuenta(x)+'</small></a>').join('')+'</nav>'};
+const navDias=(v,dias,d,cuenta)=>{const hoy=K.madrid().date;return'<nav class="dias" aria-label="Días">'+dias.map(x=>'<a href="#/'+v+'/'+x+'"'+(x===d?' aria-current="true"':'')+'>'+(x===hoy?'hoy':D3[new Date(x+'T12:00:00Z').getUTCDay()])+'<b class="num">'+(+x.slice(8))+'</b><small>'+cuenta(x)+'</small></a>').join('')+'</nav><h2 class="dlargo">'+diaLargo(d)+'</h2>'};
 /* los huecos de una franja, como los ve la oficina: los del cliente y los que solo puede usar ella */
-const huecoAg=(f,largo)=>{const of=f.okOf?f.libresOf-(f.ok?f.libres:0):0;
- return(f.ok?'<p class="hueco">'+(largo?(f.libres===1?'Queda 1 hueco':'Quedan '+f.libres+' huecos'):(f.libres===1?'1 hueco':f.libres+' huecos'))+'</p>':'')+
-  (of>0?'<p class="hueco of">'+(f.ok?(of===1?'1 más, solo para la oficina':of+' más, solo para la oficina'):(of===1?'1 hueco, solo para la oficina':of+' huecos, solo para la oficina'))+'</p>':'')+
-  (!f.ok&&!f.okOf&&f.libresOf>0?'<p class="hueco">Ya ha pasado</p>':'')};
+/* en una línea, y con una barra: azul lo ocupado, en blanco lo libre y con rayas lo que solo puede dar la oficina */
+const huecoAg=(f,oc)=>{const of=f.okOf?f.libresOf-(f.ok?f.libres:0):0,li=f.ok?f.libres:0,pasa=!f.ok&&!f.okOf&&f.libresOf>0,tot=Math.max(f.tope||0,oc+li+Math.max(of,0)),resto=tot-oc-li-Math.max(of,0);
+ const T=[];if(li)T.push(li===1?'1 libre':li+' libres');if(of>0)T.push(of===1?'1 reservado para la oficina':of+' reservados para la oficina');if(!T.length)T.push(pasa?'Ya ha pasado':'Completa');
+ const s=(c,n)=>n>0?'<i class="'+c+'" style="flex:'+n+'"></i>':'';
+ return'<div class="cap"><span class="capb" aria-hidden="true">'+s('co',oc)+s('cl',li)+s('cr',of)+s('cx',resto)+'</span><span class="capt">'+T.join(' · ')+'</span></div>'};
+const diaLargo=f=>{const h=K.madrid().date,l=K.fechaLarga(f);return f===h?'Hoy, '+l:f===K.masDias(h,1)?'Mañana, '+l:l.charAt(0).toUpperCase()+l.slice(1)};
 function vAgenda(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora);if(!dias.includes(d))d=dias[0];
  const L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),fr=K.franjasDe(S,cfg,d,ahora);
  const todas=S.avisos.filter(a=>a.cita&&a.e!=='cancelado'&&a.e!=='hecho'&&a.cita.dia>=hoy),prox=todas.filter(a=>a.cita.dia>d).sort((a,b)=>a.cita.dia<b.cita.dia?-1:1)[0];
  if(ANCHO.matches){const n=todas.filter(a=>dias.includes(a.cita.dia)).length;
   return'<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(n?(n===1?'1 cita':n+' citas')+' en los próximos días.':'Sin citas en los próximos días.')+' '+CABEN+'; con cita, tarifa normal.</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+segAg('agenda',d)+bAlertas(1)+
    '<div class="sem" role="table" aria-label="Citas de los próximos días"><div class="semc" role="row"><span role="columnheader">Día</span>'+cfg.franjas.map(f=>'<span role="columnheader">'+K.franjaTxt(f).replace(/^d/,'D')+'</span>').join('')+'</div>'+
-   dias.map(x=>'<div class="semf" role="row"><span class="semd" role="rowheader">'+(x===hoy?'hoy':D3[new Date(x+'T12:00:00Z').getUTCDay()])+'<b class="num">'+(+x.slice(8))+'</b></span>'+K.franjasDe(S,cfg,x,ahora).map(f=>{const C=todas.filter(a=>a.cita.dia===x&&a.cita.fr===f.id);
-    return'<div role="cell">'+C.map(a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+' · '+esc(barrio(a))+'</b><small>'+esc(K.nomCli(a.cli))+' · '+(a.tec?esc(cfg.tec[a.tec].n):'sin asignar')+'</small></a>').join('')+huecoAg(f,false)+'</div>'}).join('')+'</div>').join('')+'</div>'}
+   dias.map(x=>'<div class="semf" role="row"><span class="semd" role="rowheader">'+D3[new Date(x+'T12:00:00Z').getUTCDay()]+'<b class="num">'+(+x.slice(8))+'</b>'+MES3[+x.slice(5,7)-1]+(x===hoy?'<i>hoy</i>':'')+'</span>'+K.franjasDe(S,cfg,x,ahora).map(f=>{const C=todas.filter(a=>a.cita.dia===x&&a.cita.fr===f.id);
+    return'<div role="cell">'+C.map(a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].n)+' · '+esc(barrio(a))+'</b><small>'+esc(K.nomCli(a.cli))+' · '+(a.tec?esc(cfg.tec[a.tec].n):'sin asignar')+'</small></a>').join('')+huecoAg(f,C.length)+'</div>'}).join('')+'</div>').join('')+'</div>'}
  let h='<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(L.length?(L.length===1?'1 cita ':L.length+' citas ')+diaTxt(d)+'.':'Sin citas '+diaTxt(d)+'.'+(prox?' La próxima, '+diaTxt(prox.cita.dia)+'.':''))+' '+CABEN+'.</p></div></div>'+segAg('agenda',d)+bAlertas(1);
  h+=navDias('agenda',dias,d,x=>(n=>n?(n===1?'1 cita':n+' citas'):'libre')(todas.filter(a=>a.cita.dia===x).length))+'<div class="tabla">';
- fr.forEach(f=>{const C=L.filter(a=>a.cita.fr===f.id);h+='<section class="fr"><h3 class="num">'+K.franjaTxt(f).replace(/^d/,'D')+' <small>'+C.length+' de '+f.tope+'</small></h3>'+(C.length?'<ul class="lista" style="margin-bottom:8px">'+C.map(a=>fila(a,'')).join('')+'</ul>':'')+'<div style="display:grid;gap:6px">'+huecoAg(f,true)+'</div></section>'});
+ fr.forEach(f=>{const C=L.filter(a=>a.cita.fr===f.id);h+='<section class="fr"><h3 class="num">'+K.franjaTxt(f).replace(/^d/,'D')+' <small>'+C.length+' de '+f.tope+'</small></h3>'+(C.length?'<ul class="lista" style="margin-bottom:8px">'+C.map(a=>fila(a,'')).join('')+'</ul>':'')+huecoAg(f,C.length)+'</section>'});
  return h+'</div>'}
 
 /* ===== el tablero del día: todo el equipo en el mismo eje de horas ===== */
@@ -787,9 +845,9 @@ const hh0=m=>K.hhmm(m).replace(/^0/,'');
 function barraDia(X,a0,a1){const W=a1-a0||1,pc=m=>((m-a0)/W*100).toFixed(2)+'%',an=m=>(m/W*100).toFixed(2)+'%';
  let h='<div class="dia">'+X.T.map(x=>'<i class="dt" aria-hidden="true" style="left:'+pc(x[0])+';width:'+an(x[1]-x[0])+'"></i>').join('');
  for(let m=Math.ceil(a0/60)*60+60;m<a1;m+=60)h+='<i class="dg" aria-hidden="true" style="left:'+pc(m)+'"></i>';
- X.L.forEach(x=>{const A=el(x.id),av=A&&cfg.av[A.av],q=(av?av.c:'Trabajo')+(A&&barrio(A)?' en '+barrio(A):'')+', de '+hh0(x.llega)+' a '+hh0(x.acaba)+(x.nadie?', fue y no había nadie':x.hecho?', hecho':x.urg?', urgente':'')+(x.tarde?', llegaría tarde':'');
+ X.L.forEach(x=>{const A=el(x.id),av=A&&cfg.av[A.av],q=(av?av.n:'Trabajo')+(A&&barrio(A)?' en '+barrio(A):'')+', de '+hh0(x.llega)+' a '+hh0(x.acaba)+(x.nadie?', fue y no había nadie':x.hecho?', hecho':x.urg?', urgente':'')+(x.tarde?', llegaría tarde':'');
   if(x.viaje&&!x.hecho)h+='<i class="dv" aria-hidden="true" style="left:'+pc(x.llega-x.viaje)+';width:'+an(x.viaje)+'"></i>';
-  h+='<a class="dj'+(x.urg?' u':'')+(x.hecho?' h':'')+(x.nadie?' n':'')+(x.tarde?' t':'')+'" href="#/aviso/'+x.id+'" style="left:'+pc(x.llega)+';width:'+an(Math.max(x.acaba-x.llega,4))+'" aria-label="'+esc(q)+'" title="'+esc(q)+'"><span aria-hidden="true">'+esc(av?av.c:'')+'</span></a>'});
+  h+='<a class="dj'+(x.urg?' u':'')+(x.hecho?' h':'')+(x.nadie?' n':'')+(x.tarde?' t':'')+'" href="#/aviso/'+x.id+'" style="left:'+pc(x.llega)+';width:'+an(Math.max(x.acaba-x.llega,4))+'" aria-label="'+esc(q)+'" title="'+esc(q)+'"><span aria-hidden="true">'+esc(av?av.n:'')+'</span></a>'});
  if(X.hoy&&X.n.min>a0&&X.n.min<a1)h+='<i class="dn" aria-hidden="true" style="left:'+pc(X.n.min)+'"></i>';
  return h+'</div>'}
 /* en palabras: cuántos trabajos, sus ratos libres y lo que no cuadra */
@@ -808,7 +866,7 @@ function bTablero(d){const F=N.tecnicos.map(t=>({t,u:K.ausente(S,t.id,d),X:diaTe
 /* ===== centralita: el equipo, día a día. Quién trabaja, qué lleva cada uno y quién falta ===== */
 function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora);if(!dias.includes(d))d=dias[0];
  const fr=K.franjasDe(S,cfg,d,ahora),L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),sin=L.filter(a=>!a.tec),ds=new Date(d+'T12:00:00Z').getUTCDay();
- const chip=a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].c)+(barrio(a)?' · '+esc(barrio(a)):'')+'</b><small>'+esc(K.nomCli(a.cli)||'Aún sin nombre')+(a.cita.ok===false?' · por confirmar':'')+'</small></a>';
+ const chip=a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].n)+(barrio(a)?' · '+esc(barrio(a)):'')+'</b><small>'+esc(K.nomCli(a.cli)||'Aún sin nombre')+(a.cita.ok===false?' · por confirmar':'')+'</small></a>';
  const aus=(S.ausencias||[]).filter(u=>u.a>=hoy).sort((a,b)=>a.de<b.de?-1:a.de>b.de?1:0),MAT=K.material(S,cfg,d);
  let h='<div class="cab"><div><h1>Equipo</h1><p class="sub">Quién trabaja '+diaTxt(d)+' y qué lleva cada uno.</p></div><button class="btn pri peq" data-a="ausencia" data-dia="'+d+'">'+I.mas+'Ausencia</button></div>'+segAg('equipo',d)+bAlertas(1);
  h+=navDias('equipo',dias,d,x=>{const n=N.tecnicos.filter(t=>K.ausente(S,t.id,x)).length;return n?(n===1?'falta 1':'faltan '+n):'todos'})+bTablero(d)+'<div class="tecds">';
@@ -823,12 +881,12 @@ function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
  return h}
 function hAusencia(tec,dia){const hoy=K.madrid().date,de=dia&&dia>=hoy?dia:hoy;
  const d=hoja(hc('Apuntar una ausencia')+'<form class="hb" id="uF" novalidate>'+
-  '<div class="campo"><span class="lb" id="u_lq">¿Quién falta?</span><div class="ops" role="group" aria-labelledby="u_lq">'+N.tecnicos.map(t=>'<button type="button" class="op" data-ut="'+t.id+'" aria-pressed="'+(t.id===tec)+'">'+esc(t.n)+'</button>').join('')+'</div></div>'+
+  '<div class="campo"><span class="lb" id="u_lq">¿Quién falta?</span><div class="ops" role="radiogroup" aria-labelledby="u_lq">'+N.tecnicos.map(t=>'<button type="button" class="op" data-ut="'+t.id+'" role="radio" aria-checked="'+(t.id===tec)+'">'+esc(t.n)+'</button>').join('')+'</div></div>'+
   '<div class="duo" style="grid-template-columns:1fr 1fr"><div class="campo"><label for="u_de">Desde</label><input type="date" id="u_de" min="'+hoy+'" value="'+de+'"></div><div class="campo"><label for="u_a">Hasta</label><input type="date" id="u_a" min="'+hoy+'" value="'+de+'"></div></div>'+
   '<div class="campo"><label for="u_mo">Motivo (opcional)</label><input id="u_mo" maxlength="60" placeholder="Baja, vacaciones, un curso" autocomplete="off"></div>'+
   '<p class="dn">Lo que tuviera asignado esos días vuelve solo a «sin asignar», para que lo repartas.</p><p class="err" id="u_err" style="color:var(--mal)" hidden></p></form>'+
   '<div class="hp"><button class="btn pri ancho" form="uF">Apuntar la ausencia</button></div>');
- d.addEventListener('click',e=>{const b=e.target.closest('[data-ut]');if(!b)return;tec=b.dataset.ut;$$('[data-ut]',d).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.ut===tec)));$('#u_err',d).hidden=true});
+ d.addEventListener('click',e=>{const b=e.target.closest('[data-ut]');if(!b)return;tec=b.dataset.ut;$$('[data-ut]',d).forEach(x=>x.setAttribute('aria-checked',String(x.dataset.ut===tec)));$('#u_err',d).hidden=true});
  $('#u_de',d).addEventListener('change',e=>{const x=$('#u_a',d);if(x.value<e.target.value)x.value=e.target.value});
  $('#uF',d).onsubmit=e=>{e.preventDefault();const m=$('#u_err',d),di=k=>{m.textContent=k;m.hidden=false};
   if(!tec)return di('Elige quién falta.');
@@ -838,29 +896,32 @@ function hAusencia(tec,dia){const hoy=K.madrid().date,de=dia&&dia>=hoy?dia:hoy;
    const n=(r.sueltos||[]).length;d.close();toast('Apuntado.'+(n?(n===1?' 1 aviso vuelve':' '+n+' avisos vuelven')+' a «sin asignar».':''))})}}
 
 /* ===== centralita: cobros ===== */
-function vCobros(){const r=K.resumen(S,cfg,Date.now()),L=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&!a.pago.cobrado).sort((a,b)=>a.fin-b.fin);
+/* Cobros: arriba, tres cifras (por cobrar, por facturar, cobrado hoy) que son también las pestañas; debajo, lo de la
+   pestaña elegida. Lo del mes (la hoja para la gestoría, las urgencias y lo que deja cada trabajo) va con la caja. */
+function vCobros(pe){const r=K.resumen(S,cfg,Date.now()),L=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&!a.pago.cobrado).sort((a,b)=>a.fin-b.fin);
+ const PF=K.porFacturar(S,Date.now()).map(x=>el(x.id)).filter(Boolean);if(pe!=='facturar'&&pe!=='caja')pe='';
  let h='<div class="cab"><div><h1>Cobros</h1><p class="sub">'+(r.pend.n?(r.pend.n===1?'1 trabajo por cobrar: ':r.pend.n+' trabajos por cobrar: ')+K.eur(r.pend.total)+'.':'No hay nada por cobrar.')+'</p></div></div>';
- const U=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&a.pago.cobrado).sort((a,b)=>b.pago.t-a.pago.t).slice(0,5);
- h+=sec('Por cobrar',L,'','Todo lo terminado está cobrado.',{cobro:1});
- const PF=K.porFacturar(S,Date.now()).map(x=>el(x.id)).filter(Boolean);
- h+=sec('Por facturar',PF,'','Todo lo terminado está facturado.')+(PF.length?'<p class="mnota" style="margin:-4px 0 14px">Ábrelo, copia los datos, haz la factura con tu programa y toca «Facturada».</p>':'');
- h+='<section class="sec"><h2>Caja de hoy</h2><dl class="cifras">'+['efectivo','tarjeta','bizum','transferencia'].map(k=>'<div><dt>'+PAGO[k]+'</dt><dd class="num">'+K.eur(r.caja[k])+'</dd></div>').join('')+'</dl><p class="mnota" style="margin-top:8px">Total cobrado hoy: '+K.eur(r.caja.total)+'. Las facturas las emite el programa de facturas del negocio, no esta app.</p></section>'+(U.length?sec('Últimos cobros',U,'',''):'')+bMes()+bUrgMes()+bDeja();
- return h}
+ const T=(id,href,n,lb,sm)=>'<li><a class="rs" href="'+href+'"'+(pe===id?' aria-current="page"':'')+'><b class="num">'+n+'</b><span>'+lb+'</span><small>'+sm+'</small></a></li>';
+ h+='<nav aria-label="Qué ver de los cobros"><ul class="resumen r3 pest">'+T('','#/cobros',K.eur(r.pend.total),'Por cobrar',r.pend.n===1?'1 trabajo':r.pend.n+' trabajos')+T('facturar','#/cobros/facturar',PF.length,'Por facturar',PF.length===1?'trabajo':'trabajos')+T('caja','#/cobros/caja',K.eur(r.caja.total),'Cobrado hoy','la caja y el mes')+'</ul></nav>';
+ if(pe==='facturar')return h+sec('Por facturar',PF,'','Todo lo terminado está facturado.')+(PF.length?'<p class="mnota" style="margin:-4px 0 14px">Ábrelo, copia los datos, haz la factura con tu programa y toca «Marcar como facturada».</p>':'');
+ if(pe==='caja'){const U=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&a.pago.cobrado).sort((a,b)=>b.pago.t-a.pago.t).slice(0,5);
+  return h+'<section class="sec"><h2>Caja de hoy</h2><dl class="cifras">'+['efectivo','tarjeta','bizum','transferencia'].map(k=>'<div><dt>'+PAGO[k]+'</dt><dd class="num">'+K.eur(r.caja[k])+'</dd></div>').join('')+'</dl><p class="mnota" style="margin-top:8px">Total cobrado hoy: '+K.eur(r.caja.total)+'. Las facturas las emite el programa de facturas del negocio, no esta app.</p></section>'+(U.length?sec('Últimos cobros',U,'',''):'')+bMes()+bUrgMes()+bDeja()}
+ return h+sec('Por cobrar',L,'','Todo lo terminado está cobrado.',{cobro:1})}
 /* las urgencias con suplemento cobradas este mes, y lo que es de OOOX por ellas */
 function bUrgMes(){if(!cfg.urge)return'';const u=K.urgenciasMes(S,cfg,K.madrid().date.slice(0,7)),pc=Math.round(u.pct*100);
  return'<section class="sec" id="urgMes"><h2>Urgencias de este mes</h2><p>'+(u.n?(u.n===1?'1 urgencia cobrada':u.n+' urgencias cobradas')+' con suplemento: '+K.eur(u.base)+' sin IVA. La parte de OOOX ('+pc+' %): <b class="num">'+K.eur(u.oox)+'</b>.':'Este mes todavía no se ha cobrado ninguna urgencia con suplemento.')+'</p><p class="mnota">El suplemento lo cobra el negocio; OOOX lo factura a final de mes. Las urgencias de clientes con contrato van sin suplemento y no cuentan.</p></section>'}
 
 /* ===== centralita: aviso nuevo, de una llamada ===== */
-const B={av:N.averias[0].id,or:'llamada',cuando:'urg',dia:'',fr:'',nombre:'',apellidos:'',tel:'',dir:'',cp:'',nota:'',err:''};
+const B={av:'',or:'llamada',cuando:'',dia:'',fr:'',nombre:'',apellidos:'',tel:'',dir:'',cp:'',nota:'',err:''};
 function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true,B.av?{av:B.av,cli:{dis:cfg.zonas.cp[B.cp]||''}}:null);if(!dias.find(x=>x.dia===B.dia))B.dia=dias.length?dias[0].dia:'';const fr=(dias.find(x=>x.dia===B.dia)||{franjas:[]}).franjas;if(!fr.find(f=>f.id===B.fr&&f.okOf))B.fr='';
  const fS=fr.find(f=>f.id===B.fr);
  const c=(id,lb,v,o)=>'<div class="campo'+(B.err===id?' mal':'')+'"><label for="n_'+id+'">'+lb+'</label><input id="n_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(B.err===id?' aria-invalid="true" aria-describedby="e_'+id+'"':'')+'>'+(B.err===id?'<p class="err" id="e_'+id+'">'+ERR[id]+'</p>':'')+'</div>';
  const con=B.tel&&K.tel9(B.tel)?S.avisos.filter(a=>K.tel9(a.cli.tel)===K.tel9(B.tel)):[];
  return'<a class="atras" href="#/bandeja">'+I.atras+'Bandeja</a><div class="cab"><div><h1>Nuevo aviso</h1><p class="sub">Para lo que entra por teléfono, por WhatsApp o en persona. Lo que escribas aquí ya no se vuelve a escribir.</p></div></div><form class="form" id="fNuevo" novalidate>'+
-  '<div class="campo"><span class="lb" id="l_av">¿Qué le pasa?</span><div class="ops" role="group" aria-labelledby="l_av">'+N.averias.map(a=>'<button type="button" class="op" data-b-av="'+a.id+'" aria-pressed="'+(B.av===a.id)+'">'+esc(a.c)+'</button>').join('')+'</div></div>'+
-  '<div class="campo"><span class="lb" id="l_or">¿Por dónde ha entrado?</span><div><div class="seg tres" role="group" aria-labelledby="l_or">'+[['llamada','Llamada'],['whatsapp','WhatsApp'],['persona','En persona']].map(o=>'<button type="button" data-b-or="'+o[0]+'" aria-pressed="'+(B.or===o[0])+'">'+o[1]+'</button>').join('')+'</div></div></div>'+
-  '<div class="campo"><span class="lb" id="l_cu">¿Cuándo?</span><div><div class="seg" role="group" aria-labelledby="l_cu"><button type="button" data-b-cu="urg" aria-pressed="'+(B.cuando==='urg')+'">Urgente</button><button type="button" data-b-cu="cita" aria-pressed="'+(B.cuando==='cita')+'">Con cita</button></div></div></div>'+
-  (B.cuando==='cita'?'<div class="campo'+(B.err==='franja'?' mal':'')+'"><span class="lb">Día y franja</span><div class="ops">'+dias.map(x=>'<button type="button" class="op" data-b-dia="'+x.dia+'" aria-pressed="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div><div class="ops">'+fr.map(f=>'<button type="button" class="op" data-b-fr="'+f.id+'" aria-pressed="'+(B.fr===f.id)+'"'+(f.okOf?'':' disabled')+'>'+f.txt+'<small>'+frOf(f)+'</small></button>').join('')+'</div>'+(fS&&fS.por?'<p class="ayuda" id="n_por">'+PORL[fS.por]+'</p>':'')+(B.err==='franja'?'<p class="err">'+(B.fr?ERR.franja:'Elige una franja.')+'</p>':'')+'</div>':'')+
+  '<div class="campo'+(B.err==='av'?' mal':'')+'"><span class="lb" id="l_av">¿Qué le pasa?</span><div class="ops" role="radiogroup" aria-labelledby="l_av"'+(B.err==='av'?' aria-invalid="true" aria-describedby="e_av"':'')+'>'+N.averias.map(a=>'<button type="button" class="op" data-b-av="'+a.id+'" role="radio" aria-checked="'+(B.av===a.id)+'">'+esc(a.n)+'</button>').join('')+'</div>'+(B.err==='av'?'<p class="err" id="e_av">Elige qué le pasa.</p>':'')+'</div>'+
+  '<div class="campo"><span class="lb" id="l_or">¿Por dónde ha entrado?</span><div><div class="seg tres" role="radiogroup" aria-labelledby="l_or">'+[['llamada','Llamada'],['whatsapp','WhatsApp'],['persona','En persona']].map(o=>'<button type="button" data-b-or="'+o[0]+'" role="radio" aria-checked="'+(B.or===o[0])+'">'+o[1]+'</button>').join('')+'</div></div></div>'+
+  '<div class="campo'+(B.err==='cuando'?' mal':'')+'"><span class="lb" id="l_cu">¿Cuándo?</span><div><div class="seg" role="radiogroup" aria-labelledby="l_cu"'+(B.err==='cuando'?' aria-invalid="true" aria-describedby="e_cu"':'')+'><button type="button" data-b-cu="urg" role="radio" aria-checked="'+(B.cuando==='urg')+'">Urgente</button><button type="button" data-b-cu="cita" role="radio" aria-checked="'+(B.cuando==='cita')+'">Con cita</button></div></div>'+(B.err==='cuando'?'<p class="err" id="e_cu">Elige si es urgente o con cita.</p>':'')+'</div>'+
+  (B.cuando==='cita'?'<div class="campo'+(B.err==='franja'?' mal':'')+'"><span class="lb" id="l_dia">Día y franja</span><div class="ops" role="radiogroup" aria-label="Día">'+dias.map(x=>'<button type="button" class="op" data-b-dia="'+x.dia+'" role="radio" aria-checked="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div><div class="ops" role="radiogroup" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-b-fr="'+f.id+'" role="radio" aria-checked="'+(B.fr===f.id)+'"'+(f.okOf?'':' disabled')+'>'+f.txt+'<small>'+frOf(f)+'</small></button>').join('')+'</div>'+(fS&&fS.por?'<p class="ayuda" id="n_por">'+PORL[fS.por]+'</p>':'')+(B.err==='franja'?'<p class="err">'+(B.fr?ERR.franja:'Elige una franja.')+'</p>':'')+'</div>':'')+
   c('tel','Teléfono',B.tel,'type="tel" inputmode="tel" autocomplete="off"')+(con.length?'<p class="mnota" style="margin-top:-8px">Cliente conocido: '+(con.length===1?'1 aviso anterior':con.length+' avisos anteriores')+'. He rellenado sus datos.</p>':'')+
   c('nombre','Nombre',B.nombre,'autocomplete="off"')+c('apellidos','Apellidos',B.apellidos,'autocomplete="off"')+'<div class="duo">'+c('dir','Calle, número y piso',B.dir,'autocomplete="off"')+c('cp','Código postal',B.cp,'inputmode="numeric" maxlength="5" autocomplete="off"')+'</div>'+(B.err==='zona'?'<p class="err" style="color:var(--mal);margin-top:-8px">'+ERR.zona+'</p>':'')+
   '<div class="campo"><label for="n_nota">Qué cuenta el cliente</label><textarea id="n_nota" data-b="nota" placeholder="Opcional">'+esc(B.nota)+'</textarea></div>'+
@@ -883,42 +944,43 @@ function bContrato(A){
 function vContratos(){const ahora=Date.now(),hoy=K.madrid().date,Pd=K.pendientesContratos(S,cfg,ahora),L=(S.contratos||[]).slice().sort((a,b)=>(a.e==='activo'?0:1)-(b.e==='activo'?0:1)||b.t-a.t);
  const act=L.filter(c=>c.e==='activo').length,nom=id=>{const C=contrato(id);return C?esc(K.nomCli(C.cli)):''};
  const li=(cls,b,sm,btn)=>'<li'+(cls?' class="'+cls+'"':'')+'><span><b>'+b+'</b>'+(sm?'<small>'+sm+'</small>':'')+'</span>'+btn+'</li>';
- const al=Pd.renovar.map(x=>li(x.vencido?'atn':'','Renovar · '+nom(x.id),esc(x.id)+' · '+(x.vencido?'acabó':'acaba')+' el '+K.fechaCorta(x.a),'<button class="btn peq" data-a="conRen" data-c="'+x.id+'">Renovar</button>'))
+ const al=Pd.renovar.map(x=>li(x.vencido?'atn':'','Renovar · '+nom(x.id),esc(x.id)+' · '+(x.vencido?'acabó':'acaba')+' el '+K.fechaCorta(x.a),'<button class="btn peq" data-a="conRen" data-c="'+x.id+'">Renovar contrato</button>'))
   .concat(Pd.revision.map(x=>{const C=contrato(x.id),ab=C&&S.avisos.find(a=>['nuevo','asignado','camino','ausente'].includes(a.e)&&a.av!==K.REV&&K.tel9(a.cli.tel)===K.tel9(C.cli.tel));
-   return li('','Revisión · '+nom(x.id),esc(x.id)+(x.toca?' · toca el '+K.fechaCorta(x.toca):'')+(ab?' · tiene abierto el aviso <a href="#/aviso/'+ab.id+'">'+ab.id+'</a>: se puede hacer en esa misma visita':''),'<button class="btn peq" data-a="conRev" data-c="'+x.id+'">Crear el aviso</button>')}))
-  .concat(Pd.cobrar.map(x=>li('','Cuota por cobrar · '+nom(x.id),esc(x.id)+' · '+K.eur(x.precio),'<button class="btn peq" data-a="conCob" data-c="'+x.id+'">Cobrado</button>')));
+   return li('','Revisión · '+nom(x.id),esc(x.id)+(x.toca?' · toca el '+K.fechaCorta(x.toca):'')+(ab?' · tiene abierto el aviso <a href="#/aviso/'+ab.id+'">'+ab.id+'</a>: se puede hacer en esa misma visita':''),'<button class="btn peq" data-a="conRev" data-c="'+x.id+'">Crear aviso de revisión</button>')}))
+  .concat(Pd.cobrar.map(x=>li('','Cuota por cobrar · '+nom(x.id),esc(x.id)+' · '+K.eur(x.precio),'<button class="btn peq" data-a="conCob" data-c="'+x.id+'">Apuntar cobro</button>')));
  let h='<div class="cab"><div><h1>Contratos</h1><p class="sub">'+(act?(act===1?'1 contrato de mantenimiento en marcha.':act+' contratos de mantenimiento en marcha.'):'Todavía no hay ningún contrato de mantenimiento.')+'</p></div><button class="btn pri peq" data-a="conAlta">'+I.mas+'Nuevo contrato</button></div>';
- if(al.length)h+='<section class="sec"><h2>Por hacer <span class="n">'+al.length+'</span></h2><ul class="porhacer" id="conAl" aria-label="Lo que piden los contratos">'+al.join('')+'</ul></section>';
- h+='<section class="sec"><h2>Los contratos <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(C=>{const u=C.per[C.per.length-1],vig=K.vigente(C,hoy),bz=barrio({cli:C.cli});
+ h+='<div class="dosc">';
+ if(al.length)h+='<section class="sec tareas"><h2>Por hacer <span class="n">'+al.length+'</span></h2><ul class="porhacer" id="conAl" aria-label="Lo que piden los contratos">'+al.join('')+'</ul></section>';
+ h+='<section class="sec todos"><h2>Los contratos <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(C=>{const u=C.per[C.per.length-1],vig=K.vigente(C,hoy),bz=barrio({cli:C.cli});
    const est=C.e!=='activo'?'<span class="pill">De baja</span>':!vig?'<span class="pill ausente">Vencido</span>':!u.pago.cobrado?'<span class="pill cobro">Por cobrar</span>':'';
    return'<li><button type="button" class="fila cont'+(C.e!=='activo'?' baja':'')+'" data-a="conVer" data-c="'+C.id+'"><span class="f1">'+esc(K.nomCli(C.cli))+'</span><span class="f2">'+esc(C.id)+' · hasta el '+K.fechaCorta(u.a)+(bz?' · '+esc(bz):'')+'</span>'+(est?'<span class="fd">'+est+'</span>':'')+'</button></li>'}).join('')+'</ul>':'<p class="hueco">Cuando un cliente diga que sí, se da de alta aquí o desde su aviso.</p>')+'</section>';
  h+='<p class="mnota" style="margin-top:14px">'+PLANES.map(x=>'<b>'+esc(cfg.planes[x].n)+'</b>, '+K.eur(cfg.planes[x].precio)+' al año: '+incluye(x)).join('<br>')+' No se renueva solo, y el cliente se da de baja cuando quiera.</p>';
- return h}
+ return h+'</div>'}
 /* un contrato, con todo lo que se puede hacer con él */
 function hConVer(C){const P=cfg.planes[C.plan],u=C.per[C.per.length-1],hoy=K.madrid().date,vig=K.vigente(C,hoy),ren=K.pendientesContratos(S,cfg,Date.now()).renovar.some(x=>x.id===C.id);
  const d=hoja(hc(esc(K.nomCli(C.cli)))+'<div class="hb"><p class="ln"><b>'+esc(C.id)+'</b> · '+esc(P?P.n:C.plan)+'</p><p class="ln">'+esc(C.cli.dir)+' · '+K.telBonito(C.cli.tel)+'</p>'+
   '<p class="ln">Del '+K.fechaCorta(u.de)+' al '+K.fechaCorta(u.a)+' · '+K.eur(u.precio)+(C.e!=='activo'?' · <b>de baja</b>'+(C.baja&&C.baja.des?' (desistió)':''):!vig?' · <b>vencido</b>':'')+'</p>'+
   '<p class="ln">'+(u.pago.cobrado?'Cobrado el '+K.fechaCorta(K.madrid(u.pago.t).date)+' ('+PAGO[u.pago.modo].toLowerCase()+')':'Pendiente de cobro')+'</p>'+
-  '<div class="acts"><a class="btn peq" href="#/papel/'+C.id+'/contrato">Ver el contrato</a><button class="btn peq" data-a="conFac" data-c="'+C.id+'">Copiar los datos de la factura</button>'+(C.e==='activo'&&!u.pago.cobrado?'<button class="btn peq" data-a="conCob" data-c="'+C.id+'">Cobrado</button>':'')+(ren?'<button class="btn peq" data-a="conRen" data-c="'+C.id+'">Renovar</button>':'')+'</div>'+
+  '<div class="acts"><a class="btn peq" href="#/papel/'+C.id+'/contrato">Ver el contrato</a><button class="btn peq" data-a="conFac" data-c="'+C.id+'">Copiar los datos de la factura</button>'+(C.e==='activo'&&!u.pago.cobrado?'<button class="btn peq" data-a="conCob" data-c="'+C.id+'">Apuntar cobro</button>':'')+(ren?'<button class="btn peq" data-a="conRen" data-c="'+C.id+'">Renovar contrato</button>':'')+'</div>'+
   (C.e==='activo'?'<p class="fin"><button class="txt mal" data-a="conBaja" data-c="'+C.id+'">Dar de baja</button></p>':'')+'</div>');
  d.addEventListener('click',e=>{const b=e.target.closest('[data-a],a[href]');if(b&&b.dataset.a!=='conFac')setTimeout(()=>d.close(),0)})}
 
 function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;const c=A?A.cli:{};
  const pl=x=>esc(cfg.planes[x].n)+' · '+K.eur(cfg.planes[x].precio)+' al año',cp=(id,lb,v,o)=>'<div class="campo"><label for="ca_'+id+'">'+lb+'</label><input id="ca_'+id+'" value="'+esc(v||'')+'" '+(o||'')+' autocomplete="off"></div>';
  const d=hoja(hc('Contrato de mantenimiento')+'<form class="hb" id="caF" novalidate>'+
-  (PLANES.length>1?'<div class="campo"><span class="lb" id="ca_pl">Plan</span><div class="ops" role="group" aria-labelledby="ca_pl">'+PLANES.map(x=>'<button type="button" class="op" data-cp="'+x+'" aria-pressed="'+(x===plan)+'">'+pl(x)+'</button>').join('')+'</div></div>':'<p><b>'+pl(plan)+'</b></p>')+
+  (PLANES.length>1?'<div class="campo"><span class="lb" id="ca_pl">Plan</span><div class="ops" role="radiogroup" aria-labelledby="ca_pl">'+PLANES.map(x=>'<button type="button" class="op" data-cp="'+x+'" role="radio" aria-checked="'+(x===plan)+'">'+pl(x)+'</button>').join('')+'</div></div>':'<p><b>'+pl(plan)+'</b></p>')+
   '<p class="dn" id="ca_inc">'+incluye(plan)+'</p>'+
   '<div class="duo">'+cp('nombre','Nombre',c.nombre,'maxlength="60"')+cp('apellidos','Apellidos',c.apellidos,'maxlength="80"')+'</div>'+cp('tel','Teléfono',c.tel?K.telBonito(c.tel):'','inputmode="tel" maxlength="20"')+
   '<div class="duo">'+cp('dir','Dirección (calle, número, piso)',c.dir,'maxlength="120"')+cp('cp','Código postal',c.cp,'inputmode="numeric" maxlength="5"')+'</div>'+
-  '<div class="campo"><span class="lb" id="ca_al">Cómo dice que sí</span><div class="ops" role="group" aria-labelledby="ca_al"><button type="button" class="op" data-ca="firma" aria-pressed="true">Firma aquí</button><button type="button" class="op" data-ca="mensaje" aria-pressed="false">Lo ha dicho por mensaje</button></div></div>'+
+  '<div class="campo"><span class="lb" id="ca_al">Cómo dice que sí</span><div class="ops" role="radiogroup" aria-labelledby="ca_al"><button type="button" class="op" data-ca="firma" role="radio" aria-checked="true">Firma aquí</button><button type="button" class="op" data-ca="mensaje" role="radio" aria-checked="false">Lo ha dicho por mensaje</button></div></div>'+
   '<div class="firma" id="ca_fz"><div class="fh"><span class="lb">Firma del cliente</span><button class="txt" id="caB" type="button">Borrar</button></div><canvas id="caFi" aria-label="Zona para firmar con el dedo"></canvas></div>'+
   '<div class="des"><p>Tiene 14 días para desistir. Si quiere la revisión antes, márcalo: si desiste después de la revisión, paga la parte proporcional.</p><label class="chk"><input type="checkbox" id="ca_pide"> Quiere la revisión antes de esos 14 días</label></div>'+
   '<div class="campo"><span class="lb">¿Lo paga ya?</span><div id="caM">'+modos(['efectivo','tarjeta','bizum','transferencia','pendiente'],modo)+'</div></div>'+
   '<p class="err" id="ca_err" style="color:var(--mal)" hidden></p></form><div class="hp"><button class="btn pri ancho" form="caF">Dar de alta el contrato</button></div>',{llena:1});
  pad=Oficio.firma($('#caFi',d));$('#caB',d).onclick=()=>pad.borrar();
  d.addEventListener('click',e=>{const b=e.target.closest('[data-cp],[data-ca],[data-modo]');if(!b)return;
-  if(b.dataset.cp){plan=b.dataset.cp;$$('[data-cp]',d).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.cp===plan)));$('#ca_inc',d).textContent=incluye(plan)}
-  else if(b.dataset.ca){acepta=b.dataset.ca;$$('[data-ca]',d).forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.ca===acepta)));$('#ca_fz',d).hidden=acepta!=='firma'}
+  if(b.dataset.cp){plan=b.dataset.cp;$$('[data-cp]',d).forEach(x=>x.setAttribute('aria-checked',String(x.dataset.cp===plan)));$('#ca_inc',d).textContent=incluye(plan)}
+  else if(b.dataset.ca){acepta=b.dataset.ca;$$('[data-ca]',d).forEach(x=>x.setAttribute('aria-checked',String(x.dataset.ca===acepta)));$('#ca_fz',d).hidden=acepta!=='firma'}
   else{modo=b.dataset.modo;$('#caM',d).innerHTML=modos(['efectivo','tarjeta','bizum','transferencia','pendiente'],modo)}});
  $('#caF',d).onsubmit=e=>{e.preventDefault();const m=$('#ca_err',d),v=k=>$('#ca_'+k,d).value,di=t=>{m.textContent=t;m.hidden=false};
   if(acepta==='firma'&&pad.vacia())return di('Falta la firma del cliente.');
@@ -978,10 +1040,10 @@ function vMejoras(){let h='<div class="cab"><div><h1>Mejoras</h1><p class="sub">
    '<button class="btn pri ancho" id="mCodOk">Guardar el código</button>'+(SOP.codigo()?'<button class="btn ancho" type="button" data-a="mCancela">Dejarlo como está</button>':'')+'</form>';
  const T=OficioSoporte.TIPOS,eT=M.err==='tipo',eX=M.err==='texto'||M.err==='largo';
  return h+'<form class="form" id="fMejora" novalidate>'+
-  '<div class="campo'+(eT?' mal':'')+'"><span class="lb" id="l_mt">¿Qué es?</span><div><div class="seg tres" role="group" aria-labelledby="l_mt">'+Object.keys(T).map(k=>'<button type="button" data-m-tipo="'+k+'" aria-pressed="'+(M.tipo===k)+'">'+T[k]+'</button>').join('')+'</div></div><p class="err" id="e_mtipo"'+(eT?'':' hidden')+'>'+MERR.tipo+'</p></div>'+
+  '<div class="campo'+(eT?' mal':'')+'"><span class="lb" id="l_mt">¿Qué es?</span><div><div class="seg tres" role="radiogroup" aria-labelledby="l_mt">'+Object.keys(T).map(k=>'<button type="button" data-m-tipo="'+k+'" role="radio" aria-checked="'+(M.tipo===k)+'">'+T[k]+'</button>').join('')+'</div></div><p class="err" id="e_mtipo"'+(eT?'':' hidden')+'>'+MERR.tipo+'</p></div>'+
   '<div class="campo'+(eX?' mal':'')+'"><label for="m_texto">Cuéntalo</label><textarea id="m_texto" data-m="texto" rows="4" maxlength="2000"'+(eX?' aria-invalid="true" aria-describedby="e_mtexto"':' aria-describedby="a_mtexto"')+'>'+esc(M.texto)+'</textarea>'+
    (eX?'<p class="err" id="e_mtexto">'+MERR[M.err]+'</p>':'<p class="ayuda" id="a_mtexto">Qué estabas haciendo, qué pasó y qué esperabas. Sin datos de tus clientes.</p>')+'</div>'+
-  '<div class="campo"><label for="m_quien">¿Quién lo pide? (opcional)</label><input id="m_quien" data-m="quien" value="'+esc(M.quien)+'" maxlength="60" autocomplete="off"></div>'+
+  '<div class="campo"><label for="m_quien">Tu nombre (opcional)</label><input id="m_quien" data-m="quien" value="'+esc(M.quien)+'" maxlength="60" autocomplete="off"></div>'+
   '<p class="mnota">Con la petición viajan el nombre de las últimas pantallas por las que has pasado, el tamaño de la pantalla, la versión de la app y el tipo de aparato. Nada de tus avisos ni de tus clientes.</p>'+
   '<button class="btn pri ancho" id="mOk"'+(M.env?' disabled':'')+'>'+(M.env?'Enviando…':'Enviar a OOOX')+'</button></form><div id="mLista">'+(MLH=mListas())+'</div>'}
 function mPonListas(){const x=$('#mLista'),h=mListas();if(x&&h!==MLH){x.innerHTML=h;MLH=h}}
@@ -1028,7 +1090,7 @@ function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
  else if(r.v==='agenda')h=vAgenda(r.a);
  else if(r.v==='equipo')h=vEquipo(r.a);
  else if(r.v==='furgo')h=vFurgo(r.a);
- else if(r.v==='cobros'&&pro())h=vCobros();
+ else if(r.v==='cobros'&&pro())h=vCobros(r.a);
  else if(r.v==='contratos'&&HAY_CON())h=vContratos();
  else if(r.v==='mejoras'&&SOP)h=vMejoras();
  else if(r.v==='nuevo'){det=true;h=vNuevo()}
@@ -1136,7 +1198,7 @@ function hCita(A){let dia=A.cita?A.cita.dia:'',fr=A.cita?A.cita.fr:'',conf=!['ci
  const leVa=(x,f)=>(A.vale||[]).some(v=>v.dia===x&&v.fr===f);
  const d=hoja(hc(A.cita?'Cambiar la cita':'Dar cita')+'<div class="hb" id="cB"></div><div class="hp"><button class="btn pri ancho" id="cOk">Guardar la cita</button>'+(A.cita?'<button class="txt" id="cUr" style="justify-self:center">Pasar a urgente</button>':'')+'</div>');
  const p=()=>{const dias=K.diasDe(S,cfg,Date.now(),6,true,A);if(!dias.find(x=>x.dia===dia))dia=dias[0].dia;const F=K.franjasDe(S,cfg,dia,Date.now(),A.id,A),fS=F.find(f=>f.id===fr&&f.okOf);if(!fS)fr='';
-  $('#cB',d).innerHTML='<div class="campo"><span class="lb">Día</span><div class="ops">'+dias.map(x=>'<button class="op" data-d="'+x.dia+'" aria-pressed="'+(x.dia===dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div></div><div class="campo"><span class="lb">Franja</span><div class="ops">'+F.map(f=>'<button class="op" data-f="'+f.id+'" aria-pressed="'+(f.id===fr)+'"'+(f.okOf?'':' disabled')+'>'+f.txt+'<small>'+(leVa(dia,f.id)?'le va bien · ':'')+frOf(f)+'</small></button>').join('')+'</div></div>'+
+  $('#cB',d).innerHTML='<div class="campo"><span class="lb" id="cB_d">Día</span><div class="ops" role="radiogroup" aria-labelledby="cB_d">'+dias.map(x=>'<button class="op" data-d="'+x.dia+'" role="radio" aria-checked="'+(x.dia===dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div></div><div class="campo"><span class="lb" id="cB_f">Franja</span><div class="ops" role="radiogroup" aria-labelledby="cB_f">'+F.map(f=>'<button class="op" data-f="'+f.id+'" role="radio" aria-checked="'+(f.id===fr)+'"'+(f.okOf?'':' disabled')+'>'+f.txt+'<small>'+(leVa(dia,f.id)?'le va bien · ':'')+frOf(f)+'</small></button>').join('')+'</div></div>'+
    (fS&&fS.por?'<p class="dn" id="c_por">'+PORL[fS.por]+'</p>':'')+
    (fS&&!leVa(dia,fr)?'<label class="chk"><input type="checkbox" id="cConf"'+(conf?' checked':'')+'>Ya lo he hablado con el cliente</label><p class="dn">Si no, la cita queda «pendiente de confirmar».</p>':'')+
    '<p class="dn">Con cita, la tarifa es siempre la normal.</p>'+
@@ -1155,14 +1217,14 @@ function hCompletar(A){const c=A.cli;
   const k=r.err==='zona'?'cp':r.err,i=$('#k_'+k,d);if(i){const x=i.closest('.campo');x.classList.add('mal');const m=$('.err',x);m.textContent=ERR[r.err];m.hidden=false;i.focus()}else toast(ERR[r.err]||'No se ha podido guardar.')}}
 function hCancelar(A){const d=hoja(hc('¿Cancelar el aviso?')+'<div class="hb"><p>'+A.id+', '+esc(cfg.av[A.av].n.toLowerCase())+(K.nomCli(A.cli)?' de '+esc(K.nomCli(A.cli)):'')+'. Sale de la bandeja y, si tenía cita, su hueco queda libre. No se puede deshacer.</p></div><div class="hp"><button class="btn ancho" id="xOk" style="border-color:var(--mal);color:var(--mal)">Cancelar el aviso</button><button class="btn ancho" data-x>Volver</button></div>');
  $('#xOk',d).onclick=()=>{if(hacer({tipo:'cancelar',id:A.id}).ok){d.close();toast('Aviso cancelado.');location.hash='#/bandeja'}}}
-const modos=(L,sel)=>'<div class="ops" role="group" aria-label="Cómo paga">'+L.map(k=>'<button type="button" class="op" data-modo="'+k+'" aria-pressed="'+(sel===k)+'">'+PAGO[k]+'</button>').join('')+'</div>';
-function hCobrar(A){let modo='';const d=hoja(hc('Marcar como cobrado')+'<div class="hb"><p>'+A.id+' · '+esc(K.nomCli(A.cli))+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div id="oM">'+modos(['transferencia','bizum','efectivo','tarjeta'],'')+'</div></div><div class="hp"><button class="btn pri ancho" id="oOk" disabled>Cobrado</button></div>');
+const modos=(L,sel)=>'<div class="ops" role="radiogroup" aria-label="Cómo paga">'+L.map(k=>'<button type="button" class="op" data-modo="'+k+'" role="radio" aria-checked="'+(sel===k)+'">'+PAGO[k]+'</button>').join('')+'</div>';
+function hCobrar(A){let modo='';const d=hoja(hc('Marcar como cobrado')+'<div class="hb"><p>'+A.id+' · '+esc(K.nomCli(A.cli))+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div id="oM">'+modos(['transferencia','bizum','efectivo','tarjeta'],'')+'</div></div><div class="hp"><button class="btn pri ancho" id="oOk" disabled>Apuntar cobro</button></div>');
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#oOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#oM',d).innerHTML=modos(['transferencia','bizum','efectivo','tarjeta'],modo);$('#oOk',d).disabled=false}
   else if(hacer({tipo:'cobrar',id:A.id,modo}).ok){d.close();toast('Cobrado: '+K.eur(A.tot.total)+'.')}})}
 
-/* «Facturada»: la factura la hace el programa del negocio; aquí se apunta que ya está, con su número si se quiere */
-function hFacturar(A){const d=hoja(hc('Marcar como facturado')+'<div class="hb"><p>'+A.id+' · '+esc(K.nomCli(A.cli))+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div class="campo"><label for="fNum">Número de la factura, si quieres</label><input id="fNum" maxlength="30" autocomplete="off"></div><p class="dn">La factura la haces con tu programa de facturas. Aquí solo queda apuntado que ya está hecha, para que no se escape ninguna.</p></div><div class="hp"><button class="btn pri ancho" id="fOk">Facturada</button></div>');
- $('#fOk',d).onclick=()=>{if(hacer({tipo:'facturar',id:A.id,num:$('#fNum',d).value}).ok){d.close();toast('Apuntado como facturado.')}}}
+/* «Marcar como facturada»: la factura la hace el programa del negocio; aquí se apunta que ya está, con su número si se quiere */
+function hFacturar(A){const d=hoja(hc('Marcar como facturada')+'<div class="hb"><p>'+A.id+' · '+esc(K.nomCli(A.cli))+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div class="campo"><label for="fNum">Número de la factura, si quieres</label><input id="fNum" maxlength="30" autocomplete="off"></div><p class="dn">La factura la haces con tu programa de facturas. Aquí solo queda apuntado que ya está hecha, para que no se escape ninguna.</p></div><div class="hp"><button class="btn pri ancho" id="fOk">Marcar como facturada</button></div>');
+ $('#fOk',d).onclick=()=>{if(hacer({tipo:'facturar',id:A.id,num:$('#fNum',d).value}).ok){d.close();toast('Marcada como facturada.')}}}
 /* copiar un texto: con el portapapeles si el navegador lo deja y, si no, a la antigua */
 function copia(t,ok){const vieja=()=>{const x=document.createElement('textarea');x.value=t;x.setAttribute('readonly','');x.style.position='fixed';x.style.opacity='0';document.body.appendChild(x);x.select();let b=false;try{b=document.execCommand('copy')}catch(e){}x.remove();toast(b?ok:'No se ha podido copiar. Los datos están en el parte.')};
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast(ok),vieja);else vieja()}
@@ -1254,6 +1316,7 @@ const ACC={
  zona:A=>hZona(A),
  msg:(A,b)=>hMsg(A,b.dataset.k),
  mensajes:()=>hMensajes(),
+ irSec:(A,b)=>{const s=document.getElementById(b.dataset.sec);if(!s)return;s.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});s.focus({preventScroll:true})},
  seguir:()=>hMensajes(true),
  escribirSi:A=>{if(hacer({tipo:'escribir',tel:A.cli.tel,si:true}).ok)toast('Vuelve a recibir los mensajes de seguimiento.')},
  completar:A=>hCompletar(A),
@@ -1304,7 +1367,7 @@ document.addEventListener('change',e=>{const i=e.target;
  if(i.dataset&&i.dataset.obs)Oficio.hacer({tipo:'anotar',id:i.dataset.obs,obs:i.value},Q);
  if(i.dataset&&i.dataset.foto&&i.files[0])Oficio.foto(i.files[0]).then(f=>{if(hacer({tipo:'anotar',id:i.dataset.foto,foto:f}).ok)toast('Foto guardada en el parte.')}).catch(()=>toast('No he podido leer esa foto.'))});
 document.addEventListener('click',e=>{const t=e.target.closest('#fMejora [data-m-tipo]');if(!t)return;M.tipo=t.dataset.mTipo;if(M.err==='tipo')M.err='';
- $$('#fMejora [data-m-tipo]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mTipo===M.tipo)));const x=$('#e_mtipo');if(x){x.hidden=true;x.closest('.campo').classList.remove('mal')}});
+ $$('#fMejora [data-m-tipo]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.mTipo===M.tipo)));const x=$('#e_mtipo');if(x){x.hidden=true;x.closest('.campo').classList.remove('mal')}});
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.m&&Object.prototype.hasOwnProperty.call(M,i.dataset.m))M[i.dataset.m]=i.value});
 document.addEventListener('submit',e=>{const f=e.target.id;if(f==='fMejora'){e.preventDefault();mEnvia()}else if(f==='fCodigo'){e.preventDefault();mCodigo()}else if(f==='fEntra'){e.preventDefault();entra()}});
 document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#eVer'))return;EN.ver=!EN.ver;pEntra();$('#e_cod').focus()});
@@ -1313,11 +1376,27 @@ document.addEventListener('change',e=>{if(e.target.id==='e_quien')EN.quien=e.tar
 addEventListener('online',()=>{if(SOP&&Q.rol!=='tecnico'&&SOP.cola().length)mTrae(true)});
 /* De vez en cuando la centralita mira si OOOX ha contestado algo: como mucho cada media hora, y enseguida si hay algo sin enviar. */
 if(SOP){const mira=()=>{if(Q.rol!=='tecnico'&&SOP.codigo()&&(SOP.toca(18e5)||(SOP.cola().length&&navigator.onLine!==false)))mTrae(true)};setTimeout(mira,1500);setInterval(mira,3e5)}
+/* Los grupos de una sola opción (role=radiogroup) se manejan como los de un formulario de siempre: con Tab se entra
+   en el grupo por la opción elegida (o la primera) y con las flechas se pasa de una a otra, eligiéndola. Cada grupo lo
+   pinta quien lo use; esto solo pone el orden de tabulación y las flechas, también en las hojas que se abren encima. */
+const RADIOS='[role=radiogroup]';
+function ronda(g){const R=[...g.querySelectorAll('[role=radio]')],c=R.find(r=>r.getAttribute('aria-checked')==='true'&&!r.disabled)||R.find(r=>!r.disabled);R.forEach(r=>{const v=r===c?0:-1;if(r.tabIndex!==v)r.tabIndex=v})}
+new MutationObserver(ms=>{const G=new Set();ms.forEach(m=>{const n=m.target.nodeType===1?m.target:m.target.parentElement;if(!n)return;const g=n.closest&&n.closest(RADIOS);if(g)G.add(g);
+ if(m.type==='childList')m.addedNodes.forEach(x=>{if(x.nodeType!==1)return;if(x.matches(RADIOS))G.add(x);x.querySelectorAll(RADIOS).forEach(y=>G.add(y))})});G.forEach(ronda)})
+ .observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-checked','disabled']});
+document.querySelectorAll(RADIOS).forEach(ronda);
+document.addEventListener('keydown',e=>{const r=e.target.closest&&e.target.closest('[role=radio]'),g=r&&r.closest(RADIOS);if(!g)return;
+ const d={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[e.key];if(!d&&e.key!==' ')return;e.preventDefault();
+ const R=[...g.querySelectorAll('[role=radio]')].filter(x=>!x.disabled);let i=R.indexOf(r);if(d)i=(i+d+R.length)%R.length;const x=R[i];if(!x)return;
+ const a=[...x.attributes].find(z=>z.name.startsWith('data-')),sel=a?'['+a.name+'="'+CSS.escape(a.value)+'"]':null,raiz=x.closest('dialog')||document;
+ if(x.getAttribute('aria-checked')!=='true')x.click();requestAnimationFrame(()=>{const y=sel&&raiz.querySelector(sel)||x;if(y.isConnected)y.focus()})});
 document.addEventListener('submit',e=>{if(e.target.id!=='fNuevo')return;e.preventDefault();
+ if(!B.av||!cfg.av[B.av]){B.err='av';pinta();const x=$('#fNuevo [data-b-av]');if(x)x.focus();return}
+ if(B.cuando!=='urg'&&B.cuando!=='cita'){B.err='cuando';pinta();const x=$('#fNuevo [data-b-cu]');if(x)x.focus();return}
  if(B.cuando==='cita'&&!B.fr){B.err='franja';pinta();return}
  if(B.va)return;B.va=true;const bt=$('#fNuevo [type=submit]');if(bt)bt.disabled=true;
  Oficio.crear({tipo:'pedir',av:B.av,origen:B.or,nota:B.nota,cli:{nombre:B.nombre,apellidos:B.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:B.cuando==='cita'?{dia:B.dia,fr:B.fr}:null},Q).then(r=>{B.va=false;
-  if(r.ok){Object.assign(B,{av:N.averias[0].id,or:'llamada',cuando:'urg',fr:'',nombre:'',apellidos:'',tel:'',dir:'',cp:'',nota:'',err:''});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');S=Oficio.estado();if(location.hash==='#/aviso/'+r.id)pinta();else location.hash='#/aviso/'+r.id}
+  if(r.ok){Object.assign(B,{av:'',or:'llamada',cuando:'',fr:'',nombre:'',apellidos:'',tel:'',dir:'',cp:'',nota:'',err:''});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');S=Oficio.estado();if(location.hash==='#/aviso/'+r.id)pinta();else location.hash='#/aviso/'+r.id}
   else{B.err=r.err;pinta();const i=$('#n_'+(r.err==='zona'?'cp':r.err));if(i)i.focus();else toast(ERR[r.err]||'Revisa los datos.')}})});
 pinta();
 })();

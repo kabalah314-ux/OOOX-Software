@@ -44,8 +44,8 @@ async def main():
           const p={K}.urgenciaAhora(Object.assign({{}},S,{{avisos:S.avisos.filter(x=>x.id!==A.id)}}),{CFG},A.cli.dis,Date.now(),A.av);return{{id:A.id,tec:p&&p.tec,n:p&&{CFG}.tec[p.tec].n,de:p&&p.de}}}})()""")
         es(u is not None, 'U32: hay una urgencia recién entrada sin repartir')
         if u:
-            fila = await c.locator(f'a[href="#/aviso/{u["id"]}"]').first.inner_text()
-            es(not u['tec'] or (f"antes llega {u['n']}".lower() in fila.lower() and await c.locator(f'a[href="#/aviso/{u["id"]}"] .f3').count() == 1), f"U32: su fila dice, en una línea aparte, quién llegaría antes ({fila.strip()[:120]!r})")
+            fila = await c.locator(f'#sUrg a[href="#/aviso/{u["id"]}"]').first.inner_text()
+            es(not u['tec'] or (f"antes llega {u['n']}".lower() in fila.lower() and await c.locator(f'#sUrg a[href="#/aviso/{u["id"]}"] .f3').count() == 1), f"U32: su fila dice, en una línea aparte, quién llegaría antes ({fila.strip()[:120]!r})")
             tira = await c.locator('.tira').first.inner_text() if await c.locator('.tira').count() else ''
             nombres = await c.evaluate("Oficio.N.tecnicos.map(t=>t.n)")
             es(all(n in tira for n in nombres), 'U32: arriba salen los tres técnicos, cada uno con su estado')
@@ -76,7 +76,8 @@ async def main():
         R = await c.evaluate(f"(()=>{{const R={K}.resumen(Oficio.estado(),{CFG},Date.now());return{{pend:{K}.eur(R.pend.total),caja:{K}.eur(R.caja.total),n:R.pend.n}}}})()")
         await c.goto(B + 'app.html#/cobros'); await c.wait_for_timeout(500); t = await c.locator('main').inner_text()
         es(R['pend'] in t and R['caja'] in t, f"U36: cobros enseña lo pendiente ({R['pend']}) y la caja de hoy ({R['caja']})")
-        es('urgencia' in t.lower(), 'U36: y las urgencias del mes')
+        await c.goto(B + 'app.html#/cobros/caja'); await c.wait_for_selector('#urgMes'); t = await c.locator('main').inner_text()
+        es('urgencia' in t.lower() and 'Caja de hoy' in t, 'U36: y, en su pestaña, la caja de hoy y las urgencias del mes')
         # U37: contratos: los de renovar, los de revisión y las cuotas
         P = await c.evaluate(f"{K}.pendientesContratos(Oficio.estado(),{CFG},Date.now())")
         await c.goto(B + 'app.html#/contratos'); await c.wait_for_timeout(500); t = await c.locator('main').inner_text()

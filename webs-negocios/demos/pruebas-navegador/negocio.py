@@ -93,8 +93,8 @@ async def main():
         await c.click(f'.tec[data-tec={tec}]'); await c.wait_for_timeout(300); await guarda(c, 'aviso asignado')
         # un aviso que entra por WhatsApp y se apunta a mano
         await c.goto(B + 'app.html#/nuevo'); await c.wait_for_selector('#fNuevo')
-        es(await c.locator('[data-b-av][aria-pressed=true]').count() == 1, 'nuevo aviso: ya viene elegida una avería del negocio')
-        await c.click('[data-b-or=whatsapp]'); await c.fill('#n_tel', '622 33 44 55'); await c.fill('#n_nombre', 'Wences Canal'); await c.fill('#n_apellidos', 'Prueba'); await c.fill('#n_dir', 'Av. de la Prueba 3, bajo'); await c.fill('#n_cp', cp)
+        es(await c.locator('[data-b-av][role=radio]').count() == len(N['averias']) and await c.locator('[data-b-av][aria-checked=true]').count() == 0, 'nuevo aviso: salen las averías del negocio y ninguna viene elegida')
+        await c.click('[data-b-av]'); await c.click('[data-b-cu="urg"]'); await c.click('[data-b-or=whatsapp]'); await c.fill('#n_tel', '622 33 44 55'); await c.fill('#n_nombre', 'Wences Canal'); await c.fill('#n_apellidos', 'Prueba'); await c.fill('#n_dir', 'Av. de la Prueba 3, bajo'); await c.fill('#n_cp', cp)
         await guarda(c, 'nuevo aviso'); await c.click('#fNuevo button[type=submit]'); await c.wait_for_timeout(400)
         S = await c.evaluate(f"JSON.parse(localStorage.getItem('{clave}'))"); W = next((a for a in S['avisos'] if a['cli']['nombre'] == 'Wences Canal'), None)
         es(W and W['origen'] == 'whatsapp' and W['urg'], 'nuevo aviso: queda apuntado que entró por WhatsApp')

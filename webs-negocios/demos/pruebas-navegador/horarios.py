@@ -50,7 +50,7 @@ def chico(f):
 async def nuevo_con_cita(c, dia, fr, n, av=None):
     """La oficina crea un aviso con cita desde su formulario. Devuelve el id, o '' si el botón de esa franja no deja."""
     await ir(c, '#/nuevo', '#fNuevo'); await c.click('[data-b-cu="cita"]'); await c.click(f'[data-b-dia="{dia}"]')
-    if av: await c.click(f'[data-b-av="{av}"]')
+    await c.click(f'[data-b-av="{av or "fuga"}"]')   # la avería no viene elegida de antemano
     b = c.locator(f'[data-b-fr="{fr}"]')
     if await b.is_disabled(): return ''
     await b.click()
@@ -161,7 +161,10 @@ async def main():
         es(await c.locator('.seg.segv a').all_inner_texts() == ['Citas', 'Equipo'] and await c.locator('.seg.segv a[aria-current]').inner_text() == 'Citas', 'agenda: arriba se elige entre «Citas» y «Equipo»')
         tA = await texto(c, '#v'); fD = await c.evaluate(FR + f"('{D1}')")
         es('undefined' not in tA and 'NaN' not in tA and all(f"de {f['tope']}" in tA for f in fD), 'agenda: cada franja dice cuántas lleva de las que caben')
-        es(('solo para la oficina' in tA) == any(f['okOf'] and f['libresOf'] > (f['libres'] if f['ok'] else 0) for f in fD), 'agenda: los huecos que solo puede usar la oficina van marcados aparte')
+        es(('reservado para la oficina' in tA or 'reservados para la oficina' in tA) == any(f['okOf'] and f['libresOf'] > (f['libres'] if f['ok'] else 0) for f in fD), 'agenda: los huecos que solo puede usar la oficina van marcados aparte')
+        es(await c.locator('.fr .cap').count() == len(fD) and await c.locator('.fr .capb').count() == len(fD) and 'Queda' not in tA, 'agenda: cada franja, en una línea («N libres · N reservados para la oficina») y con su barra')
+        dl = await texto(c, '.dlargo')
+        es(dl != '' and any(m in dl for m in ('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre')), 'agenda: el día elegido, con su fecha completa')
         await c.click('.seg.segv a[href^="#/equipo"]'); await c.wait_for_selector('.tecd[data-tec]')
         es(await texto(c, '#v h1') == 'Equipo' and await c.locator('#nav a[href="#/agenda"][aria-current]').count() == 1 and await c.locator('.tecd[data-tec]').count() == len(tecs), 'equipo: una ficha por técnico, dentro de la agenda')
         es(await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), 'equipo: en el móvil no se sale por los lados')
@@ -180,12 +183,12 @@ async def main():
         # ---------- 5. «No viene»: una ausencia y lo que pasa con sus citas ----------
         X = sip[0]; nx = next(t['n'] for t in N['tecnicos'] if t['id'] == X)
         await c.click('.cab [data-a="ausencia"]'); await c.wait_for_selector('#uF')
-        es(await c.locator('#uF [aria-pressed=true]').count() == 0 and await c.input_value('#u_de') == D1 and await c.input_value('#u_a') == D1, 'ausencia: desde el botón de arriba, el día viene puesto y hay que elegir a quién')
+        es(await c.locator('#uF [aria-checked=true]').count() == 0 and await c.input_value('#u_de') == D1 and await c.input_value('#u_a') == D1, 'ausencia: desde el botón de arriba, el día viene puesto y hay que elegir a quién')
         await c.click('button[form="uF"]')
         es('Elige quién falta' in await texto(c, '#u_err') and await c.locator('dialog[open]').count() == 1, 'ausencia: sin elegir a nadie no se apunta, y lo dice')
         await c.click('dialog[open] [data-x]'); await c.wait_for_selector('dialog[open]', state='detached')
         await c.click(f'.tecd[data-tec="{X}"] [data-a="ausencia"]'); await c.wait_for_selector('#uF')
-        es(await c.get_attribute(f'#uF [data-ut="{X}"]', 'aria-pressed') == 'true', 'ausencia: desde la ficha de un técnico, ya viene elegido')
+        es(await c.get_attribute(f'#uF [data-ut="{X}"]', 'aria-checked') == 'true', 'ausencia: desde la ficha de un técnico, ya viene elegido')
         await c.evaluate("(()=>{const i=document.querySelector('#u_de');i.removeAttribute('min');i.value='2020-01-01';const j=document.querySelector('#u_a');j.removeAttribute('min');j.value='2020-01-02'})()"); await c.click('button[form="uF"]')
         es('Revisa las fechas' in await texto(c, '#u_err'), 'ausencia: con fechas pasadas no se apunta, y lo dice')
         await c.fill('#u_de', D2); await c.dispatch_event('#u_de', 'change')
@@ -279,7 +282,7 @@ async def main():
         await ps.click(f'.tec[data-tec="{tecs[0]}"]'); no0 = await toast(ps, 'ausente')
         es('Ausente ese día' in await texto(ps, f'.tec[data-tec="{tecs[0]}"]') and no0 and 'no' not in (await ps.get_attribute(f'.tec[data-tec="{tecs[1]}"]', 'class')).split(), 'sin horarios: a quien falta tampoco se le puede asignar; a los demás, sí')
         await ir(ps, f'#/agenda/{D1}', '.seg.segv')
-        es('de 2' in await texto(ps, '#v') and 'undefined' not in await texto(ps, '#v') and 'solo para la oficina' not in await texto(ps, '#v'), 'sin horarios: la agenda cuenta sobre el número fijo de citas y no hay hueco de urgencias')
+        es('de 2' in await texto(ps, '#v') and 'undefined' not in await texto(ps, '#v') and 'para la oficina' not in await texto(ps, '#v'), 'sin horarios: la agenda cuenta sobre el número fijo de citas y no hay hueco de urgencias')
         await s.close()
 
         es(not errores, f'ninguna pantalla da errores en la consola {errores[:5]}')

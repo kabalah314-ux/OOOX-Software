@@ -87,6 +87,8 @@ if [ "$QUE" != reglas ]; then
     paso "Modo servidor: oficina, técnicos y cliente, cada uno en su navegador" python3 servidor.py 8768
     kill $S4 2>/dev/null; wait $S4 2>/dev/null
   fi
+  # una copia de verdad (sin «prueba», con servidor y sin él) no enseña nada de la demo: ni «muestra», ni el código compartido
+  paso "Copia de verdad: nada de la demo" python3 real.py
   paso "Horarios, turnos y ausencias en pantalla" python3 horarios.py
   paso "Mapa: la posición del técnico de camino" python3 mapa.py "$OTRO"
   paso "Mejoras: pedir, ver la respuesta y quedarse sin conexión" python3 soporte.py "$OTRO"

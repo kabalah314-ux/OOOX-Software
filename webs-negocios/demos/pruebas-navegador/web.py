@@ -165,6 +165,52 @@ async def main():
             es(not peor, f'web a {w}×{h}: ninguna sección se sale {peor[:2]}')
             await ctx.close()
 
+        # ---------- 7 bis. en el móvil, cada pantalla entra entera entre la cabecera y la barra (16-11-2026) ----------
+        # Se recorre como un usuario (una pantalla por gesto). Al pararse en cada sección: su título, entero debajo de la
+        # cabecera, y ningún botón ni precio debajo de la barra de abajo. Antes, en un iPhone SE se escondían «Es esto»,
+        # «Leer reseñas» y «Mandar la foto», y al seguir, el título se metía bajo la cabecera.
+        for w, h in ((360, 640), (375, 667), (390, 844)):
+            ctx = await br.new_context(viewport={'width': w, 'height': h}, is_mobile=True, has_touch=True, timezone_id='Europe/Madrid'); await pon_hora(ctx)
+            pg = oye(await ctx.new_page(), f'pantallas {w}x{h}')
+            await pg.goto(B + 'index.html'); await pg.wait_for_timeout(1500)
+            malas = {}; vistas = set(); y0 = -1
+            for _ in range(16):
+                r = await pg.evaluate("""(()=>{const top=document.querySelector('.top').getBoundingClientRect().bottom,bt=document.querySelector('.bar').getBoundingClientRect().top;
+                  const S=[...document.querySelectorAll('section.sx')].find(s=>Math.abs(s.getBoundingClientRect().top)<3);if(!S)return null;const out=[];
+                  S.querySelectorAll('h2,.btn,.avp,.fig,.urg').forEach(e=>{const q=e.getBoundingClientRect(),s=getComputedStyle(e);if(!q.width||!q.height||s.visibility==='hidden'||s.display==='none')return;if(e.closest('[hidden],.sheet,.panel'))return;
+                   if(e.matches('h2')&&q.top<top-1)out.push('título bajo la cabecera: '+e.textContent.trim().slice(0,30));
+                   if(!e.matches('h2')&&q.bottom>bt+1&&q.top<innerHeight)out.push('bajo la barra: '+e.textContent.trim().slice(0,30))});return{id:S.id,out}})()""")
+                if r:
+                    vistas.add(r['id'])
+                    if r['out']: malas[r['id']] = r['out']
+                y = await pg.evaluate('scrollY')
+                if y == y0: break
+                y0 = y; await pg.keyboard.press('ArrowDown'); await pg.wait_for_timeout(1400)
+            es(len(vistas) >= 5 and not malas, f'pantallas a {w}×{h}: cada una entra entera, con el título a la vista y nada bajo la barra ({sorted(vistas)}) {malas}')
+            await ctx.close()
+        # la entrada lleva también a la cita; los barrios, también en lista; las averías se llaman como en la cita y la app
+        ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True, timezone_id='Europe/Madrid'); await pon_hora(ctx)
+        pg = oye(await ctx.new_page(), 'entrada y barrios'); await pg.goto(B + 'index.html'); await pg.wait_for_timeout(1200)
+        es(await pg.locator('#intro a.espera[href="cita.html"]').count() == 1 and 'Pedir cita' in await pg.locator('#intro a.espera').inner_text() and await pg.locator('#intro a.espera').is_visible(), 'entrada: además de llamar y la foto, «¿Puede esperar? Pedir cita», a la vista')
+        nb = await pg.locator('#baLista button').count()
+        es(nb == await pg.locator('#mapa .d').count() == 10 and 'min' in await pg.locator('#baLista').inner_text(), f'barrio: debajo del mapa, la lista de los diez distritos con sus minutos ({nb})')
+        await pg.evaluate("document.querySelector('#barrio').scrollIntoView()"); await pg.wait_for_timeout(500)
+        await pg.locator('#baLista button[data-id="gra"]').click(); await pg.wait_for_timeout(300)
+        es('Gràcia' in await pg.locator('#baR').inner_text() and await pg.get_attribute('#baLista button[data-id="gra"]', 'aria-pressed') == 'true' and await pg.evaluate("document.querySelector('#mapa .d[data-id=gra]').classList.contains('on')"), 'barrio: tocar un barrio de la lista hace lo mismo que tocarlo en el mapa')
+        chips = await pg.evaluate("[...document.querySelectorAll('#chips button')].map(b=>b.textContent.trim()).join(' | ')")
+        es(all(x in chips for x in ('Fuga de agua', 'Sin agua caliente', 'Cisterna que pierde', 'Grifo que gotea', 'Otra avería')), f'averías: los mismos nombres que en la cita y en la app ({chips[:80]!r})')
+        # la cita va solo en castellano: desde la web en catalán, el enlace lo dice y la cita lo avisa en catalán
+        await pg.evaluate("document.querySelector('[data-lang=ca]').click()"); await pg.wait_for_timeout(200)
+        hca = await pg.get_attribute('#intro a.espera', 'href')
+        await pg.evaluate("document.querySelector('[data-lang=es]').click()"); await pg.wait_for_timeout(200)
+        hes = await pg.get_attribute('#intro a.espera', 'href')
+        es(hca == 'cita.html?lang=ca' and hes == 'cita.html', f'idioma: en catalán, la cita se abre con ?lang=ca; en castellano, sin nada ({hca}, {hes})')
+        await pg.goto(B + 'cita.html?lang=ca'); await pg.wait_for_selector('#f')
+        es('encara és en castellà' in await pg.locator('.nota-lang').inner_text() and await pg.get_attribute('.nota-lang', 'lang') == 'ca', 'idioma: la cita avisa en catalán de que el formulario va en castellano, con el teléfono')
+        await pg.goto(B + 'cita.html'); await pg.wait_for_selector('#f')
+        es(await pg.locator('.nota-lang').count() == 0, 'idioma: en castellano, sin aviso')
+        await ctx.close()
+
         # ---------- 8. la página de los tres móviles ----------
         ctx = await br.new_context(viewport={'width': 1440, 'height': 900})
         await pon_hora(ctx)

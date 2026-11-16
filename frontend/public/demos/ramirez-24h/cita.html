@@ -37,7 +37,10 @@ legend b{color:var(--senal)}
 .ops{display:flex;flex-wrap:wrap;gap:8px}
 .op{min-height:52px;padding:0 16px;border-radius:999px;border:2px solid var(--control);font-weight:600}
 .op small{font-weight:400;color:var(--suave);margin-left:5px}
-.op[aria-pressed=true]{border-color:var(--senal);background:var(--asfalto-3)}
+.op[aria-pressed=true],.op[aria-checked=true]{border-color:var(--senal);background:var(--asfalto-3)}
+.op[role=radio]{display:inline-flex;align-items:center;gap:8px}
+.op[role=radio]::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--control);box-sizing:border-box}
+.op[role=radio][aria-checked=true]::before{border-color:var(--senal);background:radial-gradient(circle,var(--senal) 0 3.5px,transparent 4.5px)}
 .op[disabled]{border-style:dashed;color:var(--tenue);cursor:not-allowed}
 .otras{margin-top:18px}
 /* el mapa del técnico de camino: nueve teselas alrededor de su última posición y un punto en el centro */
@@ -55,6 +58,7 @@ legend b{color:var(--senal)}
 .fotoz img{width:76px;height:57px;object-fit:cover;border-radius:8px}
 .zona{font-size:.9375rem;color:var(--bien)}
 .legal{margin-top:18px;font-size:.9375rem;color:var(--suave)}
+.nota-lang{margin-top:14px;padding:12px 14px 12px 16px;border-radius:12px;background:var(--asfalto-3);box-shadow:inset 4px 0 0 var(--control)}
 form>.btn{margin-top:16px}
 .fallo{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--mal-f);color:var(--mal);font-weight:600}
 /* el resguardo del cliente: papel */
@@ -117,6 +121,10 @@ const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?K.franjaTxt(f):
 const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
 const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cfg.zonas.dis[d][0]:''};
 
+/* La cita todavía está solo en castellano. Si se llega desde la web en catalán o en inglés (?lang=), se dice arriba en
+   ese idioma, con el teléfono por si prefiere llamar. */
+const LANG=(location.search.match(/[?&]lang=(ca|en)/)||[])[1]||'';
+const avisoLang=()=>LANG?'<p class="nota-lang" lang="'+LANG+'" role="note">'+(LANG==='ca'?'Aquest formulari encara és en castellà. Si et va millor, truca’ns al '+esc(N.tel)+'.':'This form is in Spanish for now. If you prefer, call us on '+esc(N.tel)+'.')+'</p>':'';
 function vPedir(){
  if(SRV&&!H.dias)return'<h1>Pide cita sin prisa.</h1><p class="lead" id="hEsp" role="status">'+(H.err?'No he podido mirar los huecos libres. <button class="txt" type="button" id="hOtra">Probar otra vez</button> o llama al '+esc(N.tel)+'.':'Mirando los huecos libres…')+'</p>';
  const dias=SRV?H.dias:K.diasDe(S,cfg,Date.now(),5,false,B.av?{av:B.av,cli:{dis:cfg.zonas.cp[B.cp]||''}}:null);
@@ -131,22 +139,22 @@ function vPedir(){
  /* ¿no puede esperar?: en cuánto llegamos ahora de verdad (con lo que hay en marcha) y el suplemento de urgencia */
  const UA=SRV?H.urg:K.urgenciaAhora(S,cfg,null,Date.now(),''),sup=cfg.urge?' El servicio urgente lleva un suplemento de '+K.eur(cfg.cat[cfg.urge].p10)+'.':'';
  return'<h1>Pide cita sin prisa.</h1><p class="lead" id="urgLead">Con cita, la tarifa es siempre la normal. ¿No puede esperar? <a href="./">Llama o manda una foto</a>'+(UA?': ahora llegamos en unos '+UA.de+'–'+UA.a+' minutos.':'; ahora mismo no podemos decirte en cuánto llegamos: te lo decimos al llamar.')+sup+'</p>'+
-  (U&&U.e!=='cancelado'?'<p class="ult">Ya tienes un aviso: '+U.id+', '+esc(cfg.av[U.av].n.toLowerCase())+'. <a href="#/aviso/'+U.id+'">Ver cómo va</a></p>':'')+
+  avisoLang()+(U&&U.e!=='cancelado'?'<p class="ult">Ya tienes un aviso: '+U.id+', '+esc(cfg.av[U.av].n.toLowerCase())+'. <a href="#/aviso/'+U.id+'">Ver cómo va</a></p>':'')+
   '<form id="f" novalidate>'+
   '<fieldset><legend><b>1</b>¿Qué pasa?</legend><div class="avs">'+N.averias.map(a=>'<label class="avc"><img src="assets/img/av-'+a.id+'-s.webp" alt="" width="52" height="52" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>'+esc(a.n)+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>'+
    (B.err==='av'?'<p class="fallo">'+ERR.av+'</p>':'')+
    (R?'<p class="rango"><b class="num">'+(R.b?'De '+K.eur(R.a).replace(',00','')+' a '+K.eur(R.b).replace(',00',''):'Desde '+K.eur(R.a).replace(',00',''))+'</b><small>IVA incluido, en una vivienda. El precio exacto te lo cerramos antes de empezar y lo firmas.</small></p>':'')+
    '<div class="campo"><label for="c_nota">Cuéntanos algo más</label><textarea id="c_nota" data-b="nota" placeholder="Opcional. Qué ves y desde cuándo pasa.">'+esc(B.nota)+'</textarea></div>'+
    '<div class="fotoz">'+(B.foto?'<img src="'+B.foto+'" alt="La foto que has añadido">':'')+'<label class="btn peq">'+(B.foto?'Cambiar la foto':'Añadir una foto')+'<input class="vh" type="file" accept="image/*" id="c_foto"></label></div></fieldset>'+
-  '<fieldset><legend><b>2</b>¿Cuándo te va bien?</legend><div class="ops" role="group" aria-label="Día">'+dias.map(x=>'<button type="button" class="op" data-dia="'+x.dia+'" aria-pressed="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div>'+
-   '<div class="ops" role="group" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-fr="'+f.id+'" aria-pressed="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'>'+f.txt+'<small>'+(f.libres==null?(f.ok?'libre':'no disponible'):f.ok?(f.libres===1?'queda 1':'quedan '+f.libres):f.libres?'ya no da tiempo':'completa')+'</small></button>').join('')+'</div>'+
+  '<fieldset><legend><b>2</b>¿Cuándo te va bien?</legend><div class="ops" role="radiogroup" aria-label="Día">'+dias.map(x=>'<button type="button" class="op" data-dia="'+x.dia+'" role="radio" aria-checked="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div>'+
+   '<div class="ops" role="radiogroup" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-fr="'+f.id+'" role="radio" aria-checked="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'>'+f.txt+'<small>'+(f.libres==null?(f.ok?'libre':'no disponible'):f.ok?(f.libres===1?'queda 1':'quedan '+f.libres):f.libres?'ya no da tiempo':'completa')+'</small></button>').join('')+'</div>'+
    (B.err==='franja'||B.err==='llena'?'<p class="fallo">'+ERR[B.err]+'</p>':'')+
    (cand.length?'<div class="campo otras"><span class="lb" id="l_alt">¿Te va bien también otra franja? <small>Opcional</small></span><p class="ayuda">Si hay que mover la cita, la pasamos a una de estas sin tener que llamarte.</p><div class="ops" role="group" aria-labelledby="l_alt">'+cand.map(c=>'<button type="button" class="op" data-alt="'+c.k+'" aria-pressed="'+B.alt.includes(c.k)+'">'+c.txt+'</button>').join('')+'</div></div>':'')+'</fieldset>'+
   '<fieldset><legend><b>3</b>¿Dónde vamos?</legend>'+c('nombre','Tu nombre',B.nombre,'autocomplete="given-name"')+c('apellidos','Tus apellidos',B.apellidos,'autocomplete="family-name"')+c('tel','Teléfono, para avisarte por WhatsApp',B.tel,'type="tel" inputmode="tel" autocomplete="tel"')+
    '<div class="duo">'+c('dir','Calle, número y piso',B.dir,'autocomplete="street-address"')+c('cp','Código postal',B.cp,'inputmode="numeric" maxlength="5" autocomplete="postal-code"')+'</div>'+
    (B.err==='zona'?'<p class="fallo" id="zmal">'+ERR.zona+'</p>':zonaDe(B.cp)?'<p class="zona">'+esc(zonaDe(B.cp))+': llegamos.</p>':'')+'</fieldset>'+
   (B.err&&!['av','franja','llena','nombre','apellidos','tel','dir','cp','zona'].includes(B.err)?'<p class="fallo" role="alert">'+(ERR[B.err]||ERR.servidor)+'</p>':'')+
-  '<p class="legal">Usamos estos datos solo para atender tu aviso. '+(SRV?(N.prueba===true?'Esto es una copia de prueba: lo que escribas se guarda en el servidor de pruebas de OOOX y no llega a ningún negocio.':'Responsable: '+esc(N.razon)+', NIF '+esc(N.nif)+'.'):'Esto es una web de muestra: lo que escribas se queda en tu navegador y no llega a nadie.')+'</p>'+
+  '<p class="legal">Usamos estos datos solo para atender tu aviso. '+(SRV&&N.prueba===true?'Esto es una copia de prueba: lo que escribas se guarda en el servidor de pruebas de OOOX y no llega a ningún negocio.':!SRV&&Oficio.DEMO?'Esto es una web de muestra: lo que escribas se queda en tu navegador y no llega a nadie.':'Responsable: '+esc(N.razon)+', NIF '+esc(N.nif)+'.')+'</p>'+
   '<button class="btn pri ancho" type="submit"'+(B.va?' disabled':'')+'>'+(B.va?'Enviando…':'Pedir la cita')+'</button></form>'}
 
 /* un mapa sencillo, sin librerías: las nueve teselas de alrededor de un punto, con el punto en el centro */
@@ -214,7 +222,19 @@ document.addEventListener('submit',e=>{if(e.target.id!=='f')return;e.preventDefa
  Oficio.crear({tipo:'pedir',av:B.av,origen:'cita',nota:B.nota,foto:B.foto,cli:{nombre:B.nombre,apellidos:B.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},{rol:'cliente'}).then(r=>{B.va=false;
   if(!r.ok){if(SRV&&r.err==='franja'){H.t=0;traeHuecos()}return falla(r.err==='franja'?'llena':r.err)}
   mem.set('oficio:'+N.id+':mio',r.id);Object.assign(B,{nota:'',foto:'',fr:'',alt:[],err:''});location.hash='#/aviso/'+r.id})});
+/* día y franja son de una sola opción (como en la app): Tab entra por la elegida y las flechas pasan de una a otra */
+const RADIOS='[role=radiogroup]';
+function ronda(g){const R=[...g.querySelectorAll('[role=radio]')],c=R.find(r=>r.getAttribute('aria-checked')==='true'&&!r.disabled)||R.find(r=>!r.disabled);R.forEach(r=>{const v=r===c?0:-1;if(r.tabIndex!==v)r.tabIndex=v})}
+new MutationObserver(ms=>{const G=new Set();ms.forEach(m=>{const n=m.target.nodeType===1?m.target:m.target.parentElement;if(!n)return;const g=n.closest&&n.closest(RADIOS);if(g)G.add(g);
+ if(m.type==='childList')m.addedNodes.forEach(x=>{if(x.nodeType!==1)return;if(x.matches(RADIOS))G.add(x);x.querySelectorAll(RADIOS).forEach(y=>G.add(y))})});G.forEach(ronda)})
+ .observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-checked','disabled']});
+document.addEventListener('keydown',e=>{const r=e.target.closest&&e.target.closest('[role=radio]'),g=r&&r.closest(RADIOS);if(!g)return;
+ const d={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[e.key];if(!d&&e.key!==' ')return;e.preventDefault();
+ const R=[...g.querySelectorAll('[role=radio]')].filter(x=>!x.disabled);let i=R.indexOf(r);if(d)i=(i+d+R.length)%R.length;const x=R[i];if(!x)return;
+ const a=[...x.attributes].find(z=>z.name.startsWith('data-')),sel=a?'['+a.name+'="'+CSS.escape(a.value)+'"]':null;
+ if(x.getAttribute('aria-checked')!=='true')x.click();requestAnimationFrame(()=>{const y=sel&&document.querySelector(sel)||x;if(y.isConnected)y.focus()})});
 pinta();
+document.querySelectorAll(RADIOS).forEach(ronda);
 })();
 </script>
 </body>

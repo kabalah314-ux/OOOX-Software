@@ -123,7 +123,7 @@ async def main():
         es(await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), 'pantalla: en el móvil no se sale por los lados')
         altos = await c.evaluate("[...document.querySelectorAll('#fMejora button')].map(b=>Math.round(b.getBoundingClientRect().height))")
         es(len(altos) == 4 and min(altos) >= 44, f'pantalla: los botones se pueden tocar con el dedo {altos}')
-        es(await c.evaluate("['m_texto','m_quien'].every(i=>document.querySelector('label[for='+i+']'))&&!!document.querySelector('#fMejora [role=group][aria-labelledby]')"), 'pantalla: cada campo tiene su rótulo')
+        es(await c.evaluate("['m_texto','m_quien'].every(i=>document.querySelector('label[for='+i+']'))&&!!document.querySelector('#fMejora [role=radiogroup][aria-labelledby]')&&document.querySelector('label[for=m_quien]').textContent.includes('Tu nombre')"), 'pantalla: cada campo tiene su rótulo (el nombre, «Tu nombre (opcional)»)')
         es('Aún no has pedido nada' in await texto(c, '#mPet') and 'te lo contamos aquí' in await texto(c, '#mNov'), 'pantalla: vacía, dice qué va a aparecer en cada lista')
         es(await hasta(c, f"{len(srv.de('oficios_buzon'))}>=0") and len(srv.de('oficios_buzon')) >= 1 and srv.de('oficios_buzon')[0]['p_negocio'] == N['id'], 'pantalla: al entrar pide el buzón de este negocio')
 
@@ -131,10 +131,10 @@ async def main():
         await envia(c); await c.wait_for_selector('#e_mtipo:not([hidden])')
         es(await c.evaluate("document.activeElement&&document.activeElement.dataset.mTipo") == 'fallo' and not srv.de('oficios_enviar'), 'sin elegir qué es: lo dice, deja el foco en la primera opción y no manda nada')
         await c.click('#fMejora [data-m-tipo="mejora"]')
-        es(await c.get_attribute('#fMejora [data-m-tipo="mejora"]', 'aria-pressed') == 'true' and await c.locator('#e_mtipo:not([hidden])').count() == 0, 'al elegir, se marca y el aviso se quita')
+        es(await c.get_attribute('#fMejora [data-m-tipo="mejora"]', 'aria-checked') == 'true' and await c.locator('#e_mtipo:not([hidden])').count() == 0, 'al elegir, se marca y el aviso se quita')
         await c.fill('#m_texto', 'corto'); await envia(c); await c.wait_for_selector('#e_mtexto')
         es(await c.evaluate("document.activeElement.id") == 'm_texto' and 'al menos 10' in await texto(c, '#e_mtexto') and not srv.de('oficios_enviar'), 'con un texto corto: lo dice, deja el foco en el texto y no manda nada')
-        es(await c.input_value('#m_texto') == 'corto' and await c.get_attribute('#fMejora [data-m-tipo="mejora"]', 'aria-pressed') == 'true', 'y lo escrito sigue ahí')
+        es(await c.input_value('#m_texto') == 'corto' and await c.get_attribute('#fMejora [data-m-tipo="mejora"]', 'aria-checked') == 'true', 'y lo escrito sigue ahí')
 
         # ---------- 4. enviar ----------
         malo = 'Quiero ver la semana entera de un vistazo.\n<img src=x onerror="window.__colado=1"><script>window.__colado=2</script> "comillas" & más'
@@ -151,7 +151,7 @@ async def main():
         es((not demo or len(cli) > 5) and not [x for x in cli if x in todo], f'enviar: de los clientes del negocio no viaja nada ({len(cli)} datos mirados)')
         es(await c.evaluate("!window.__colado&&!document.querySelector('#mLista img,#mLista script')") and '<img src=x' in await texto(c, '#mPet .px'), 'enviar: lo escrito se enseña como texto, aunque parezca código')
         es('Recibida' in await texto(c, '#mPet .pill') and 'Una mejora' in await texto(c, '#mPet .pt') and 'Marta' in await texto(c, '#mPet .pm') and 'ahora mismo' in await texto(c, '#mPet .pm'), 'enviar: sale con su tipo, su estado, quién y cuándo')
-        es(await c.input_value('#m_texto') == '' and await c.locator('#fMejora [aria-pressed=true]').count() == 0 and await c.input_value('#m_quien') == 'Marta', 'enviar: el formulario queda limpio para la siguiente y recuerda quién escribe')
+        es(await c.input_value('#m_texto') == '' and await c.locator('#fMejora [aria-checked=true]').count() == 0 and await c.input_value('#m_quien') == 'Marta', 'enviar: el formulario queda limpio para la siguiente y recuerda quién escribe')
         es(await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), 'enviar: con una petición larga, la pantalla sigue sin salirse')
 
         # ---------- 5. OOOX contesta ----------
@@ -189,7 +189,7 @@ async def main():
         # ---------- 7. el servidor dice que no: lo escrito no se pierde ----------
         srv.err = 'limite'; n0 = len(srv.pet); await escribe(c, 'fallo', 'El botón de asignar no hace nada.'); await envia(c)
         es(await toast(c, 'muchas peticiones'), 'tope: si OOOX dice que son demasiadas, lo explica')
-        es(await c.input_value('#m_texto') == 'El botón de asignar no hace nada.' and await c.get_attribute('#fMejora [data-m-tipo="fallo"]', 'aria-pressed') == 'true' and len(srv.pet) == n0, 'tope: y lo escrito se queda en el formulario')
+        es(await c.input_value('#m_texto') == 'El botón de asignar no hace nada.' and await c.get_attribute('#fMejora [data-m-tipo="fallo"]', 'aria-checked') == 'true' and len(srv.pet) == n0, 'tope: y lo escrito se queda en el formulario')
         srv.err = None
 
         # ---------- 8. sin conexión ----------
@@ -238,7 +238,9 @@ async def main():
             f = await pg.evaluate("(()=>{const a=document.activeElement;return a?(a.id||a.dataset.mTipo||a.dataset.a||a.tagName):''})()"); foco.append(f)
             if f == 'mOk': break
             await pg.keyboard.press('Tab')
-        es(all(x in foco for x in ('fallo', 'mejora', 'duda', 'm_texto', 'm_quien', 'mOk')), f'ordenador: con el teclado se llega a todo el formulario, en su orden {foco[-8:]}')
+        es(sum(x in foco for x in ('fallo', 'mejora', 'duda')) == 1 and all(x in foco for x in ('m_texto', 'm_quien', 'mOk')), f'ordenador: con el teclado se llega a todo el formulario, en su orden; el tipo es un grupo de una sola opción: una parada {foco[-8:]}')
+        await pg.focus('#fMejora [data-m-tipo="fallo"]'); await pg.keyboard.press('ArrowRight'); await pg.wait_for_timeout(100)
+        es(await pg.evaluate("document.activeElement.dataset.mTipo") == 'mejora' and await pg.get_attribute('#fMejora [data-m-tipo="mejora"]', 'aria-checked') == 'true', 'ordenador: dentro del grupo, con las flechas se elige otro tipo')
         await pg.focus('#m_texto'); await pg.keyboard.type('Petición hecha solo con el teclado.'); await pg.focus('#fMejora [data-m-tipo="duda"]'); await pg.keyboard.press('Enter')
         await pg.focus('#m_quien'); antes = len(srv.de('oficios_enviar')); await pg.keyboard.press('Enter')
         es(await hasta(pg, "document.querySelector('#toast').textContent.includes('Enviada')") and len(srv.de('oficios_enviar')) == antes + 1 and srv.de('oficios_enviar')[-1]['p_tipo'] == 'duda', 'ordenador: se puede elegir y enviar sin ratón')
