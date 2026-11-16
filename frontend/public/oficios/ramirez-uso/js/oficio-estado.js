@@ -21,14 +21,16 @@ function guarda(){let dentro=false;
  if(canal)canal.postMessage(dentro?{v:S.v}:{v:S.v,S})}
 function avisa(){subs.forEach(f=>{try{f(S)}catch(e){console.error(e)}})}
 /* La muestra se rehace sola si tiene más de 8 horas: si no, quien abre la demo al día siguiente
-   ve «urgente sin asignar, hace 20 h», que da mala imagen del negocio. Lo que se haya probado se pierde. */
+   ve «urgente sin asignar, hace 20 h», que da mala imagen del negocio. Lo que se haya probado se pierde.
+   Y también si se hizo con otra versión de las reglas (vm): quien abrió la demo antes de una actualización ve la
+   muestra nueva, con lo nuevo (por ejemplo, la furgoneta), y no la que guardó su navegador. */
 const VIEJA=8*3600*1000;
 /* Solo la demo lleva avisos de muestra. La copia de un negocio de verdad no trae OFICIO_MUESTRA:
    arranca vacía y sus datos no se rehacen nunca. */
 const DEMO=!SV&&typeof g.OFICIO_MUESTRA==='function';
-function muestra(){const x=DEMO?g.OFICIO_MUESTRA(K,cfg,Date.now()):K.nuevo();x.t0=Date.now();return x}
+function muestra(){const x=DEMO?g.OFICIO_MUESTRA(K,cfg,Date.now()):K.nuevo();x.t0=Date.now();if(DEMO)x.vm=K.VERSION;return x}
 function estado(){const x=lee();
- if(x&&!(DEMO&&Date.now()-(x.t0||0)>VIEJA))S=x;
+ if(x&&!(DEMO&&(Date.now()-(x.t0||0)>VIEJA||x.vm!==K.VERSION)))S=x;
  else if(x){S=muestra();S.v=Math.max(Date.now(),(x.v||0)+1);guarda()}
  else if(!S){S=muestra();guarda()}
  return S}
