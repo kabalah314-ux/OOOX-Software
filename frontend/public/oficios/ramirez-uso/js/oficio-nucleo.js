@@ -34,8 +34,10 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.16e';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.17a';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
+/* el idioma del cliente (17-11-2026): castellano, catalán o inglés. En el aviso solo va si no es el castellano */
+const IDIOMAS=['es','ca','en'],NOM_IDIOMA={es:'castellano',ca:'catalán',en:'inglés'};
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
 const ORIGEN=['cita','web','whatsapp','llamada','persona','otro'];
 const EN_MARCHA=['asignado','camino','curso'];
@@ -375,26 +377,36 @@ function urgenciasMes(S,cfg,mes){let n=0,base=0;
  return{n,base,oox:red(base*COMISION_URG),pct:COMISION_URG}}
 
 /* ---------- los mensajes al cliente, ya escritos ---------- */
-function mensaje(cfg,A,k){const N=cfg.N,n=(A.cli.nombre||'').split(' ')[0],hola=n?'Hola, '+n+'. ':'Hola. ',tec=cfg.tec[A.tec],T=tec?tec.n:'El técnico',av=cfg.av[A.av],fr=A.cita&&cfg.franjas.find(f=>f.id===A.cita.fr),frt=fr?franjaTxt(fr):'';
- const tot=A.tot?eur(A.tot.total):'',pg=N.pago&&typeof N.pago==='object'?N.pago:{},via=[tel9(pg.bizum)?'por Bizum al '+telBonito(pg.bizum):'',typeof pg.iban==='string'&&pg.iban?'por transferencia a la cuenta '+pg.iban:''].filter(Boolean);
+/* «L» (17-11-2026): el idioma del mensaje, el del cliente (su aviso lo dice). Lo pone la app con js/oficio-idioma.js:
+   T traduce cada frase y lo de cada negocio (sus averías, su catálogo), y fechaLarga y franja dicen la fecha y la franja en
+   ese idioma. Sin L, en castellano. Las frases van enteras, con sus datos entre llaves, para poder traducirlas */
+const CAST={T:(s,v)=>{if(v)for(const k in v)s=s.split('{'+k+'}').join(v[k]);return s},fechaLarga:f=>fechaLarga(f),franja:f=>franjaTxt(f)};
+function mensaje(cfg,A,k,L){L=L&&typeof L.T==='function'?L:CAST;const _=L.T,N=cfg.N,n=(A.cli.nombre||'').split(' ')[0],hola=(n?_('Hola, {nombre}.',{nombre:n}):_('Hola.'))+' ',tec=cfg.tec[A.tec],T=tec?tec.n:_('El técnico'),av=cfg.av[A.av],avn=av?_(av.n).toLowerCase():'',fr=A.cita&&cfg.franjas.find(f=>f.id===A.cita.fr),frt=fr?(L.franja||franjaTxt)(fr):'',fl=L.fechaLarga||fechaLarga;
+ const tot=A.tot?eur(A.tot.total):'',pg=N.pago&&typeof N.pago==='object'?N.pago:{},via=[tel9(pg.bizum)?_('por Bizum al {tel}',{tel:telBonito(pg.bizum)}):'',typeof pg.iban==='string'&&pg.iban?_('por transferencia a la cuenta {iban}',{iban:pg.iban}):''].filter(Boolean);
+ const fin=' '+N.nombre+'.',noMas=_('Si prefieres que no te escribamos para esto, dínoslo.');
  switch(k){
-  case 'recibido':return hola+'Hemos recibido tu aviso '+A.id+(av?' ('+av.n.toLowerCase()+')':'')+'. '+(A.cita?'Te confirmamos enseguida quién irá.':'Te decimos enseguida quién va y a qué hora llega.')+' '+N.nombre+'.';
-  case 'cita':if(!A.cita)return'';return hola+'Tu cita queda para el '+fechaLarga(A.cita.dia)+', '+frt+'. Irá '+T+'. Con cita, la tarifa es la normal. Si necesitas cambiarla, contesta a este mensaje. '+N.nombre+'.';
-  case 'vispera':if(!A.cita)return'';return hola+'Te recordamos la cita de mañana, '+frt+', en '+A.cli.dir+'. Irá '+T+'. '+N.nombre+'.';
-  case 'camino':return hola+T+' va de camino'+(A.eta?' y llega sobre las '+hora(A.eta):'')+'. '+N.nombre+'.';
-  case 'ausente':return hola+T+' ha estado en '+A.cli.dir+' a las '+hora(A.aus||A.t)+' y no ha encontrado a nadie. ¿Cuándo te va bien que volvamos?';
-  case 'hecho':{if(!A.tot)return hola+'Trabajo terminado. Gracias por confiar en '+N.nombre+'.';
+  case 'recibido':return hola+_('Hemos recibido tu aviso {id}{averia}.',{id:A.id,averia:av?' ('+avn+')':''})+' '+(A.cita?_('Te confirmamos enseguida quién irá.'):_('Te decimos enseguida quién va y a qué hora llega.'))+fin;
+  case 'cita':if(!A.cita)return'';return hola+_('Tu cita queda para el {fecha}, {franja}.',{fecha:fl(A.cita.dia),franja:frt})+' '+_('Irá {tecnico}.',{tecnico:T})+' '+_('Con cita, la tarifa es la normal.')+' '+_('Si necesitas cambiarla, contesta a este mensaje.')+fin;
+  case 'vispera':if(!A.cita)return'';return hola+_('Te recordamos la cita de mañana, {franja}, en {dir}.',{franja:frt,dir:A.cli.dir})+' '+_('Irá {tecnico}.',{tecnico:T})+fin;
+  case 'camino':return hola+(A.eta?_('{tecnico} va de camino y llega sobre las {hora}.',{tecnico:T,hora:hora(A.eta)}):_('{tecnico} va de camino.',{tecnico:T}))+fin;
+  case 'ausente':return hola+_('{tecnico} ha estado en {dir} a las {hora} y no ha encontrado a nadie.',{tecnico:T,dir:A.cli.dir,hora:hora(A.aus||A.t)})+' '+_('¿Cuándo te va bien que volvamos?');
+  case 'hecho':{if(!A.tot)return hola+_('Trabajo terminado.')+' '+_('Gracias por confiar en {negocio}.',{negocio:N.nombre});
    /* a cero (va en el contrato o en la garantía) no hay total ni forma de pago que decir (16-11-2026: decía «Total: 0,00 €. Pagado ().») */
-   const cero=!A.tot.total,por=A.enGar?'va en la garantía':'va en tu contrato de mantenimiento';
-   return hola+(A.sinTrabajo?(cero?'Al final no se ha hecho el trabajo y la visita '+por+': no hay nada que pagar. ':'Hoy solo hemos cobrado el desplazamiento: '+tot+'. ')
-    :'Trabajo terminado. '+(cero?'No hay nada que pagar: '+por+'. ':'Total: '+tot+', IVA incluido. '))
-    +(cero?'':A.pago&&A.pago.cobrado?'Pagado ('+A.pago.modo+'). ':'Queda pendiente de pago. ')+(A.gar?'Tienes garantía hasta el '+fechaCorta(A.gar.hasta)+'. ':'')+N.nombre+'.'}
-  case 'resena':return hola+'¿Todo bien con la reparación? Si tienes un minuto, tu opinión en Google nos ayuda mucho: '+N.resenas+' Gracias.';
-  case 'seguimiento':return hola+'Hace una semana '+(av?'del arreglo ('+av.n.toLowerCase()+')':'del trabajo')+'. ¿Sigue todo bien? Si algo falla, contesta a este mensaje y volvemos'+(A.gar?': tienes garantía hasta el '+fechaCorta(A.gar.hasta):'')+'.\n\n'
-   +'Si aún no has podido, tu opinión en Google nos ayuda mucho:\n'+N.resenas+'\n\nY si conoces a alguien que nos necesite, puedes pasarle este número.\n\nSi prefieres que no te escribamos para esto, dínoslo. '+N.nombre+'.';
-  case 'presupuesto':if(!A.noPres)return'';return hola+'¿Has podido pensar lo del presupuesto'+(av?' ('+av.n.toLowerCase()+')':'')+'? Eran '+eur(A.noPres.total)+', IVA incluido. Si quieres hacerlo, contesta a este mensaje y te damos cita.\n\nSi prefieres que no te escribamos para esto, dínoslo. '+N.nombre+'.';
-  case 'proxima':{const P=A.prox,it=P&&cfg.cat[P.k];if(!P)return'';return hola+'El '+fechaCorta(P.dia)+' toca '+(it?'la próxima '+it.t.toLowerCase():'volver a pasar')+': la última fue el '+fechaCorta(madrid(A.fin).date)+'. ¿Quieres que vayamos? Contesta con el día que te va bien.\n\nSi prefieres que no te avisemos más, dínoslo. '+N.nombre+'.'}
-  case 'cobro':if(!A.tot)return'';return hola+'Te recordamos que queda pendiente el pago del trabajo '+A.id+': '+tot+'. '+(via.length?'Puedes pagarlo '+via.join(' o ')+'. ':'Contesta a este mensaje y te decimos cómo pagarlo. ')+'Gracias. '+N.nombre+'.';
+   const cero=!A.tot.total;
+   return hola+(A.sinTrabajo?(cero?(A.enGar?_('Al final no se ha hecho el trabajo y la visita va en la garantía: no hay nada que pagar.'):_('Al final no se ha hecho el trabajo y la visita va en tu contrato de mantenimiento: no hay nada que pagar.')):_('Hoy solo hemos cobrado el desplazamiento: {total}.',{total:tot}))
+    :_('Trabajo terminado.')+' '+(cero?(A.enGar?_('No hay nada que pagar: va en la garantía.'):_('No hay nada que pagar: va en tu contrato de mantenimiento.')):_('Total: {total}, IVA incluido.',{total:tot})))+' '
+    +(cero?'':(A.pago&&A.pago.cobrado?_('Pagado ({modo}).',{modo:_(A.pago.modo)}):_('Queda pendiente de pago.'))+' ')+(A.gar?_('Tienes garantía hasta el {fecha}.',{fecha:fechaCorta(A.gar.hasta)})+' ':'')+N.nombre+'.'}
+  case 'resena':return hola+_('¿Todo bien con la reparación? Si tienes un minuto, tu opinión en Google nos ayuda mucho: {enlace} Gracias.',{enlace:N.resenas});
+  case 'seguimiento':return hola+(av?_('Hace una semana del arreglo ({averia}).',{averia:avn}):_('Hace una semana del trabajo.'))+' '
+   +(A.gar?_('¿Sigue todo bien? Si algo falla, contesta a este mensaje y volvemos: tienes garantía hasta el {fecha}.',{fecha:fechaCorta(A.gar.hasta)}):_('¿Sigue todo bien? Si algo falla, contesta a este mensaje y volvemos.'))+'\n\n'
+   +_('Si aún no has podido, tu opinión en Google nos ayuda mucho:')+'\n'+N.resenas+'\n\n'+_('Y si conoces a alguien que nos necesite, puedes pasarle este número.')+'\n\n'+noMas+fin;
+  case 'presupuesto':if(!A.noPres)return'';return hola+(av?_('¿Has podido pensar lo del presupuesto ({averia})?',{averia:avn}):_('¿Has podido pensar lo del presupuesto?'))+' '+_('Eran {total}, IVA incluido.',{total:eur(A.noPres.total)})+' '
+   +_('Si quieres hacerlo, contesta a este mensaje y te damos cita.')+'\n\n'+noMas+fin;
+  case 'proxima':{const P=A.prox,it=P&&cfg.cat[P.k];if(!P)return'';const ult=fechaCorta(madrid(A.fin).date);
+   return hola+(it?_('El {fecha} toca la próxima {servicio}: la última fue el {ultima}.',{fecha:fechaCorta(P.dia),servicio:_(it.t).toLowerCase(),ultima:ult}):_('El {fecha} toca volver a pasar: la última fue el {ultima}.',{fecha:fechaCorta(P.dia),ultima:ult}))+' '
+    +_('¿Quieres que vayamos? Contesta con el día que te va bien.')+'\n\n'+_('Si prefieres que no te avisemos más, dínoslo.')+fin}
+  case 'cobro':if(!A.tot)return'';return hola+_('Te recordamos que queda pendiente el pago del trabajo {id}: {total}.',{id:A.id,total:tot})+' '
+   +(via.length===2?_('Puedes pagarlo {uno} o {otro}.',{uno:via[0],otro:via[1]}):via.length?_('Puedes pagarlo {uno}.',{uno:via[0]}):_('Contesta a este mensaje y te decimos cómo pagarlo.'))+' '+_('Gracias.')+fin;
  }return''}
 const MSG={recibido:'Aviso recibido',cita:'Cita confirmada',vispera:'Recordatorio de la víspera',camino:'Va de camino',ausente:'No había nadie',hecho:'Trabajo terminado',resena:'Pedir reseña',cobro:'Recordar el pago',
  seguimiento:'Seguimiento a la semana',presupuesto:'Presupuesto sin respuesta',proxima:'Toca volver'};
@@ -403,6 +415,8 @@ const MSG={recibido:'Aviso recibido',cita:'Cita confirmada',vispera:'Recordatori
 const SEGUIR=['resena','seguimiento','presupuesto','proxima'],DIA=1440*MIN;
 /* quien dijo que no quiere estos mensajes: se apunta en todos sus avisos (por el teléfono) */
 const noEscribe=(S,tel)=>{const t9=tel9(tel);return!!t9&&S.avisos.some(x=>x.noMsg&&x.cli&&x.cli.tel===t9)};
+/* el idioma de un cliente: el de su último aviso (17-11-2026). Así, el que pidió cita en catalán sigue en catalán cuando llama */
+const idiomaDe=(S,tel)=>{const t9=tel9(tel);let u=null;if(t9)S.avisos.forEach(x=>{if(x.cli&&x.cli.tel===t9&&(!u||x.t>u.t))u=x});return u&&IDIOMAS.includes(u.idioma)?u.idioma:'es'};
 /* los mensajes que ya toca mandar: ni los mandados, ni los dejados, ni los caducados, ni los de seguimiento a quien dijo que no */
 function porMandar(S,ahora){const no=new Set(S.avisos.filter(x=>x.noMsg&&x.cli&&x.cli.tel).map(x=>x.cli.tel));
  return[].concat(...S.avisos.filter(a=>a.e!=='cancelado'&&Array.isArray(a.msgs)).map(a=>a.msgs.filter(m=>!m.env&&m.t<=ahora&&!(m.hasta&&m.hasta<ahora)&&!(SEGUIR.includes(m.k)&&(a.noMsg||no.has(a.cli&&a.cli.tel)))).map(m=>({a,m})))).sort((x,y)=>x.m.t-y.m.t)}
@@ -469,6 +483,8 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
    (Array.isArray(a.alt)?a.alt:[]).slice(0,8).forEach(x=>{if(vale.length<5&&unaCita(x)&&esFecha(x.dia)&&x.dia>=hoy&&laborable(cfg,x.dia)&&cfg.franjas.some(f=>f.id===x.fr)&&!vale.some(v=>v.dia===x.dia&&v.fr===x.fr))vale.push({dia:x.dia,fr:x.fr})})}
   const n=++S.n,id=cfg.N.serie+'-'+String(n).padStart(4,'0');
   const X={id,n,v:0,t,origen:a.origen==null?'cita':ORIGEN.includes(a.origen)?a.origen:'otro',av:a.av,nota:txt(a.nota).trim().slice(0,400),foto:fotoVale(a.foto)?a.foto:'',cli:d.cli,cita,urg:!cita,e:'nuevo',tec:'',msgs:[],h:[]};if(vale)X.vale=vale;
+  /* su idioma: el de la página donde pide la cita; si no lo dice (la oficina, por teléfono), el de su último aviso */
+  const idi=IDIOMAS.includes(a.idioma)?a.idioma:idiomaDe(S,X.cli.tel);if(idi!=='es')X.idioma=idi;
   const g0=garantiaDe(S,cfg,X.cli,t);if(g0.length)X.gar0=g0[g0.length-1];
   const c0=conDe(S,cfg,X,t);if(c0)X.con=c0;
   if(noEscribe(S,X.cli.tel))X.noMsg=t;   // quien dijo que no quiere mensajes de seguimiento, lo sigue diciendo en su aviso nuevo
@@ -484,7 +500,15 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   if(esC&&!A.pres&&!A.tot){const c1=conDe(S,cfg,A,t);if(c1)A.con=c1;else delete A.con}
   /* si el teléfono nuevo es de alguien que no quiere mensajes de seguimiento, este aviso tampoco los lleva */
   if(A.cli.tel!==antes&&noEscribe(S,A.cli.tel)){A.noMsg=A.noMsg||t;A.msgs=A.msgs.filter(m=>m.env||!SEGUIR.includes(m.k))}
+  /* lo que va en garantía tiene que ser un trabajo suyo (17-11-2026; lo encontraron los recorridos al azar): con otros datos,
+     si el trabajo ya no es de este cliente, deja de ir en garantía y se cobra como cualquier otro */
+  if(A.enGar&&!garantiaDe(S,cfg,A.cli,t,A.id).includes(A.enGar.de)){const de=A.enGar.de;delete A.enGar;log(A,'Ya no va en la garantía de '+de+': con estos datos no es un trabajo suyo')}
   if(!antes)msg(A,'recibido');log(A,'Datos del cliente completados');return ok()}
+
+ /* el idioma del cliente en este aviso (17-11-2026): sus mensajes, sus papeles y lo que firma salen en él. La oficina, o el técnico en el suyo */
+ case 'idioma':{
+  if(!esC&&!mio)return R('permiso');if(!IDIOMAS.includes(a.idioma))return R('idioma');if((A.idioma||'es')===a.idioma)return R('estado');
+  if(a.idioma==='es')delete A.idioma;else A.idioma=a.idioma;log(A,'Idioma del cliente: '+NOM_IDIOMA[a.idioma]);return ok()}
 
  case 'asignar':{
   if(!esC)return R('permiso');if(!['nuevo','asignado','ausente'].includes(A.e))return R('estado');

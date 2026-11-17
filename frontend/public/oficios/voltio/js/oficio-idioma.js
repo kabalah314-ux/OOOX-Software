@@ -1,5 +1,7 @@
 /* OOOX Oficios · el idioma de lo que ve el cliente: la cita, el seguimiento de su aviso, su zona y sus papeles.
-   En castellano, catalán o inglés. La oficina y los técnicos (app.html) siguen en castellano.
+   En castellano, catalán o inglés. La oficina y los técnicos (app.html) siguen en castellano: su página lleva
+   data-idioma-fijo y aquí no se lee ni se cambia su idioma. Desde el 17-11-2026, lo que la oficina o el técnico le mandan o
+   le enseñan a un cliente (sus mensajes, sus papeles, lo que firma) sale en el idioma de su aviso: con «con» y «para».
 
    El castellano va escrito en las páginas y es la llave: con T, «Pide cita sin prisa.» sale en el idioma que toca, o en
    castellano si falta. Los datos van entre llaves: «Llama al {tel}.», con {tel:N.tel}.
@@ -20,7 +22,8 @@ function deEntrada(){
  const q=((g.location&&g.location.search||'').match(/[?&]lang=(es|ca|en)(?:&|$)/)||[])[1];if(q){mem.set(q);return q}
  const m=mem.get();if(LANGS.includes(m))return m;
  const n=g.navigator&&g.navigator.language||'';return n.slice(0,2).toLowerCase()==='ca'?'ca':'es'}   /* como la web: catalán si el navegador lo está */
-let LANG=g.document?deEntrada():'es';
+const FIJO=!!(g.document&&g.document.documentElement&&g.document.documentElement.hasAttribute('data-idioma-fijo'));
+let LANG=g.document&&!FIJO?deEntrada():'es';
 const faltan=new Set();   /* lo que se ha pedido y no está traducido (lo miran las pruebas) */
 
 /* ---------- las fechas y las franjas ---------- */
@@ -439,6 +442,65 @@ const D={ca:{},en:{}};
 ['Firmado el {fecha} a las {hora}','Signat el {fecha} a les {hora}','Signed on {fecha} at {hora}'],
 ['Aceptado por mensaje el {fecha} a las {hora}.','Acceptat per missatge el {fecha} a les {hora}.','Accepted by message on {fecha} at {hora}.'],
 ['Este papel no es una factura. La factura de la cuota la emite {razon} con su programa de facturas.','Aquest paper no és una factura. La factura de la quota l’emet {razon} amb el seu programa de factures.','This document is not an invoice. The invoice for the fee is issued by {razon} with its invoicing software.'],
+/* los mensajes al cliente (K.mensaje y la app de la oficina), en su idioma desde el 17-11-2026 */
+['Hemos recibido tu aviso {id}{averia}.','Hem rebut el teu avís {id}{averia}.','We’ve received your request {id}{averia}.'],
+['Te confirmamos enseguida quién irá.','Et confirmem de seguida qui hi anirà.','We’ll confirm shortly who will come.'],
+['Tu cita queda para el {fecha}, {franja}.','La teva cita queda per al {fecha}, {franja}.','Your appointment is on {fecha}, {franja}.'],
+['Irá {tecnico}.','Hi anirà {tecnico}.','{tecnico} will come.'],
+['Con cita, la tarifa es la normal.','Amb cita, la tarifa és la normal.','With an appointment, the standard rate applies.'],
+['Si necesitas cambiarla, contesta a este mensaje.','Si l’has de canviar, respon aquest missatge.','If you need to change it, reply to this message.'],
+['Te recordamos la cita de mañana, {franja}, en {dir}.','Et recordem la cita de demà, {franja}, a {dir}.','A reminder of your appointment tomorrow, {franja}, at {dir}.'],
+['{tecnico} va de camino y llega sobre las {hora}.','{tecnico} ja és de camí i arriba cap a les {hora}.','{tecnico} is on the way and will arrive around {hora}.'],
+['{tecnico} va de camino.','{tecnico} ja és de camí.','{tecnico} is on the way.'],
+['{tecnico} ha estado en {dir} a las {hora} y no ha encontrado a nadie.','{tecnico} ha estat a {dir} a les {hora} i no hi ha trobat ningú.','{tecnico} came to {dir} at {hora} and found nobody in.'],
+['¿Cuándo te va bien que volvamos?','Quan et va bé que hi tornem?','When would it suit you for us to come back?'],
+['Trabajo terminado.','Feina acabada.','Job done.'],
+['Gracias por confiar en {negocio}.','Gràcies per confiar en {negocio}.','Thank you for choosing {negocio}.'],
+['Al final no se ha hecho el trabajo y la visita va en la garantía: no hay nada que pagar.','Al final no s’ha fet la feina i la visita va amb la garantia: no hi ha res a pagar.','In the end the job wasn’t done and the visit is covered by the guarantee: there’s nothing to pay.'],
+['Al final no se ha hecho el trabajo y la visita va en tu contrato de mantenimiento: no hay nada que pagar.','Al final no s’ha fet la feina i la visita va amb el teu contracte de manteniment: no hi ha res a pagar.','In the end the job wasn’t done and the visit is covered by your maintenance contract: there’s nothing to pay.'],
+['Hoy solo hemos cobrado el desplazamiento: {total}.','Avui només hem cobrat el desplaçament: {total}.','Today we’ve only charged the call-out: {total}.'],
+['Pagado ({modo}).','Pagat ({modo}).','Paid ({modo}).'],
+['efectivo','efectiu','cash'],
+['tarjeta','targeta','card'],
+['bizum','Bizum','Bizum'],
+['transferencia','transferència','bank transfer'],
+['Queda pendiente de pago.','Queda pendent de pagament.','Payment is still pending.'],
+['Tienes garantía hasta el {fecha}.','Tens garantia fins al {fecha}.','You have a guarantee until {fecha}.'],
+['¿Todo bien con la reparación? Si tienes un minuto, tu opinión en Google nos ayuda mucho: {enlace} Gracias.','Tot bé amb la reparació? Si tens un minut, la teva opinió a Google ens ajuda molt: {enlace} Gràcies.','Is everything OK with the repair? If you have a minute, a Google review helps us a lot: {enlace} Thank you.'],
+['Hace una semana del arreglo ({averia}).','Fa una setmana de la reparació ({averia}).','It’s been a week since the repair ({averia}).'],
+['Hace una semana del trabajo.','Fa una setmana de la feina.','It’s been a week since the job.'],
+['¿Sigue todo bien? Si algo falla, contesta a este mensaje y volvemos: tienes garantía hasta el {fecha}.','Tot continua bé? Si alguna cosa falla, respon aquest missatge i hi tornem: tens garantia fins al {fecha}.','Is everything still OK? If anything goes wrong, reply to this message and we’ll come back: you have a guarantee until {fecha}.'],
+['¿Sigue todo bien? Si algo falla, contesta a este mensaje y volvemos.','Tot continua bé? Si alguna cosa falla, respon aquest missatge i hi tornem.','Is everything still OK? If anything goes wrong, reply to this message and we’ll come back.'],
+['Si aún no has podido, tu opinión en Google nos ayuda mucho:','Si encara no has pogut, la teva opinió a Google ens ajuda molt:','If you haven’t had a chance yet, a Google review helps us a lot:'],
+['Y si conoces a alguien que nos necesite, puedes pasarle este número.','I si coneixes algú que ens necessiti, li pots passar aquest número.','And if you know someone who needs us, feel free to pass on this number.'],
+['Si prefieres que no te escribamos para esto, dínoslo.','Si prefereixes que no t’escrivim per a això, digues-nos-ho.','If you’d rather we didn’t message you about this, just let us know.'],
+['¿Has podido pensar lo del presupuesto ({averia})?','Has pogut pensar-te el pressupost ({averia})?','Have you had a chance to think about the quote ({averia})?'],
+['¿Has podido pensar lo del presupuesto?','Has pogut pensar-te el pressupost?','Have you had a chance to think about the quote?'],
+['Eran {total}, IVA incluido.','Eren {total}, IVA inclòs.','It came to {total}, VAT included.'],
+['Si quieres hacerlo, contesta a este mensaje y te damos cita.','Si el vols fer, respon aquest missatge i et donem cita.','If you’d like to go ahead, reply to this message and we’ll book you in.'],
+['El {fecha} toca la próxima {servicio}: la última fue el {ultima}.','El {fecha} toca la propera {servicio}: l’última va ser el {ultima}.','On {fecha} your next {servicio} is due: the last one was on {ultima}.'],
+['El {fecha} toca volver a pasar: la última fue el {ultima}.','El {fecha} toca tornar a passar: l’última va ser el {ultima}.','On {fecha} we’re due to come back: the last visit was on {ultima}.'],
+['¿Quieres que vayamos? Contesta con el día que te va bien.','Vols que hi anem? Respon amb el dia que et va bé.','Would you like us to come? Reply with a day that suits you.'],
+['Si prefieres que no te avisemos más, dínoslo.','Si prefereixes que no t’avisem més, digues-nos-ho.','If you’d rather we didn’t remind you again, just let us know.'],
+['Te recordamos que queda pendiente el pago del trabajo {id}: {total}.','Et recordem que queda pendent el pagament de la feina {id}: {total}.','A reminder that payment for job {id} is still pending: {total}.'],
+['Puedes pagarlo {uno} o {otro}.','El pots pagar {uno} o {otro}.','You can pay {uno} or {otro}.'],
+['Puedes pagarlo {uno}.','El pots pagar {uno}.','You can pay {uno}.'],
+['por Bizum al {tel}','per Bizum al {tel}','by Bizum to {tel}'],
+['por transferencia a la cuenta {iban}','per transferència al compte {iban}','by bank transfer to account {iban}'],
+['Contesta a este mensaje y te decimos cómo pagarlo.','Respon aquest missatge i et diem com pagar-lo.','Reply to this message and we’ll tell you how to pay.'],
+['Gracias.','Gràcies.','Thank you.'],
+['Sigue tu aviso aquí: {enlace}','Segueix el teu avís aquí: {enlace}','Follow your request here: {enlace}'],
+['Tu aviso, con el total y la garantía: {enlace}','El teu avís, amb el total i la garantia: {enlace}','Your request, with the total and the guarantee: {enlace}'],
+['En tu zona de {negocio} tienes tus avisos, tus presupuestos y tus garantías: {enlace} .','A la teva zona de {negocio} tens els teus avisos, els teus pressupostos i les teves garanties: {enlace} .','In your {negocio} account you’ll find your requests, quotes and guarantees: {enlace} .'],
+['Si te pide el código, es este: {codigo}.','Si et demana el codi, és aquest: {codigo}.','If it asks for a code, it’s this one: {codigo}.'],
+/* lo que lee y firma el cliente en el móvil del técnico (provisional hasta que lo revise el abogado, como los papeles) */
+['Tienes 14 días para echarte atrás de este trabajo. Si quieres que lo hagamos ya, márcalo: cuando esté hecho, ya no podrás echarte atrás, y si te echas atrás antes de que acabemos, pagarás la parte hecha.','Tens 14 dies per fer-te enrere d’aquesta feina. Si vols que la fem ja, marca-ho: quan estigui feta, ja no et podràs fer enrere, i si et fas enrere abans que acabem, pagaràs la part feta.','You have 14 days to change your mind about this job. If you want us to do it now, tick the box: once it’s done you can no longer withdraw, and if you withdraw before we finish, you’ll pay for the part already done.'],
+['La reparación urgente que has pedido no tiene derecho de desistimiento. Lo añadido que no es la reparación sí: tienes 14 días para echarte atrás. Si quieres que lo hagamos ya, márcalo: cuando esté hecho, ya no podrás.','La reparació urgent que has demanat no té dret de desistiment. El que s’hi afegeix que no és la reparació, sí: tens 14 dies per fer-te enrere. Si vols que ho fem ja, marca-ho: quan estigui fet, ja no podràs.','The emergency repair you asked for has no right of withdrawal. The extras that aren’t the repair do: you have 14 days to change your mind. If you want us to do them now, tick the box: once they’re done, you no longer can.'],
+['Reparación urgente que has pedido: no tiene derecho de desistimiento.','Reparació urgent que has demanat: no té dret de desistiment.','Emergency repair you asked for: no right of withdrawal.'],
+['Quiero que lo hagáis ya','Vull que ho feu ja','I want you to do it now'],
+['Precio cerrado. Si hace falta algo más, te lo decimos antes y lo firmas.','Preu tancat. Si cal alguna cosa més, t’ho diem abans i ho signes.','Fixed price. If anything else is needed, we’ll tell you first and you sign for it.'],
+['Firma del cliente','Signatura del client','Customer’s signature'],
+['Conforme con el trabajo (opcional)','Conforme amb la feina (opcional)','Happy with the work (optional)'],
 ].forEach(([es,ca,en])=>{D.ca[es]=ca;D.en[es]=en});
 const tiene=(o,k)=>!!o&&Object.prototype.hasOwnProperty.call(o,k)&&typeof o[k]==='string'&&o[k]!=='';
 /* lo del negocio: sus «textos» (filas de castellano, catalán e inglés), en dos listas como las de aquí */
@@ -452,13 +514,17 @@ function T(s,v){if(typeof s!=='string')s=s==null?'':String(s);
  if(v)for(const k in v)s=s.split('{'+k+'}').join(v[k]);
  return s}
 
-/* cambiar de idioma: lo guarda y lo pone en la página; dice si ha cambiado */
-function pon(l){if(!LANGS.includes(l)||l===LANG)return false;LANG=l;mem.set(l);ponHtml();return true}
-function ponHtml(){if(g.document)g.document.documentElement.lang=LANG}
+/* cambiar de idioma: lo guarda y lo pone en la página; dice si ha cambiado. En la app de la oficina, nunca */
+function pon(l){if(FIJO||!LANGS.includes(l)||l===LANG)return false;LANG=l;mem.set(l);ponHtml();return true}
+function ponHtml(){if(g.document&&!FIJO)g.document.documentElement.lang=LANG}
+/* en el idioma de un cliente, solo mientras se hace «fn» (17-11-2026): lo que se le manda o se le enseña desde la oficina.
+   «para» da lo que necesita un mensaje (las reglas, K.mensaje): traducir, la fecha larga y la franja en ese idioma */
+function con(l,fn){const antes=LANG;LANG=LANGS.includes(l)?l:'es';try{return fn()}finally{LANG=antes}}
+const para=l=>({lang:LANGS.includes(l)?l:'es',T:(s,v)=>con(l,()=>T(s,v)),fechaLarga:f=>con(l,()=>fechaLarga(f)),franja:f=>con(l,()=>franja(f))});
 /* el pie con los tres idiomas, cada uno escrito en el suyo */
 function pie(el){if(!el)return;
  el.innerHTML='<div role="group" aria-label="'+T('Idioma')+'">'+LANGS.map(l=>'<button type="button" data-lang="'+l+'" lang="'+l+'" aria-pressed="'+(l===LANG)+'">'+NOMBRE[l]+'</button>').join('')+'</div>'}
 ponHtml();
 
-g.OficioIdioma={T,pon,pie,fechaLarga,diaSemCorto,franja,faltan,D,LANGS,lang:()=>LANG};
+g.OficioIdioma={T,pon,pie,fechaLarga,diaSemCorto,franja,faltan,D,LANGS,NOMBRE,lang:()=>LANG,con,para};
 })(typeof globalThis!=='undefined'?globalThis:this);

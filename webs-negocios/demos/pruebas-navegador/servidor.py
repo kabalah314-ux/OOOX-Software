@@ -230,6 +230,13 @@ async def main():
         es(await pasa(o, FOTO_VISTA), 'con la foto que mandó el cliente (se pide al servidor al verla)')
         await o.reload(); await o.wait_for_selector('#nav a')
         es(await pasa(o, FOTO_VISTA), 'la foto no se guarda en el aparato, pero al recargar vuelve del servidor')
+        # el idioma del cliente (17-11-2026): la oficina lo cambia en el aviso, el servidor lo guarda y la app lo dice
+        await o.locator(f'[data-a=idioma][data-id="{A2}"][data-l=ca]').click()
+        for _ in range(60):
+            if (aviso(A2) or {}).get('idioma') == 'ca': break
+            await asyncio.sleep(.1)
+        es((aviso(A2) or {}).get('idioma') == 'ca' and await pasa(o, f"(Oficio.estado().avisos.find(a=>a.id==='{A2}')||{{}}).idioma==='ca'") and 'Idioma del cliente: catalán' in json.dumps(aviso(A2).get('h', []), ensure_ascii=False),
+           'la oficina pone el catalán como idioma del cliente: llega al servidor y queda en el historial')
         fo = await o.evaluate(f"(JSON.parse(localStorage.getItem('oficio:{N['id']}:srv')).B.avisos.find(a=>a.id==='{A2}')||{{}}).foto")
         es(bool(re.fullmatch(r'f:[0-9a-f]{16}', fo or '')) and estado()['fotos'] >= 1, f'en el aparato queda solo la referencia de la foto; la foto está en el servidor ({fo})')
         await o.click(f'.tec[data-tec={T1}]')

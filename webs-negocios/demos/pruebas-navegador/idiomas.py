@@ -193,6 +193,47 @@ async def main():
         pg = await ctx.new_page(); await pg.goto(B + 'cita.html'); await pg.wait_for_selector('#f')
         es(await pg.evaluate('document.documentElement.lang') == 'ca', 'un navegador en catalán, sin haber elegido nada: en catalán (como la web)')
         await ctx.close()
+        # 5) el idioma del cliente, en la oficina (17-11-2026): quien pide cita en catalán queda en catalán, y sus mensajes, sus
+        #    papeles y lo que firma salen en su idioma; la app de la oficina sigue en castellano
+        ctx = await br.new_context(viewport={'width': 390, 'height': 844}, timezone_id='Europe/Madrid', locale='es-ES'); await pon_hora(ctx)
+        pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)))
+        await pg.goto(B + 'cita.html?lang=ca'); await pg.wait_for_selector('#f'); N = await pg.evaluate('OFICIO_NEGOCIO'); CP = list(N['zonas']['cp'].keys())[0]
+        await pg.locator('input[name=av]').first.check(force=True); await pg.locator('[data-dia]').nth(1).click(); await pg.locator('[data-fr]:not([disabled])').first.click()
+        await pg.fill('#c_nomap', 'Laia Puig Soler'); await pg.fill('#c_tel', '611 22 33 99'); await pg.fill('#c_dir', 'C/ de la Prova 12, 3r'); await pg.fill('#c_cp', CP)
+        await pg.click('#f button[type=submit]'); await pg.wait_for_selector('#rConfirma'); await pg.click('#rConfirma'); await pg.wait_for_function("location.hash.startsWith('#/aviso/')")
+        ID = (await pg.evaluate('location.hash')).split('/')[2]
+        await pg.goto(B + 'app.html#/aviso/' + ID); await pg.wait_for_selector('[data-a=idioma]')
+        es(await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{ID}').idioma") == 'ca' and await pg.locator('[data-a=idioma][aria-checked=true]').get_attribute('data-l') == 'ca',
+           f'la cita pedida en catalán: el aviso ({ID}) lo apunta y la oficina lo ve marcado')
+        es(await pg.evaluate('document.documentElement.lang') == 'es' and await pg.evaluate("localStorage.getItem('ramirez:lang')") == 'ca' and 'Idioma del cliente' in await pg.inner_text('main'),
+           'la app de la oficina sigue en castellano (aunque el navegador tenga el catalán elegido para la web)')
+        WA = "(()=>{const b=document.querySelector('dialog[open] .wa-b');return b?b.firstChild.textContent:''})()"
+        await pg.click(f'#msgPend [data-a=msg][data-id="{ID}"]'); await pg.wait_for_selector('dialog[open] .wa-b'); m = await pg.evaluate(WA)
+        es(m.startswith('Hola, Laia. Hem rebut el teu avís ' + ID) and f'cita.html?lang=ca#/aviso/{ID}' in m and 'Segueix el teu avís aquí: ' in m, f'el mensaje, en catalán, con el enlace en catalán ({m[:90]}…)')
+        await pg.keyboard.press('Escape'); await pg.locator('[data-a=idioma][data-l=en]').click(); await pg.wait_for_timeout(150)
+        es(await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{ID}').idioma") == 'en' and await pg.locator('[data-a=idioma][aria-checked=true]').get_attribute('data-l') == 'en', 'la oficina lo cambia a inglés con un toque')
+        await pg.click(f'#msgPend [data-a=msg][data-id="{ID}"]'); await pg.wait_for_selector('dialog[open] .wa-b'); m = await pg.evaluate(WA)
+        es(m.startswith('Hi, Laia. We’ve received your request ' + ID) and f'cita.html?lang=en#/aviso/{ID}' in m, f'y el mensaje sale en inglés ({m[:70]}…)')
+        await pg.keyboard.press('Escape'); await pg.click(f'[data-a=zona][data-id="{ID}"]'); await pg.wait_for_selector('dialog[open] .wa-b'); m = await pg.evaluate(WA)
+        es(m.startswith('Hi, Laia. In your ') and 'cliente.html?lang=en#/entra/' in m, f'el mensaje de su zona, también ({m[:70]}…)')
+        await pg.keyboard.press('Escape')
+        # el mismo cliente llama otra vez: el aviso nuevo de la oficina hereda su idioma. Y lo que lee y firma en el móvil del técnico
+        X = await pg.evaluate("""(async()=>{const C={rol:'centralita',id:'oficina'},av=Oficio.N.averias[0].id,cp=Object.keys(Oficio.N.zonas.cp)[0];
+          const r=await Oficio.crear({tipo:'pedir',av,origen:'llamada',cli:{nombre:'Laia',apellidos:'Puig Soler',tel:'611223399',dir:'C/ de la Prova 12, 3r',cp}},C);if(!r.ok)return{err:r.err};
+          const A=Oficio.estado().avisos.find(a=>a.id===r.id),tec=Oficio.N.tecnicos.map(t=>t.id).find(id=>!Oficio.K.puedeIr(Oficio.estado(),Oficio.cfg,A,id,Date.now()));
+          const a1=Oficio.hacer({tipo:'asignar',id:r.id,tec},C),a2=a1.ok?Oficio.hacer({tipo:'voy',id:r.id},{rol:'tecnico',id:tec}):a1;
+          return{id:r.id,tec,idioma:Oficio.estado().avisos.find(a=>a.id===r.id).idioma,ok:a1.ok&&a2.ok,err:a2.err||''}})()""")
+        es(X.get('ok') and X.get('idioma') == 'en', f'el mismo cliente llama otra vez: el aviso que hace la oficina hereda su idioma ({X})')
+        await pg.goto(B + f"app.html?papel=tecnico&tec={X['tec']}#/aviso/{X['id']}"); await pg.wait_for_selector('[data-a=empezar]'); await pg.click('[data-a=empezar]'); await pg.wait_for_selector('#pF')
+        h = await pg.inner_text('dialog[open]')
+        es(('You have 14 days to change your mind' in h or 'Emergency repair you asked for: no right of withdrawal.' in h or 'The emergency repair you asked for has no right of withdrawal.' in h)
+           and 'Customer’s signature' in h and 'Fixed price. If anything else is needed' in h and 'Presupuesto' in h and 'Tarifa' in h, 'lo que lee y firma el cliente, en su idioma; lo del técnico, en castellano')
+        await pg.keyboard.press('Escape')
+        H = await pg.evaluate("(()=>{const a=Oficio.estado().avisos.find(a=>a.e==='hecho'&&a.tot&&!a.sinTrabajo);return a?a.id:''})()")
+        await pg.evaluate(f"Oficio.hacer({{tipo:'idioma',id:'{H}',idioma:'en'}},{C})"); await pg.goto(B + f'app.html#/papel/{H}/parte'); await pg.wait_for_selector('article.papel')
+        es(H and 'This job sheet is not an invoice.' in await pg.inner_text('article.papel') and 'Papeles del aviso' in await pg.inner_text('main') and await pg.evaluate('document.documentElement.lang') == 'es',
+           f'sus papeles, en su idioma ({H}); la pantalla, en castellano')
+        await ctx.close()
         es(not errs, f'sin errores {errs[:2]}')
         await br.close()
     print(('BIEN' if not mal else 'MAL') + f': {ok} comprobaciones de los idiomas de la cita, la zona del cliente y los papeles' + (f', {len(mal)} fallos' if mal else ''))

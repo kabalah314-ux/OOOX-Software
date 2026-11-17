@@ -1502,6 +1502,34 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
     const r1 = K.aplicar(K.nuevo(), cp, Object.assign({ cita: { dia: '2026-11-18', fr: PUB.franjas[0].id } }, JSON.parse(JSON.stringify(pide))), { rol: 'cliente' }, t), r2 = K.aplicar(K.nuevo(), cp, JSON.parse(JSON.stringify(pide)), { rol: 'cliente' }, t);
     es((r1.ok || r1.err === 'franja') && r2.ok, `con solo la parte pública, la cita se puede mirar antes de mandarla (los huecos los dice el servidor) y la urgencia pasa (${r1.err || 'ok'})`) }
 
+  // el idioma del cliente (17-11-2026): va en el aviso; sin decirlo, el de su último aviso; lo cambian la oficina o su técnico
+  { const cp = K.cfgDe(PUB), SI = K.nuevo(), t0 = Date.parse('2026-11-17T10:30:00+01:00'), av0 = PUB.averias[0].id, cp0 = Object.keys(PUB.zonas.cp)[0], T1 = PUB.tecnicos[0].id, T2 = PUB.tecnicos[1].id;
+    const pide = (tel, extra, dt, q) => K.aplicar(SI, cp, Object.assign({ tipo: 'pedir', av: av0, origen: 'llamada', cli: { nombre: 'Núria', apellidos: 'Puig Vila', tel, dir: 'C/ Gran 1', cp: cp0 } }, extra || {}), q || { rol: 'centralita' }, t0 + (dt || 0));
+    const de = id => SI.avisos.find(x => x.id === id);
+    const r1 = pide('622334455', { idioma: 'ca' }), r2 = pide('622 33 44 55', null, 60000), r3 = pide('633445566', { idioma: 'fr' }, 1000), r4 = pide('633445566', { idioma: 'en' }, 2000), r5 = pide('633445566', { idioma: 'es' }, 3000), r6 = pide('633445566', null, 4000);
+    es([r1, r2, r3, r4, r5, r6].every(r => r.ok) && de(r1.id).idioma === 'ca' && de(r2.id).idioma === 'ca' && !('idioma' in de(r3.id)) && de(r4.id).idioma === 'en' && !('idioma' in de(r5.id)) && !('idioma' in de(r6.id)),
+      'el idioma del cliente: el que dice al pedir; sin decirlo, el de su último aviso (no el de uno anterior); uno que no existe o el castellano no se apuntan');
+    const r8 = pide('633445566', { idioma: 'ca' }, 4500), r9 = pide('633445566', null, 4600);
+    es(r8.ok && r9.ok && de(r9.id).idioma === 'ca', 'si su primer aviso iba en castellano y el último en catalán, el nuevo va en catalán');
+    de(r2.id).tec = T1; de(r2.id).e = 'asignado';
+    const a1 = K.aplicar(SI, cp, { tipo: 'idioma', id: r2.id, idioma: 'en' }, { rol: 'tecnico', id: T2 }, t0), a2 = K.aplicar(SI, cp, { tipo: 'idioma', id: r2.id, idioma: 'en' }, { rol: 'tecnico', id: T1 }, t0);
+    es(a1.err === 'permiso' && a2.ok && de(r2.id).idioma === 'en' && de(r2.id).h.slice(-1)[0].txt === 'Idioma del cliente: inglés', 'lo cambia el técnico que lo lleva (otro no), y queda en el historial');
+    const a3 = K.aplicar(SI, cp, { tipo: 'idioma', id: r2.id, idioma: 'en' }, { rol: 'centralita' }, t0), a4 = K.aplicar(SI, cp, { tipo: 'idioma', id: r2.id, idioma: 'fr' }, { rol: 'centralita' }, t0);
+    const a5 = K.aplicar(SI, cp, { tipo: 'idioma', id: r2.id, idioma: 'es' }, { rol: 'centralita' }, t0), a6 = K.aplicar(SI, cp, { tipo: 'idioma', id: r2.id, idioma: 'ca' }, { rol: 'cliente' }, t0);
+    es(a3.err === 'estado' && a4.err === 'idioma' && a5.ok && !('idioma' in de(r2.id)) && a6.err === 'permiso', 'el mismo idioma, «estado»; uno que no existe, «idioma»; el castellano lo quita; el cliente no lo cambia');
+    // sus mensajes, en su idioma: la fecha y la franja también; en castellano, igual que sin idioma
+    globalThis.OficioIdioma = undefined; require(path.join(sitio, 'js/oficio-idioma.js')); const IDI = globalThis.OficioIdioma;
+    const A = JSON.parse(JSON.stringify(de(r1.id))); A.cita = { dia: '2026-11-18', fr: PUB.franjas[0].id }; A.tec = T1;
+    const mca = K.mensaje(cp, A, 'cita', IDI.para('ca')), men = K.mensaje(cp, A, 'cita', IDI.para('en')), mes = K.mensaje(cp, A, 'cita', IDI.para('es')), fca = IDI.para('ca').franja(PUB.franjas[0]);
+    es(mca.startsWith('Hola, Núria. La teva cita queda per al dimecres 18 de novembre, ' + fca + '. Hi anirà ' + PUB.tecnicos[0].n + '.') && men.startsWith('Hi, Núria. Your appointment is on Wednesday 18 November, ')
+      && mes === K.mensaje(cp, A, 'cita') && IDI.lang() === 'es' && !IDI.faltan.size, `los mensajes, en su idioma (${mca.slice(0, 60)}… | ${men.slice(0, 60)}…)`);
+    globalThis.OficioIdioma = undefined;
+    // con otros datos del cliente, lo que iba en garantía de un trabajo que ya no es suyo deja de ir (lo encontraron los recorridos al azar)
+    const G = SI.avisos.find(x => x.id === r6.id); G.e = 'hecho'; G.fin = t0 + 4000; G.tot = { total: 50, lineas: [{ k: Object.keys(cp.cat)[0], q: 1 }] }; G.gar = { hasta: K.masMeses(K.madrid(t0).date, 6) };
+    const r7 = pide('633445566', null, 5000), g1 = K.aplicar(SI, cp, { tipo: 'garantia', id: r7.id, de: G.id }, { rol: 'centralita' }, t0 + 6000);
+    const c1 = K.aplicar(SI, cp, { tipo: 'completar', id: r7.id, cli: { tel: '644556677', dir: 'C/ Otra 9' } }, { rol: 'centralita' }, t0 + 7000);
+    es(g1.ok && c1.ok && !de(r7.id).enGar && /Ya no va en la garantía de .+: con estos datos no es un trabajo suyo/.test(de(r7.id).h.map(x => x.txt).join(' | ')), 'con los datos de otro cliente, deja de ir en garantía (y lo dice el historial)') }
+
   // el plazo de la garantía en los papeles: el del negocio, no siempre «un año»
   globalThis.OficioIdioma = undefined; require(path.join(sitio, 'js/oficio-papeles.js')); const PP = globalThis.OficioPapeles;
   es(PP.plazo(6) === '6 meses' && PP.plazo(12) === '1 año' && PP.plazo(18) === '18 meses' && PP.plazo(24) === '2 años' && PP.plazo(1) === '1 mes' && PP.plazo(0) === '' && PP.meses('2026-11-17', '2027-05-17') === 6,

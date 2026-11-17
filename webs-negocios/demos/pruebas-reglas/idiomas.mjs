@@ -1,14 +1,16 @@
 // Los idiomas de lo que ve el cliente (js/oficio-idioma.js), sin navegador:
-//  1) que cada texto de la cita, la zona del cliente y los papeles esté en catalán y en inglés, con los mismos datos entre
-//     llaves ({tel}, {fecha}…), y que no sobre ninguno;
+//  1) que cada texto de la cita, la zona del cliente, los papeles y, desde el 17-11-2026, los mensajes al cliente (las reglas,
+//     K.mensaje) y lo que la oficina le enseña o le manda (app.html, con _c) esté en catalán y en inglés, con los mismos datos
+//     entre llaves ({tel}, {fecha}…), y que no sobre ninguno;
 //  2) que lo propio de cada negocio (sus averías y sus consejos, su catálogo, sus planes, su furgoneta y su dirección) esté en los «textos»
-//     de su archivo de datos, si los tiene. Sin «textos», el negocio sale en castellano en los otros idiomas: es un aviso.
+//     de su archivo de datos, si los tiene. Sin «textos», el negocio sale en castellano en los otros idiomas: es un aviso;
+//  3) que cada mensaje al cliente de cada negocio, hecho de verdad en catalán y en inglés, no lleve nada sin traducir.
 // Lo que se ve de verdad en cada idioma, pantalla a pantalla, lo mira pruebas-navegador/idiomas.py.
 // Uso: node idiomas.mjs <carpeta del sitio> [datos.js …]
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { leeNegocio } from './valida-negocio.mjs';
+import { leeNegocio, leeNucleo } from './valida-negocio.mjs';
 
 const require = createRequire(import.meta.url);
 const [sitio, ...datos] = process.argv.slice(2);
@@ -32,7 +34,8 @@ function primerArg(s, i) {
   return s.slice(i);
 }
 // los textos entre comillas simples de un trozo de código (las listas llevan las claves sin comillas: «nuevo:'…'»)
-const literales = t => [...t.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)].map(m => m[1].replace(/\\(.)/g, '$1'));
+// (sin las claves entre comillas de un objeto, como «'urgente+':», que no son textos)
+const literales = t => [...t.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)].filter(m => !('{,'.includes(t.slice(0, m.index).trimEnd().slice(-1)) && t.slice(m.index + m[0].length).trimStart()[0] === ':')).map(m => m[1].replace(/\\(.)/g, '$1'));
 // el objeto que sigue a «const NOMBRE=» o a «Object.assign(NOMBRE,», entero (hasta la llave que lo cierra)
 function bloque(s, empieza) {
   const i = s.indexOf(empieza); if (i < 0) return null;
@@ -53,6 +56,8 @@ const ARCHIVOS = {
   'js/oficio-papeles.js': ['_', 'const PAGO='],
   'js/oficio-estado.js': ['_'],
   'js/oficio-idioma.js': ['T'],
+  'js/oficio-nucleo.js': ['_'],          // los mensajes al cliente (K.mensaje), en su idioma desde el 17-11-2026
+  'app.html': ['_c', 'const DES='],      // lo que la oficina o el técnico le manda o le enseña al cliente (y lo que firma)
 };
 const llaves = new Map();   // texto en castellano → dónde sale
 for (const [f, [fn, ...listas]] of Object.entries(ARCHIVOS)) {
@@ -66,6 +71,9 @@ for (const [f, [fn, ...listas]] of Object.entries(ARCHIVOS)) {
   if (!n) falla(f + ': no tiene ningún texto con ' + fn + '(…); ¿se ha quitado el idioma?');
 }
 
+// las formas de pago, que salen en el mensaje de trabajo terminado («Pagado (tarjeta).»)
+const K = leeNucleo(sitio);
+(K.PAGOS || []).filter(m => m !== 'pendiente').forEach(m => llaves.set(m, 'js/oficio-nucleo.js (K.PAGOS)'));
 globalThis.window = globalThis;
 require(path.resolve(sitio, 'js/oficio-idioma.js'));
 const I = globalThis.OficioIdioma, D = I && I.D;
@@ -102,6 +110,27 @@ for (const f of datos) {
   });
   for (const t of suyos) if (!fila.has(t)) falla(nombre + ': textos: falta «' + t + '»');
 }
-console.log((mal ? 'MAL' : 'BIEN') + ': ' + llaves.size + ' textos de la cita, la zona del cliente y los papeles, en catalán y en inglés' +
+// ---- 3) los mensajes al cliente de cada negocio, hechos de verdad en catalán y en inglés (17-11-2026): cada avería, con todo
+//      lo que puede llevar un mensaje (cita, técnico, total, pago, garantía, presupuesto, la próxima revisión, Bizum y cuenta)
+let hechos = 0;
+for (const f of datos) {
+  let N; try { ({ N } = leeNegocio(f)) } catch (e) { continue }
+  if (!N || !Array.isArray(N.textos)) continue;
+  const nombre = path.basename(path.dirname(path.dirname(f))) + '/' + path.basename(f), t0 = Date.parse('2026-11-17T10:30:00+01:00');
+  const N2 = Object.assign({}, N, { pago: { bizum: '611223344', iban: 'ES96 0000 0000 0001 2345 6789' } });
+  const cats = Object.keys(N.catalogo || {}), cada = cats.find(k => N.catalogo[k].cada) || cats[0];
+  for (const [cfg, var_] of [[K.cfgDe(N), ''], [K.cfgDe(N2), ' (con Bizum y cuenta)']]) for (const av of N.averias) for (const l of ['ca', 'en']) {
+    const base = { id: N.serie + '-0001', av: av.id, cli: { nombre: 'Ana', apellidos: 'Prueba', tel: '611223344', dir: 'C/ de la Prueba 1', cp: Object.keys(N.zonas.cp)[0] }, cita: { dia: '2026-11-18', fr: N.franjas[0].id },
+      tec: N.tecnicos[0].id, t: t0, eta: t0 + 1800000, aus: t0, fin: t0, tot: { total: 123.4 }, pago: { cobrado: t0, modo: 'tarjeta' }, gar: { hasta: '2027-05-17' }, noPres: { total: 80 }, prox: { k: cada, dia: '2027-11-17' }, msgs: [], h: [] };
+    const vars = [base, Object.assign({}, base, { tec: '', cita: null, pago: null, gar: null, eta: 0, cli: Object.assign({}, base.cli, { nombre: '' }) }), Object.assign({}, base, { sinTrabajo: true }),
+      Object.assign({}, base, { tot: { total: 0 }, enGar: { de: 'X', k: [] } }), Object.assign({}, base, { tot: { total: 0 }, sinTrabajo: true }), Object.assign({}, base, { prox: { k: 'nada', dia: '2027-11-17' } })];
+    const antes = new Set(I.faltan);
+    for (const A of vars) for (const k of Object.keys(K.MSG)) { const m = K.mensaje(cfg, A, k, I.para(l)); hechos++;
+      if (/\{\w+\}|undefined|NaN|\[object/.test(m)) falla(nombre + var_ + ': el mensaje «' + k + '» en ' + l + ' sale roto: ' + m.slice(0, 120)) }
+    const nuevos = [...I.faltan].filter(x => !antes.has(x));
+    if (nuevos.length) falla(nombre + var_ + ': en ' + l + ', algún mensaje lleva sin traducir: «' + nuevos.slice(0, 3).join('», «') + '»');
+  }
+}
+console.log((mal ? 'MAL' : 'BIEN') + ': ' + llaves.size + ' textos de la cita, la zona del cliente, los papeles y los mensajes, en catalán y en inglés' + (hechos ? '; ' + hechos + ' mensajes hechos de verdad' : '') +
   (datos.length ? '; ' + datos.length + ' negocios con lo suyo' : '') + (mal ? ', ' + mal + ' fallos' : '') + (avisos ? ' (' + avisos + ' avisos)' : ''));
 process.exit(mal ? 1 : 0);

@@ -321,7 +321,7 @@ document.addEventListener('change',e=>{const i=e.target;
 /* ir a un campo desde el aviso de errores, o volver del resumen a la parte que se quiere cambiar */
 const irA=id=>{const t=document.getElementById(id);if(!t)return;t.scrollIntoView({block:'center'});const x=t.matches('input,textarea,button')?t:t.querySelector('input:checked,input,button:not([disabled])');if(x)x.focus({preventScroll:true})};
 async function envia(){if(B.va)return;B.va=true;B.err='';pinta();
- const pn=K.parteNombre(B.nomap),r=await Oficio.crear({tipo:'pedir',av:B.av,origen:'cita',nota:B.nota,foto:B.foto,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},{rol:'cliente'});
+ const pn=K.parteNombre(B.nomap),r=await Oficio.crear({tipo:'pedir',av:B.av,origen:'cita',idioma:I.lang(),nota:B.nota,foto:B.foto,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},{rol:'cliente'});
  B.va=false;
  if(!r.ok){if(SRV&&r.err==='franja'){H.t=0;traeHuecos(true)}const k=r.err==='franja'?'llena':r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;B.err=k;
   /* si es de un dato (la franja se ha llenado, el teléfono…), se vuelve al formulario con ese dato marcado */

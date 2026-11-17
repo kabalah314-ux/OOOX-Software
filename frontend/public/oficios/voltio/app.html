@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-demo>
+<html lang="es" data-demo data-idioma-fijo>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -477,6 +477,7 @@ details[open]>summary.cs::after,.mdet[open]>summary::after{transform:rotate(-135
 <script src="js/oficio-vigia.js" data-pagina="app"></script>
 <script src="js/oficio-nucleo.js"></script>
 <script src="js/oficio-datos.js"></script>
+<script src="js/oficio-idioma.js"></script>
 <script src="js/oficio-espejo.js"></script>
 <script src="js/oficio-estado.js"></script>
 <script src="js/oficio-papeles.js"></script>
@@ -541,6 +542,10 @@ const toast=(s,acc)=>{const e=$('#toast');e.textContent=s;e.classList.toggle('co
  if(acc){const b=document.createElement('button');b.type='button';b.className='tacc';b.textContent=acc.t;b.onclick=()=>{clearTimeout(e._t);e.classList.remove('on','conb');acc.fn()};e.append(' ',b)}
  e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on','conb'),acc?7000:3200)};
 const hacer=a=>{const r=Oficio.hacer(a,Q);if(!r.ok)toast(ERR[r.err]||'No se ha podido hacer.');return r};
+/* lo que va al cliente, en su idioma (el de su aviso, 17-11-2026): sus mensajes, sus papeles y lo que lee y firma en el móvil del
+   técnico. La app sigue en castellano (data-idioma-fijo): js/oficio-idioma.js solo traduce esto */
+const IDI=window.OficioIdioma,_c=(s,v,l)=>IDI?IDI.para(l||'es').T(s,v):String(s).replace(/\{(\w+)\}/g,(m,k)=>v&&k in v?v[k]:m);
+const conIdioma=(l,fn)=>IDI&&l&&l!=='es'?IDI.con(l,fn):fn(),idiomaUrl=A=>A&&A.idioma?'?lang='+A.idioma:'';
 const el=id=>S.avisos.find(a=>a.id===id);
 
 /* ===== hojas ===== */
@@ -645,6 +650,9 @@ function bCliente(A,esT){const c=A.cli;let h='<section class="blq"><h2>Cliente</
  h+=(esT?'<p class="dir">'+esc(c.dir)+'</p><p class="ln">'+esc(c.cp)+' '+esc(barrio(A))+' · '+esc(K.nomCli(c))+'</p>':'<p class="gr">'+esc(K.nomCli(c))+'</p><p class="ln">'+esc(c.dir)+' · '+esc(c.cp)+' '+esc(barrio(A))+'</p>');
  if(A.nota)h+='<p class="dice">'+esc(A.nota)+'</p>';
  if(!esT&&K.noEscribe(S,c.tel))h+='<p class="ln nomsg">No quiere mensajes de seguimiento. <button class="txt" data-a="escribirSi" data-id="'+A.id+'">Volver a escribirle</button></p>';
+ /* su idioma (17-11-2026): el de la página donde pidió la cita o el de su último aviso. Sus mensajes, sus papeles y lo que firma salen en él */
+ if(IDI){const l=A.idioma||'es';h+='<div class="campo idi" style="margin:10px 0 0"><span class="lb" id="idi_'+A.id+'">Idioma del cliente</span><div class="ops" role="radiogroup" aria-labelledby="idi_'+A.id+'">'+
+  IDI.LANGS.map(x=>'<button type="button" class="op" role="radio" aria-checked="'+(x===l)+'" data-a="idioma" data-id="'+A.id+'" data-l="'+x+'" lang="'+x+'">'+IDI.NOMBRE[x]+'</button>').join('')+'</div></div>'}
  if(A.foto)h+=bFoto(A);
  h+='<div class="acts"><button class="btn peq" data-a="llamar" data-id="'+A.id+'">'+I.tel+K.telBonito(c.tel)+'</button><a class="btn peq" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.dir.split(',')[0]+', '+c.cp+' '+N.ciudad)+'">'+I.mapa+'Mapa</a>'+(esT?'':'<button class="btn peq" data-a="zona" data-id="'+A.id+'">Su zona</button>')+'</div>';
  return h+'</section>'}
@@ -1097,7 +1105,7 @@ function vPapelContrato(id){const C=contrato(id);if(!C)return'<div class="cab"><
   '<div class="dacts noimp"><button class="btn pri" data-a="imprimir">Imprimir o guardar en PDF</button></div>'}
 function vPapel(id,tipo){if(tipo==='contrato')return vPapelContrato(id);const A=el(id);if(!A||!A.tot)return'<div class="cab"><div><h1>Papeles</h1><p class="sub">Este aviso todavía no tiene papeles.</p></div></div><p class="fin"><a class="txt" href="#/aviso/'+esc(id)+'">Volver al aviso</a></p>';
  const tipos=OficioPapeles.tipos(A);tipo=OficioPapeles.elige(A,tipo);
- const d=OficioPapeles.doc(A,tipo,{K,N,cfg,firmaSvg:Oficio.firmaSvg,foto:Oficio.fotoSrc});
+ const d=conIdioma(A.idioma,()=>OficioPapeles.doc(A,tipo,{K,N,cfg,firmaSvg:Oficio.firmaSvg,foto:Oficio.fotoSrc}));   // en el idioma del cliente (17-11-2026)
  return'<div class="noimp"><a class="atras" href="#/aviso/'+A.id+'">'+I.atras+'Aviso '+A.id+'</a><div class="cab"><div><h1 class="vh">Papeles del aviso '+A.id+'</h1></div></div><nav class="vdocs" aria-label="Papeles">'+tipos.map(x=>'<a href="#/papel/'+A.id+'/'+x[0]+'"'+(x[0]===tipo?' aria-current="page"':'')+'>'+x[1]+'</a>').join('')+'</nav></div><article class="papel doc">'+d.replace('<h1>','<h2 class="h1" style="font:700 2.1rem/1.05 var(--fd);color:var(--tinta);margin:18px 0 2px">').replace('</h1>','</h2>')+(Oficio.DEMO?'<p class="pie">Documento de ejemplo de una demo: empresa, cliente e importes son inventados.</p>':'')+'</article>'+
   '<div class="dacts noimp"><button class="btn pri" data-a="imprimir">Imprimir o guardar en PDF</button>'+(A.e==='hecho'?'<button class="btn" data-a="msg" data-id="'+A.id+'" data-k="hecho">Enviar al cliente</button>':'')+'</div>'}
 
@@ -1209,8 +1217,12 @@ const POR_MSG={recibido:'Ha entrado su aviso: que sepa que lo tenemos.',cita:'Ya
 const ultimoMsg=tel=>{const t9=K.tel9(tel);let u=null;if(t9)S.avisos.forEach(x=>{if(x.cli&&x.cli.tel===t9)(x.msgs||[]).forEach(m=>{if(m.env&&!m.no&&(!u||m.env>u.m.env))u={a:x,m}})});return u};
 /* el enlace del aviso en los mensajes que lo necesitan (16-11-2026): así quien avisa por teléfono también ve quién va y cuándo.
    Con servidor lleva la llave del aviso; en la demo, sin ella, solo sirve en este navegador */
-const enlaceDe=(A,k)=>['recibido','cita','vispera','camino','hecho'].includes(k)?'\n\n'+(k==='hecho'?'Tu aviso, con el total y la garantía: ':'Sigue tu aviso aquí: ')+new URL('cita.html#/aviso/'+encodeURIComponent(A.id)+(typeof A.llave==='string'&&A.llave?'/'+A.llave:''),location.href).href:'';
-function hMsg(A,k){const txt=K.mensaje(cfg,A,k)+enlaceDe(A,k),m=A.msgs.find(x=>x.k===k&&!x.env),u=ultimoMsg(A.cli.tel),hs=m&&m.hasta;
+const enlaceDe=(A,k)=>{if(!['recibido','cita','vispera','camino','hecho'].includes(k))return'';
+ const u=new URL('cita.html'+idiomaUrl(A)+'#/aviso/'+encodeURIComponent(A.id)+(typeof A.llave==='string'&&A.llave?'/'+A.llave:''),location.href).href;
+ return'\n\n'+(k==='hecho'?_c('Tu aviso, con el total y la garantía: {enlace}',{enlace:u},A.idioma):_c('Sigue tu aviso aquí: {enlace}',{enlace:u},A.idioma))};
+/* el texto de un mensaje, en el idioma del cliente */
+const textoMsg=(A,k)=>K.mensaje(cfg,A,k,IDI?IDI.para(A.idioma||'es'):undefined)+enlaceDe(A,k);
+function hMsg(A,k){const txt=textoMsg(A,k),m=A.msgs.find(x=>x.k===k&&!x.env),u=ultimoMsg(A.cli.tel),hs=m&&m.hasta;
  const dat='<dl class="mdat"><div><dt>Para</dt><dd>'+esc(K.nomCli(A.cli)||'Aún sin nombre')+(A.cli.tel?' · '+K.telBonito(A.cli.tel):'')+'</dd></div><div><dt>Por qué</dt><dd>'+(K.SEGUIR.includes(k)?esc(porQue({a:A,m:m||{k}})):POR_MSG[k]||'')+'</dd></div>'+
   (hs?'<div><dt>Caduca</dt><dd>el '+K.fechaCorta(K.madrid(hs).date)+'; después ya no sale</dd></div>':'')+'<div><dt>Último mensaje</dt><dd>'+(u?'«'+K.MSG[u.m.k]+'», '+hace(u.m.env):'todavía no se le ha escrito')+'</dd></div></dl>';
  /* la oficina puede dejarlo sin mandar; en el seguimiento, apuntar que el cliente no quiere estos mensajes (se le dice en cada uno, como pide la ley) */
@@ -1228,8 +1240,8 @@ const ZERR={nadie:'Este teléfono todavía no tiene avisos en el servidor. Esper
  lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.',servidor:'El servidor ha fallado. Prueba otra vez en un momento.'};
 function hZona(A){const t9=K.tel9(A.cli.tel);if(!t9){toast('Este aviso todavía no tiene teléfono.');return}
  if(!Oficio.DEMO&&!SRV){hoja(hc('Zona del cliente')+'<div class="hb"><p>La zona del cliente todavía no está abierta en esta copia: llegará con el acceso de cada cliente por el servidor.</p></div><div class="hp"><button class="btn ancho" data-x>Cerrar</button></div>');return}
- const n=(A.cli.nombre||'').split(' ')[0],zonaUrl=cod=>new URL('cliente.html#/entra/'+t9+'/'+cod,location.href).href;
- const msg=cod=>(n?'Hola, '+n+'. ':'Hola. ')+'En tu zona de '+N.nombre+' tienes tus avisos, tus presupuestos y tus garantías: '+zonaUrl(cod)+' . Si te pide el código, es este: '+cod+'. '+N.nombre+'.';
+ const n=(A.cli.nombre||'').split(' ')[0],l=A.idioma,zonaUrl=cod=>new URL('cliente.html'+idiomaUrl(A)+'#/entra/'+t9+'/'+cod,location.href).href;
+ const msg=cod=>(n?_c('Hola, {nombre}.',{nombre:n},l):_c('Hola.',null,l))+' '+_c('En tu zona de {negocio} tienes tus avisos, tus presupuestos y tus garantías: {enlace} .',{negocio:N.nombre,enlace:zonaUrl(cod)},l)+' '+_c('Si te pide el código, es este: {codigo}.',{codigo:cod},l)+' '+N.nombre+'.';
  if(Oficio.DEMO){const cod=K.CLIENTE_DEMO;
   hoja(hc('Zona del cliente')+'<div class="hb"><p>Ahí tiene sus avisos, sus presupuestos, sus partes y sus garantías. Entra con su teléfono y el código que le llega en este mensaje.</p>'+waHtml(msg(cod),K.nomCli(A.cli))+'<p class="dn">En la app real, este botón abre WhatsApp con el mensaje ya escrito. En la demo no se escribe a nadie: su zona se abre aquí.</p></div><div class="hp"><a class="btn pri ancho" id="zAbre" target="_blank" rel="noopener" href="'+esc(zonaUrl(cod))+'">Abrir su zona</a></div>');return}
  const d=hoja(hc('Zona del cliente')+'<div class="hb" id="zB"></div><div class="hp" id="zP"></div>');let seguro=false;
@@ -1454,11 +1466,12 @@ function hPrecio(A,ampliar){const av=cfg.av[A.av],urg=ampliar?A.tot.urg:K.tarifa
   (ampliar?'<p class="tar">Presupuesto firmado: '+K.eur(A.tot.total)+'. Lo que añadas aquí se firma aparte.</p>':'<p class="tar">'+(urg?'Tarifa de urgencia: un '+PCT+' % más en todo menos el material. El aviso entró '+cuandoT(A.t)+'.':'Tarifa normal.')+'</p>')+
   '<ul class="plin" id="pL"></ul><div class="campo"><span class="lb">Añadir</span><div class="ops" id="pC"></div><div id="pO"></div></div>'+
   (ampliar?'':'<label class="chk"><input type="checkbox" id="pLoc"> Es un local o una vivienda de menos de dos años</label>')+'<div id="pT" style="display:grid;gap:14px"></div>'+
-  '<div class="firma"><div class="fh"><span class="lb">Firma del cliente</span><button class="txt" id="pB" type="button">Borrar</button></div><canvas id="pF" aria-label="Zona para firmar con el dedo"></canvas></div>'+
-  '<p class="dn">'+(ampliar?'Solo se hace si el cliente lo firma antes.':'Precio cerrado. Si hace falta algo más, te lo decimos antes y lo firmas.')+'</p></div>'+
+  '<div class="firma"><div class="fh"><span class="lb"'+(A.idioma?' lang="'+A.idioma+'"':'')+'>'+esc(_c('Firma del cliente',null,A.idioma))+'</span><button class="txt" id="pB" type="button">Borrar</button></div><canvas id="pF" aria-label="Zona para firmar con el dedo"></canvas></div>'+
+  '<p class="dn"'+(ampliar||!A.idioma?'':' lang="'+A.idioma+'"')+'>'+(ampliar?'Solo se hace si el cliente lo firma antes.':esc(_c('Precio cerrado. Si hace falta algo más, te lo decimos antes y lo firmas.',null,A.idioma)))+'</p></div>'+
   '<div class="hp"><button class="btn pri ancho" id="pOk" disabled>'+(ampliar?'Firmado: añadir':'Firmado: empezar')+'</button>'+(ampliar?'':'<button class="txt mal" id="pNo" type="button" style="justify-self:center">No acepta el precio</button>')+'</div>',{papel:1,llena:1,fijo:1});
  const listo=()=>{$('#pOk',d).disabled=!pad||pad.vacia()||!lin.length||(K.pideYa(K.desiste(cfg,A,lin))&&!pide)};
- const bDes=()=>{const c=K.desiste(cfg,A,lin);return K.pideYa(c)?'<div class="des" id="pDes"><p>'+DES[c]+'</p><label class="chk"><input type="checkbox" id="pPide"'+(pide?' checked':'')+'> Quiero que lo hagáis ya</label></div>':ampliar?'':'<p class="dn">'+DES.urgente+'</p>'};
+ /* lo que lee el cliente antes de firmar, en su idioma (17-11-2026) */
+ const bDes=()=>{const c=K.desiste(cfg,A,lin),l=A.idioma;return K.pideYa(c)?'<div class="des" id="pDes"'+(l?' lang="'+l+'"':'')+'><p>'+esc(_c(DES[c],null,l))+'</p><label class="chk"><input type="checkbox" id="pPide"'+(pide?' checked':'')+'> '+esc(_c('Quiero que lo hagáis ya',null,l))+'</label></div>':ampliar?'':'<p class="dn"'+(l?' lang="'+l+'"':'')+'>'+esc(_c(DES.urgente,null,l))+'</p>'};
  const p=cambia=>{const T=K.precio(cfg,junto(),{urg,local,gratis:GR,garan:GA}),solo=K.precio(cfg,lin,{urg,tipo:T.tipo,sinMin:ampliar&&hayMo,gratis:GR,garan:GA});
   $('#pL',d).innerHTML=solo.lineas.map((l,i)=>{const it=cfg.cat[l.k],fijo=!ampliar&&!l.mat&&l.un!=='h';
    const g=[lq(l),l.u?'con el '+PCT+' % de urgencia':'',!A.cita&&it&&it.extra?'añadido, con desistimiento':'',l.con?'incluido en su contrato':'',l.gar?'va en la garantía':''].filter(Boolean);
@@ -1496,7 +1509,7 @@ function hCierre(A){let modo='',pad;const T=A.tot,vuelve=A.av!==K.REV&&!A.con&&(
   '<div class="ptot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+'</p>'+
   (T.total?'<div class="campo"><span class="lb">¿Cómo paga?</span><div id="tM">'+modos(['efectivo','tarjeta','bizum','pendiente'],'')+'</div></div>':'<p class="dn">'+(A.enGar?'Va en la garantía':'Va en su contrato de mantenimiento')+': no hay nada que cobrar.</p>')+
   (vuelve?'<label class="chk avi" id="tAv"><input type="checkbox" id="tAvi"> <span>Avisarle cuando toque volver: '+esc(vuelve.t.toLowerCase())+', dentro de '+mesesTxt(vuelve.cada)+'<small>Pregúntaselo. Solo si dice que sí.</small></span></label>':'')+
-  '<div class="firma"><div class="fh"><span class="lb">Conforme con el trabajo (opcional)</span><button class="txt" id="tB" type="button">Borrar</button></div><canvas id="tF" aria-label="Zona para firmar con el dedo"></canvas></div></div>'+
+  '<div class="firma"><div class="fh"><span class="lb"'+(A.idioma?' lang="'+A.idioma+'"':'')+'>'+esc(_c('Conforme con el trabajo (opcional)',null,A.idioma))+'</span><button class="txt" id="tB" type="button">Borrar</button></div><canvas id="tF" aria-label="Zona para firmar con el dedo"></canvas></div></div>'+
   '<div class="hp"><button class="btn pri ancho" id="tOk"'+(T.total?' disabled':'')+'>Cerrar el trabajo</button></div>',{papel:1,llena:1,fijo:1});
  pad=Oficio.firma($('#tF',d));$('#tB',d).onclick=()=>pad.borrar();
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#tOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#tM',d).innerHTML=modos(['efectivo','tarjeta','bizum','pendiente'],modo);$('#tOk',d).disabled=false}
@@ -1537,6 +1550,7 @@ const ACC={
  irSec:(A,b)=>{const s=document.getElementById(b.dataset.sec);if(!s)return;s.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});s.focus({preventScroll:true})},
  seguir:()=>hMensajes(true),
  escribirSi:A=>{if(hacer({tipo:'escribir',tel:A.cli.tel,si:true}).ok)toast('Vuelve a recibir los mensajes de seguimiento.')},
+ idioma:(A,b)=>{const l=b.dataset.l;if((A.idioma||'es')===l)return;if(hacer({tipo:'idioma',id:A.id,idioma:l}).ok)toast('Idioma del cliente: '+({es:'castellano',ca:'catalán',en:'inglés'})[l]+'. Sus mensajes y sus papeles salen en él.')},
  completar:A=>hCompletar(A),
  cita:A=>hCita(A),
  cancelar:A=>hCancelar(A),

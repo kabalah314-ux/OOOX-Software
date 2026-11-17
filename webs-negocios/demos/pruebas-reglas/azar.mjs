@@ -31,7 +31,7 @@ const clon = o => JSON.parse(JSON.stringify(o));
 class Rota extends Error { constructor(ley, detalle) { super(ley + ': ' + detalle); this.ley = ley; this.detalle = detalle } }
 const rota = (ley, detalle) => { throw new Rota(ley, detalle) };
 const SALTOS = new Set(['asignado>nuevo', 'nuevo>asignado', 'nuevo>cancelado', 'asignado>camino', 'asignado>curso', 'asignado>hecho', 'asignado>cancelado', 'camino>curso', 'camino>ausente', 'camino>hecho', 'curso>hecho', 'ausente>asignado', 'ausente>nuevo', 'ausente>cancelado']);
-const SOLO_CENTRALITA = ['asignar', 'soltar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia', 'facturar', 'cobroContrato', 'renovar', 'bajaContrato', 'descartar', 'escribir', 'garantia', 'corregirPago'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado', 'falta', 'rebajar'];
+const SOLO_CENTRALITA = ['asignar', 'soltar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia', 'facturar', 'cobroContrato', 'renovar', 'bajaContrato', 'descartar', 'escribir', 'garantia', 'corregirPago'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado', 'falta', 'rebajar', 'idioma'];
 const CON_TIPOS = ['contrato', 'cobroContrato', 'renovar', 'bajaContrato'];
 const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'pos', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo', 'quien'];
 const PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'fac', 'cli', 'con', 'vista', 'enGar', 'rebajas'];   // lo que puede llevar cada aviso del perfil del cliente
@@ -147,6 +147,8 @@ function paso(W, a, q, t) {
   furgoneta(W, tipo, A, a, q, t, fz0);
   // --- el mapa: una posición solo existe mientras el técnico va de camino, solo si el negocio lo tiene activado, y es una sola
   for (const x of S.avisos) {
+    // el idioma del cliente (17-11-2026): solo catalán o inglés (el castellano no se apunta); lo cambian la oficina o su técnico
+    if (x.idioma !== undefined && !['ca', 'en'].includes(x.idioma)) rota('idioma-valido', x.id + ' lleva el idioma ' + JSON.stringify(x.idioma));
     if (x.pos !== undefined) { if (x.e !== 'camino') rota('posicion-solo-de-camino', x.id + ' está en «' + x.e + '» y guarda posición');
       if (!W.N.mapa) rota('posicion-solo-si-el-negocio-quiere', x.id);
       if (x.posNo) rota('posicion-borrada-si-deja-de-compartir', x.id);
@@ -463,6 +465,7 @@ function generador(G) {
   }
   function pedir(S, t) {
     const a = { tipo: 'pedir', av: r() < .04 ? pick(RAROS) : pick(avs), cli: cliente(), origen: r() < .05 ? pick(RAROS) : pick(K.ORIGEN), nota: pick(['', 'Gotea desde ayer.', 'x'.repeat(900), '<script>1</script>']) };
+    if (r() < .5) a.idioma = r() < .9 ? pick(['es', 'ca', 'en']) : pick(RAROS);   // el idioma del cliente (17-11-2026); sin él, el de su último aviso
     if (r() < .5) { a.cita = cita(S, t); if (r() < .35) a.alt = [cita(S, t), cita(S, t), r() < .2 ? pick(RAROS) : cita(S, t)] }
     if (r() < .12) { const c = a.cli, que = pick(['tel', 'dir', 'cp', 'nombre', 'apellidos', 'zona', 'todo']); if (que === 'zona') c.cp = '99999'; else if (que === 'todo') a.cli = pick([null, 'hola', {}, []]); else if (que === 'tel') c.tel = pick(['', '12345', '+34 600 00 01 02', '0034600000102', '5551234']); else c[que] = '' }
     if (S.contratos && S.contratos.length && r() < .25) a.cli = Object.assign({}, pick(S.contratos).cli);
@@ -509,9 +512,9 @@ function generador(G) {
     }
   }
   function cualquiera(S, A) {
-    const tipo = pick(['completar', 'asignar', 'soltar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'pack', 'borrar', 'pedir', 'posicion', 'sinPosicion', 'falta', 'descartar', 'escribir', 'garantia', 'corregirPago', 'rebajar']);
+    const tipo = pick(['completar', 'asignar', 'soltar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'pack', 'borrar', 'pedir', 'posicion', 'sinPosicion', 'falta', 'descartar', 'escribir', 'garantia', 'corregirPago', 'rebajar', 'idioma', 'idioma']);
     const quien = pick([C, { rol: 'cliente' }, T(pick(tecs)), T(pick(tecs)), { rol: 'tecnico', id: pick(RAROS) }, { rol: pick(RAROS) }, {}]);
-    return [{ tipo, id: A.id, lat: 41.38, lon: 2.17, tec: pick(tecs), modo: pick(K.PAGOS), firma: FIRMA, pres: { lineas: lineas(A, 0), firma: FIRMA }, lineas: lineas(A, 1), k: pick(Object.keys(K.MSG)), pack: pick(['basico', 'pro']), cita: null, av: pick(avs), cli: cliente(), tel: A.cli ? A.cli.tel : '', si: r() < .5, avisar: r() < .3, motivo: pick(['Al final no hizo falta', '']), de: A.gar0 }, quien];
+    return [{ tipo, id: A.id, idioma: r() < .85 ? pick(['es', 'ca', 'en']) : pick(RAROS), lat: 41.38, lon: 2.17, tec: pick(tecs), modo: pick(K.PAGOS), firma: FIRMA, pres: { lineas: lineas(A, 0), firma: FIRMA }, lineas: lineas(A, 1), k: pick(Object.keys(K.MSG)), pack: pick(['basico', 'pro']), cita: null, av: pick(avs), cli: cliente(), tel: A.cli ? A.cli.tel : '', si: r() < .5, avisar: r() < .3, motivo: pick(['Al final no hizo falta', '']), de: A.gar0 }, quien];
   }
   function basura(S) {
     const A = S.avisos.length ? pick(S.avisos) : { id: 'X-0001' };
@@ -641,7 +644,7 @@ for (const archivo of opc.negocio) {
       for (const k in R.W.acept) acept[k] = (acept[k] || 0) + R.W.acept[k]; for (const k in R.W.rech) rech[k] = (rech[k] || 0) + R.W.rech[k];
     }
     // el recorrido tiene que haber pasado por todo: si no, la prueba no prueba
-    const faltan = ['pedir', 'completar', 'asignar', 'soltar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'descartar', 'escribir', 'ausencia', 'quitarAusencia', 'falta', 'furgo', 'garantia', 'corregirPago', 'rebajar'].concat(Object.keys(cfg.planes || {}).length ? ['contrato', 'cobroContrato', 'bajaContrato'] : []).filter(k => !acept[k]);
+    const faltan = ['pedir', 'completar', 'asignar', 'soltar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'descartar', 'escribir', 'ausencia', 'quitarAusencia', 'falta', 'furgo', 'garantia', 'corregirPago', 'rebajar', 'idioma'].concat(Object.keys(cfg.planes || {}).length ? ['contrato', 'cobroContrato', 'bajaContrato'] : []).filter(k => !acept[k]);
     const sinVer = ['nuevo', 'asignado', 'camino', 'curso', 'hecho', 'ausente', 'cancelado'].filter(e => !estados.has(e));
     if (opc.tandas >= 50 && (faltan.length || sinVer.length)) { fallos++; mal++; console.log('  EL RECORRIDO SE QUEDA CORTO en ' + NN.id + ': sin aceptar ' + faltan.join(', ') + ' · sin ver ' + sinVer.join(', ')) }
     const nA = Object.values(acept).reduce((s, x) => s + x, 0), nR = Object.values(rech).reduce((s, x) => s + x, 0);
