@@ -1,10 +1,13 @@
 // Un servidor local para probar las pantallas en modo servidor: el MISMO juez que el de verdad (oficios-servidor/juez.mjs)
 // con un almacén en memoria. No sale nada a internet y cada vez que arranca está vacío.
 //
-// Uso: node servidor_local.mjs <carpeta de la app> <puerto> [--datos <archivo de datos de otro negocio>]
+// Uso: node servidor_local.mjs <carpeta de la app> <puerto> [--datos <archivo de datos de otro negocio>] [--completos <archivo>]
 //
 // Sirve la carpeta tal cual, menos js/oficio-datos.js: le pone «servidor» apuntando aquí, lo traiga o no. Así cualquier
 // copia se puede probar con servidor sin tocar sus archivos y sin que la prueba llegue nunca al servidor de verdad.
+// El archivo de datos de una copia con servidor es el público (17-11-2026): sin apellidos ni horarios del equipo. Los datos
+// completos, los que tiene el servidor, se dan con --completos (sin ellos no arranca). Como el de verdad, el servidor guarda
+// los datos sin «servidor» ni «textos».
 //
 // Lo mismo que el servidor de verdad:      POST /functions/v1/oficio      GET /functions/v1/oficio
 //                                          POST /rest/v1/rpc/oficios_v    POST /rest/v1/rpc/oficios_vista
@@ -16,13 +19,19 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { leeNucleo, leeNegocio } from '../pruebas-reglas/valida-negocio.mjs';
 
 const aqui = path.dirname(fileURLToPath(import.meta.url)), args = process.argv.slice(2);
-const carpeta = path.resolve(args[0] || '.'), puerto = Number(args[1] || 8768), iDatos = args.indexOf('--datos');
-const archivoDatos = iDatos >= 0 ? path.resolve(args[iDatos + 1]) : path.join(carpeta, 'js/oficio-datos.js');
+const carpeta = path.resolve(args[0] || '.'), puerto = Number(args[1] || 8768), iDatos = args.indexOf('--datos'), iCompletos = args.indexOf('--completos');
+const archivoDatos = iDatos >= 0 ? path.resolve(args[iDatos + 1]) : path.join(carpeta, 'js/oficio-datos.js'), archivoCompletos = iCompletos >= 0 ? path.resolve(args[iCompletos + 1]) : '';
 const DIR = [process.env.OFICIOS_SERVIDOR, path.join(aqui, '../../oficios-servidor'), path.join(aqui, '../../servidor')].filter(Boolean).map(d => path.resolve(d)).find(d => fs.existsSync(path.join(d, 'juez.mjs')));
 if (!DIR) { console.error('No encuentro el juez (oficios-servidor/juez.mjs).'); process.exit(2); }
 const { crea } = await import(pathToFileURL(path.join(DIR, 'juez.mjs')).href);
 const { creaAlmacen } = await import(pathToFileURL(path.join(DIR, 'almacen-memoria.mjs')).href);
-const K = leeNucleo(carpeta), N = leeNegocio(archivoDatos).N;
+const K = leeNucleo(carpeta), F = leeNegocio(archivoDatos).N, N = archivoCompletos ? leeNegocio(archivoCompletos).N : F;   // F: el archivo que se sirve; N: lo que tiene el servidor
+const para = t => { console.error(t); process.exit(2); };
+if (F.publico === true && !archivoCompletos) para('El archivo de datos que se sirve es el público (sin el equipo entero): dame los datos completos del servidor con --completos <archivo>.');
+if (N.publico === true) para('--completos: ese archivo es el público, no los datos completos.');
+if (N.id !== F.id) para('--completos: son los datos de «' + N.id + '», y el archivo que se sirve es de «' + F.id + '».');
+if (archivoCompletos && K.canon(K.publico(N)) !== K.canon(K.publico(F))) console.error('OJO: la parte pública de los datos completos no es el archivo que se sirve; la app dirá que los datos son distintos.');
+const DS = Object.fromEntries(Object.entries(N).filter(([k]) => k !== 'servidor' && k !== 'textos'));   // lo que guarda el servidor
 
 let desfase = 0, red = 'va', lento = 0, pierde = 0;
 const ahora = () => Date.now() + desfase;
@@ -30,7 +39,7 @@ const A = creaAlmacen({ ahora }), J = crea({ K, almacen: A, ahora, aviso: e => c
 /* un código por persona, con la misma forma que los de verdad: 16 letras y números en cuatro grupos */
 const CODIGOS = { oficina: 'ofic-ina0-prue-ba01' };
 N.tecnicos.forEach((t, i) => { CODIGOS[t.id] = 'tecn-ico' + String(i + 1) + '-prue-ba0' + String(i + 2); });
-A.alta(N.id, N, K.ESQ); A.persona(N.id, 'oficina', 'centralita', 'oficina', CODIGOS.oficina);
+A.alta(N.id, DS, K.ESQ); A.persona(N.id, 'oficina', 'centralita', 'oficina', CODIGOS.oficina);
 N.tecnicos.forEach(t => A.persona(N.id, t.id, 'tecnico', t.id, CODIGOS[t.id]));
 const cuenta = { hacer: 0, leer: 0, entrar: 0, pedir: 0, huecos: 0, ver: 0, acceso: 0, perfil: 0, version: 0, oficios_v: 0, oficios_vista: 0, perdidas: 0, cortadas: 0 };
 

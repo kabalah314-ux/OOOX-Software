@@ -97,9 +97,11 @@ cuándo se espera que vuelva.
    PNG, que el iPhone necesita, los hace `python3 webs-negocios/demos/iconos.py <carpeta>` (con Pillow); sin ellos la app
    se instala igual con el SVG. El trabajador de la app (`sw.js`) va con lo común: con red siempre baja lo nuevo, así que
    una versión publicada llega a los móviles en cuanto tienen cobertura.
-8. Si un cambio toca los datos de un negocio que vive en el servidor (precios, equipo, averías…), hay que llevarlo también
-   a `oficios.estados.datos` (sin `servidor` ni `textos`): `node copias.mjs subir-datos <id>` prepara el SQL. Si no,
-   «Tu sesión» avisa de que los datos no son los mismos. El alta de un negocio nuevo en el servidor, con `alta <id>`.
+8. Si un cambio toca los datos de un negocio que vive en el servidor (precios, equipo, averías…), se cambia en sus datos
+   completos (fuera del repositorio: `demos/ALTA.md`) y se lleva a los dos sitios: `node copias.mjs publica <id> --datos
+   <completos.js>` rehace su archivo público, y `node copias.mjs subir-datos <id> --datos <completos.js>` prepara el SQL
+   para `oficios.estados.datos`. Si la web y el servidor no tienen lo mismo, «Tu sesión» lo avisa. El alta de un negocio
+   nuevo en el servidor, con `alta <id> --datos <completos.js>`.
 9. Las fotos van aparte del aviso desde el 16-11-2026 (`oficios.fotos`): la copia de cada noche no las lleva, para no
    pesar; la exportación del negocio, sí, y «olvidar a un cliente» las borra.
 

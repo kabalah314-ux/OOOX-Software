@@ -381,6 +381,9 @@ const M = [
   ['el trabajo terminado a cero dice el total y «Pagado ()»', "+(cero?'':A.pago&&A.pago.cobrado?", "+(false?'':A.pago&&A.pago.cobrado?"],
   ['la huella cambia con el orden de las claves', "Object.keys(x).filter(k=>x[k]!==undefined&&typeof x[k]!=='function').sort()", "Object.keys(x).filter(k=>x[k]!==undefined&&typeof x[k]!=='function')"],
   ['la huella cuenta los textos traducidos', "delete c.servidor;delete c.textos;", "delete c.servidor;"],
+  ['la parte pública lleva los horarios y el resto del equipo', "N.tecnicos.map(t=>{const y={id:t.id,n:t.n},a=inicialDe(t.ap);if(a)y.ap=a;y.tono=t.tono;return y})", "N.tecnicos.map(t=>Object.assign({},t))"],
+  ['la parte pública lleva el apellido entero', "a=inicialDe(t.ap);if(a)y.ap=a;", "a=t.ap;if(a)y.ap=a;"],
+  ['la parte pública no lo dice', "const x={id:N.id,publico:true};", "const x={id:N.id};"],
   ['al soltar no queda escrito en el diario', "log(A,'Sin técnico: '+((cfg.tec[A.tec]||{}).n||'el técnico')+' ya no lo lleva');", ""],
 ];
 

@@ -154,7 +154,10 @@ const ERR={av:'Elige qué necesitas arreglar.',franja:'Elige un día y una franj
 const SRV=Oficio.SRV,H={dias:null,err:'',t:0,va:false};
 Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al {tel}.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al {tel} y te damos cita.',red:'No hay conexión o no podemos recibirla ahora. Tu cita no se ha enviado: prueba otra vez o llámanos al {tel}.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',grande:'Esa foto pesa demasiado. Quítala y prueba otra vez.'});
 const err=k=>_(ERR[k]||ERR.servidor,{ciudad:N.ciudad,tel:N.tel});
-function traeHuecos(){if(!SRV||H.va)return;H.va=true;Oficio.huecos({av:B.av||'',dis:cfg.zonas.cp[B.cp]||''}).then(r=>{H.va=false;H.t=Date.now();
+/* «otra»: lo que se busca ha cambiado (la avería). Si ya se estaba preguntando, al llegar esa respuesta se pregunta otra vez:
+   la que llega es la de antes del cambio */
+function traeHuecos(otra){if(!SRV)return;if(H.va){if(otra)H.otra=true;return}H.va=true;H.otra=false;Oficio.huecos({av:B.av||'',dis:cfg.zonas.cp[B.cp]||''}).then(r=>{H.va=false;
+ if(H.otra){H.t=0;traeHuecos();return}H.t=Date.now();
  if(r.ok&&Array.isArray(r.dias)){H.err='';H.urg=r.urg&&Number.isInteger(r.urg.de)&&Number.isInteger(r.urg.a)?{de:r.urg.de,a:r.urg.a}:null;H.dias=r.dias.map(d=>({dia:d.dia,hoy:!!d.hoy,franjas:cfg.franjas.map(f=>{const x=(d.franjas||[]).find(y=>y.id===f.id);return{id:f.id,txt:K.franjaTxt(f),ok:!!(x&&x.ok),libres:null}})}))}else H.err=r.err||'red';
  const a=document.activeElement;if(ruta().v!=='aviso'&&!(a&&a.closest&&a.closest('#f input,#f textarea')))pinta()})}
 const diaCorto=f=>{const h=K.madrid().date;return f===h?_('hoy'):f===K.masDias(h,1)?_('mañana'):I.diaSemCorto(f)+' '+(+f.slice(8))};
@@ -309,8 +312,10 @@ const repinta=id=>{const a=document.getElementById(id),p=a&&typeof a.selectionSt
 document.addEventListener('input',e=>{const i=e.target;if(!(i.dataset&&i.dataset.b))return;const k=i.dataset.b;B[k]=i.value;
  if(k==='cp'){const d=i.value.replace(/\D/g,'');if(d.length===5){if(zonaDe(d)){if(B.err==='zona')B.err='';B.errs=B.errs.filter(x=>x!=='cp'&&x!=='zona')}else B.err='zona';repinta(i.id)}return}
  if((B.errs.includes(k)||B.err===k)&&campoBien(k)){B.errs=B.errs.filter(x=>x!==k);if(B.err===k)B.err='';repinta(i.id)}});
+/* con citas por lo que tarda cada trabajo, los huecos dependen de la avería: al elegirla se piden otra vez. Se mira también
+   en los datos tal cual: el archivo de una copia con servidor no lleva los horarios y ahí cfg.porTiempo sale falso (17-11-2026) */
 document.addEventListener('change',e=>{const i=e.target;
- if(i.name==='av'){B.av=i.value;mem.set(N.id+':av',B.av);B.errs=B.errs.filter(x=>x!=='av');if(B.err==='av')B.err='';if(SRV&&cfg.porTiempo){H.t=0;traeHuecos()}pinta();const n=$('input[name=av]:checked');if(n)n.focus()}
+ if(i.name==='av'){B.av=i.value;mem.set(N.id+':av',B.av);B.errs=B.errs.filter(x=>x!=='av');if(B.err==='av')B.err='';if(SRV&&(cfg.porTiempo||(N.citas&&N.citas.porTiempo===true))){H.t=0;traeHuecos(true)}pinta();const n=$('input[name=av]:checked');if(n)n.focus()}
  if(i.id==='c_foto'&&i.files[0]){const fi=i.files[0];B.fotoVa=true;B.fotoMal='';pinta();
   Oficio.foto(fi).then(f=>{B.foto=f;B.fotoVa=false;pinta()}).catch(()=>{B.fotoVa=false;B.fotoMal='No he podido usar esa foto. Prueba con otra (una foto normal del móvil).';pinta()})}});
 /* ir a un campo desde el aviso de errores, o volver del resumen a la parte que se quiere cambiar */
@@ -318,7 +323,7 @@ const irA=id=>{const t=document.getElementById(id);if(!t)return;t.scrollIntoView
 async function envia(){if(B.va)return;B.va=true;B.err='';pinta();
  const pn=K.parteNombre(B.nomap),r=await Oficio.crear({tipo:'pedir',av:B.av,origen:'cita',nota:B.nota,foto:B.foto,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},{rol:'cliente'});
  B.va=false;
- if(!r.ok){if(SRV&&r.err==='franja'){H.t=0;traeHuecos()}const k=r.err==='franja'?'llena':r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;B.err=k;
+ if(!r.ok){if(SRV&&r.err==='franja'){H.t=0;traeHuecos(true)}const k=r.err==='franja'?'llena':r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;B.err=k;
   /* si es de un dato (la franja se ha llenado, el teléfono…), se vuelve al formulario con ese dato marcado */
   if(CAMPO_DE[k]){B.paso='form';pinta();irA(CAMPO_DE[k])}else{pinta();const x=$('.fallo');if(x)x.scrollIntoView({block:'center'})}return}
  mem.set('oficio:'+N.id+':mio',r.id);Object.assign(B,{nota:'',foto:'',fr:'',alt:[],err:'',errs:[],paso:'form',altOpen:false,altMas:false});location.hash='#/aviso/'+r.id}

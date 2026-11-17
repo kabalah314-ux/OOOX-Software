@@ -82,6 +82,15 @@ async def main():
         es(await o.evaluate('Oficio.SRV&&!Oficio.DEMO&&Oficio.sesion()===null'), 'sin haber entrado: la app sabe que va con servidor y no hay sesión')
         es(await o.locator('#nav a').count() == 0 and await o.locator('#quien *').count() == 0 and await o.evaluate('Oficio.estado().avisos.length') == 0, 'sin haber entrado: ni menú ni avisos, solo la pantalla de entrar')
         es(await o.locator('#e_quien option').count() == len(N['tecnicos']) + 1 and 'Entrar' in await o.title(), 'entrar: se elige entre la centralita y cada técnico del negocio')
+        # el archivo de datos lo baja cualquiera que abra la cita (17-11-2026): en una copia con servidor lleva solo la parte pública
+        F = await o.evaluate('JSON.parse(JSON.stringify(OFICIO_NEGOCIO))'); PUBLICO = F.get('publico') is True
+        INI = lambda t: (t.get('ap') or '').strip()[:1].upper() + '.'
+        APELLIDOS = [t['ap'] for t in N['tecnicos'] if len((t.get('ap') or '').strip()) > 2]
+        if PUBLICO:
+            es(all(set(t) <= {'id', 'n', 'ap', 'tono'} for t in F['tecnicos']) and [(t['id'], t.get('ap')) for t in F['tecnicos']] == [(t['id'], INI(t) if t.get('ap') else None) for t in N['tecnicos']],
+               'el archivo público: del equipo, solo el nombre, la inicial del apellido y el color; los apellidos, los horarios y quién es el jefe están solo en el servidor')
+            ops = await o.locator('#e_quien option').all_inner_texts(); html = await o.content()
+            es(all(f"{t['n']} {INI(t)}" in ops for t in N['tecnicos'] if t.get('ap')) and not [a for a in APELLIDOS if a in html], f'para entrar se elige por el nombre y la inicial, sin ningún apellido en la página {ops}')
         c0 = cuenta()['entrar']; await o.click('#fEntra [type=submit]'); await o.wait_for_selector('#e_ecod')
         es('Escribe tu código' in await o.inner_text('#e_ecod') and cuenta()['entrar'] == c0, 'entrar sin código: lo dice sin llamar al servidor')
         await o.fill('#e_cod', 'zzzz-zzzz-zzzz-zzzz'); await o.click('#fEntra [type=submit]'); await pasa(o, "document.querySelector('#e_ecod')&&/no es el de esa persona/.test(document.querySelector('#e_ecod').textContent)")
@@ -95,6 +104,8 @@ async def main():
         await o.select_option('#e_quien', 'oficina'); await o.fill('#e_cod', '  ' + COD['oficina'].upper().replace('-', ' ') + ' '); await o.click('#fEntra [type=submit]'); await o.wait_for_selector('#nav a')
         es(await o.evaluate("JSON.stringify(Oficio.sesion())") == json.dumps({'rol': 'centralita', 'id': 'oficina', 'persona': 'oficina'}, separators=(',', ':')), 'entrar: el código vale con mayúsculas, espacios y sin guiones')
         es(await o.locator('#nav a').count() >= 2 and 'Centralita' in await o.inner_text('#quien'), 'dentro: el menú de la oficina y arriba, quién ha entrado')
+        es(await pasa(o, f"JSON.stringify(Oficio.N.tecnicos)===JSON.stringify({json.dumps(N['tecnicos'])})&&Oficio.N.publico===undefined&&Oficio.red().datos===false"),
+           'dentro, la app tiene el equipo entero que le da el servidor (apellidos, horarios, el jefe) y no dice que los datos sean distintos')
         await o.reload(); await o.wait_for_selector('#nav a')
         es(await o.locator('#fEntra').count() == 0 and await o.evaluate('Oficio.sesion().rol') == 'centralita', 'al recargar sigue dentro: no vuelve a pedir el código')
         await o.click('[data-a=menu]'); await o.wait_for_selector('#mSal'); t = await o.inner_text('dialog[open]')
@@ -153,7 +164,7 @@ async def main():
         es(await pasa(o, f'{PRIMERO}==={P10}') and f'"p10":{P10}' in (await o.evaluate(f"localStorage.getItem('oficio:{N['id']}:datos')") or ''),
            'y hace las cuentas con los datos del servidor, que guarda en el aparato para abrir sin red')
         await o.click('[data-a=menu]'); await o.wait_for_selector('#mSal')
-        es(await o.locator('#mDatos').count() == 1 and 'no son los del servidor' in await o.inner_text('#mDatos'), 'y en «Tu sesión» dice que avise a OOOX')
+        es(await o.locator('#mDatos').count() == 1 and 'no es lo que tiene el servidor' in await o.inner_text('#mDatos'), 'y en «Tu sesión» dice que lo que ven los clientes al pedir cita no es lo del servidor, y que avise a OOOX')
         await o.keyboard.press('Escape'); api('__prueba/precio', {'mas': -1}); await o.reload(); await o.wait_for_selector('[data-a=menu]')
         es(await pasa(o, "Oficio.red().datos===false") and await o.locator('#mDatos').count() == 0, 'vuelve a ser el mismo precio: el aviso se quita')
         es(await pasa(o, f'{PRIMERO}==={P10 - 1}'), 'y vuelve a hacer las cuentas con el precio de siempre')
@@ -192,7 +203,13 @@ async def main():
         es(cuenta()['huecos'] == h0 + 1 and await k.locator('[data-dia]').count() >= 3 and await k.locator('[data-fr]:not([disabled])').count() >= 1, 'el cliente ve los días y las franjas libres que da el servidor')
         es(await k.evaluate('Oficio.sesion()') is None and await k.evaluate('Oficio.estado().avisos.length') == 0 and 'quedan' not in await k.inner_text('#f'), 'sin entrar en ningún sitio, sin datos de nadie y sin cifras de la casa')
         foto = tempfile.NamedTemporaryFile(suffix='.png', delete=False); foto.write(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==')); foto.close()
-        await k.locator('.avc').nth(1).click(); await k.set_input_files('#c_foto', foto.name); await k.wait_for_selector('.fotoz img')
+        h1 = cuenta()['huecos']; await k.locator('.avc').nth(1).click(); await k.set_input_files('#c_foto', foto.name); await k.wait_for_selector('.fotoz img')
+        if (N.get('citas') or {}).get('porTiempo') is True:   # con citas por lo que tarda cada trabajo, los huecos son los de esa avería (aunque el archivo no lleve horarios)
+            for _ in range(40):
+                if cuenta()['huecos'] > h1: break
+                await asyncio.sleep(.1)
+            await asyncio.sleep(.3)
+            es(cuenta()['huecos'] == h1 + 1 and await pasa(k, "!!document.querySelector('[data-fr]:not([disabled])')"), 'al elegir la avería, el cliente vuelve a pedir los huecos (una vez): son los de ese trabajo')
         await k.locator('[data-fr]:not([disabled])').first.click(); DIA = await k.get_attribute('[data-dia][aria-checked=true]', 'data-dia'); FR = await k.get_attribute('[data-fr][aria-checked=true]', 'data-fr')
         await k.fill('#c_nomap', 'Lucía Cliente'); await k.fill('#c_tel', '698765432'); await k.fill('#c_dir', 'Avenida de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
         await k.click('#f [type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await pasa(k, "location.hash.startsWith('#/aviso/')", 9000)
@@ -401,6 +418,7 @@ async def main():
         es(await pasa(o, "!!document.querySelector('#fEntra')") and await o.evaluate(f"localStorage.getItem('oficio:{N['id']}:sesion')===null&&localStorage.getItem('oficio:{N['id']}:srv')===null"), 'cerrar la sesión: vuelve a la pantalla de entrar y no deja nada guardado en el aparato')
         es('Marta' not in await o.inner_text('body') and await o.evaluate('Oficio.estado().avisos.length') == 0, 'y no queda a la vista ningún dato de clientes')
         es(await o.evaluate(f"localStorage.getItem('oficio:{N['id']}:datos')===null"), 'ni los datos del negocio que le dio el servidor (el equipo es de dentro)')
+        if PUBLICO: es(await o.evaluate('Oficio.N.publico===true') and not [a for a in APELLIDOS if a in await o.content()], 'y vuelve al archivo público: ni un apellido en la página')
         es(await o.input_value('#e_cod') == '' and await o.input_value('#e_quien') == 'oficina', 'la pantalla de entrar sale limpia: sin el código anterior y con quien usó este aparato')
         # la pantalla se vuelve a pintar sola (cambia la dirección, pasa un minuto): lo elegido y lo escrito no se pueden perder
         await o.select_option('#e_quien', T1); await o.locator('#e_cod').press_sequentially(COD[T1][:9]); await o.locator('h1').first.click()

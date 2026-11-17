@@ -138,6 +138,15 @@ for (const [que, rompe, base] of ROTOS) {
   es(valida(Q1, K, HOY).errores.length === 0 && !valida(Q1, K, HOY).avisos.some(t => /reservaSiFalta/.test(t)) && valida(Q2, K, HOY).errores.some(t => /citas.reservaSiFalta/.test(t))
     && valida(Q3, K, HOY).errores.length === 0 && valida(Q3, K, HOY).avisos.some(t => /citas.reservaSiFalta/.test(t)),
     'la reserva los días que falta alguien: false vale; algo que no es sí o no, error; y sin reserva, aviso de que no cambia nada') }
+// el archivo público de una copia con servidor (17-11-2026): del equipo, solo el nombre, la inicial y el color
+{ const SV = { url: 'https://x.supabase.co', llave: 'sb_publishable_x' }, P = K.publico(Object.assign(clon(R), { servidor: SV })), rP = valida(P, K, HOY);
+  es(rP.errores.length === 0 && !rP.avisos.some(t => /jefe|guardias|horario|cupo|porTiempo/.test(t)), 'el archivo público del negocio de muestra vale, sin avisos por lo que lleva el servidor (jefe, horarios, guardias, cupo)');
+  const P1 = clon(P); delete P1.servidor; const P2 = clon(P); P2.tecnicos[0].horario = R.tecnicos[0].horario || { 1: [[480, 840]] }; P2.tecnicos[1].jefe = 1;
+  const P3 = clon(P); P3.tecnicos[0].ap = R.tecnicos[0].ap; const P4 = clon(P); P4.publico = 'si'; const P5 = clon(P); delete P5.tecnicos[0].ap;
+  es(valida(P1, K, HOY).errores.some(t => /publico: .*servidor/.test(t)), 'un archivo público sin servidor no vale: la app no tendría de dónde sacar el equipo');
+  es(valida(P2, K, HOY).errores.filter(t => /archivo público no van «(horario|jefe)»/.test(t)).length === 2, 'en el archivo público, un horario o «jefe» es un error: esos datos van solo al servidor');
+  es(valida(P3, K, HOY).errores.some(t => /solo la inicial/.test(t)) && valida(P5, K, HOY).errores.length === 0, 'el apellido entero en el archivo público es un error; sin apellido, vale');
+  es(valida(P4, K, HOY).errores.some(t => /^publico: solo puede ser true/.test(t)), '«publico» solo puede ser true') }
 // las caducidades: lo mismo que hoy pasa, dentro de un año tiene que fallar
 es(valida(R, K, '2027-08-01').errores.some(t => /festivos/.test(t)), 'con la fecha de dentro de nueve meses, avisa de que hay que renovar los festivos');
 es(valida(R, K, '2026-12-28').avisos.some(t => /festivos/.test(t)) && valida(R, K, '2026-12-28').errores.length === 0, 'cuando queda menos de un año, lo dice como aviso, sin parar nada');

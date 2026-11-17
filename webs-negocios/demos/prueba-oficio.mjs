@@ -1485,6 +1485,23 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(/^[0-9a-f]{16}$/.test(h0) && await K.huellaDatos(R2) === h0 && await K.huellaDatos(R3) !== h0, 'la huella de los datos: igual con otro orden, con o sin «servidor» y «textos»; otra si cambia un precio');
   es(K.canon({ b: 1, a: [1, undefined, { d: 2, c: undefined }], f: () => 1 }) === '{"a":[1,null,{"d":2}],"b":1}', 'canon: claves en orden, sin lo indefinido ni funciones (en una lista, null), como JSON');
 
+  // la parte pública de los datos (17-11-2026): lo que lleva el archivo de datos de una copia con servidor, que es público
+  { const P = K.publico(PUB), T0 = PUB.tecnicos[0], sin = x => K.canon(Object.assign({}, x, { tecnicos: null, publico: null }));
+    es(P.publico === true && P.tecnicos.length === PUB.tecnicos.length && P.tecnicos.every((t, i) => { const o = PUB.tecnicos[i];
+      return Object.keys(t).join() === (o.ap ? 'id,n,ap,tono' : 'id,n,tono') && t.id === o.id && t.n === o.n && t.tono === o.tono && (!o.ap || t.ap === o.ap.trim()[0].toUpperCase() + '.') }),
+      'la parte pública: del equipo, solo el id, el nombre, la inicial del apellido y el color');
+    es(!/horario|jefe|guardia|furgoneta|coche|foto|Ok/.test(JSON.stringify(P.tecnicos)) && PUB.tecnicos.some(t => t.horario) && T0.ap.length > 2 && Object.keys(T0).length > 4,
+      'sin apellidos, horarios, jefe, guardias, furgoneta, coche ni foto (y el original sigue entero: no se ha tocado)');
+    es(K.canon(K.publico(P)) === K.canon(P) && sin(P) === sin(PUB) && !('publico' in PUB), 'la parte pública de la parte pública es la misma; lo demás (precios, zonas, franjas…) va igual');
+    es(await K.huellaDatos(K.publico(R2)) === await K.huellaDatos(P) && await K.huellaDatos(K.publico(R3)) !== await K.huellaDatos(P) && await K.huellaDatos(P) !== h0,
+      'su huella: la misma con otro orden y con o sin «servidor» y «textos», otra si cambia un precio, y no es la de los datos completos');
+    const raro = K.publico({ id: 'x', publico: false, tecnicos: [{ id: 'a', n: 'Ana', ap: '  de la Fuente', tono: 1, jefe: 1 }, { id: 'b', n: 'Bo', tono: 2 }, { id: 'c', n: 'Ce', ap: 'Ñúñez', tono: 3 }] });
+    es(raro.tecnicos[0].ap === 'D.' && !('ap' in raro.tecnicos[1]) && raro.tecnicos[2].ap === 'Ñ.' && Object.keys(raro).join() === 'id,publico,tecnicos' && raro.publico === true,
+      'la inicial, en mayúscula y sin los espacios de delante; sin apellido, sin inicial; «publico: true» va detrás del id, aunque viniera otro');
+    const cp = K.cfgDe(P), t = Date.parse('2026-11-17T10:30:00+01:00'), pide = { tipo: 'pedir', av: PUB.averias[0].id, origen: 'cita', cli: { nombre: 'Clara', apellidos: 'Prueba', tel: '611223344', dir: 'C/ de la Prueba 12', cp: Object.keys(PUB.zonas.cp)[0] } };
+    const r1 = K.aplicar(K.nuevo(), cp, Object.assign({ cita: { dia: '2026-11-18', fr: PUB.franjas[0].id } }, JSON.parse(JSON.stringify(pide))), { rol: 'cliente' }, t), r2 = K.aplicar(K.nuevo(), cp, JSON.parse(JSON.stringify(pide)), { rol: 'cliente' }, t);
+    es((r1.ok || r1.err === 'franja') && r2.ok, `con solo la parte pública, la cita se puede mirar antes de mandarla (los huecos los dice el servidor) y la urgencia pasa (${r1.err || 'ok'})`) }
+
   // el plazo de la garantía en los papeles: el del negocio, no siempre «un año»
   globalThis.OficioIdioma = undefined; require(path.join(sitio, 'js/oficio-papeles.js')); const PP = globalThis.OficioPapeles;
   es(PP.plazo(6) === '6 meses' && PP.plazo(12) === '1 año' && PP.plazo(18) === '18 meses' && PP.plazo(24) === '2 años' && PP.plazo(1) === '1 mes' && PP.plazo(0) === '' && PP.meses('2026-11-17', '2027-05-17') === 6,

@@ -25,6 +25,7 @@ Todo lo de esta carpeta corre en Node, sin navegador, en segundos. Para pasarlo 
 | `azar-espejo.mjs` | Varios aparatos con su espejo, red que falla, la app que se cierra y se abre, códigos que se retiran. 45.000 pasos, 256.000 comprobaciones. | Lo que se ve deja de ser «lo último del servidor más lo pendiente», o al calmarse todo un aparato no ve lo mismo que el servidor. |
 | `mutantes-espejo.mjs` | Quita adrede cada protección del espejo y pasa las dos anteriores. El 14-11-2026: 29 de 29 cazadas. El 15-11-2026, con los contratos (la oficina los recibe en la cabecera), 30 de 30; y con los contratos que solo viajan cuando cambian, 32 de 32. El 16-11-2026, con la furgoneta, 34 de 34. | Una protección de la app con servidor puede desaparecer sin que ninguna prueba lo note. |
 | `negocios/voltio.js` | Un segundo negocio inventado, hecho distinto a propósito (otro oficio, otra ciudad, horarios por técnico). Desde el 16-11-2026, con lo que lleva cada furgoneta, y Pau con la suya propia. | — |
+| `completos/<id>.js` | Desde el 17-11-2026, los datos completos de las copias **de prueba** con servidor (hoy, Voltio): su copia lleva solo el archivo público. Los de un negocio de verdad no van nunca aquí (ver `completos/LEEME.md`). | — |
 
 ## Cuando `azar.mjs` encuentra algo
 
@@ -42,7 +43,9 @@ Imprime la ley rota, la semilla y la lista mínima de acciones que lo provoca. S
 2. `node valida-negocio.mjs <sitio> <su-archivo.js>` hasta que no dé errores.
 3. `node ../copias.mjs nueva --datos <su-archivo.js>`: valida otra vez, crea su carpeta en `frontend/public/oficios/<id>/`
    con lo común y su archivo, y enseña **una sola vez** su código de soporte y la línea para darlo de alta en el buzón
-   (`webs-negocios/oficios-soporte/LEEME.md`). El código no se guarda en ningún archivo.
+   (`webs-negocios/oficios-soporte/LEEME.md`). El código no se guarda en ningún archivo. Si sus datos van con servidor,
+   la copia lleva solo su parte pública, y su archivo con los datos completos se guarda fuera del repositorio
+   (`../ALTA.md`, «Dónde se guardan»).
 4. `bash ../pruebas.sh`: cada copia pasa sus recorridos al azar y su recorrido de pantallas, servida desde su propia carpeta.
 5. Poner las fotos de sus averías en su carpeta: `assets/img/av-<id>-s.webp`. Si faltan, la página las esconde y la prueba lo apunta como aviso.
 
@@ -53,6 +56,8 @@ Lo común (pantallas y reglas) se cambia **solo** en la demo. Después:
 1. Subir `VERSION` en `js/oficio-nucleo.js` (la fecha y, si ese día hay más de un cambio, una letra).
 2. `node ../copias.mjs actualizar --todas`: cada copia se valida y pasa sus recorridos al azar con las reglas nuevas **antes**
    de cambiarse. La que no pasa se queda como estaba y lo dice; las demás siguen. Nunca toca el archivo de datos de nadie.
+   Una copia con el archivo público pasa los recorridos con sus datos completos, si están a mano (`--completos <carpeta>`
+   u `OFICIOS_COMPLETOS`); si no, se valida solo su parte pública y lo dice.
 3. `node ../copias.mjs lista` dice qué versión lleva cada una. `comprueba` falla si alguna no va al día: corre en `pruebas.sh`,
    así que un cambio en lo común que no se haya llevado a las copias no pasa las pruebas.
 

@@ -99,12 +99,17 @@ PB -f "$T/volcar.sql" >/dev/null && ok "volcada" || malo "no se vuelca"
 echo "── El alta de un negocio en el servidor, con copias.mjs: sus datos y el código de cada persona (16-11-2026)"
 COP="$RAIZ/demos/copias.mjs"; PLA="$RAIZ/../frontend/public/demos/ramirez-24h"
 if [ -f "$COP" ] && [ -d "$PLA" ]; then
-  mkdir -p "$T/oficios"; sed "s/id:'voltio'/id:'sim-alta'/" "$RAIZ/demos/pruebas-reglas/negocios/voltio.js" > "$T/sim-alta.js"
+  # con los datos completos de Voltio, que van con servidor: la copia lleva solo la parte pública, y al servidor van los completos (17-11-2026)
+  mkdir -p "$T/oficios"; sed "s/id:'voltio'/id:'sim-alta'/" "$RAIZ/demos/pruebas-reglas/completos/voltio.js" > "$T/sim-alta.js"
   node "$COP" nueva --datos "$T/sim-alta.js" --plantilla "$PLA" --destino "$T/oficios" > "$T/nueva.txt" 2>&1 || true
   sop=$(sed -nE 's/^ {4}([a-z0-9]{4}(-[a-z0-9]{4}){3})$/\1/p' "$T/nueva.txt" | head -1 || true)
   [ -n "$sop" ] && PB -c "insert into oficios.negocios (id, nombre, plan, prueba, clave_hash) values ('sim-alta', 'Voltio Sur', 'pro', false, oficios.huella('sim-alta', '$sop'))" >/dev/null \
     && ok "la copia nueva y su alta en el buzón" || malo "la copia nueva o su alta en el buzón: $(head -c 300 "$T/nueva.txt")"
-  node "$COP" alta sim-alta --plantilla "$PLA" --destino "$T/oficios" --sql "$T/alta.sql" > "$T/alta.txt" 2>&1 || true
+  pub="$T/oficios/sim-alta/js/oficio-datos.js"
+  grep -q '^ publico:true' "$pub" && ! grep -q "Marqués" "$pub" && grep -q "Marqués" "$T/sim-alta.js" && ok "la copia lleva solo la parte pública de sus datos (sin apellidos)" || malo "la copia lleva el equipo entero en su archivo, que es público"
+  node "$COP" alta sim-alta --plantilla "$PLA" --destino "$T/oficios" --sql "$T/alta-sin.sql" > "$T/alta-sin.txt" 2>&1 && malo "un alta sin los datos completos sale" \
+    || { grep -q -- "--datos" "$T/alta-sin.txt" && [ ! -f "$T/alta-sin.sql" ] && ok "sin los datos completos no hay alta, y dice cómo dárselos" || malo "sin los datos completos, no dice qué falta"; }
+  node "$COP" alta sim-alta --datos "$T/sim-alta.js" --plantilla "$PLA" --destino "$T/oficios" --sql "$T/alta.sql" > "$T/alta.txt" 2>&1 || true
   PB -f "$T/alta.sql" >/dev/null 2>&1 && ok "el SQL del alta entra" || malo "el SQL del alta no entra"
   n=0; bien=0; fuera=0
   while read -r p c; do
@@ -116,7 +121,9 @@ if [ -f "$COP" ] && [ -d "$PLA" ]; then
   rep=$(PB -f "$T/alta.sql" 2>&1 || true)   # con pipefail, el error de psql taparía lo que encuentra grep: se recoge antes
   echo "$rep" | grep -q "ya está en el servidor" && ok "el mismo alta otra vez no entra, y lo dice" || malo "un alta repetida entra"
   [ "$(PB -At -c "select datos->>'id' from oficios.estados where negocio = 'sim-alta'")" = sim-alta ] && ok "sus datos, en el servidor" || malo "sus datos no están en el servidor"
-  node "$COP" subir-datos sim-alta --plantilla "$PLA" --destino "$T/oficios" --sql "$T/datos.sql" >/dev/null 2>&1 && PB -f "$T/datos.sql" >/dev/null 2>&1 \
+  [ "$(PB -At -c "select (datos->'tecnicos'->0->>'ap') || ':' || ((datos->'tecnicos'->0->'horario') is not null) || ':' || (datos->'publico' is null) from oficios.estados where negocio = 'sim-alta'")" = "Marqués:true:true" ] \
+    && ok "en el servidor, sus datos completos: con los apellidos y los horarios" || malo "en el servidor no están sus datos completos"
+  node "$COP" subir-datos sim-alta --datos "$T/sim-alta.js" --plantilla "$PLA" --destino "$T/oficios" --sql "$T/datos.sql" >/dev/null 2>&1 && PB -f "$T/datos.sql" >/dev/null 2>&1 \
     && ok "sus datos, otra vez, con «subir-datos»" || malo "«subir-datos» no entra"
 else echo "  (se salta: aquí no están copias.mjs ni la plantilla)"; fi
 

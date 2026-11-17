@@ -3,16 +3,14 @@
 // Uso:  node valida-negocio.mjs <carpeta del sitio> <datos.js> [<otro-datos.js> ...] [--hoy AAAA-MM-DD]
 //       (el núcleo se lee de <carpeta del sitio>/js/oficio-nucleo.js)
 // Sale con error (1) si algún archivo tiene errores. Los «avisos» no paran nada: son cosas a mirar.
-import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TODOS as BASE } from '../../oficios-base/servicios.mjs';   // la base de servicios de OOOX: para «base» del catálogo
 
-const require = createRequire(import.meta.url);
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento', 'furgoneta', 'textos', 'pago'];
+const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento', 'furgoneta', 'textos', 'pago', 'publico'];
 const esTexto = (x, min = 1, max = 200) => typeof x === 'string' && x.trim().length >= min && x.length <= max;
 /* una cuenta IBAN bien escrita: letras del país, dos cifras de control y el resto, y el control (módulo 97) cuadra */
 const ibanOk = x => { if (typeof x !== 'string') return false; const s = x.replace(/\s/g, '').toUpperCase();
@@ -29,6 +27,11 @@ export function valida(N, K, hoy) {
   const errores = [], avisos = [];
   const E = t => errores.push(t), A = t => avisos.push(t);
   if (!N || typeof N !== 'object') { E('El archivo no define OFICIO_NEGOCIO.'); return { errores, avisos } }
+  /* el archivo público de una copia con servidor (17-11-2026): del equipo, solo el nombre, la inicial y el color. Lo demás del
+     equipo (apellidos, horarios, el jefe, las guardias) está en el servidor y se valida con los datos completos (copias.mjs) */
+  const pub = N.publico === true;
+  if (N.publico != null && !pub) E('publico: solo puede ser true (el archivo público de una copia con servidor, hecho con copias.mjs), o no estar.');
+  if (pub && !(N.servidor && typeof N.servidor === 'object' && typeof N.servidor.url === 'string')) E('publico: un archivo público solo vale con servidor: sin él, la app no tiene de dónde sacar el equipo, sus horarios ni los huecos.');
 
   // ---- quién es
   if (!ID.test(N.id || '')) E('id: tiene que ser una palabra en minúsculas, sin espacios ni acentos (ejemplo: «ramirez»).');
@@ -99,7 +102,11 @@ export function valida(N, K, hoy) {
       if (!x || !ID.test(x.id || '')) E(quien + ': id en minúsculas y sin espacios.');
       else if (idsTec.has(x.id)) E(quien + ': id repetido.'); else idsTec.add(x.id);
       if (!x || !esTexto(x.n, 2, 20)) E(quien + ': falta el nombre de pila (n), que es el que lee el cliente en los mensajes.');
-      if (!x || !esTexto(x.ap, 2, 30)) E(quien + ': falta el apellido (ap).');
+      if (pub) {
+        const otros = x && typeof x === 'object' ? Object.keys(x).filter(k => !['id', 'n', 'ap', 'tono'].includes(k)) : [];
+        if (otros.length) E(quien + ': en el archivo público no van «' + otros.join('», «') + '»: esos datos están solo en el servidor (node copias.mjs publica).');
+        if (x && x.ap != null && !(typeof x.ap === 'string' && /^\p{Lu}\.$/u.test(x.ap))) E(quien + ': en el archivo público, del apellido va solo la inicial (por ejemplo «M.»).');
+      } else if (!x || !esTexto(x.ap, 2, 30)) E(quien + ': falta el apellido (ap).');
       if (!x || !esEntero(x.tono) || x.tono < 0 || x.tono > 360) E(quien + ': tono es el color del técnico, de 0 a 360.');
       if (x && x.coche != null && !esTexto(x.coche, 3, 80)) E(quien + ': coche es lo que ve el cliente cuando va de camino, de 3 a 80 letras (ejemplo: «Furgoneta blanca con el logo»).');
       if (x && x.foto != null && (typeof x.foto !== 'string' || x.foto.includes('..') || !/^assets\/[\w.\/-]{1,120}\.(jpe?g|png|webp)$/i.test(x.foto))) E(quien + ': foto tiene que ser una imagen de la carpeta assets (.jpg, .png o .webp), como «assets/tec/jordi.jpg».');
@@ -108,7 +115,7 @@ export function valida(N, K, hoy) {
     });
     const jefes = tecs.filter(x => x && x.jefe).length;
     if (jefes > 1) A('tecnicos: hay ' + jefes + ' marcados como jefe; lo normal es uno.');
-    if (jefes < 1) A('tecnicos: nadie está marcado como jefe.');
+    if (jefes < 1 && !pub) A('tecnicos: nadie está marcado como jefe.');
     if (tecs.length > 8) A('tecnicos: son ' + tecs.length + '; el pack más grande cubre 8 personas.');
   }
 
@@ -141,7 +148,7 @@ export function valida(N, K, hoy) {
     });
   }
   const conH = !!(N.horario || (Array.isArray(tecs) && tecs.some(x => x && x.horario)));
-  if (conH && N.cupo == null) { /* con horarios, los huecos salen de ahí */ }
+  if ((conH || pub) && N.cupo == null) { /* con horarios, los huecos salen de ahí (en el archivo público no van: están en el servidor) */ }
   else if (!esEntero(N.cupo) || N.cupo < 1 || N.cupo > 20) E('cupo: cuántas citas caben en cada franja, de 1 a 20 (o, mejor, el horario de cada técnico).');
   else if (Array.isArray(tecs) && N.cupo > tecs.length) A('cupo: caben ' + N.cupo + ' citas por franja y solo hay ' + tecs.length + ' técnico(s).');
 
@@ -159,11 +166,16 @@ export function valida(N, K, hoy) {
   const conHorario = !!(N.horario || (Array.isArray(tecs) && tecs.some(x => x && x.horario)));
   // las citas por lo que tarda cada trabajo (15-11-2026): sí o no, y solo con horarios
   if (N.citas && N.citas.porTiempo != null && typeof N.citas.porTiempo !== 'boolean') E('citas.porTiempo: true para repartir las citas por lo que tarda cada trabajo; si no, false o nada.');
-  if (N.citas && N.citas.porTiempo === true && !conHorario) A('citas.porTiempo: sin horarios no se puede; las citas van por número (cupo).');
+  if (N.citas && N.citas.porTiempo === true && !conHorario && !pub) A('citas.porTiempo: sin horarios no se puede; las citas van por número (cupo).');
   if (N.citas && N.citas.voyAntes != null && !(Number.isInteger(N.citas.voyAntes) && N.citas.voyAntes >= 0 && N.citas.voyAntes <= 240)) E('citas.voyAntes: los minutos antes de la franja desde los que el técnico puede pulsar «Voy» en una cita, de 0 a 240 (sin poner, 30).');
   if (N.citas && N.citas.reservaSiFalta != null && typeof N.citas.reservaSiFalta !== 'boolean') E('citas.reservaSiFalta: false para no guardar a nadie para urgencias los días que falta alguien; si no, true o nada.');
   if (N.citas && N.citas.reservaSiFalta === false && !(N.citas.reserva > 0)) A('citas.reservaSiFalta: sin reserva para urgencias (citas.reserva) no cambia nada.');
-  if (conHorario && Array.isArray(tecs) && Array.isArray(fr)) {
+  if (pub) {   // sin los horarios del equipo, los huecos no se pueden mirar aquí: se miran con los datos completos
+    if (N.horario) horarioMal(N.horario, 'horario');
+    const ct = N.citas || {};
+    if (N.citas != null && (!esEntero(ct.porFranja) || ct.porFranja < 1 || ct.porFranja > 6)) E('citas.porFranja: cuántas citas lleva un técnico en una franja, de 1 a 6.');
+    if (N.citas != null && ct.reserva != null && (!esEntero(ct.reserva) || ct.reserva < 0 || ct.reserva > 8)) E('citas.reserva: a cuántos técnicos se deja libres para urgencias en cada franja, de 0 a 8.');
+  } else if (conHorario && Array.isArray(tecs) && Array.isArray(fr)) {
     let mal = N.horario ? horarioMal(N.horario, 'horario') : false;
     tecs.forEach(x => { if (x && x.horario) mal = horarioMal(x.horario, 'tecnicos (' + x.id + ').horario') || mal; else if (x && !N.horario) { E('tecnicos (' + x.id + '): falta su horario (o un horario general del negocio).'); mal = true } });
     const ct = N.citas || {};
@@ -374,7 +386,11 @@ export function leeNegocio(archivo) {
 export function leeNucleo(sitio) {
   globalThis.window = globalThis;
   const ruta = path.resolve(sitio, 'js/oficio-nucleo.js');
-  delete require.cache[ruta]; require(ruta);
+  /* como leeNegocio: se ejecuta como un script, igual que en el navegador. Con require, en la carpeta de frontend (que es de
+     módulos) Node no vuelve a leer un archivo que ya ha leído: después de leer el núcleo de una copia, el de la plantilla salía
+     el de la copia, y se validaba con las reglas viejas (17-11-2026) */
+  delete globalThis.OficioNucleo;
+  vm.runInThisContext(fs.readFileSync(ruta, 'utf8'), { filename: ruta });
   return globalThis.OficioNucleo;
 }
 
@@ -386,8 +402,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const K = leeNucleo(sitio); hoy = hoy || K.madrid(Date.now()).date;
   let mal = 0;
   for (const f of archivos) {
-    let r; try { r = valida(leeNegocio(f).N, K, hoy) } catch (e) { r = { errores: ['No se puede leer: ' + e.message], avisos: [] } }
-    console.log((r.errores.length ? 'MAL  ' : 'BIEN ') + f + (r.errores.length ? '' : ' · datos completos y coherentes a ' + K.fechaCorta(hoy)));
+    let r; try { const N = leeNegocio(f).N; r = Object.assign(valida(N, K, hoy), { publico: !!(N && N.publico === true) }) } catch (e) { r = { errores: ['No se puede leer: ' + e.message], avisos: [] } }
+    console.log((r.errores.length ? 'MAL  ' : 'BIEN ') + f + (r.errores.length ? '' : (r.publico ? ' · la parte pública (el equipo entero está en el servidor), coherente a ' : ' · datos completos y coherentes a ') + K.fechaCorta(hoy)));
     r.errores.forEach(t => console.log('   ERROR  ' + t)); r.avisos.forEach(t => console.log('   aviso  ' + t));
     if (r.errores.length) mal++;
   }

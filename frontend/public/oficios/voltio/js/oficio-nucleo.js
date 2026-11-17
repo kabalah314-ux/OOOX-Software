@@ -420,6 +420,17 @@ function canon(x){if(Array.isArray(x))return'['+x.map(y=>y===undefined||typeof y
 async function huellaDatos(N){const c=Object.assign({},N);delete c.servidor;delete c.textos;const s=g.crypto&&g.crypto.subtle;if(!s||typeof TextEncoder!=='function')return'';
  const d=await s.digest('SHA-256',new TextEncoder().encode(canon(c)));return[...new Uint8Array(d)].slice(0,8).map(b=>b.toString(16).padStart(2,'0')).join('')}
 
+/* ---------- la parte pública de los datos del negocio (17-11-2026) ----------
+   Una copia con servidor lleva en su archivo de datos solo esto, porque ese archivo lo puede bajar cualquiera que abra la
+   cita. Del equipo, el nombre, la inicial del apellido y su color: con eso se elige quién entra y se pide cita. Los
+   apellidos, los horarios, quién es el jefe o hace guardias y su furgoneta están solo en el servidor, que se los da a la
+   app al entrar. Lo demás (precios, servicios, zonas, franjas) es lo que ve el cliente y va igual. Lleva «publico: true».
+   publico(publico(N)) es lo mismo que publico(N). No copia lo de dentro: no hay que cambiar lo que devuelve. */
+const inicialDe=s=>{const c=[...String(s==null?'':s).trim()][0];return c?c.toUpperCase()+'.':''};
+function publico(N){const x={id:N.id,publico:true};
+ for(const k of Object.keys(N))if(k!=='id'&&k!=='publico')x[k]=k==='tecnicos'&&Array.isArray(N.tecnicos)?N.tecnicos.map(t=>{const y={id:t.id,n:t.n},a=inicialDe(t.ap);if(a)y.ap=a;y.tono=t.tono;return y}):N[k];
+ return x}
+
 /* ---------- las acciones ---------- */
 const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato','escribir','furgo'].concat(CON_ACC);
 function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
@@ -901,5 +912,5 @@ function textoCarga(cfg,c){if(!c||!c.lin)return'';const T=cfg.tec[c.tec],L=[],id
  if(!L.length)return'';
  return'Material para el '+fechaLarga(c.dia)+(T?', '+T.n:'')+':\n'+L.join('\n')+'\n'+cfg.N.nombre}
 
-g.OficioNucleo={esFoto,esRef,canon,huellaDatos,garanDe,VOY_ANTES,voyDesde,voyYa,voyTarde,VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,lleva,cargaDe,reponerDe,kitDe,furgoDe,textoCarga,FURGO_H,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,parteNombre,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+g.OficioNucleo={esFoto,esRef,canon,huellaDatos,publico,garanDe,VOY_ANTES,voyDesde,voyYa,voyTarde,VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,lleva,cargaDe,reponerDe,kitDe,furgoDe,textoCarga,FURGO_H,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,parteNombre,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
 })(typeof globalThis!=='undefined'?globalThis:this);

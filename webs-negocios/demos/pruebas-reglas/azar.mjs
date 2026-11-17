@@ -622,6 +622,9 @@ let mal = 0, totalLeyes = 0, totalPasos = 0;
 const t00 = Date.now();
 for (const archivo of opc.negocio) {
   const { N, muestra } = leeNegocio(archivo);
+  /* el archivo público de una copia con servidor (17-11-2026) no lleva los horarios ni el resto del equipo: los recorridos
+     se hacen con los datos completos, los que tiene el servidor */
+  if (N && N.publico === true) { console.log('PÚBLICO  ' + archivo + ': es el archivo público (sin el equipo entero); los recorridos al azar se hacen con los datos completos.'); process.exit(3) }
   for (const [NN, mu] of [[N, muestra]].concat(variantes(N).map(v => [v, null]))) {
     const cfg = K.cfgDe(NN), vistas = new Set(), acept = {}, rech = {}, estados = new Set(); let leyes = 0, pasos = 0, fallos = 0;
     try { leyes += fijas(cfg, NN) } catch (e) { if (!(e instanceof Rota)) throw e; fallos++; mal++; console.log('  LEY ROTA en ' + NN.id + ' · ' + e.ley + ' · ' + e.detalle) }

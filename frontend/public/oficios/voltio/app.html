@@ -1338,7 +1338,7 @@ function hSesion(){const esT=Q.rol==='tecnico',t=cfg.tec[Q.id],r=Oficio.red(),RC
   '<p class="mnota" id="mCola" style="margin-top:14px">'+(r.cola?(r.cola===1?'Queda 1 cambio por enviar.':'Quedan '+r.cola+' cambios por enviar.')+' Saldrán solos en cuanto haya conexión.':'Todo lo que has hecho está guardado en el servidor.')+'</p>'+
   avisosHtml()+(APP_ES?'':APPI.ev?'<button class="btn ancho" id="mInst" style="margin-top:12px">Instalar la app en este aparato</button>':APPI.ios?'<p class="mnota" id="mIos">Para tenerla como una app: botón Compartir y «Añadir a pantalla de inicio».</p>':'')+
   (r.reglas?'<p class="ojo">La app lleva las reglas '+esc(K.VERSION)+' y el servidor, las '+esc(r.reglas)+'. Avisa a OOOX.</p>':'')+
-  (r.datos?'<p class="ojo" id="mDatos">Los datos del negocio de esta app (precios, horarios o equipo) no son los del servidor. Avisa a OOOX.</p>':'')+
+  (r.datos?'<p class="ojo" id="mDatos">Lo que ven los clientes al pedir cita (precios, servicios o zonas) no es lo que tiene el servidor. Avisa a OOOX.</p>':'')+
   (RC.length?'<div class="ojo" id="mRech"><p><b>No se pudo guardar</b> lo que sigue: lo hecho sin conexión que el servidor no aceptó, porque el aviso había cambiado.</p><ul>'+RC.slice(-10).reverse().map(x=>'<li>'+cuandoT(x.t)+': '+esc(QUE_ES[x.tipo]||x.tipo)+(x.id?' ('+esc(x.id)+')':'')+'. '+esc(ERR[x.err]||'El aviso había cambiado.')+'</li>').join('')+'</ul><button class="txt" id="mRechNo">Entendido, borrar la lista</button></div>':'')+
   '</div><div class="hp">'+(manda()?'<button class="btn ancho" id="mEq">Equipo y accesos</button>':'')+'<button class="btn ancho" id="mSal">Cerrar la sesión</button></div>');
  let seguro=false;

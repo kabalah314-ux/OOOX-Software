@@ -10,9 +10,8 @@ import webkit_linux   # el WebKit de Linux a veces no da una página por cargada
 import buzon_falso    # ningún navegador de las pruebas sale a internet: ver buzon_falso.py
 NAV = os.environ.get('NAVEGADOR', 'chromium')
 AQUI = os.path.dirname(os.path.abspath(__file__)); DEMOS = os.path.dirname(AQUI)
-REPO = os.path.dirname(os.path.dirname(DEMOS))
-DATOS = os.path.join(REPO, 'frontend/public/oficios/voltio/js/oficio-datos.js')
-if not os.path.exists(DATOS): DATOS = os.path.join(DEMOS, '../oficios/voltio/js/oficio-datos.js')   # en la copia del PC
+# los datos completos de Voltio: su copia lleva solo la parte pública (17-11-2026). Están igual en el repositorio y en la copia del PC
+DATOS = os.path.join(DEMOS, 'pruebas-reglas/completos/voltio.js')
 PROHIBIDO = [r'\bmuestra\b', r'de ejemplo', r'\bdemo\b', r'inventad', r'2468-1357', r'copia de prueba']
 hay = lambda txt: [w for w in PROHIBIDO if re.search(w, txt)]
 
@@ -47,6 +46,12 @@ async def main():
                 B = f'http://127.0.0.1:8771/{nom}/'
                 ficha = json.load(open(os.path.join(c, 'copia.json')))
                 es(ficha['prueba'] is False, f'{nom}: la copia es de verdad (sin «prueba»)')
+                # con servidor, su archivo de datos es el público: sin los apellidos ni los horarios del equipo (17-11-2026)
+                arch = open(os.path.join(c, 'js/oficio-datos.js'), encoding='utf-8').read()
+                completo = open(DATOS, encoding='utf-8').read(); aps = re.findall(r"\bap:'([^']{3,})'", completo)
+                es(len(aps) >= 2 and ((' publico:true' in arch and not [a for a in aps if a in arch] and 'horario' not in arch.split('g.OFICIO_NEGOCIO=')[1] and 'jefe' not in arch.split('g.OFICIO_NEGOCIO=')[1])
+                                      if srvr else (' publico:true' not in arch and all(a in arch for a in aps))),
+                   f'{nom}: ' + ('con servidor, su archivo de datos (lo baja cualquiera) lleva solo la parte pública: ni apellidos, ni horarios, ni quién es el jefe' if srvr else 'sin servidor, lleva sus datos completos (la app no tiene otro sitio de donde sacarlos)'))
                 for pag, sel in [('cita.html', 'form, main'), ('cliente.html', 'main'), ('app.html', 'main, .entra')]:
                     await pg.goto(B + pag); await pg.wait_for_selector(sel); await pg.wait_for_timeout(700)
                     t = (await pg.locator('body').inner_text()).lower()

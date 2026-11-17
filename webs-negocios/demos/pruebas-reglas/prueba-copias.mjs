@@ -3,7 +3,7 @@
 // Uso: node prueba-copias.mjs <carpeta del sitio>
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'; import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process'; import { fileURLToPath } from 'node:url';
-import { nueva, actualizar, lista, estado, copiasDe, COMUNES, atras, fija, suelta, ponApp, manifiesto, alta, subirDatos, datosServidor, codigoNuevo } from '../copias.mjs';
+import { nueva, actualizar, lista, estado, copiasDe, COMUNES, atras, fija, suelta, ponApp, manifiesto, alta, subirDatos, datosServidor, codigoNuevo, publica, completosDe, carpetasCompletos } from '../copias.mjs';
 import { leeNegocio, leeNucleo } from './valida-negocio.mjs';
 
 const sitio = path.resolve(process.argv[2] || '.'), aqui = path.dirname(fileURLToPath(import.meta.url));
@@ -174,8 +174,60 @@ es(c.status === 2 && /le falta oficio\.css/.test(c.stdout) && huellas(cv) === hu
   c = cli('alta'); es(c.status === 2 && /Di qué copia/.test(c.stdout), '«alta» sin copia dice cómo se usa');
 }
 
+// ---- 4 quater. con servidor, la copia lleva solo la parte pública de sus datos (17-11-2026): sus datos completos van aparte,
+// nunca al repositorio, y son los que se suben al servidor, después de mirar que cuadran con lo que ven los clientes
+const COMPLETO = path.join(aqui, 'completos/voltio.js'), hC = h(COMPLETO);
+{ const K = leeNucleo(sitio), CD = path.join(T, 'completos'), VACIA = path.join(T, 'sin-completos'), id = 'voltio-srv', f = path.join(CD, id + '.js'); fs.mkdirSync(CD); fs.mkdirSync(VACIA);
+  fs.writeFileSync(f, fs.readFileSync(COMPLETO, 'utf8').replace("id:'voltio'", "id:'" + id + "'"));
+  const NC = leeNegocio(f).N, aps = NC.tecnicos.map(t => t.ap), arch = path.join(destino, id, 'js/oficio-datos.js'), dentro = t => (t.split('g.OFICIO_NEGOCIO=')[1] || 'horario');
+  let r = nueva({ plantilla: sitio, destino, datos: f }); const txt = fs.existsSync(arch) ? fs.readFileSync(arch, 'utf8') : '', NP = r.ok ? leeNegocio(arch).N : null;
+  es(r.ok && r.publico === true && NP && NP.publico === true && K.canon(NP) === K.canon(K.publico(NC)) && aps.every(a => a.length > 2 && !txt.includes(a)) && !/horario|jefe|guardia/.test(dentro(txt)),
+    'crear con servidor: la copia lleva solo la parte pública de sus datos (ni apellidos, ni horarios, ni jefe), y se vuelve a leer igual');
+  es(fs.readFileSync(f, 'utf8').includes(aps[0]) && NP && NP.servidor && NP.textos && NP.textos.length === NC.textos.length && /node copias\.mjs publica voltio-srv/.test(txt),
+    'los datos completos se quedan donde estaban; el archivo público lleva el servidor, los textos traducidos y dice cómo se rehace');
+  r = nueva({ plantilla: sitio, destino: path.join(T, 'otras'), datos: arch }); es(!r.ok && /es el público/.test(r.errores[0]), 'crear: con un archivo público no se crea otra copia (le faltaría el equipo)');
+  es(completosDe(id, carpetasCompletos(CD)) === f && completosDe(id, [VACIA]) === '' && completosDe('../' + id, [CD]) === '' && carpetasCompletos().some(c => c.endsWith(path.join('pruebas-reglas', 'completos'))),
+    'los datos completos se buscan por el id de la copia en la carpeta que se da, la de OFICIOS_COMPLETOS y la de las copias de prueba');
+  let L = lista({ plantilla: sitio, destino, completos: CD }).find(c => c.id === id);
+  es(L && L.publico && L.completos === f && !L.errores.length, 'lista: la copia lleva el archivo público, sus datos completos están a mano y cuadran');
+  L = lista({ plantilla: sitio, destino, completos: VACIA }).find(c => c.id === id);
+  es(L && L.publico && L.completos === '' && !L.errores.length, 'lista: sin sus datos completos a mano se valida su parte pública, y no es un fallo');
+  r = actualizar({ plantilla: sitio, destino, id, completos: VACIA });
+  es(r.ok && r.avisos.some(a => /Sin sus datos completos no se pasan los recorridos al azar/.test(a)), 'poner al día sin sus datos completos: se valida su parte pública y avisa de que no pasa los recorridos al azar');
+  r = actualizar({ plantilla: sitio, destino, id, completos: CD }); es(r.ok && !r.avisos.some(a => /datos completos/.test(a)), 'con ellos, pasa los recorridos al azar con sus datos completos (con el archivo público no se puede)');
+  // el alta y los datos nuevos: con sus datos completos, que tienen que cuadrar con el archivo público
+  r = alta({ plantilla: sitio, destino, id, completos: VACIA }); es(!r.ok && /--datos/.test(r.errores[0]), 'alta: con el archivo público y sin sus datos completos, no hay alta: dice que faltan');
+  r = alta({ plantilla: sitio, destino, id, datos: arch }); es(!r.ok && /es el público/.test(r.errores[0]), 'alta: el archivo público no vale como datos del servidor');
+  r = alta({ plantilla: sitio, destino, id, datos: COMPLETO }); es(!r.ok && /son de «voltio»/.test(r.errores[0]), 'alta: los datos completos de otro negocio, tampoco');
+  r = alta({ plantilla: sitio, destino, id, completos: CD });
+  const ma = /insert into oficios\.estados \(negocio, datos, cab\) values \('voltio-srv', '((?:[^']|'')*)'::json/.exec(r.sql || ''), DA = ma && JSON.parse(ma[1].replace(/''/g, "'"));
+  es(r.ok && r.completos === f && DA && JSON.stringify(DA) === JSON.stringify(datosServidor(NC)) && DA.tecnicos.every((t, i) => t.ap === aps[i] && t.horario) && !('publico' in DA),
+    'alta: sube sus datos completos (con los apellidos y los horarios), no el archivo público');
+  es(r.ok && r.codigos.map(g => g.n).slice(1).join() === NC.tecnicos.map(t => t.n + ' ' + t.ap).join(), 'alta: cada código, con el nombre entero de su técnico');
+  // cambia un precio en los datos completos: hasta rehacer el público, ni lista, ni datos nuevos para el servidor
+  fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace("visita:{t:'Visita y diagnóstico',p10:35,", "visita:{t:'Visita y diagnóstico',p10:37,"));
+  L = lista({ plantilla: sitio, destino, completos: CD }).find(c => c.id === id); let x = await subirDatos({ plantilla: sitio, destino, id, completos: CD });
+  es(leeNegocio(f).N.catalogo.visita.p10 === 37 && L.errores.some(e => /no cuadran con su archivo público/.test(e)) && !x.ok && /primero, node copias\.mjs publica voltio-srv/.test(x.errores[0]),
+    'con otro precio en los datos completos, la lista da error y no salen datos nuevos para el servidor: los clientes verían otro precio');
+  r = publica({ plantilla: sitio, destino, id, completos: CD }); const NP2 = leeNegocio(arch).N;
+  es(r.ok && r.cambiado && NP2.catalogo.visita.p10 === 37 && K.canon(NP2) === K.canon(K.publico(leeNegocio(f).N)), 'publica: rehace el archivo público con el precio nuevo');
+  x = await subirDatos({ plantilla: sitio, destino, id, completos: CD }); const mu = /update oficios\.estados set datos = '((?:[^']|'')*)'::json/.exec(x.sql || '');
+  es(x.ok && mu && JSON.parse(mu[1].replace(/''/g, "'")).catalogo.visita.p10 === 37 && x.huella === await K.huellaDatos(leeNegocio(f).N), 'y ahora sí salen sus datos completos para el servidor, con la huella que dará');
+  r = publica({ plantilla: sitio, destino, id, completos: CD }); es(r.ok && !r.cambiado, 'publica otra vez: ya estaba, no lo toca');
+  r = publica({ plantilla: sitio, destino, id: 'voltio', datos: VOLTIO }); es(!r.ok && /no van con servidor/.test(r.errores[0]), 'publica: una copia sin servidor lleva sus datos completos, no hay parte pública que hacer');
+  // desde la consola
+  c = cli('publica', id, '--plantilla', sitio, '--destino', destino, '--datos', f); es(c.status === 0 && /YA ESTABA\s+voltio-srv/.test(c.stdout), '«publica» desde la consola');
+  c = cli('comprueba', '--plantilla', sitio, '--destino', destino, '--completos', CD); es(/BIEN\s+voltio-srv.*archivo público/.test(c.stdout), '«comprueba» dice qué copias llevan el archivo público');
+  c = cli('subir-datos', id, '--plantilla', sitio, '--destino', destino, '--completos', CD, '--sql', path.join(T, 'srv.sql'));
+  es(c.status === 0 && c.stdout.includes(f) && fs.existsSync(path.join(T, 'srv.sql')), '«subir-datos» dice de qué archivo salen los datos completos');
+  // y una copia con servidor que aún lleva el equipo entero en su archivo: «comprueba» lo da como error
+  fs.writeFileSync(arch, fs.readFileSync(f, 'utf8')); L = lista({ plantilla: sitio, destino, completos: CD }).find(c => c.id === id);
+  es(L.errores.some(e => /lleva el equipo entero/.test(e) && /publica voltio-srv/.test(e)), 'una copia con servidor que lleva el equipo entero en su archivo, que es público: error, y dice cómo arreglarlo');
+  fs.rmSync(path.join(destino, id), { recursive: true, force: true });
+}
+
 // ---- 5. nada de esto ha tocado la plantilla de verdad
-es(huellas(sitio) === P0 && h(VOLTIO) === h(path.join(aqui, 'negocios/voltio.js')), 'la plantilla y los datos de partida siguen como estaban');
+es(huellas(sitio) === P0 && h(VOLTIO) === h(path.join(aqui, 'negocios/voltio.js')) && h(COMPLETO) === hC, 'la plantilla y los datos de partida siguen como estaban');
 fs.rmSync(T, { recursive: true, force: true });
 console.log((mal.length ? 'MAL' : 'BIEN') + ': ' + ok + ' comprobaciones pasan' + (mal.length ? ', ' + mal.length + ' fallan' : '') + '.');
 process.exit(mal.length ? 1 : 0);

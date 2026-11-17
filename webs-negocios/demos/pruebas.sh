@@ -6,6 +6,8 @@
 #   TANDAS=100  SEMILLA=20261113   tamaño y semilla de los recorridos al azar
 #   MUTANTES=1  añade la prueba de «reglas estropeadas adrede» (tarda unos minutos; en GitHub corre siempre)
 #   COPIAS=<carpeta de las copias>   por defecto, frontend/public/oficios; cada copia pasa sus propias pruebas
+#   COMPLETOS=<carpeta>   los datos completos de las copias con servidor (<id>.js), que su archivo público no lleva; por
+#                         defecto, pruebas-reglas/completos (las copias de prueba). Sin ellos, esa copia se prueba solo por su parte pública
 #   AHORA=2026-11-17T10:30:00+01:00   la hora fija de las pruebas de pantallas (por defecto, un martes laborable a media mañana)
 #   HORAS="..."  otras horas a las que se repite la batería de la app (por defecto, un sábado de noche y el cruce de fin de año)
 set -u
@@ -14,7 +16,11 @@ AQUI="$(cd "$(dirname "$0")" && pwd)"
 if [ -z "${SITIO:-}" ]; then for d in "$AQUI/../../frontend/public/demos/ramirez-24h" "$AQUI/../site"; do [ -d "$d" ] && { SITIO="$d"; break; }; done; fi
 [ -d "${SITIO:-}" ] || { echo "No encuentro la carpeta del sitio. Pásala así: SITIO=<carpeta> bash pruebas.sh"; exit 2; }
 SITIO="$(cd "$SITIO" && pwd)"
-QUE="${1:-todo}"; mal=0; R="$AQUI/pruebas-reglas"; OTRO="$R/negocios/voltio.js"
+QUE="${1:-todo}"; mal=0; R="$AQUI/pruebas-reglas"; OTRO="$R/negocios/voltio.js"; COMPLETOS="${COMPLETOS:-$R/completos}"
+# los datos con los que se prueba una copia por dentro: los completos si su archivo es el público (17-11-2026) y están a mano;
+# si es el público y no están, nada (y se dice); si no, su propio archivo
+completos(){ local d="$1" id; id="$(basename "$(dirname "$(dirname "$d")")")"
+  if grep -q '^ publico:true' "$d"; then [ -f "$COMPLETOS/$id.js" ] && echo "$COMPLETOS/$id.js"; else echo "$d"; fi; }
 # las copias de la app hechas para cada negocio (ver copias.mjs): en el repositorio o, en la copia del PC, en la carpeta de al lado (../oficios)
 if [ -z "${COPIAS:-}" ]; then if [ -d "$AQUI/../../frontend/public" ]; then COPIAS="$AQUI/../../frontend/public/oficios"; else COPIAS="$AQUI/../oficios"; fi; fi
 paso(){ echo; echo "── $1"; shift; "$@" || { mal=$((mal+1)); echo "   ✗ FALLA este bloque"; }; }
@@ -33,9 +39,11 @@ if [ "$QUE" != navegador ]; then
   paso "Vigía de fallos, sin navegador" node "$R/prueba-vigia.mjs" "$SITIO"
   paso "Herramienta de copias" node "$R/prueba-copias.mjs" "$SITIO"
   if [ -d "$COPIAS" ]; then
-    paso "Copias: todas al día y con datos que valen" node "$AQUI/copias.mjs" comprueba --plantilla "$SITIO" --destino "$COPIAS"
+    paso "Copias: todas al día y con datos que valen" node "$AQUI/copias.mjs" comprueba --plantilla "$SITIO" --destino "$COPIAS" --completos "$COMPLETOS"
     paso "Copias: lo de cada negocio, en catalán y en inglés" node "$R/idiomas.mjs" "$SITIO" "$COPIAS"/*/js/oficio-datos.js
-    for d in "$COPIAS"/*/js/oficio-datos.js; do [ -f "$d" ] && paso "Copia $(basename "$(dirname "$(dirname "$d")")"): recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$d" --tandas "${TANDAS_COPIA:-20}" --semilla "${SEMILLA:-20261113}"; done
+    for d in "$COPIAS"/*/js/oficio-datos.js; do [ -f "$d" ] || continue; c="$(basename "$(dirname "$(dirname "$d")")")"; f="$(completos "$d")"
+      if [ -n "$f" ]; then paso "Copia $c: recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$f" --tandas "${TANDAS_COPIA:-20}" --semilla "${SEMILLA:-20261113}"
+      else echo; echo "── Copia $c: sin sus datos completos (COMPLETOS=<carpeta>), no se pasan los recorridos al azar"; fi; done
   fi
   # la demo «en uso»: el negocio de nueve semanas, hecho con las reglas, a ocho horas distintas y con sus cuentas (pruebas-uso/LISTA.md)
   [ -f "$COPIAS/ramirez-uso/js/oficio-datos.js" ] && paso "Uso real: el negocio en marcha, a ocho horas distintas y con sus cuentas" node "$R/uso-real.mjs" "$SITIO" "$COPIAS/ramirez-uso/js/oficio-datos.js"
@@ -72,14 +80,18 @@ if [ "$QUE" != reglas ]; then
   paso "Otro negocio, de principio a fin" python3 negocio.py "$OTRO"
   paso "El mismo recorrido con el negocio de muestra" python3 negocio.py "$SITIO/js/oficio-datos.js"
   # cada copia se sirve desde su propia carpeta, no desde la demo: así se ve también si le falta algún archivo
-  if [ -d "$COPIAS" ]; then for d in "$COPIAS"/*/js/oficio-datos.js; do [ -f "$d" ] || continue; c="$(dirname "$(dirname "$d")")"
+  if [ -d "$COPIAS" ]; then for d in "$COPIAS"/*/js/oficio-datos.js; do [ -f "$d" ] || continue; c="$(dirname "$(dirname "$d")")"; f="$(completos "$d")"
     ( cd "$c" && exec python3 -m http.server 8767 >/dev/null 2>&1 ) & S3=$!; sleep 1
-    paso "Copia $(basename "$c"), de principio a fin y servida desde su carpeta" python3 negocio.py "$d" 8767
+    # sin servidor, con sus datos completos (los del archivo público solo valen con servidor)
+    if [ -n "$f" ]; then paso "Copia $(basename "$c"), de principio a fin y servida desde su carpeta" python3 negocio.py "$f" 8767
+    else echo; echo "── Copia $(basename "$c"): sin sus datos completos (COMPLETOS=<carpeta>), no se recorre sin servidor"; fi
     paso "Copia $(basename "$c"): la zona del cliente" python3 cliente.py 8767 --copia
     kill $S3 2>/dev/null; wait $S3 2>/dev/null
     # si la copia va con servidor, además se prueba así: desde su carpeta, contra un servidor local (nunca contra el de verdad)
-    if [ -n "$JUEZ" ] && grep -q "servidor" "$d"; then
-      OFICIOS_SERVIDOR="$JUEZ" node "$AQUI/pruebas-navegador/servidor_local.mjs" "$c" 8768 >/dev/null 2>&1 & S4=$!; sleep 1.5
+    # que tiene sus datos completos, mientras el navegador baja su archivo público, como pasa de verdad
+    if [ -n "$JUEZ" ] && grep -q "servidor" "$d" && [ -n "$f" ]; then
+      if [ "$f" = "$d" ]; then OFICIOS_SERVIDOR="$JUEZ" node "$AQUI/pruebas-navegador/servidor_local.mjs" "$c" 8768 >/dev/null 2>&1 & S4=$!
+      else OFICIOS_SERVIDOR="$JUEZ" node "$AQUI/pruebas-navegador/servidor_local.mjs" "$c" 8768 --completos "$f" >/dev/null 2>&1 & S4=$!; fi; sleep 1.5
       paso "Copia $(basename "$c") con servidor: oficina, técnicos y cliente, cada uno en su navegador" python3 servidor.py 8768
       kill $S4 2>/dev/null; wait $S4 2>/dev/null
     fi

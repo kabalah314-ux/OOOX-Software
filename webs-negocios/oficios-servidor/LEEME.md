@@ -39,14 +39,19 @@ negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como 
   una desde fuera, `foto` (sería pedir la foto de otro). Las fotos no van en la copia de cada noche (pesan); sí en la
   exportación del negocio, y se borran al olvidar a un cliente.
 - **La huella de los datos del negocio** va al entrar, al leer y al hacer (`huella`: los datos sin `servidor` ni `textos`,
-  con las claves en orden, SHA-256 y 16 letras). La app la compara con la de su archivo y, si no es la misma, lo dice en
-  «Tu sesión»: así se ve si alguien ha cambiado un precio en un sitio y no en el otro.
+  con las claves en orden, SHA-256 y 16 letras). Si cambia, la app pide los datos nuevos (abajo). Con ellos en la mano,
+  compara su parte pública (`K.publico`) con su archivo, que es lo que ven los clientes al pedir cita. Si no es la
+  misma, lo dice en «Tu sesión»: así se ve si alguien ha cambiado un precio en un sitio y no en el otro.
 - **Los datos del negocio, del servidor** (16-11-2026). Al entrar, la app manda la huella de los datos que ya tiene y,
   si no es la misma, el servidor se los da (`datos`). Desde ese momento la app hace las cuentas con ellos (precios,
   horarios, el equipo) y no con su archivo, que solo hace falta para pedir cita. Los guarda en el aparato para abrir
   sin red y los quita al salir. Si la huella cambia al leer o al mandar (alguien ha subido datos nuevos), los vuelve a
-  pedir, como mucho una vez por minuto. Es el primer paso para que el archivo público no lleve al equipo (sus apellidos
-  y horarios): eso se hará cuando esta versión del servidor esté desplegada.
+  pedir, como mucho una vez por minuto.
+- **El archivo público** (17-11-2026). Con lo anterior, el archivo de datos de una copia con servidor ya no lleva al
+  equipo entero: del equipo, solo el nombre, la inicial del apellido y el color (`K.publico`, con `publico: true`).
+  Ese archivo lo baja cualquiera que abra la cita. Los apellidos, los horarios, quién es el jefe o hace guardias y su
+  furgoneta están solo aquí, en `oficios.estados.datos`, y en los datos completos del negocio, que nunca van al
+  repositorio. El servidor no ha cambiado para esto: ya daba los datos al entrar.
 - **Cada aviso guarda la versión en que cambió por última vez.** Un aparato pide «lo cambiado desde la versión N» y
   recibe solo eso.
 - **`de`**: los técnicos que han llevado alguna vez el aviso. Si deja de ser de uno, a ese le llega
@@ -125,8 +130,13 @@ lleve el equipo), `tel`
 
 Desde el 16-11-2026 lo prepara `copias.mjs` y lo pasa Claude con el conector de Supabase (o Oscar en el editor de SQL):
 
-    node copias.mjs alta <id> [--sql <archivo>]          el SQL del alta y, en pantalla y UNA sola vez, el código de cada persona
-    node copias.mjs subir-datos <id> [--sql <archivo>]   el SQL con los datos nuevos de la copia y la huella que dará el servidor
+    node copias.mjs alta <id> --datos <completos.js> [--sql <archivo>]          el SQL del alta y, en pantalla y UNA sola vez, el código de cada persona
+    node copias.mjs subir-datos <id> --datos <completos.js> [--sql <archivo>]   el SQL con sus datos completos nuevos y la huella que dará el servidor
+    node copias.mjs publica <id> --datos <completos.js>                          el archivo público de la copia, cuando cambian sus datos completos
+
+Lo que se sube son los **datos completos** del negocio (con los apellidos y los horarios del equipo), no el archivo de la
+copia, que es el público. Están fuera del repositorio (`demos/ALTA.md`, «Dónde se guardan»). Antes de escribir el SQL,
+la herramienta mira que su parte pública sea el archivo de la copia: si no, los clientes verían otros precios.
 
 El SQL va a un archivo que solo lee quien lo hace (por defecto, en la carpeta temporal) y no lleva ningún código: solo
 sus huellas. Comprueba antes que el negocio está en el buzón y que no está ya en el servidor, y va entero o nada. Lo
@@ -134,18 +144,18 @@ prueban `prueba-copias.mjs` y, en un Postgres de verdad, `prueba-restaurar.sh`. 
 hacía a mano antes):
 
 1. El negocio tiene que estar ya en `oficios.negocios` (lo crea el alta del buzón de mejoras).
-2. Sus datos, tal cual el archivo `js/oficio-datos.js` pero en JSON y **sin** la línea `servidor`, en `oficios.estados`
-   (columna `datos`, tipo `json` para que no cambie el orden), con `cab = {"esq":4,"n":0,"nu":0,"ausencias":[]}`.
+2. Sus datos completos, en JSON y **sin** `servidor` ni `textos`, en `oficios.estados` (columna `datos`, tipo `json`
+   para que no cambie el orden), con `cab = {"esq":4,"n":0,"nu":0,"ausencias":[]}`.
 3. Una fila por persona en `oficios.personas`: `persona` es `oficina` o el `id` del técnico en los datos; `rol`,
    `centralita` o `tecnico`; `quien`, `oficina` o ese mismo `id`; `clave_hash`, `oficios.huella('<negocio>:<persona>', '<código>')`.
    El código son 16 letras y números al azar en cuatro grupos (`abcd-efgh-jkmn-pqrs`), del abecedario sin `i`, `l`,
    `o`, `0` ni `1`. **No se guarda en ningún sitio**: se da a la persona una vez, por un canal privado.
 4. En el archivo de datos de la copia, la línea `servidor:{url:'https://<proyecto>.supabase.co', llave:'<llave pública>'}`.
    Sin ella la app sigue guardando todo en el navegador.
-5. Si después cambian los datos del negocio (precios, técnicos, horarios), hay que cambiarlos en los dos sitios: el
-   archivo de la copia y `oficios.estados.datos` (`node copias.mjs subir-datos <id>`). Si no, la app y el servidor
-   harían cuentas distintas (ganaría el servidor, pero la pantalla bailaría un momento), y «Tu sesión» lo avisa. A un
-   técnico nuevo le da su código el dueño desde su app («Equipo y accesos»).
+5. Si después cambian los datos del negocio (precios, técnicos, horarios), se cambian los datos completos y se llevan a
+   los dos sitios: el archivo público de la copia (`publica`) y `oficios.estados.datos` (`subir-datos`). La app hace
+   las cuentas con los del servidor, pero el cliente pide cita con el archivo público: si no cuadran, «Tu sesión» lo
+   avisa. A un técnico nuevo le da su código el dueño desde su app («Equipo y accesos»).
 
 Para retirar el acceso a alguien, desde el 16-11 lo hace el propio negocio: **«Tu sesión» → «Equipo y accesos»** (la
 oficina o el técnico que es el dueño). «Quitar el acceso» y «Código nuevo» piden confirmarlo; el código nuevo sale una

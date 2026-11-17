@@ -48,18 +48,23 @@ const R=SV?(function(){
  const K_SES=CLAVE+':sesion',K_SRV=CLAVE+':srv',K_LLA=CLAVE+':llaves',K_ULT=CLAVE+':persona',K_REC=CLAVE+':rechazos',URLF=SV.url.replace(/\/+$/,'')+'/functions/v1/'+(SV.funcion||'oficio'),URLR=SV.url.replace(/\/+$/,'')+'/rest/v1/rpc/';
  const VACIO=K.nuevo(),FALLO={ok:false,err:'red'},rech=[],vistas={};
  let ses=null,E=null,vuela=false,fallos=0,sinRed=false,lleno=false,motivo='',entero=true,ultimo=Date.now(),tm=null,reglas='',datosMal=false;
- /* ¿tiene el servidor los mismos datos del negocio que esta app? Si no, se dice en «Tu sesión» (16-11-2026) */
- const miHuella=typeof K.huellaDatos==='function'?K.huellaDatos(N).catch(()=>''):Promise.resolve('');
- function comparaDatos(h){if(typeof h!=='string'||!h)return;miHuella.then(m=>{const mal=!!m&&m!==h;if(mal!==datosMal){datosMal=mal;avisa()}})}
  /* los datos del negocio que tiene el servidor (16-11-2026). Al entrar, la app manda la huella de los que ya tiene y, si
     no son los mismos, el servidor se los da: desde ese momento hace las cuentas con ellos (precios, horarios, el equipo) y
-    no con el archivo público, que solo hace falta para pedir cita. Se guardan en el aparato para abrir sin red, y se
-    quitan al salir. Si cambian en el servidor (lo dice su huella al leer o al mandar), se vuelven a pedir */
+    no con el archivo público, que solo hace falta para pedir cita y elegir quién entra. Se guardan en el aparato para
+    abrir sin red, y se quitan al salir. Si cambian en el servidor (lo dice su huella al leer o al mandar), se vuelven a pedir */
  const K_DAT=CLAVE+':datos',N0=JSON.parse(JSON.stringify(N));let hSrv='',pideDatos=0;
+ /* ¿tiene la web donde se pide cita (este archivo, que es público) lo mismo que el servidor? Se mira la parte pública de
+    los dos (K.publico: el archivo de una copia con servidor no lleva el equipo de dentro desde el 17-11-2026) en cuanto la
+    app tiene los datos del servidor. Si no es lo mismo, lo que ve el cliente al pedir cita (precios, servicios, zonas) no
+    es lo que tiene el servidor: se dice en «Tu sesión» */
+ const pub=d=>typeof K.huellaDatos!=='function'?Promise.resolve(''):K.huellaDatos(typeof K.publico==='function'?K.publico(d):d).catch(()=>'');
+ const miHuella=pub(N0);let cmp=0;
+ function comparaCon(d){const n=++cmp;Promise.all([miHuella,pub(d)]).then(([m,h])=>{if(n!==cmp)return;const mal=!!m&&!!h&&m!==h;if(mal!==datosMal){datosMal=mal;avisa()}})}
  function ponDatos(d,sin){if(!d||typeof d!=='object'||Array.isArray(d)||d.id!==N.id||!Array.isArray(d.tecnicos))return false;
   const sv=N.servidor,tx=N.textos,x=Object.assign({},d);if(!sin){x.servidor=sv;if(x.textos===undefined&&tx!==undefined)x.textos=tx}
   let c;try{c=K.cfgDe(x)}catch(e){return false}   /* unos datos que no valen no se ponen: sigue con los que tenía */
-  for(const k of Object.keys(N))delete N[k];Object.assign(N,x);for(const k of Object.keys(cfg))delete cfg[k];Object.assign(cfg,c);return true}
+  for(const k of Object.keys(N))delete N[k];Object.assign(N,x);for(const k of Object.keys(cfg))delete cfg[k];Object.assign(cfg,c);
+  if(sin){cmp++;datosMal=false}else comparaCon(d);return true}
  {const x=leeJ(K_DAT);if(x&&typeof x.h==='string'&&ponDatos(x.d))hSrv=x.h}
  function datosDe(r){if(!r||typeof r.huella!=='string')return false;
   if(r.datos&&ponDatos(r.datos)){hSrv=r.huella;mem.set(K_DAT,JSON.stringify({h:r.huella,d:r.datos}));return true}
@@ -68,7 +73,7 @@ const R=SV?(function(){
   if(!r.datos)hSrv=r.huella;
   return false}
  function vuelveArchivo(){mem.del(K_DAT);hSrv='';pideDatos=0;ponDatos(JSON.parse(JSON.stringify(N0)),true)}
- function mira(h){comparaDatos(h);if(typeof h!=='string'||!h||h===hSrv||!ses||Date.now()-pideDatos<60000)return;pideDatos=Date.now();const yo=ses;
+ function mira(h){if(typeof h!=='string'||!h||h===hSrv||!ses||Date.now()-pideDatos<60000)return;pideDatos=Date.now();const yo=ses;
   juez({que:'entrar',negocio:N.id,persona:yo.persona,codigo:yo.codigo,huella:hSrv},20000).then(r=>{if(ses===yo&&r&&r.ok&&datosDe(r))avisa()}).catch(()=>{})}
  /* lo que el servidor no aceptó se queda apuntado en el aparato hasta que se lea: un aviso de unos segundos no basta */
  /* las fotos (16-11-2026): el aviso lleva la referencia de cada una («f:…») y la foto se pide al verla, a quien la puede ver.
@@ -136,7 +141,7 @@ const R=SV?(function(){
  async function entrar(persona,codigo){persona=String(persona||'').trim().toLowerCase();codigo=limpia(codigo);
   if(!persona||codigo.length<8)return{ok:false,err:'clave'};
   const r=await juez({que:'entrar',negocio:N.id,persona,codigo,huella:hSrv});
-  if(!r.ok)return{ok:false,err:r.err||'red'};comparaDatos(r.huella);datosDe(r);
+  if(!r.ok)return{ok:false,err:r.err||'red'};datosDe(r);
   if((r.rol!=='centralita'&&r.rol!=='tecnico')||(r.rol==='tecnico'&&!cfg.tec[r.id]))return{ok:false,err:'datos'};
   const antes=leeJ(K_SRV);if(antes&&antes.quien&&(antes.quien.rol!==r.rol||antes.quien.id!==r.id)){mem.del(K_SRV);mem.del(K_REC)}   /* lo guardado era de otra persona */
   abre({persona,codigo,rol:r.rol,id:r.rol==='centralita'?'oficina':r.id});mem.set(K_SES,JSON.stringify(ses));mem.set(K_ULT,persona);   /* quién entró la última vez en este aparato: para no tener que elegirlo otra vez */
