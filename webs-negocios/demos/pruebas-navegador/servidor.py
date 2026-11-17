@@ -15,6 +15,16 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8768
 B = f'http://127.0.0.1:{PORT}/'
 ok = 0; fallos = []; errores = []
 
+# Cuando la red se corta adrede (la sección 7, y la respuesta perdida de la 8), el WebKit de Linux apunta cada llamada que no
+# llega como un error de la página («Fetch API cannot load … due to access control checks.»), aunque la app la recoge y la
+# repite: Chromium lo da como «Failed to load resource», que aquí no cuenta, y Firefox no dice nada. Visto el 17-11-2026 en
+# el modo servidor de la plantilla (la oficina, al preguntar si hay novedades). Solo esas, solo en ese motor y solo mientras
+# dura el corte (y unos segundos después) van aparte; fuera de un corte, siguen siendo un fallo, y se dice cuándo pasó.
+CORTE = {'hasta': 0.0, 'cuando': []}; de_red = []; T0 = time.monotonic()
+ahora = lambda: f'{time.monotonic() - T0:.1f} s'
+def corte(seg): CORTE['hasta'] = time.monotonic() + seg; CORTE['cuando'].append(f'{ahora()} (+{seg} s)')
+def es_corte(e): return NAV == 'webkit' and 'due to access control checks' in str(e) and time.monotonic() < CORTE['hasta']
+
 def es(c, txt):
     global ok
     if c: ok += 1
@@ -45,7 +55,7 @@ async def contexto(br, movil=True):
 async def pagina(ctx, nombre):
     pg = await ctx.new_page()
     pg.on('console', lambda m: errores.append(f'{nombre}: {m.text}') if m.type == 'error' and 'Failed to load resource' not in m.text and not webkit_linux.es_rareza(m.text) else None)
-    pg.on('pageerror', lambda e: errores.append(f'{nombre}! {e}'))
+    pg.on('pageerror', lambda e: (de_red if es_corte(e) else errores).append(f'{nombre}! {e} [a los {ahora()}]'))
     return pg
 
 async def entra(pg, persona, codigo):
@@ -176,7 +186,7 @@ async def main():
         es(await pasa(o, tiene(A1, 'camino')) and await pasa(o, "[...document.querySelectorAll('.pill')].some(p=>/De camino/.test(p.textContent))"), '«Voy» del técnico: la oficina lo ve «de camino» sin recargar')
 
         # ---------- 7. el servidor no contesta: se sigue trabajando y sale cuando vuelve ----------
-        api('__prueba/red', {'modo': 'cae'})
+        corte(600); api('__prueba/red', {'modo': 'cae'})
         await t2.click('[data-a=empezar]'); await t2.wait_for_selector('#pF'); await t2.wait_for_timeout(250); await firma(t2, '#pF')
         if await t2.locator('#pPide').count(): await t2.click('#pPide')   # con cita, el cliente marca que quiere que se haga ya
         await t2.click('#pOk')
@@ -184,13 +194,13 @@ async def main():
         es(await pasa(t2, "Oficio.red().cola>=1&&!document.querySelector('#red').hidden"), 'y la app avisa de que queda por enviar')
         await t2.reload(); await t2.wait_for_selector('#nav a', state='attached')
         es(await t2.evaluate(tiene(A1, 'curso')) and await t2.evaluate('Oficio.red().cola') >= 1 and await t2.locator('#fEntra').count() == 0, 'recarga la app con el servidor caído: sigue dentro, sigue viendo su trabajo y lo pendiente no se ha perdido')
-        api('__prueba/red', {'modo': 'va'})
+        api('__prueba/red', {'modo': 'va'}); corte(3)
         es(await pasa(t2, "Oficio.red().cola===0&&document.querySelector('#red').hidden", 14000) and aviso(A1)['e'] == 'curso' and len(diario('empezar')) == 1, 'cuando el servidor vuelve, sale solo, una sola vez, y el aviso se quita')
         es(await pasa(o, tiene(A1, 'curso')), 'y la oficina lo ve trabajando')
 
         # ---------- 8. la respuesta se pierde por el camino: no se hace dos veces ----------
         await t2.goto(B + f'app.html#/aviso/{A1}'); await t2.wait_for_selector('[data-a=pausa]')
-        api('__prueba/pierde', {'n': 1}); await t2.click('[data-a=pausa]')
+        corte(15); api('__prueba/pierde', {'n': 1}); await t2.click('[data-a=pausa]')
         es(await pasa(t2, "Oficio.red().cola===0", 14000) and cuenta()['perdidas'] == 1 and len(diario('pausa')) == 1, 'una respuesta perdida: el móvil lo repite y el servidor lo hace una sola vez')
         es(await pasa(o, f"(()=>{{const a=Oficio.estado().avisos.find(a=>a.id==='{A1}');return a&&OficioNucleo.enPausa(a)}})()"), 'la oficina ve la pausa')
 
@@ -447,9 +457,10 @@ async def main():
         fuera = []
         for pg in (o, t1, t2, k, z): fuera += await pg.evaluate('__n.fuera')
         es(all('/functions/' not in u and 'oficios_v' not in u for u in fuera), f'ninguna pantalla ha intentado hablar con el servidor de verdad {[u for u in fuera if "/functions/" in u][:2]}')
-        es(not errores, f'sin errores de consola {errores[:3]}')
+        es(not errores, f'sin errores de consola {errores[:3]}' + (f' · cortes de red adrede: {CORTE["cuando"]}' if errores else ''))
         await br.close()
     webkit_linux.resumen_rarezas() if hasattr(webkit_linux, 'resumen_rarezas') else None
+    if de_red: print(f'  aviso: con la red cortada adrede, WebKit apuntó {len(de_red)} llamadas que no llegaron como errores de la página (la app las repite): {de_red[:2]}', flush=True)
     print(('MAL' if fallos else 'BIEN') + f': {ok} comprobaciones pasan' + (f', {len(fallos)} fallan' if fallos else '') + ' · modo servidor, cuatro navegadores a la vez')
     sys.exit(1 if fallos else 0)
 
