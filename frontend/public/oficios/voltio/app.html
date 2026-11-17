@@ -546,6 +546,8 @@ const hacer=a=>{const r=Oficio.hacer(a,Q);if(!r.ok)toast(ERR[r.err]||'No se ha p
    técnico. La app sigue en castellano (data-idioma-fijo): js/oficio-idioma.js solo traduce esto */
 const IDI=window.OficioIdioma,_c=(s,v,l)=>IDI?IDI.para(l||'es').T(s,v):String(s).replace(/\{(\w+)\}/g,(m,k)=>v&&k in v?v[k]:m);
 const conIdioma=(l,fn)=>IDI&&l&&l!=='es'?IDI.con(l,fn):fn(),idiomaUrl=A=>A&&A.idioma?'?lang='+A.idioma:'';
+/* lo de un cliente que no va en un aviso (sus contratos): en el idioma de su último aviso, como hace la cita al pedir (idiomaDe, en las reglas) */
+const idiomaTel=tel=>{const t=K.tel9(tel);let u=null;if(t)S.avisos.forEach(x=>{if(x.cli&&x.cli.tel===t&&(!u||x.t>u.t))u=x});return u&&u.idioma||''};
 const el=id=>S.avisos.find(a=>a.id===id);
 
 /* ===== hojas ===== */
@@ -1063,7 +1065,7 @@ function hConVer(C){const P=cfg.planes[C.plan],u=C.per[C.per.length-1],hoy=K.mad
   (C.e==='activo'?'<p class="fin"><button class="txt mal" data-a="conBaja" data-c="'+C.id+'">Dar de baja</button></p>':'')+'</div>');
  d.addEventListener('click',e=>{const b=e.target.closest('[data-a],a[href]');if(b&&b.dataset.a!=='conFac')setTimeout(()=>d.close(),0)})}
 
-function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;const c=A?A.cli:{};
+function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;const c=A?A.cli:{},l=A&&A.idioma||'';   /* lo que firma el cliente, en su idioma */
  const pl=x=>esc(cfg.planes[x].n)+' · '+K.eur(cfg.planes[x].precio)+' al año',cp=(id,lb,v,o)=>'<div class="campo"><label for="ca_'+id+'">'+lb+'</label><input id="ca_'+id+'" value="'+esc(v||'')+'" '+(o||'')+' autocomplete="off"></div>';
  const d=hoja(hc('Contrato de mantenimiento')+'<form class="hb" id="caF" novalidate>'+
   (PLANES.length>1?'<div class="campo"><span class="lb" id="ca_pl">Plan</span><div class="ops" role="radiogroup" aria-labelledby="ca_pl">'+PLANES.map(x=>'<button type="button" class="op" data-cp="'+x+'" role="radio" aria-checked="'+(x===plan)+'">'+pl(x)+'</button>').join('')+'</div></div>':'<p><b>'+pl(plan)+'</b></p>')+
@@ -1071,7 +1073,7 @@ function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;cons
   cp('nomap','Nombre y apellidos',K.nomCli(c),'maxlength="140"')+cp('tel','Teléfono',c.tel?K.telBonito(c.tel):'','inputmode="tel" maxlength="20"')+
   '<div class="duo">'+cp('dir','Dirección (calle, número, piso)',c.dir,'maxlength="120"')+cp('cp','Código postal',c.cp,'inputmode="numeric" maxlength="5"')+'</div>'+
   '<div class="campo"><span class="lb" id="ca_al">Cómo dice que sí</span><div class="ops" role="radiogroup" aria-labelledby="ca_al"><button type="button" class="op" data-ca="firma" role="radio" aria-checked="true">Firma aquí</button><button type="button" class="op" data-ca="mensaje" role="radio" aria-checked="false">Lo ha dicho por mensaje</button></div></div>'+
-  '<div class="firma" id="ca_fz"><div class="fh"><span class="lb">Firma del cliente</span><button class="txt" id="caB" type="button">Borrar</button></div><canvas id="caFi" aria-label="Zona para firmar con el dedo"></canvas></div>'+
+  '<div class="firma" id="ca_fz"><div class="fh"><span class="lb"'+(l?' lang="'+l+'"':'')+'>'+esc(_c('Firma del cliente',null,l))+'</span><button class="txt" id="caB" type="button">Borrar</button></div><canvas id="caFi" aria-label="Zona para firmar con el dedo"></canvas></div>'+
   '<div class="des"><p>Tiene 14 días para desistir. Si quiere la revisión antes, márcalo: si desiste después de la revisión, paga la parte proporcional.</p><label class="chk"><input type="checkbox" id="ca_pide"> Quiere la revisión antes de esos 14 días</label></div>'+
   '<div class="campo"><span class="lb">¿Lo paga ya?</span><div id="caM">'+modos(['efectivo','tarjeta','bizum','transferencia','pendiente'],modo)+'</div></div>'+
   '<p class="err" id="ca_err" style="color:var(--mal)" hidden></p></form><div class="hp"><button class="btn pri ancho" form="caF">Dar de alta el contrato</button></div>',{llena:1});
@@ -1100,7 +1102,7 @@ function hConBaja(C){const des=K.madrid().date<=K.masDias(K.madrid(C.t).date,14)
  const d=hoja(hc('Dar de baja el contrato')+'<div class="hb"><p>'+esc(C.id)+' · '+esc(K.nomCli(C.cli))+'</p><p class="dn">'+(des?'Está dentro de sus 14 días: es desistir, y se le devuelve lo pagado menos la parte de la revisión si ya se hizo.':'Sin penalización. Sus avisos dejan de llevar el contrato.')+'</p><div class="campo"><label for="cbM">Motivo (opcional)</label><input id="cbM" maxlength="120" autocomplete="off"></div></div><div class="hp"><button class="btn pri ancho" id="cbOk">Dar de baja</button></div>');
  $('#cbOk',d).onclick=()=>{if(hacer({tipo:'bajaContrato',id:C.id,motivo:$('#cbM',d).value}).ok){d.close();toast(des?'Baja apuntada: desiste del contrato.':'Baja apuntada.')}}}
 function vPapelContrato(id){const C=contrato(id);if(!C)return'<div class="cab"><div><h1>Contrato</h1><p class="sub">No encuentro el contrato '+esc(id)+'.</p></div></div><p class="fin"><a class="txt" href="#/contratos">Volver a los contratos</a></p>';
- const d=OficioPapeles.contrato(C,{K,N,cfg,firmaSvg:Oficio.firmaSvg});
+ const d=conIdioma(idiomaTel(C.cli&&C.cli.tel),()=>OficioPapeles.contrato(C,{K,N,cfg,firmaSvg:Oficio.firmaSvg}));   // en el idioma del cliente (17-11-2026)
  return'<div class="noimp"><a class="atras" href="'+(Q.rol==='centralita'?'#/contratos">'+I.atras+'Contratos':'#/">'+I.atras+'Volver')+'</a><div class="cab"><div><h1 class="vh">Contrato '+esc(C.id)+'</h1></div></div></div><article class="papel doc">'+d.replace('<h1>','<h2 class="h1" style="font:700 2.1rem/1.05 var(--fd);color:var(--tinta);margin:18px 0 2px">').replace('</h1>','</h2>')+(Oficio.DEMO?'<p class="pie">Documento de ejemplo de una demo: empresa, cliente e importes son inventados.</p>':'')+'</article>'+
   '<div class="dacts noimp"><button class="btn pri" data-a="imprimir">Imprimir o guardar en PDF</button></div>'}
 function vPapel(id,tipo){if(tipo==='contrato')return vPapelContrato(id);const A=el(id);if(!A||!A.tot)return'<div class="cab"><div><h1>Papeles</h1><p class="sub">Este aviso todavía no tiene papeles.</p></div></div><p class="fin"><a class="txt" href="#/aviso/'+esc(id)+'">Volver al aviso</a></p>';
@@ -1198,7 +1200,9 @@ function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
  CUR=dos||r.v==='nuevo'?'bandeja':(r.v==='equipo'||r.v==='furgo')&&!esT?'agenda':r.v;pNav();geoSync();voyReloj();
  const t=cfg.tec[Q.id],quien=(esT?ava(Q.id):'<i class="av c" aria-hidden="true">C</i>')+'<span>'+(esT?esc(t.n):'Centralita')+'</span>';
  $('#quien').innerHTML=FIJO?'<span class="quien" style="border-color:transparent">'+quien+'</span>':'<button class="quien" data-a="menu" aria-haspopup="dialog" aria-label="'+(SRV?'Tu sesión':'Cambiar de papel o de pack')+'. Ahora: '+(esT?t.n:'centralita')+'">'+quien+I.baja+'</button>';
- const tp=papel?(r.b==='contrato'?(contrato(r.a)?'Contrato de mantenimiento '+r.a:''):el(r.a)?OficioPapeles.nombre(el(r.a),r.b,K):''):'';
+ /* el nombre del papel va en el idioma del cliente, como el papel: es el nombre que propone el navegador al guardarlo en PDF para mandárselo */
+ const cP=papel&&r.b==='contrato'?contrato(r.a):null,lP=cP?idiomaTel(cP.cli&&cP.cli.tel):papel&&el(r.a)?el(r.a).idioma||'':'';
+ const tp=papel?(r.b==='contrato'?(cP?_c('Contrato de mantenimiento',null,lP)+' '+r.a:''):el(r.a)?conIdioma(lP,()=>OficioPapeles.nombre(el(r.a),r.b,K)):''):'';
  document.title=tp?tp+' · '+N.nombre:(esT?t.n:'Centralita')+' · '+N.nombre+' por dentro'}
 addEventListener('hashchange',()=>{pinta();scrollTo(0,0);$('#v').focus({preventScroll:true})});
 /* Si llega un cambio mientras alguien escribe, la pantalla no se toca (perdería el foco), pero los números del menú sí se ponen al día. */

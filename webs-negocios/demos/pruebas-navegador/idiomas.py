@@ -233,6 +233,26 @@ async def main():
         await pg.evaluate(f"Oficio.hacer({{tipo:'idioma',id:'{H}',idioma:'en'}},{C})"); await pg.goto(B + f'app.html#/papel/{H}/parte'); await pg.wait_for_selector('article.papel')
         es(H and 'This job sheet is not an invoice.' in await pg.inner_text('article.papel') and 'Papeles del aviso' in await pg.inner_text('main') and await pg.evaluate('document.documentElement.lang') == 'es',
            f'sus papeles, en su idioma ({H}); la pantalla, en castellano')
+        ti = await pg.title()
+        es(ti.startswith('Job sheet ' + H + ' '), f'y el nombre del papel (el del PDF que se le manda), también: «{ti}»')
+        # el contrato de mantenimiento: al ofrecerlo en su aviso, la firma en su idioma (lo demás es de la oficina, en castellano)
+        await pg.goto(B + f"app.html#/aviso/{X['id']}"); await pg.wait_for_selector('[data-a=conAlta]')
+        await pg.click('[data-a=conAlta]'); await pg.wait_for_selector('#ca_fz')
+        es(await pg.locator('#ca_fz .lb').inner_text() == 'Customer’s signature' and await pg.locator('#ca_fz .lb').get_attribute('lang') == 'en'
+           and 'Contrato de mantenimiento' in await pg.inner_text('dialog[open]'), 'al ofrecerle el contrato: la firma, en su idioma; lo demás, en castellano')
+        await pg.keyboard.press('Escape')
+        # y sus contratos, en el idioma de su último aviso; el de quien no tiene ninguno en otro idioma, en castellano
+        CA = await pg.evaluate("""(()=>{const C={rol:'centralita',id:'oficina'},cp=Object.keys(Oficio.N.zonas.cp)[0],plan=Object.keys(Oficio.cfg.planes)[0];
+          const r=[['Laia','Puig Soler','611223399','C/ de la Prova 12, 3r'],['Pere','Mas Roca','611223388','C/ de la Prova 14, 1r']].map(([nombre,apellidos,tel,dir])=>
+            Oficio.hacer({tipo:'contrato',plan,cli:{nombre,apellidos,tel,dir,cp},acepta:'mensaje'},C));
+          const L=Oficio.estado().contratos||[],de=t=>(L.filter(c=>c.cli.tel===t).slice(-1)[0]||{}).id||'';
+          return{ok:r.every(x=>x.ok),err:r.map(x=>x.err||'').join(' '),ids:[de('611223399'),de('611223388')]}})()""")
+        tx, ti = [], []
+        for c in CA.get('ids', []):
+            await pg.goto(B + f'app.html#/papel/{c}/contrato'); await pg.wait_for_selector('article.papel'); tx.append(await pg.inner_text('article.papel')); ti.append(await pg.title())
+        es(CA.get('ok') and len(tx) == 2 and 'Maintenance contract' in tx[0] and 'Contrato de mantenimiento' not in tx[0] and 'Contrato de mantenimiento' in tx[1]
+           and ti[0].startswith('Maintenance contract ' + CA['ids'][0]) and ti[1].startswith('Contrato de mantenimiento ' + CA['ids'][1])
+           and await pg.evaluate('document.documentElement.lang') == 'es', f'sus contratos, en el idioma de su último aviso (también el nombre del PDF); los de otro cliente, en castellano ({CA}, {ti})')
         await ctx.close()
         es(not errs, f'sin errores {errs[:2]}')
         await br.close()
