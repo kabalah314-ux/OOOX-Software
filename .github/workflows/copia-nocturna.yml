@@ -26,8 +26,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
-      SRV: https://glsmahzpvzabeeucyqif.supabase.co
-      LLAVE: sb_publishable_SmbXr1nXApZ8HRF1ezbXcg_lqtr2yaZ
+      SRV: https://hquvlfujruskpgnkmnfl.supabase.co
+      LLAVE: sb_publishable_XZG_z_f0ya0f-7esYS8zrw_OOI35qpf
       # la subllave de cifrado de la llave de Oscar (E139 A2E4 23A3 3471 B3AA 045D E468 D379 0166 03CC)
       SUBLLAVE: 6A80F1DADA740166
     outputs:

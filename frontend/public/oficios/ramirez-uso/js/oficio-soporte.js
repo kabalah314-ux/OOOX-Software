@@ -16,9 +16,9 @@
    ============================================================ */
 (function(g){
 'use strict';
-const BUZON='https://glsmahzpvzabeeucyqif.supabase.co/rest/v1/rpc/';
+const BUZON='https://hquvlfujruskpgnkmnfl.supabase.co/rest/v1/rpc/';
 /* Clave pública: lo único que deja hacer es llamar a oficios_enviar, oficios_buzon y oficios_ofertas. */
-const LLAVE='sb_publishable_SmbXr1nXApZ8HRF1ezbXcg_lqtr2yaZ';
+const LLAVE='sb_publishable_XZG_z_f0ya0f-7esYS8zrw_OOI35qpf';
 const TIPOS={fallo:'Algo falla',mejora:'Una mejora',duda:'Una duda'};
 const ESTADOS={en_cola:'Sin enviar',recibida:'Recibida',mirando:'La estamos mirando',aceptada:'Aceptada',en_curso:'En marcha',hecha:'Hecha',descartada:'No se hará',duplicada:'Ya estaba pedida'};
 const MIN=10,MAX=2000,ESPERA=9000;

@@ -12,10 +12,9 @@ novedades de OOOX. La parte de la app está en `frontend/public/demos/ramirez-24
 
 ## Dónde vive
 
-Proyecto `neuron-staging` de Supabase (Irlanda), esquema `oficios`. El plan gratis solo deja dos proyectos y los dos
-estaban ocupados; el esquema está aparte y no toca nada del juego. Con el primer cliente de pago conviene mudarlo a un
-proyecto propio: pasar `esquema.sql` allí, copiar las filas y cambiar la dirección y la clave pública en
-`oficio-soporte.js` (son las dos primeras constantes). La clave pública puede estar en el código: lo único que deja
+Desde el 17-11-2026, en el proyecto propio de OOOX Oficios en Supabase (Irlanda, plan gratis), esquema `oficios`, con
+el servidor y el mantenimiento. Antes estuvo en `neuron-staging`, junto al juego. La mudanza: pasar `esquema.sql` allí,
+copiar las filas y cambiar la dirección y la clave pública en `oficio-soporte.js` (son las dos primeras constantes). La clave pública puede estar en el código: lo único que deja
 hacer es llamar a las tres funciones.
 
 ## Cómo se protege

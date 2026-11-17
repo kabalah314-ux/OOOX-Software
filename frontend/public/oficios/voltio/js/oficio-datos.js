@@ -23,7 +23,7 @@ g.OFICIO_NEGOCIO={
  prueba:true,
  garantiaMeses:6,
  sinTrabajo:"visita",
- servidor:{"url":"https://glsmahzpvzabeeucyqif.supabase.co","llave":"sb_publishable_SmbXr1nXApZ8HRF1ezbXcg_lqtr2yaZ"},
+ servidor:{"url":"https://hquvlfujruskpgnkmnfl.supabase.co","llave":"sb_publishable_XZG_z_f0ya0f-7esYS8zrw_OOI35qpf"},
  tarifa:{"dia":[540,1140],"recargo":0.5,"urgente":"urge"},
  festivos:["2026-01-01","2026-01-06","2026-01-22","2026-03-19","2026-04-03","2026-04-06","2026-05-01","2026-06-24","2026-08-15","2026-10-09","2026-10-12","2026-12-08","2026-12-25","2027-01-01","2027-01-06","2027-01-22","2027-03-19","2027-03-26","2027-03-29","2027-05-01","2027-06-24","2027-08-16","2027-10-09","2027-10-12","2027-11-01","2027-12-06","2027-12-08","2027-12-25"],
  citas:{"porFranja":3,"reserva":0,"porTiempo":true},

@@ -55,7 +55,7 @@ const espera = () => new Promise(r => setTimeout(r, 0));
   es(c.p_negocio === 'voltio' && Array.isArray(c.p_lote) && c.p_lote.length === 1, 'lleva el negocio y la tanda');
   es(l.n === 3 && l.tipo === 'js' && l.pagina === 'app' && l.pantalla === 'aviso' && l.version === '2026.11.16a' && l.aparato === 'iPhone · Safari' && l.rol === 'tecnico', 'lleva página, pantalla, tipo, versión, aparato y papel');
   es(!('neg' in l) && !('srv' in l), 'en la tanda no va nada más');
-  es(S.llamadas[0].url === 'https://glsmahzpvzabeeucyqif.supabase.co/rest/v1/rpc/oficios_error' && S.llamadas[0].x.headers.apikey.startsWith('sb_publishable_'), 'va al servidor de OOOX con la clave pública');
+  es(S.llamadas[0].url === 'https://hquvlfujruskpgnkmnfl.supabase.co/rest/v1/rpc/oficios_error' && S.llamadas[0].x.headers.apikey.startsWith('sb_publishable_'), 'va al servidor de OOOX con la clave pública');
   es(S.llamadas[0].x.keepalive === false, 'sin «keepalive» mientras la página sigue abierta');
 }
 { // lo que se manda va limpio, aunque la app pase un teléfono o un enlace con llave

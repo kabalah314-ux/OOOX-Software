@@ -5,7 +5,8 @@ aparatos distintos. El diseño para Oscar, con lo que cuesta y los pasos, está 
 https://claude.ai/artifact/AHLx7anfXkAhZUVP51FyrY
 
 **Estado a 15-11-2026: funciona de punta a punta para la copia de prueba Voltio Sur.** El servidor está desplegado en
-Supabase (proyecto `neuron-staging`, plan gratis, región de Irlanda) y la app ya habla con él: se entra con un código por
+Supabase (desde el 17-11-2026, en el proyecto propio de OOOX Oficios, plan gratis, región de Irlanda; antes, en
+`neuron-staging`) y la app ya habla con él: se entra con un código por
 persona, lo que se hace se ve al momento y se manda, y cada aparato se pone al día solo. Desde el 14-11 por la noche, el
 cliente también entra en su zona (`cliente.html`) con su teléfono y un código que le manda la oficina por WhatsApp. Ningún
 negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como siempre.

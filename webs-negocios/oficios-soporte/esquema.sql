@@ -3,9 +3,9 @@
 -- Qué es: la base de datos donde cada copia de la app deja lo que falla o lo que quiere, y de donde lee sus respuestas
 -- y las novedades de OOOX. La lee Claude (conector de Supabase) y la ve Oscar.
 --
--- Dónde vive hoy: proyecto «neuron-staging» de Supabase (Irlanda), en el esquema «oficios». El plan gratis solo deja dos
--- proyectos y los dos estaban ocupados. Para mudarlo a un proyecto propio basta con pasar este archivo allí, copiar las
--- filas y cambiar la dirección y la clave pública en js/oficio-soporte.js.
+-- Dónde vive: desde el 17-11-2026, en el proyecto propio de OOOX Oficios en Supabase (Irlanda, plan gratis), esquema
+-- «oficios». Antes estuvo en «neuron-staging». Para mudarlo otra vez basta con pasar este archivo allí, copiar las filas y
+-- cambiar la dirección y la clave pública en js/oficio-soporte.js.
 --
 -- Cómo se protege:
 --  * El esquema «oficios» no está en la API. El navegador NO puede leer ni escribir las tablas.

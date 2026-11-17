@@ -10,7 +10,7 @@
 --   5. INFORME, ESPACIO y CADUCADOS: los números para el resumen diario y el informe de cada mes. Sin datos personales.
 --   6. OLVIDAR: borrar los datos de un cliente que lo pida (primero se simula; se aplica solo con el visto bueno de Oscar).
 --
--- Dónde vive: proyecto «neuron-staging» de Supabase (Irlanda), esquema «oficios», como el buzón y el servidor.
+-- Dónde vive: en el proyecto propio de OOOX Oficios en Supabase (Irlanda), esquema «oficios», como el buzón y el servidor.
 -- Se puede pasar más de una vez: no borra nada que no sea suyo.
 -- Las pruebas: pruebas.sql (se deshacen solas).
 

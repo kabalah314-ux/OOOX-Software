@@ -21,9 +21,9 @@
    ============================================================ */
 (function(g){
 'use strict';
-const SERVIDOR='https://glsmahzpvzabeeucyqif.supabase.co';
+const SERVIDOR='https://hquvlfujruskpgnkmnfl.supabase.co';
 /* Clave pública: lo único que deja hacer es llamar a las funciones públicas de oficios. */
-const LLAVE='sb_publishable_SmbXr1nXApZ8HRF1ezbXcg_lqtr2yaZ';
+const LLAVE='sb_publishable_XZG_z_f0ya0f-7esYS8zrw_OOI35qpf';
 const GUARDADO='oficio-vigia',MAX_PAGINA=20,MAX_TANDA=10,MAX_GUARDA=20,ESPERA=2500,ENTRE=30000;
 
 /* Lo mismo que oficios.limpia en el servidor. Sin «lookbehind»: los iPhone antiguos no lo entienden y no cargaría. */

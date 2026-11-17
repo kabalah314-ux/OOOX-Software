@@ -67,7 +67,7 @@ async def main():
         # 3. una promesa que nadie recoge, un error que la app apunta en la consola, una foto que no carga y el servidor que se rompe
         await pg.evaluate("""Promise.reject(new RangeError('Prueba de promesa'));console.error(new Error('Prueba de consola'));
           const im=document.createElement('img');im.src='assets/img/no-existe-prueba.webp';document.body.appendChild(im);
-          window.__falso503=true;fetch('https://glsmahzpvzabeeucyqif.supabase.co/rest/v1/rpc/oficios_v',{method:'POST',body:'{}'}).then(()=>{window.__falso503=false})""")
+          window.__falso503=true;fetch('https://hquvlfujruskpgnkmnfl.supabase.co/rest/v1/rpc/oficios_v',{method:'POST',body:'{}'}).then(()=>{window.__falso503=false})""")
         es(await hasta(pg, "window.__vigia.flatMap(l=>l.p_lote).length>=5", 40000), 'llegan los otros cuatro (en la tanda siguiente, a los 30 s)')
         x = todos(await lotes(pg)); por = {y.get('tipo'): y for y in x}
         es('promesa' in por and por['promesa'].get('mensaje') == 'RangeError: Prueba de promesa', 'la promesa: ' + json.dumps(por.get('promesa'), ensure_ascii=False)[:160])
