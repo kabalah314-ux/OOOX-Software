@@ -182,8 +182,8 @@ begin
     return jsonb_build_object('id', neg, 'activo', n.activo, 'datos_txt', e.datos::text, 'v', e.v, 'cab', e.cab);
   when 'entra' then
     return oficios.persona_entra(neg, p_a ->> 'persona', p_a ->> 'codigo', p_a ->> 'red');
-  when 'vivos' then
-    return coalesce((select jsonb_agg(jsonb_build_object('id', a.id, 'v', a.v, 'datos', a.datos, 'de', to_jsonb(a.de), 'llave', a.llave, 'vista', a.vista)) from oficios.avisos a where a.negocio = neg), '[]'::jsonb);
+  when 'vivos' then   -- sin «vista»: el juez no la lee (la vuelve a hacer al guardar) y es lo que más pesa después del aviso (17-11-2026)
+    return coalesce((select jsonb_agg(jsonb_build_object('id', a.id, 'v', a.v, 'datos', a.datos, 'de', to_jsonb(a.de), 'llave', a.llave)) from oficios.avisos a where a.negocio = neg), '[]'::jsonb);
   when 'hecha' then
     if coalesce(p_a ->> 'clave', '') = '' then return null; end if;
     return (select jsonb_build_object('res', d.res, 'nuevos', d.nuevos) from oficios.diario d where d.negocio = neg and d.clave = p_a ->> 'clave');

@@ -17,7 +17,7 @@ negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como 
 | `juez.mjs` | El juez: la única puerta por la que cambia un aviso. Comprueba quién es, pasa la acción por las mismas reglas que la app (`js/oficio-nucleo.js`) y guarda. No sabe de Supabase ni de internet | Hecho |
 | `almacen-memoria.mjs` | Un almacén de mentira, en memoria, con el mismo contrato que el de verdad. Para las pruebas y para el servidor local de las pruebas de pantallas | Hecho |
 | `almacen.sql` | Las tablas y funciones del almacén de verdad, en Supabase (apartado `oficios`). Aplicado | Hecho |
-| `pruebas-almacen.sql` | 31 comprobaciones del almacén de verdad. Se pasan en la base de datos y no dejan nada escrito | Hecho |
+| `pruebas-almacen.sql` | 37 comprobaciones del almacén de verdad. Se pasan en la base de datos y no dejan nada escrito | Hecho |
 | `funcion/index.ts` | La función `oficio` de Supabase: envuelve al juez con el almacén de verdad. Desplegada | Hecho |
 | `js/oficio-espejo.js` (en la app) | El espejo: lo que el aparato sabe del servidor y lo que le falta por enviar. Sin red ni reloj: se prueba sin navegador | Hecho |
 | `js/oficio-estado.js` (en la app) | Con `servidor` en los datos del negocio: la sesión, la red, cada cuánto se pregunta y lo que se guarda en el aparato | Hecho |
@@ -200,7 +200,7 @@ Quince funciones. Devuelven siempre copias.
 |---|---|
 | `negocio(id)` | `{id, activo, datos, v, cab}` o nada. `datos` es el archivo de datos del negocio; `cab`, `{esq, n, nu, ausencias, contratos, nc}` (los dos últimos, desde el 15-11; si faltan, vacíos) |
 | `entra(negocio, persona, codigo, red)` | `{rol, id}`, nada, o `'bloqueo'`. Cuenta los códigos fallados por conexión |
-| `vivos(negocio)` | Los avisos con los que trabajan las reglas: `[{id, v, datos, de, llave, vista}]`. Hoy son todos; cuando pesen, se archivan los cerrados antiguos |
+| `vivos(negocio)` | Los avisos con los que trabajan las reglas: `[{id, v, datos, de, llave}]` (sin `vista` desde el 17-11-2026: el juez no la lee). Hoy son todos; cuando pesen, se archivan los cerrados antiguos |
 | `hecha(negocio, clave)` | El resultado guardado de una acción con esa marca, o nada |
 | `guarda(negocio, vAntes, {v, cab, avisos, diario, fotos})` | Guarda todo de una vez, solo si la versión sigue siendo `vAntes`; las fotos (`[{ref, aviso, datos}]`), una sola vez. `{ok}` |
 | `cambios(negocio, desde)` | `{v, cab, avisos}` con los avisos cambiados después de esa versión |
@@ -298,6 +298,14 @@ revisiones de un contrato repartidas por su año, la reserva para urgencias que 
 falta alguien, y la visita en la que no había nadie, que queda apuntada (quién fue y cuándo) para el tablero. Y la versión 17, con las reglas `2026.11.15l`
 del commit `64cda6a`: los mensajes de después del trabajo (seguimiento, presupuesto sin respuesta, cuándo toca volver),
 «descartar» y «escribir» (quien no quiere estos mensajes); el alta de un contrato solo toca los avisos de su cliente.
+
+De la versión 18 a la 21, lo nuevo de cada una está en su commit (`git log -- funcion/index.ts`). El 17-11-2026, la
+versión 22, con las reglas `2026.11.17a` del commit `150c8e4`: el idioma de cada cliente. Comprobado desde la base de
+datos con `pg_net`: responde con esa versión y da los huecos de Voltio. **Preparado y sin pasar a Supabase** (se pasa con
+Oscar delante, porque Supabase pide que lo confirme en la pantalla): `vivos` ya no trae la `vista` de cada aviso, que el
+juez no lee (un 11 % menos en cada acción, medido con los 436 avisos de la copia «en uso»), y `olvidar_cliente` sube
+«vc» (en `oficios-mantenimiento/esquema.sql`). Los dos, probados en un Postgres local: `pruebas-almacen.sql` 37 de 37 y
+`pruebas.sql` 28 de 28. La función no cambia: el juez de ahora funciona con el `vivos` de antes y con el nuevo.
 
 ## Lo que falta
 

@@ -85,7 +85,7 @@ begin
 
   -- 6. leer: todo, lo cambiado desde una versión, lo ya hecho y la vista
   j := public.oficios_srv('vivos', '{"negocio":"prueba-srv"}'); k := public.oficios_srv('cambios', '{"negocio":"prueba-srv","desde":0}');
-  r := array_append(r, case when jsonb_array_length(j) = 2 and (select bool_and(x ? 'llave' and x ? 'vista' and x ? 'de' and x ? 'datos') from jsonb_array_elements(j) x)
+  r := array_append(r, case when jsonb_array_length(j) = 2 and (select bool_and(x ? 'llave' and not (x ? 'vista') and x ? 'de' and x ? 'datos') from jsonb_array_elements(j) x)
     and (k ->> 'v')::int = 2 and jsonb_array_length(k -> 'avisos') = 2 and k -> 'cab' ->> 'n' = '2' and not (k -> 'avisos' -> 0 ? 'llave')
     and jsonb_array_length(public.oficios_srv('cambios', '{"negocio":"prueba-srv","desde":2}') -> 'avisos') = 0
     and public.oficios_srv('cambios', '{"negocio":"no-existe","desde":0}') is null then '13:ok' else '13:MAL' end);

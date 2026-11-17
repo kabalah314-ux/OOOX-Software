@@ -25,7 +25,7 @@ export function creaAlmacen({ ahora = () => Date.now(), estorbo = null } = {}) {
       if (p.codigo !== codigo) { n.fallos.push({ t, persona, red }); return null; }
       return { rol: p.rol, id: p.id };
     },
-    async vivos(id) { const n = neg(id); return n ? [...n.avisos.values()].map(copia) : []; },
+    async vivos(id) { const n = neg(id); return n ? [...n.avisos.values()].map(f => { const x = copia(f); delete x.vista; return x; }) : []; },   // sin «vista», como el de verdad
     async hecha(id, clave) { const n = neg(id), d = n && clave ? n.diario.find(x => x.clave === clave) : null; return d ? { res: copia(d.res), nuevos: copia(d.nuevos) } : null; },
     async guarda(id, vAntes, cambio) {
       if (estorbo) await estorbo(id, vAntes, cambio);
