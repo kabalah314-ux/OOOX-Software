@@ -72,6 +72,7 @@ if [ "$QUE" != reglas ]; then
   paso "Lo del repaso del 16-11: es garantía, rebajar, corregir el cobro, el enlace en los mensajes y el plazo de la garantía" python3 repaso.py
   paso "La app en el móvil: manifiesto, iconos y abrir sin cobertura" python3 instalable.py
   paso "Web y página de los tres móviles" python3 web.py
+  paso "Demo guiada: el recorrido con flechas, en el ordenador y en el móvil" python3 guia.py
   paso "Muestra de la demo" python3 muestra.py
   paso "Zona del cliente: entrar con el teléfono y ver lo suyo" python3 cliente.py
   paso "Idiomas: la cita, la zona del cliente y los papeles, en catalán y en inglés" python3 idiomas.py

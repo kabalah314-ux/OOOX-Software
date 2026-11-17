@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Así funciona OOOX Oficios · vídeo de 1 minuto</title>
+<meta name="description" content="La gestión de un negocio de oficios en el móvil: el cliente pide cita, la oficina reparte, el técnico cierra el trabajo con el precio firmado y el parte y la garantía salen solos.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14171a">
+<meta property="og:title" content="Así funciona OOOX Oficios">
+<meta property="og:description" content="La oficina de tu negocio, en el móvil. Vídeo de 1 minuto y demo guiada.">
+<meta property="og:image" content="assets/video/oficios-demo-correo.jpg">
+<link rel="preload" href="assets/fuentes/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="oficio.css">
+<style>
+body{padding:0 0 calc(40px + var(--sb))}
+.cab,.tit,.vid,.sigue{max-width:1180px;margin:0 auto;padding-left:18px;padding-right:18px}
+.cab{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:16px;padding-bottom:6px}
+.wm{font:700 1.45rem/1 var(--fb);letter-spacing:-.02em;text-decoration:none;white-space:nowrap}
+.wm span{margin-left:.25em;padding:.06em .3em;border-radius:5px;background:var(--senal);color:var(--negro);font:800 1.35rem/1 var(--fd);letter-spacing:0}
+h1{margin-top:22px;font:800 clamp(2.6rem,9vw,5.4rem)/.92 var(--fd)}
+.lead{margin-top:12px;max-width:36em;font-size:1.1875rem;color:var(--suave)}
+.vid{margin-top:22px}
+video{display:block;width:100%;aspect-ratio:16/9;border-radius:16px;background:#e9ecef;box-shadow:0 30px 60px rgba(0,0,0,.35)}
+.sigue{display:grid;gap:14px;margin-top:28px}
+.sigue h2{font:800 clamp(2rem,6vw,3.2rem)/.95 var(--fd)}
+.sigue p{max-width:36em;color:var(--suave)}
+.bots{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.pie{margin-top:8px;font-size:.9375rem;color:var(--tenue)}
+@media (min-width:900px){.cab,.tit,.vid,.sigue{padding-left:32px;padding-right:32px}.sigue{grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px 40px}.sigue .pie{grid-column:1/-1}}
+@media (prefers-reduced-motion:no-preference){h1,.lead,.vid{animation:entra .8s var(--ease-out) both}.lead{animation-delay:.08s}.vid{animation-delay:.16s}}
+@keyframes entra{from{opacity:0;transform:translateY(24px)}}
+</style>
+</head>
+<body>
+<header class="cab"><a class="wm" href="prueba.html?guia" aria-label="OOOX Oficios: ir a la demo guiada">OOOX<span>Oficios</span></a></header>
+<main>
+ <div class="tit">
+  <h1>Así funciona OOOX Oficios</h1>
+  <p class="lead">Un minuto y medio: el cliente pide cita, la oficina reparte, el técnico cierra el trabajo con el precio firmado y el parte y la garantía salen solos.</p>
+ </div>
+ <div class="vid">
+  <video controls playsinline preload="metadata" poster="assets/video/oficios-demo-portada.jpg" aria-label="Vídeo: así funciona OOOX Oficios">
+   <source src="assets/video/oficios-demo.mp4" type="video/mp4">
+   Tu navegador no puede ver el vídeo aquí. <a href="assets/video/oficios-demo.mp4">Bájalo</a>.
+  </video>
+ </div>
+ <section class="sigue" aria-labelledby="pT">
+  <div>
+   <h2 id="pT">Pruébalo tú mismo.</h2>
+   <p>La demo guiada te lleva de la mano en unos tres minutos: haces de cliente, de oficina y de técnico. Con tu negocio, la adaptamos a tu forma de trabajar.</p>
+  </div>
+  <div class="bots">
+   <a class="btn pri" href="prueba.html?guia">Probar la demo guiada</a>
+   <a class="btn" href="mailto:software@ooox.es?subject=Quiero%20OOOX%20Oficios%20para%20mi%20negocio">Lo quiero para mi negocio</a>
+  </div>
+  <p class="pie">Ramírez 24 h es un negocio inventado para la demo: personas, teléfonos e importes son de ejemplo.</p>
+ </section>
+</main>
+</body>
+</html>
