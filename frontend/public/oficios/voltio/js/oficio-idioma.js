@@ -143,7 +143,7 @@ const D={ca:{},en:{}};
 ['Elige un día y una franja.','Tria un dia i una franja.','Choose a day and a time slot.'],
 ['Esa franja se acaba de llenar. Elige otra.','Aquesta franja s’acaba d’omplir. Tria’n una altra.','That slot has just filled up. Choose another.'],
 ['Escribe tu nombre y al menos un apellido.','Escriu el teu nom i almenys un cognom.','Enter your first name and at least one surname.'],
-['El teléfono tiene que tener 9 cifras.','El telèfon ha de tenir 9 xifres.','The phone number must have 9 digits.'],
+['El teléfono tiene que tener 9 cifras.','El telèfon ha de tenir 9 xifres.','Please use a Spanish phone number (9 digits).'],
 ['Escribe la calle y el número.','Escriu el carrer i el número.','Enter the street and number.'],
 ['Falta el código postal.','Falta el codi postal.','The postcode is missing.'],
 ['Ahí todavía no llegamos: trabajamos en {ciudad}.','Encara no hi arribem: treballem a {ciudad}.','We don’t cover that area yet: we work in {ciudad}.'],
