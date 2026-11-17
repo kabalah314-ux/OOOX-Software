@@ -44,6 +44,20 @@ def marco(pg, trozo, sin=None):
 def dentro(r, W, H, tol=1):
     return r and r['x'] >= -tol and r['y'] >= -tol and r['x'] + r['w'] <= W + tol and r['y'] + r['h'] <= H + tol
 
+# «Lo quiero para mi negocio» va al WhatsApp de Oscar (js/ooox-contacto.js). Para probar ese camino con o sin el número de
+# verdad puesto, en el móvil y en la página del vídeo se sirve ese archivo con uno de mentira.
+WA_PRUEBA = '34600000000'
+async def con_numero(ctx):
+    import re
+    async def sirve(route):
+        r = await route.fetch()
+        await route.fulfill(response=r, body=re.sub(r"const WA='[^']*'", f"const WA='{WA_PRUEBA}'", await r.text(), count=1))
+    await ctx.route('**/js/ooox-contacto.js', sirve)
+ENLACES_WA = "[...document.querySelectorAll('a[data-wa]')].map(a=>({k:a.dataset.wa,href:a.href,t:a.target,en:a.closest('.gu-b')?'guia':'pagina'}))"
+def va_a_whatsapp(L, k, frase):
+    from urllib.parse import unquote
+    return bool(L) and all(e['href'].startswith(f'https://wa.me/{WA_PRUEBA}?text=') and frase in unquote(e['href']) and e['t'] == '_blank' and e['k'] == k for e in L)
+
 def tapa_centro(b, h):
     cx, cy = h['x'] + h['w'] / 2, h['y'] + h['h'] / 2
     return b['x'] <= cx <= b['x'] + b['w'] and b['y'] <= cy <= b['y'] + b['h']
@@ -58,6 +72,13 @@ async def main():
         await pg.goto(B + 'prueba.html'); await pg.wait_for_timeout(1200)
         es(await pg.locator('.gu-b').count() == 0, 'sin ?guia: la página de los tres móviles sale como siempre, sin guía')
         es(await pg.locator('#guiaBtn').count() == 1, 'y tiene el botón de la demo guiada')
+        # sin empezar la guía («Prefiero mirarlo solo»): la demo se toca por su cuenta y la guía no vuelve sola
+        await pg.click('#guiaBtn'); await espera_paso(pg, 0)
+        await pg.click('.gu-b [data-g=sal]'); await pg.wait_for_timeout(400)
+        cli0 = marco(pg, 'cita.html'); await cli0.locator('.avc').first.click(); await pg.wait_for_timeout(900)
+        es(await pg.locator('.gu-b').count() == 0 and await cli0.locator('input[name=av]:checked').count() == 1 and await pg.locator('.ph').is_visible(),
+           'saltarse la guía deja tocar la demo libremente (y la guía no vuelve sola)')
+        es('tocarlo todo' in (await pg.locator('#guAviso').inner_text()), 'y lo dice: «Ya puedes tocarlo todo por tu cuenta»')
         await pg.click('#guiaBtn')
         r = await espera_paso(pg, 0)
         es(r and r['velo'] and 'Así funciona' in r['t'], f'la guía empieza con su presentación ({r and r["t"]})')
@@ -126,12 +147,20 @@ async def main():
         r = await espera_paso(pg, 13)
         fin = await pg.locator('.gu-b').inner_text()
         es('hasta que encaje' in fin and 'tu forma de trabajar' in fin, 'el final dice que la adaptamos a su forma de trabajar')
-        es(await pg.locator('.gu-b a[href^="mailto:"]').count() == 1 and await pg.locator('.gu-b a[href="video.html"]').count() == 1,
-           'el final lleva «Lo quiero para mi negocio» y el vídeo')
+        wa = await pg.evaluate("window.OOOX_CONTACTO&&OOOX_CONTACTO.wa||''")
+        lo = await pg.locator('.gu-b a[data-wa="demo"]').get_attribute('href') or ''
+        from urllib.parse import unquote
+        es(lo.startswith(f'https://wa.me/{wa}?text=') and 'OOOX Oficios' in unquote(lo) if wa else lo.startswith('mailto:'),
+           f'«Lo quiero para mi negocio» abre el WhatsApp de Oscar con el mensaje escrito (o, sin número, el correo) ({lo[:60]})')
+        es(await pg.locator('.gu-b a[href="video.html"]').count() == 1 and (await pg.locator('.gu-b [data-g=sal]').inner_text()).strip() == 'Volver a la demo',
+           'el final lleva «Volver a la demo» y el vídeo')
         A = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{U}')")
         es(A['e'] == 'hecho' and A['pago']['modo'] == 'tarjeta', f'el trabajo queda hecho y cobrado con tarjeta ({A["e"]})')
-        await pg.click('.gu-b [data-g=sal]'); await pg.wait_for_timeout(300)
-        es(await pg.locator('.gu-b').count() == 0 and await pg.locator('.ph').is_visible(), '«Seguir probando» quita la guía y vuelve la cabecera')
+        await pg.click('.gu-b [data-g=sal]'); await pg.wait_for_timeout(900)
+        es(await pg.locator('.gu-b').count() == 0 and await pg.locator('.ph').is_visible() and await pg.evaluate('scrollY') < 5,
+           '«Volver a la demo» quita la guía y vuelve arriba, a las instrucciones y la cabecera')
+        es((await pg.locator('#guAviso').inner_text()).endswith('«Demo guiada».'), 'y dice cómo volver a la guía')
+        es(await pg.evaluate("Oficio.estado().avisos.some(a=>a.cli.nombre==='Laura')"), 'y la demo se queda como la dejó la guía, para seguir tocándola')
         # Esc y volver a empezar
         await pg.click('#guiaBtn'); await espera_paso(pg, 0)
         await pg.click('.gu-b [data-g=ya]'); await espera_paso(pg, 1)
@@ -141,7 +170,7 @@ async def main():
         await ctx.close()
 
         # ---------- 2. en el móvil, con «Hazlo por mí» ----------
-        ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=NAV != 'firefox', has_touch=True); await pon_hora(ctx)
+        ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=NAV != 'firefox', has_touch=True); await pon_hora(ctx); await con_numero(ctx)
         pg = oye(await ctx.new_page(), 'guía móvil')
         await pg.goto(B + 'prueba.html?guia')
         r = await espera_paso(pg, 0, 15000)
@@ -166,6 +195,25 @@ async def main():
         es(r and r['paso'] == 13 and dentro(r['b'], r['W'], r['H']), 'móvil: llega al final y cabe en la pantalla')
         U = await pg.evaluate('OficioGuia.aviso()')
         es(await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{U}').e") == 'hecho', 'móvil: «Hazlo por mí» cierra el trabajo entero')
+        L = await pg.evaluate(ENLACES_WA)
+        es(va_a_whatsapp(L, 'demo', 'He probado la demo de OOOX Oficios y lo quiero para mi negocio') and {e['en'] for e in L} == {'guia', 'pagina'},
+           f'con el número puesto, «Lo quiero para mi negocio» (el del final y el de arriba) abre WhatsApp con el mensaje escrito ({L[:1]})')
+        es('mensaje ya escrito' in (await pg.locator('.gu-b').inner_text()), 'y el final avisa de que se abre WhatsApp con el mensaje escrito')
+        await pg.click('.gu-b [data-g=sal]'); await pg.wait_for_timeout(500)
+        v = await pg.evaluate("""(()=>{const f=document.querySelector('.mv.on iframe').getBoundingClientRect(),t=document.querySelector('.tabs').getBoundingClientRect();
+          return{f:f.top<innerHeight-200&&f.bottom>200,t:t.top>=-1&&t.bottom<=innerHeight}})()""")
+        es(v['f'] and v['t'] and await pg.locator('.gu-b').count() == 0, f'móvil: «Volver a la demo» deja el móvil a la vista para seguir tocando ({v})')
+        av = await pg.evaluate("""(()=>{const n=document.querySelector('#guAviso'),r=n.getBoundingClientRect(),t=document.querySelector('.tabs').getBoundingClientRect();
+          return{ve:n.classList.contains('ve'),arriba:r.top>=t.bottom-1&&r.bottom<innerHeight*.4,x:n.textContent}})()""")
+        es(av['ve'] and av['arriba'] and 'más arriba' in av['x'], f'móvil: el aviso sale arriba, sin tapar la barra de la app, y dice dónde está la guía ({av})')
+        await pg.wait_for_timeout(300)
+        cen = marco(pg, 'app.html', 'tecnico')
+        await cen.locator('h1, h2').first.click(); await pg.wait_for_timeout(500)
+        es(not await pg.evaluate("document.querySelector('#guAviso').classList.contains('ve')"), 'móvil: en cuanto se toca el móvil, el aviso se va')
+        # sin empezar la guía, la página no se mueve de donde estaba
+        await pg.evaluate('scrollTo(0,0)'); await pg.click('#guiaBtn'); await espera_paso(pg, 0)
+        y0 = await pg.evaluate('scrollY'); await pg.click('.gu-b [data-g=sal]'); await pg.wait_for_timeout(400)
+        es(await pg.locator('.gu-b').count() == 0 and abs(await pg.evaluate('scrollY') - y0) < 2, 'móvil: «Prefiero mirarlo solo» deja la página donde estaba')
         await ctx.close()
 
         # ---------- 3. la página del vídeo: el vídeo, su portada y los dos botones, en el móvil y en el ordenador ----------
@@ -174,15 +222,17 @@ async def main():
             try: return urllib.request.urlopen(urllib.request.Request(B + r, method='HEAD')).status == 200
             except Exception: return False
         for w, hh in ((375, 812), (1440, 900)):
-            ctx = await br.new_context(viewport={'width': w, 'height': hh}); await pon_hora(ctx)
+            ctx = await br.new_context(viewport={'width': w, 'height': hh}); await pon_hora(ctx); await con_numero(ctx)
             pg = oye(await ctx.new_page(), f'vídeo {w}')
             await pg.goto(B + 'video.html'); await pg.wait_for_timeout(900)
             v = await pg.evaluate("""(()=>{const v=document.querySelector('video'),s=v&&v.querySelector('source');return{src:s&&s.getAttribute('src'),poster:v&&v.getAttribute('poster'),
-              sw:document.documentElement.scrollWidth,W:innerWidth,guia:!!document.querySelector('a.btn[href="prueba.html?guia"]'),mail:!!document.querySelector('a.btn[href^="mailto:"]'),
+              sw:document.documentElement.scrollWidth,W:innerWidth,guia:!!document.querySelector('a.btn[href="prueba.html?guia"]'),mail:!!document.querySelector('a.btn[data-wa="video"]'),
               h1:(document.querySelector('h1')||{}).textContent||'',noindex:!!document.querySelector('meta[name=robots][content*=noindex]')}})()""")
             es(v['src'] and existe(v['src']) and v['poster'] and existe(v['poster']), f'vídeo a {w} px: el vídeo y su portada existen ({v["src"]})')
             es(v['guia'] and v['mail'] and 'OOOX Oficios' in v['h1'] and v['noindex'], f'vídeo a {w} px: título, «Probar la demo guiada», «Lo quiero para mi negocio» y sin indexar')
             es(v['sw'] <= v['W'] + 1, f'vídeo a {w} px: nada se sale a lo ancho ({v["sw"]})')
+            L = await pg.evaluate(ENLACES_WA)
+            es(va_a_whatsapp(L, 'video', 'He visto el vídeo de OOOX Oficios y lo quiero para mi negocio'), f'vídeo a {w} px: «Lo quiero para mi negocio» abre WhatsApp con el mensaje escrito')
             await ctx.close()
         es(existe('assets/video/oficios-demo-correo.jpg'), 'la imagen del correo está publicada')
 

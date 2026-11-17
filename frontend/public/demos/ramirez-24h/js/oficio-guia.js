@@ -126,6 +126,14 @@ html.gu-on .ph,html.gu-on .pp{display:none}
 .gu-m .gu-lista li{display:grid;grid-template-columns:1.4em minmax(0,1fr)}
 .gu-m .gu-lista li::before{content:"✓";color:var(--bien-papel);font-weight:600}
 .gu-adapta{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--papel-2);color:var(--tinta)}
+.gu-fin{display:grid;gap:8px;margin-top:16px}
+.gu-fin .btn{width:100%;min-height:50px}
+.gu-fin .gu-wa{margin:-3px 0 4px;text-align:center;font-size:.875rem;color:var(--tinta-2)}
+.gu-mas{justify-content:center;margin-top:6px}
+.gu-b a.txt{display:inline-flex;align-items:center}
+.gu-aviso{position:fixed;left:50%;bottom:calc(18px + var(--sb));z-index:2147483000;width:max-content;max-width:min(600px,calc(100vw - 24px));padding:12px 16px;border-radius:12px;background:var(--papel);color:var(--tinta);box-shadow:0 12px 30px rgba(0,0,0,.4);font:500 .9375rem/1.35 var(--fb);text-wrap:balance;transform:translateX(-50%);opacity:0;pointer-events:none;transition:opacity .25s var(--ease-out)}
+.gu-aviso.ve{opacity:1}
+@media (prefers-reduced-motion:reduce){.gu-aviso{transition-duration:.01s}}
 @media (min-width:900px){
  html.gu-on .tres{padding-top:22px}
  html.gu-on .mv{transition:opacity .35s var(--ease-out)}
@@ -154,11 +162,15 @@ function pinta(){const p=PASOS[G.i],b=G.L.b,t=typeof p.t==='function'?p.t():p.t,
  if(p.modal==='intro')b.innerHTML='<p class="gu-k">Demo guiada · unos 3 minutos</p><h2 id="guT">Así funciona OOOX Oficios</h2>'+
   '<p class="gu-x" id="guX">Vas a ver un aviso de principio a fin. Haces de <b>cliente</b>, de <b>oficina</b> y de <b>técnico</b>: lo que hace uno, lo ven los otros al momento. Es un negocio inventado, así que nada llega a nadie.</p>'+
   '<div class="gu-bt"><button class="btn pri" data-g="ya">Empezar</button><button class="txt" data-g="sal">Prefiero mirarlo solo</button></div>';
- else if(p.modal==='fin')b.innerHTML='<p class="gu-k">Fin de la demo</p><h2 id="guT">Así trabaja un negocio con OOOX Oficios</h2>'+
+ else if(p.modal==='fin'){const W=window.OOOX_CONTACTO,wa=W&&W.wa?W.url('demo'):'';b.innerHTML='<p class="gu-k">Fin de la demo guiada</p><h2 id="guT">Así trabaja un negocio con OOOX Oficios</h2>'+
   '<ul class="gu-lista"><li>Las citas entran solas, sin llamadas.</li><li>Repartes con un toque, a quien llega antes.</li><li>Precio firmado, parte y garantía, sin papeles.</li><li>Sabes qué se ha cobrado y qué falta.</li></ul>'+
   '<p class="gu-adapta" id="guX"><b>Y la adaptamos a tu forma de trabajar:</b> tus precios, tus zonas, tus horarios, tus técnicos y tus papeles. Si algo no encaja, lo cambiamos hasta que encaje.</p>'+
-  '<div class="gu-bt"><a class="btn pri" href="mailto:'+CONTACTO+'?subject='+encodeURIComponent('Quiero OOOX Oficios para mi negocio')+'">Lo quiero para mi negocio</a><a class="btn peq" href="'+VIDEO+'">Ver el vídeo</a></div>'+
-  '<div class="gu-bt"><button class="txt" data-g="sal">Seguir probando</button><button class="txt" data-g="otra">Empezar otra vez</button></div>';
+  /* «Lo quiero»: al WhatsApp de Oscar con el mensaje escrito (js/ooox-contacto.js); sin número, por correo.
+     «Volver a la demo»: se quita la guía y se navega por su cuenta */
+  '<div class="gu-fin"><a class="btn pri" data-wa="demo" href="'+(wa||'mailto:'+CONTACTO+'?subject='+encodeURIComponent('Quiero OOOX Oficios para mi negocio'))+'"'+(wa?' target="_blank" rel="noopener"':'')+'>Lo quiero para mi negocio</a>'+
+  (wa?'<p class="gu-wa">Se abre WhatsApp con el mensaje ya escrito.</p>':'')+
+  '<button class="btn" data-g="sal">Volver a la demo</button></div>'+
+  '<div class="gu-bt gu-mas"><a class="txt" href="'+VIDEO+'">Ver el vídeo</a><button class="txt" data-g="otra">Empezar la guía otra vez</button></div>'}
  else b.innerHTML='<p class="gu-k">Paso '+(p.cap+1)+' de 4 · '+CAPS[p.cap]+'</p><h2 id="guT">'+esc(t)+'</h2><p class="gu-x" id="guX" aria-live="polite">'+esc(x)+'</p>'+
   '<div class="gu-bt">'+(p.sig?'<button class="btn pri peq" data-g="sig">Siguiente</button>':'')+(p.bot||[]).map((o,i)=>'<button class="btn peq" data-g="b'+i+'">'+esc(o[0])+'</button>').join('')+'<button class="txt" data-g="sal">Salir de la guía</button></div>'+
   '<div class="gu-pts" aria-hidden="true">'+CAPS.map((c,i)=>'<i class="'+(i<p.cap?'ya':i===p.cap?'on':'')+'"></i>').join('')+'</div>';
@@ -248,9 +260,29 @@ async function arranca(){if(G)sal(true);monta();H.classList.add('gu-on');
  const L=avs();G.I0=new Set(L.map(a=>a.id));
  const U=L.filter(a=>a.e==='nuevo'&&!a.cita).sort((a,b)=>b.t-a.t)[0];G.U=U?U.id:'';
  ve(0)}
-function sal(callado){if(!G)return;cancelAnimationFrame(G.raf);const L=G.L;[L.v,L.h,L.s,L.b].forEach(x=>x.remove());G=null;
+/* al salir, la demo queda para tocarla por su cuenta. Sin haber empezado («Prefiero mirarlo solo»), la página se queda
+   donde está. A media guía o al final: en el móvil, con el móvil a la vista; en el ordenador, al final se vuelve arriba
+   (las instrucciones, el botón de la guía y «Lo quiero»), y a media guía se queda en los móviles */
+function sal(callado){if(!G)return;const i=G.i,fin=PASOS[i]&&PASOS[i].modal==='fin';cancelAnimationFrame(G.raf);const L=G.L;[L.v,L.h,L.s,L.b].forEach(x=>x.remove());G=null;
  H.classList.remove('gu-on','gu-cli','gu-cen','gu-tec','gu-hoja');
- if(!callado){const r=$('#guiaBtn');if(r)r.focus({preventScroll:true})}}
+ if(callado)return;
+ let arriba=false;
+ if(i>0&&movil()){const tb=$('.tabs'),tr=$('.tres');if(tr)scrollTo({top:Math.max(0,tr.getBoundingClientRect().top+scrollY-tb.offsetHeight),behavior:'auto'})}
+ else if(fin){scrollTo({top:0,behavior:RM.matches?'auto':'smooth'});arriba=true}
+ const r=$('#guiaBtn');if(r)r.focus({preventScroll:true});
+ const aLaVista=arriba||!!r&&(q=>q.bottom>0&&q.top<innerHeight)(r.getBoundingClientRect());
+ aviso('Ya puedes tocarlo todo por tu cuenta. Para volver a la guía, «Demo guiada»'+(aLaVista?'.':', más arriba.'))}
+/* el aviso de abajo (en el móvil, arriba, para no tapar la barra de la app, que es lo siguiente que se toca): se va solo a
+   los 4 s o en cuanto se toca algo, también dentro de un móvil (eso le quita el foco a esta página) */
+let quitaAviso=null;
+function aviso(t){let n=$('#guAviso');if(!n){n=d.createElement('div');n.id='guAviso';n.className='gu-aviso';n.setAttribute('role','status');d.body.appendChild(n)}
+ if(quitaAviso)quitaAviso();
+ if(movil()){const tb=$('.tabs'),r=tb&&tb.getBoundingClientRect();n.style.top=(r&&r.top<=1&&r.bottom>0?Math.round(r.bottom)+10:12)+'px';n.style.bottom='auto'}
+ else{n.style.top='';n.style.bottom=''}
+ n.textContent=t;void n.offsetWidth;n.classList.add('ve');
+ const fuera=()=>{n.classList.remove('ve');clearTimeout(t1);clearTimeout(t0);removeEventListener('blur',fuera);d.removeEventListener('pointerdown',fuera,true);d.removeEventListener('keydown',fuera,true);quitaAviso=null};
+ const t1=setTimeout(fuera,4000),t0=setTimeout(()=>{addEventListener('blur',fuera);d.addEventListener('pointerdown',fuera,true);d.addEventListener('keydown',fuera,true)},300);
+ quitaAviso=fuera}
 function clicGuia(e){const b=e.target.closest('[data-g]');if(!b||!G)return;const g=b.dataset.g,p=PASOS[G.i];
  if(g==='ya'||g==='sig')ve(G.i+1);
  else if(g==='sal')sal();
