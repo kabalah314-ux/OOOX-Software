@@ -7,7 +7,7 @@ noche y deja a Claude revisarlo todo cada día. El procedimiento entero (qué se
 | Archivo | Qué es |
 |---|---|
 | `esquema.sql` | Tablas y funciones en Supabase (esquema `oficios`): fallos, salud, copias cifradas, limpieza, informe, espacio, caducados y olvidar a un cliente. Se puede pasar más de una vez |
-| `pruebas.sql` | 26 comprobaciones. Se deshacen solas: no dejan nada. Tienen que decir `ok` en todas |
+| `pruebas.sql` | 28 comprobaciones. Se deshacen solas: no dejan nada. Tienen que decir `ok` en todas |
 | `llave-publica.asc` | La llave pública de las copias (la de Oscar). Solo sirve para cifrar |
 | `restaurar.mjs` | De una copia ya descifrada al SQL que la vuelve a poner (aparte, o encima ante un desastre) |
 | `prueba-restaurar.sh` | Simulacro entero en un Postgres local con datos inventados y una llave de prueba. Lo pasa GitHub en cada cambio |
@@ -50,12 +50,13 @@ llave vieja: no se tira hasta que caduquen (90 días).
    `oficios_restaurada`, aparte, para mirarlo sin tocar nada.
 4. Solo ante un desastre y con el visto bueno de Oscar: `node restaurar.mjs copia.json --volcar > volcar.sql`. Vacía
    las tablas de `oficios` y pone las de la copia, todo en una transacción. Después:
-   `select oficios.reaplicar_olvidos();` (vuelve a borrar a los clientes que lo pidieron después de esa noche).
+   `select oficios.reaplicar_olvidos();` (vuelve a borrar a los clientes que lo pidieron después de esa noche). Y que la oficina y
+   los técnicos cierren la app y la vuelvan a abrir: así cada aparato baja todo de nuevo, también el que estuvo sin red.
 5. `copia.json`, `restaurar.sql` y `volcar.sql` llevan datos de clientes: se borran al acabar.
 
 ## Probar
 
-- En la base de datos de verdad: pasar `pruebas.sql` (26, se deshace sola).
+- En la base de datos de verdad: pasar `pruebas.sql` (28, se deshace sola).
 - En local, de punta a punta: `PGURL='postgresql://postgres@/postgres?host=/tmp&port=5432' bash prueba-restaurar.sh`.
 - El vigía de la app: `node webs-negocios/demos/pruebas-reglas/prueba-vigia.mjs <sitio>` (sin navegador) y
   `pruebas-navegador/vigia.py` (en el navegador). Van dentro de `pruebas.sh`.

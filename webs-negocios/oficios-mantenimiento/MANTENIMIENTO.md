@@ -118,6 +118,9 @@ tiene que revisar un abogado.
   dice que sí, y se aplica. Si tiene un aviso abierto, primero se cierra. Las facturas no están aquí (van en el
   programa de facturas del negocio, con su propia obligación de guardarse). Las copias de seguridad caducan solas a
   los 90 días; si hubiera que restaurar una anterior, `oficios.reaplicar_olvidos()` lo vuelve a borrar.
+  Desde el 17-11-2026, al olvidar a un cliente con contrato, la oficina que tiene la app abierta recibe también sus
+  contratos tapados (sube «vc»). **Sin pasar todavía a Supabase:** la función nueva de `esquema.sql` se pasa con Oscar
+  delante, porque Supabase pide que lo confirme en la pantalla. Hasta entonces, esa oficina los ve hasta volver a abrir la app.
 - **Cuánto se guarda:** fallos de la app, 90 días; frenos de abuso, 7 días; copias, 7 en la base de datos y 90 días
   fuera. Los avisos, lo que decida cada negocio con su asesor (`oficios.caducados(meses)` dice cuántos pasan).
 - **Una brecha** (alguien entra donde no debe, se pierde la llave privada, un código de acceso en manos de quien no

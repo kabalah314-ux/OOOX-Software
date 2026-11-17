@@ -354,11 +354,14 @@ begin
       or exists (select 1 from jsonb_array_elements(case when jsonb_typeof(d.nuevos) = 'array' then d.nuevos else '[]'::jsonb end) x where x->>'id' = any(ids))
       or right(regexp_replace(coalesce(d.accion->'cli'->>'tel', ''), '[^0-9]', '', 'g'), 9) = t9);
   if ve is not null then
+    -- con sus contratos tapados, «vc» (la versión en la que cambiaron los contratos) pasa a la nueva: la oficina recibe
+    -- los contratos solo cuando han cambiado (juez.mjs, «cambios»), y sin esto la que tiene la app abierta seguiría viendo
+    -- los de antes hasta volver a abrirla (17-11-2026)
     update oficios.estados e set
-        cab = case when jsonb_typeof(e.cab->'contratos') = 'array' then jsonb_set(e.cab, '{contratos}', (
+        cab = case when nc > 0 and jsonb_typeof(e.cab->'contratos') = 'array' then jsonb_set(jsonb_set(e.cab, '{contratos}', (
                 select coalesce(jsonb_agg(case when right(regexp_replace(coalesce(x->'cli'->>'tel', ''), '[^0-9]', '', 'g'), 9) = t9
                                              then jsonb_set(oficios.tapa(x, claves), '{cli,nombre}', to_jsonb('Cliente borrado'::text), true) else x end order by i), '[]'::jsonb)
-                from jsonb_array_elements(e.cab->'contratos') with ordinality as y(x, i))) else e.cab end,
+                from jsonb_array_elements(e.cab->'contratos') with ordinality as y(x, i))), '{vc}', to_jsonb(ve), true) else e.cab end,
         v = ve, cambiado = now()
       where e.negocio = p_negocio;
   end if;

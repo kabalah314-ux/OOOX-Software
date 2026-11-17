@@ -171,11 +171,12 @@ begin
                              and (select v from oficios.avisos where negocio = 'prueba-mant' and id = 'PM-1') = v1 + 1 and (select v from oficios.estados where negocio = 'prueba-mant') = v1 + 1
                              and (j->>'fotos')::int = 1 and not exists (select 1 from oficios.fotos where negocio = 'prueba-mant' and aviso = 'PM-1')
                              then '20:ok' else '20:MAL ' || k::text || ' ' || j::text end);
-  -- 21. …en el diario y en los contratos ya no queda nada suyo, y lo del otro cliente sigue igual
+  -- 21. …en el diario y en los contratos ya no queda nada suyo, y lo del otro cliente sigue igual; y los contratos cuentan como cambiados («vc»)
   select string_agg(accion::text || res::text || nuevos::text, ' ') into t from oficios.diario where negocio = 'prueba-mant' and v <= 4;
   r := array_append(r, case when position('600000199' in t) = 0 and position('Falsa' in t) = 0 and position('Pierde' in t) = 0 and position('M1 2 3 4' in t) = 0 and position('llaveoriginaldelaviso1234' in t) = 0
                              and (select cab->'contratos'->0->'cli'->>'tel' from oficios.estados where negocio = 'prueba-mant') = ''
                              and (select cab->'contratos'->1->'cli'->>'tel' from oficios.estados where negocio = 'prueba-mant') = '611000000'
+                             and (select (cab->>'vc')::bigint from oficios.estados where negocio = 'prueba-mant') = v1 + 1   -- la oficina con la app abierta los recibe tapados
                              and (select datos->'cli'->>'nombre' from oficios.avisos where id = 'PM-2' and negocio = 'prueba-mant') = 'Otro'
                              and position('611000000' in (select accion::text from oficios.diario where negocio = 'prueba-mant' and v = 5)) > 0
                              and not exists (select 1 from oficios.clientes where negocio = 'prueba-mant' and tel = '600000199')
