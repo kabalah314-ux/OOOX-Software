@@ -57,7 +57,9 @@ const M = [
   ['lo que rechazan las reglas se intenta guardar', "if (!r.ok) return { res: R(r.err, { v: neg.v || 0 }) };", ''],
   ['un aviso nuevo se queda sin llave de enlace', 'a.llave = llave(); nuevos.push', "a.llave = ''; nuevos.push"],
   ['no se apunta quién ha llevado cada aviso', 'if (a.tec) de.add(a.tec);', ''],
-  ['el cliente ve una foto vieja de su aviso', 'vista: K.vistaCliente(S, cfg, a.id) };', 'vista: (f && f.vista) || K.vistaCliente(S, cfg, a.id) };'],
+  // la vista del cliente se hace de nuevo al guardar: el juez no puede quedarse con la que había (desde el 17-11-2026 «vivos» no la
+  // trae, así que reutilizarla la deja vacía; si algún día la trajera, sería la de antes)
+  ['el cliente no ve los cambios de su aviso (el juez guarda la vista que había)', 'vista: K.vistaCliente(S, cfg, a.id) };', 'vista: f ? f.vista : K.vistaCliente(S, cfg, a.id) };'],
   ['los contadores no se guardan', 'cab: cabDe(S), avisos: guardar,', 'cab: neg.cab, avisos: guardar,'],
   ['los avisos se guardan con la versión vieja', 'return { id: a.id, v: S.v, datos: a, de: [...de],', 'return { id: a.id, v: neg.v || 0, datos: a, de: [...de],'],
   ['la respuesta no trae lo cambiado', "return n2 ? Object.assign({}, res, { cambios: await cambios(n2, w.q, p.desde), huella: await huella(n2) }) : res;", 'return res;'],
