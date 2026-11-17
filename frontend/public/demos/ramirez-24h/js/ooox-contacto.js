@@ -14,8 +14,8 @@ const MSG={
  video:'Hola, Oscar. He visto el vídeo de OOOX Oficios y lo quiero para mi negocio. Mi negocio es: '};
 const vale=/^\d{9,15}$/.test(WA);
 g.OOOX_CONTACTO={wa:vale?WA:'',url:k=>vale?'https://wa.me/'+WA+'?text='+encodeURIComponent(MSG[k]||MSG.demo):''};
-/* los enlaces que lo piden (data-wa="demo" o "video"): a WhatsApp, en otra pestaña */
-function pon(){if(!vale)return;document.querySelectorAll('a[data-wa]').forEach(a=>{a.href=g.OOOX_CONTACTO.url(a.dataset.wa);a.target='_blank';a.rel='noopener'})}
+/* los enlaces que lo piden (data-contacto="demo" o "video"; no data-wa, que en la web del negocio es su WhatsApp): a WhatsApp, en otra pestaña */
+function pon(){if(!vale)return;document.querySelectorAll('a[data-contacto]').forEach(a=>{a.href=g.OOOX_CONTACTO.url(a.dataset.contacto);a.target='_blank';a.rel='noopener'})}
 g.OOOX_CONTACTO.pon=pon;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',pon);else pon();
 })(window);

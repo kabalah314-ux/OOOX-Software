@@ -167,7 +167,7 @@ function pinta(){const p=PASOS[G.i],b=G.L.b,t=typeof p.t==='function'?p.t():p.t,
   '<p class="gu-adapta" id="guX"><b>Y la adaptamos a tu forma de trabajar:</b> tus precios, tus zonas, tus horarios, tus técnicos y tus papeles. Si algo no encaja, lo cambiamos hasta que encaje.</p>'+
   /* «Lo quiero»: al WhatsApp de Oscar con el mensaje escrito (js/ooox-contacto.js); sin número, por correo.
      «Volver a la demo»: se quita la guía y se navega por su cuenta */
-  '<div class="gu-fin"><a class="btn pri" data-wa="demo" href="'+(wa||'mailto:'+CONTACTO+'?subject='+encodeURIComponent('Quiero OOOX Oficios para mi negocio'))+'"'+(wa?' target="_blank" rel="noopener"':'')+'>Lo quiero para mi negocio</a>'+
+  '<div class="gu-fin"><a class="btn pri" data-contacto="demo" href="'+(wa||'mailto:'+CONTACTO+'?subject='+encodeURIComponent('Quiero OOOX Oficios para mi negocio'))+'"'+(wa?' target="_blank" rel="noopener"':'')+'>Lo quiero para mi negocio</a>'+
   (wa?'<p class="gu-wa">Se abre WhatsApp con el mensaje ya escrito.</p>':'')+
   '<button class="btn" data-g="sal">Volver a la demo</button></div>'+
   '<div class="gu-bt gu-mas"><a class="txt" href="'+VIDEO+'">Ver el vídeo</a><button class="txt" data-g="otra">Empezar la guía otra vez</button></div>'}

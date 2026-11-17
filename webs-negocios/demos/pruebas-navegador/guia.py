@@ -53,7 +53,7 @@ async def con_numero(ctx):
         r = await route.fetch()
         await route.fulfill(response=r, body=re.sub(r"const WA='[^']*'", f"const WA='{WA_PRUEBA}'", await r.text(), count=1))
     await ctx.route('**/js/ooox-contacto.js', sirve)
-ENLACES_WA = "[...document.querySelectorAll('a[data-wa]')].map(a=>({k:a.dataset.wa,href:a.href,t:a.target,en:a.closest('.gu-b')?'guia':'pagina'}))"
+ENLACES_WA = "[...document.querySelectorAll('a[data-contacto]')].map(a=>({k:a.dataset.contacto,href:a.href,t:a.target,en:a.closest('.gu-b')?'guia':'pagina'}))"
 def va_a_whatsapp(L, k, frase):
     from urllib.parse import unquote
     return bool(L) and all(e['href'].startswith(f'https://wa.me/{WA_PRUEBA}?text=') and frase in unquote(e['href']) and e['t'] == '_blank' and e['k'] == k for e in L)
@@ -148,7 +148,7 @@ async def main():
         fin = await pg.locator('.gu-b').inner_text()
         es('hasta que encaje' in fin and 'tu forma de trabajar' in fin, 'el final dice que la adaptamos a su forma de trabajar')
         wa = await pg.evaluate("window.OOOX_CONTACTO&&OOOX_CONTACTO.wa||''")
-        lo = await pg.locator('.gu-b a[data-wa="demo"]').get_attribute('href') or ''
+        lo = await pg.locator('.gu-b a[data-contacto="demo"]').get_attribute('href') or ''
         from urllib.parse import unquote
         es(lo.startswith(f'https://wa.me/{wa}?text=') and 'OOOX Oficios' in unquote(lo) if wa else lo.startswith('mailto:'),
            f'«Lo quiero para mi negocio» abre el WhatsApp de Oscar con el mensaje escrito (o, sin número, el correo) ({lo[:60]})')
@@ -226,7 +226,7 @@ async def main():
             pg = oye(await ctx.new_page(), f'vídeo {w}')
             await pg.goto(B + 'video.html'); await pg.wait_for_timeout(900)
             v = await pg.evaluate("""(()=>{const v=document.querySelector('video'),s=v&&v.querySelector('source');return{src:s&&s.getAttribute('src'),poster:v&&v.getAttribute('poster'),
-              sw:document.documentElement.scrollWidth,W:innerWidth,guia:!!document.querySelector('a.btn[href="prueba.html?guia"]'),mail:!!document.querySelector('a.btn[data-wa="video"]'),
+              sw:document.documentElement.scrollWidth,W:innerWidth,guia:!!document.querySelector('a.btn[href="prueba.html?guia"]'),mail:!!document.querySelector('a.btn[data-contacto="video"]'),
               h1:(document.querySelector('h1')||{}).textContent||'',noindex:!!document.querySelector('meta[name=robots][content*=noindex]')}})()""")
             es(v['src'] and existe(v['src']) and v['poster'] and existe(v['poster']), f'vídeo a {w} px: el vídeo y su portada existen ({v["src"]})')
             es(v['guia'] and v['mail'] and 'OOOX Oficios' in v['h1'] and v['noindex'], f'vídeo a {w} px: título, «Probar la demo guiada», «Lo quiero para mi negocio» y sin indexar')
