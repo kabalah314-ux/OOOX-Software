@@ -4,14 +4,15 @@ Para el primer contacto con un negocio de la lista (17-11-2026). La idea de Osca
 de tu negocio». La forma, con lo que enseña Isra Bravo: parar la atención en la primera línea, hablar de él y no de
 nosotros, directo y sin necesidad, corto, y seguir sin pesadez.
 
-**Antes del correo, un «sí».** La ley no deja mandar publicidad por correo ni por WhatsApp a quien no la ha pedido,
-tampoco a empresas (LSSI, art. 21), y WhatsApp bloquea los números que escriben a desconocidos. Por eso el orden es:
-llamada de 30 segundos (o visita) → «¿te la mando por WhatsApp?» → la muestra → dos seguimientos. Detalle y fuentes en la
-guía, pestaña «Captación».
+**En frío, papel; el WhatsApp y el correo, después.** La ley no deja mandar publicidad por correo ni por WhatsApp a quien
+no la ha pedido, tampoco a empresas (LSSI, art. 21), y WhatsApp bloquea los números que escriben a desconocidos. Las
+llamadas en frío también están limitadas desde 2023 (pregunta para el abogado). Por eso el orden es: pasar la lista por la
+Lista Robinson → carta con el código QR de su muestra (o visita) → él escribe por WhatsApp desde la muestra → la
+conversación y dos seguimientos. Detalle y fuentes en la guía, pestaña «Captación».
 
 ## Qué hay aquí
 
-- `textos.py`: la llamada, el WhatsApp, el correo (texto y HTML), los asuntos y los dos seguimientos. La escena del
+- `textos.py`: la carta, la llamada, el WhatsApp, el correo (texto y HTML), los asuntos y los dos seguimientos. La escena del
   principio cambia según el oficio (fontanería, electricidad, climatización, cerrajería o general).
 - `portada.html`: la imagen de cada negocio (1200×630): «Preparado para» + su nombre, y su web de citas, la oficina y el
   técnico en tres móviles, con su nombre en cada uno.

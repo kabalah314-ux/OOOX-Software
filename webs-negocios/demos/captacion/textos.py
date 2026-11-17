@@ -1,8 +1,10 @@
 # Los textos de captación de OOOX Oficios (17-11-2026): la llamada, el WhatsApp, el correo y los dos seguimientos.
 # Escritos con lo que enseña Isra Bravo (parar la atención en la primera línea, hablar de él y no de ti, directo y sin
 # necesidad, corto, insistir sin pesadez) y lo de Hormozi para el primer contacto (algo hecho para él antes de pedirle
-# nada). Van después de un «sí»: la ley no deja mandar publicidad por correo ni por WhatsApp a quien no la ha pedido
-# (LSSI, art. 21), tampoco a empresas. Detalle en la guía, pestaña «Captación».
+# nada). El primer contacto en frío es la carta (papel, con el código QR de su muestra), después de pasar la lista por la
+# Lista Robinson; el WhatsApp y el correo, solo cuando él ha contestado o ha dicho que sí: la ley no deja mandar
+# publicidad por correo ni por WhatsApp a quien no la ha pedido (LSSI, art. 21), tampoco a empresas, y las llamadas en
+# frío están en duda (pregunta para el abogado). Detalle en la guía, pestaña «Captación».
 #
 # Cada texto sale de los datos de un negocio:
 #   negocio   nombre comercial («Fontanería Serra»)
@@ -63,6 +65,13 @@ def whatsapp(d):
             f"Ábrela y toca, son tres minutos: {d['enlace']}\n\n"
             "Si algo no encaja con cómo trabajáis, lo cambio.")
 
+def respuesta(d):
+    """Cuando te escribe él (desde el botón «Lo quiero» de su muestra o por la carta): escuchar antes de vender."""
+    p = f", {d['persona']}" if d.get('persona') else ''
+    return (f"Hola{p}. Gracias por escribir.\n\n"
+            f"Para dejar la de {d['negocio']} como trabajáis: ¿cómo os entran hoy los avisos (por teléfono, por WhatsApp, por la web) y cuántos sois?\n\n"
+            "Con eso te la ajusto y te cuento cómo sería ponerla en marcha.")
+
 def correo_texto(d):
     return '\n\n'.join([
         hola(d), 'Lo prometido.', ESCENA[d['oficio']], 'Cuando por fin devuelves la llamada, ya ha llamado a otro.',
@@ -91,6 +100,21 @@ def correo_html(d, imagen):
             + p('Oscar' + (f"<br>{e['whatsapp']}" if d.get('whatsapp') else ''))
             + p(f"P.D. La muestra está guardada hasta el {e['hasta']}. Después la quito: lleva el nombre de tu negocio y no quiero que ande por ahí.")
             + '<p style="margin:18px 0 0;font-size:12px;color:#80868b">Si prefieres que no te escriba más, contesta «no» y no te escribo más.</p></div>')
+
+def carta(d):
+    """La carta en papel (A5), con el código QR de su muestra en medio. Lo que la ley deja hacer en frío."""
+    f = d.get('fuente') or 'Google Maps'
+    return '\n\n'.join([f"{d['negocio']}:",
+        ESCENA[d['oficio']] + ' Cuando devuelves la llamada, ya ha llamado a otro.',
+        'Te he preparado una cosa para eso. Lleva tu nombre.',
+        '[el código QR de su muestra] Escanéalo con el móvil.',
+        f"Es tu web de citas y la app de tu oficina, con el nombre de {d['negocio']}. Tus clientes piden cita solo a horas en las que "
+        'tienes a alguien libre; tú lo repartes con un toque; tu técnico enseña el precio y el cliente firma en la pantalla. '
+        'Son tres minutos y no hay que registrarse.',
+        'Si te encaja, escríbeme por WhatsApp' + (f": {d['whatsapp']}." if d.get('whatsapp') else '.') + ' Si algo no encaja con cómo trabajáis, lo cambio.',
+        'Oscar',
+        f"P.D. La muestra estará hasta el {d['hasta']}. Después la quito: lleva el nombre de tu negocio y no quiero que ande por ahí.",
+        f"(Al pie, pequeño) Tu dirección la he sacado de tu ficha pública de {f}. Si no quieres que te escriba, dímelo y la borro."])
 
 def seguimiento_1(d):
     """A los dos o tres días, si no ha contestado: una pregunta, para escuchar (y ajustar su muestra)."""

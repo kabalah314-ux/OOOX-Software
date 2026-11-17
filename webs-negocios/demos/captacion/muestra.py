@@ -94,17 +94,20 @@ def main():
     a = argparse.ArgumentParser()
     a.add_argument('--negocio', required=True); a.add_argument('--categoria', default=''); a.add_argument('--persona', default='')
     a.add_argument('--zona', default=''); a.add_argument('--enlace', default='https://ooox.es/'); a.add_argument('--hasta', default='domingo')
-    a.add_argument('--whatsapp', default=''); a.add_argument('--out', required=True)
+    a.add_argument('--whatsapp', default=''); a.add_argument('--fuente', default='Google Maps'); a.add_argument('--out', required=True)
     x = a.parse_args()
     d = {'negocio': T.corto(x.negocio), 'oficio': T.oficio_de(x.categoria, x.negocio), 'persona': x.persona, 'zona': x.zona,
-         'enlace': x.enlace, 'hasta': x.hasta, 'whatsapp': x.whatsapp}
+         'enlace': x.enlace, 'hasta': x.hasta, 'whatsapp': x.whatsapp, 'fuente': x.fuente}
     out = os.path.abspath(x.out); os.makedirs(out, exist_ok=True)
     asyncio.run(pantallas(d, os.path.join(out, 'cap')))
     asyncio.run(portada(d, out))
     with open(os.path.join(out, 'textos.txt'), 'w', encoding='utf-8') as f:
         f.write(f"MUESTRA PARA {d['negocio'].upper()} ({d['oficio']})\n\nASUNTOS DEL CORREO\n" + '\n'.join('- ' + s for s in T.asuntos(d))
-                + '\n\nLLAMADA (30 segundos)\n' + T.llamada(d) + '\n\nWHATSAPP (con la imagen portada.jpg)\n' + T.whatsapp(d)
-                + '\n\nCORREO EN TEXTO\n' + T.correo_texto(d) + '\n\nSEGUIMIENTO 1 (a los 2 o 3 días)\n' + T.seguimiento_1(d)
+                + '\n\nCARTA EN PAPEL (el primer contacto en frío; con el QR de su muestra)\n' + T.carta(d)
+                + '\n\nLLAMADA (30 segundos; solo si el abogado lo ve bien)\n' + T.llamada(d)
+                + '\n\nRESPUESTA (cuando te escribe él, desde su muestra o por la carta)\n' + T.respuesta(d)
+                + '\n\nWHATSAPP (después de la llamada, si dijo que sí; con la imagen portada.jpg)\n' + T.whatsapp(d)
+                + '\n\nCORREO EN TEXTO (si lo prefiere por correo)\n' + T.correo_texto(d) + '\n\nSEGUIMIENTO 1 (a los 2 o 3 días)\n' + T.seguimiento_1(d)
                 + '\n\nSEGUIMIENTO 2 (el último)\n' + T.seguimiento_2(d) + '\n')
     print('Listo:', out)
 
