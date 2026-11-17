@@ -15,6 +15,9 @@
 #   whatsapp  el WhatsApp de Oscar (vacío mientras no lo haya)
 import html, re
 
+# la segunda capa de la información de privacidad (frontend/public/privacidad.html): cada mensaje lleva su enlace
+PRIVACIDAD = 'ooox.es/privacidad'
+
 ESCENA = {
     'fontaneria': 'Estás debajo de un fregadero y suena el móvil. No puedes cogerlo.',
     'electricidad': 'Estás subido a una escalera, con el cuadro abierto, y suena el móvil. No puedes cogerlo.',
@@ -81,7 +84,7 @@ def correo_texto(d):
         f"Ábrela y toca. Son tres minutos y no hay que registrarse: {d['enlace']}",
         'Si algo no encaja con cómo trabajáis, lo cambio hasta que encaje.', firma(d),
         f"P.D. La muestra está guardada hasta el {d['hasta']}. Después la quito: lleva el nombre de tu negocio y no quiero que ande por ahí.",
-        'Si prefieres que no te escriba más, contesta «no» y no te escribo más.'])
+        f'Si prefieres que no te escriba más, contesta «no» y no te escribo más. Cómo trato tus datos: {PRIVACIDAD}'])
 
 def correo_html(d, imagen):
     """El correo para pegar en Gmail: parece un correo de una persona (sin cabecera ni logotipos), con una sola imagen."""
@@ -99,7 +102,8 @@ def correo_html(d, imagen):
             + p('Si algo no encaja con cómo trabajáis, lo cambio hasta que encaje.')
             + p('Oscar' + (f"<br>{e['whatsapp']}" if d.get('whatsapp') else ''))
             + p(f"P.D. La muestra está guardada hasta el {e['hasta']}. Después la quito: lleva el nombre de tu negocio y no quiero que ande por ahí.")
-            + '<p style="margin:18px 0 0;font-size:12px;color:#80868b">Si prefieres que no te escriba más, contesta «no» y no te escribo más.</p></div>')
+            + '<p style="margin:18px 0 0;font-size:12px;color:#80868b">Si prefieres que no te escriba más, contesta «no» y no te escribo más. '
+              f'Cómo trato tus datos: <a href="https://{PRIVACIDAD}" style="color:#80868b">{PRIVACIDAD}</a></p></div>')
 
 def carta(d):
     """La carta en papel (A5), con el código QR de su muestra en medio. Lo que la ley deja hacer en frío."""
@@ -114,7 +118,8 @@ def carta(d):
         'Si te encaja, escríbeme por WhatsApp' + (f": {d['whatsapp']}." if d.get('whatsapp') else '.') + ' Si algo no encaja con cómo trabajáis, lo cambio.',
         'Oscar',
         f"P.D. La muestra estará hasta el {d['hasta']}. Después la quito: lleva el nombre de tu negocio y no quiero que ande por ahí.",
-        f"(Al pie, pequeño) Tu dirección la he sacado de tu ficha pública de {f}. Si no quieres que te escriba, dímelo y la borro."])
+        f"(Al pie, pequeño) Tu dirección la he sacado de tu ficha pública de {f}. Si no quieres que te escriba, dímelo y la borro. "
+        f"Cómo trato tus datos: {PRIVACIDAD}"])
 
 # ---------- Correos en frío (17-11-2026, noche) ----------
 # Si Oscar decide escribir sin contacto previo. Siguen siendo publicidad no pedida (LSSI, art. 21): una infracción leve
@@ -139,7 +144,8 @@ def primera_linea(d):
     return ESCENA[d['oficio']]
 
 def pie_frio(d):
-    return f"Tu correo lo he sacado de {d.get('fuente_correo') or 'vuestra web'}. Si no quieres que te escriba, contesta «no» y no vuelvo a hacerlo."
+    return (f"Tu correo lo he sacado de {d.get('fuente_correo') or 'vuestra web'}. Si no quieres que te escriba, contesta «no» y no vuelvo a hacerlo. "
+            f"Cómo trato tus datos: {PRIVACIDAD}")
 
 def asuntos_frio(d):
     n = d['negocio']
