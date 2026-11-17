@@ -280,8 +280,13 @@ function aviso(t){let n=$('#guAviso');if(!n){n=d.createElement('div');n.id='guAv
  if(movil()){const tb=$('.tabs'),r=tb&&tb.getBoundingClientRect();n.style.top=(r&&r.top<=1&&r.bottom>0?Math.round(r.bottom)+10:12)+'px';n.style.bottom='auto'}
  else{n.style.top='';n.style.bottom=''}
  n.textContent=t;void n.offsetWidth;n.classList.add('ve');
- const fuera=()=>{n.classList.remove('ve');clearTimeout(t1);clearTimeout(t0);removeEventListener('blur',fuera);d.removeEventListener('pointerdown',fuera,true);d.removeEventListener('keydown',fuera,true);quitaAviso=null};
- const t1=setTimeout(fuera,4000),t0=setTimeout(()=>{addEventListener('blur',fuera);d.addEventListener('pointerdown',fuera,true);d.addEventListener('keydown',fuera,true)},300);
+ /* esta página y la de cada móvil (son de la misma web, así que se pueden escuchar), y por si acaso, el foco */
+ let docs=[];
+ const fuera=()=>{n.classList.remove('ve');clearTimeout(t1);clearTimeout(t0);removeEventListener('blur',fuera);
+  docs.forEach(x=>{try{x.removeEventListener('pointerdown',fuera,true);x.removeEventListener('keydown',fuera,true)}catch(e){}});docs=[];quitaAviso=null};
+ const t1=setTimeout(fuera,4000),t0=setTimeout(()=>{addEventListener('blur',fuera);
+  docs=[d].concat([...d.querySelectorAll('.tres iframe')].map(f=>{try{return f.contentDocument}catch(e){return null}}).filter(Boolean));
+  docs.forEach(x=>{x.addEventListener('pointerdown',fuera,true);x.addEventListener('keydown',fuera,true)})},300);
  quitaAviso=fuera}
 function clicGuia(e){const b=e.target.closest('[data-g]');if(!b||!G)return;const g=b.dataset.g,p=PASOS[G.i];
  if(g==='ya'||g==='sig')ve(G.i+1);
