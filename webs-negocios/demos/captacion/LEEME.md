@@ -12,7 +12,10 @@ conversación y dos seguimientos. Detalle y fuentes en la guía, pestaña «Capt
 
 ## Qué hay aquí
 
-- `textos.py`: la carta, la llamada, el WhatsApp, el correo (texto y HTML), los asuntos y los dos seguimientos. La escena del
+- `textos.py`: la carta, la llamada, el WhatsApp, el correo (texto y HTML), los asuntos y los dos seguimientos. Y, si
+  Oscar decide escribir sin contacto previo, tres correos en frío: el primero sin enlace ni imagen y pidiendo permiso
+  («¿Te la mando?»), con la primera línea sacada de su ficha (nota, reseñas, urgencias, web); el segundo a los 4 días y
+  el último a los 10, y nada más. Más las respuestas cortas a «¿cuánto cuesta?», «ya tenemos programa», etc. La escena del
   principio cambia según el oficio (fontanería, electricidad, climatización, cerrajería o general).
 - `portada.html`: la imagen de cada negocio (1200×630): «Preparado para» + su nombre, y su web de citas, la oficina y el
   técnico en tres móviles, con su nombre en cada uno.
@@ -21,7 +24,8 @@ conversación y dos seguimientos. Detalle y fuentes en la guía, pestaña «Capt
 
 ```
 python3 muestra.py --negocio "Fontanería Serra" --categoria Fontanería --persona Jordi --zona "Sants, Barcelona" \
-  --enlace "<su demo>" --hasta "domingo 30" --whatsapp "<el de Oscar>" --out /tmp/captacion/serra
+  --enlace "<su demo>" --hasta "domingo 30" --whatsapp "<el de Oscar>" --nota 4.8 --resenas 127 --h24 si --web si \
+  --out /tmp/captacion/serra
 ```
 
 «Fontanería Serra» es un negocio inventado, para el ejemplo.

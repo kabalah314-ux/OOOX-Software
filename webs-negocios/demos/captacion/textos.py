@@ -116,6 +116,63 @@ def carta(d):
         f"P.D. La muestra estará hasta el {d['hasta']}. Después la quito: lleva el nombre de tu negocio y no quiero que ande por ahí.",
         f"(Al pie, pequeño) Tu dirección la he sacado de tu ficha pública de {f}. Si no quieres que te escriba, dímelo y la borro."])
 
+# ---------- Correos en frío (17-11-2026, noche) ----------
+# Si Oscar decide escribir sin contacto previo. Siguen siendo publicidad no pedida (LSSI, art. 21): una infracción leve
+# si es uno a uno, grave si es masivo o insistente. Para reducirlo a lo mínimo, y porque es lo que mejor funciona: el
+# primero no lleva enlace ni imagen y pide permiso («¿Te la mando?»); con un «sí», lo demás ya va pedido. Como mucho
+# tres por negocio, y al primer «no» o tras el tercero sin respuesta, no se le vuelve a escribir. Texto plano, menos de
+# 80 palabras, con quién escribe, de dónde salió su correo y cómo decir que no.
+
+def num(x):
+    """«4.8» → «4,8»."""
+    return str(x).strip().replace('.', ',')
+
+def primera_linea(d):
+    """La primera línea, con lo que se sabe de él (la nota y las reseñas de su ficha, si hace urgencias, si tiene web)."""
+    n, nota, res = d['negocio'], d.get('nota'), d.get('resenas')
+    if nota and res and d.get('h24'):
+        return f"Con un {num(nota)} en Google, {res} reseñas y urgencias las 24 horas, a {n} no le faltan llamadas. Lo difícil es cogerlas todas."
+    if nota and res:
+        return f"Con un {num(nota)} en Google y {res} reseñas, clientes no os faltan. Lo que se escapa son las llamadas que no da tiempo a coger."
+    if d.get('web') is False:
+        return f"He buscado {n} en Google y no he encontrado dónde pedir cita sin llamar."
+    return ESCENA[d['oficio']]
+
+def pie_frio(d):
+    return f"Tu correo lo he sacado de {d.get('fuente_correo') or 'vuestra web'}. Si no quieres que te escriba, contesta «no» y no vuelvo a hacerlo."
+
+def asuntos_frio(d):
+    n = d['negocio']
+    return [f'Para {n}', f'Muestra para {n}', f'{n}: una pregunta']
+
+def frio_1(d):
+    """El primero: sin enlace ni imagen; pide permiso."""
+    return '\n\n'.join([hola(d), primera_linea(d),
+        f"Os he preparado una muestra: la web de citas y la app de la oficina, con el nombre de {d['negocio']}. "
+        'El cliente pide hora solo cuando tenéis a alguien libre, y el técnico cierra cada trabajo con el precio firmado en el móvil.',
+        '¿Te la mando? Son tres minutos.', 'Oscar · OOOX (ooox.es)', pie_frio(d)])
+
+def frio_2(d):
+    """A los 4 días, en el mismo hilo: una línea."""
+    return '\n\n'.join([hola(d),
+        f"¿Te la mando o lo dejo estar? Es la muestra de {d['negocio']}: su web de citas y la app de la oficina. Con un «sí», te llega hoy.",
+        'Oscar', pie_frio(d)])
+
+def frio_3(d):
+    """A los 10 días, en el mismo hilo: el último, sin presión. Después, nada más."""
+    return '\n\n'.join([hola(d),
+        f"Último correo, prometido. Si algún día quieres ver cómo quedaría {d['negocio']} con su web de citas y su app, contesta «sí» y te la mando. "
+        'Si no, no vuelvo a escribirte.', 'Suerte con los avisos.', 'Oscar', pie_frio(d)])
+
+RESPUESTAS = {
+    '¿Cuánto cuesta?': 'Alta de 400 € (a los primeros negocios, 200 € y el primer mes gratis) y 30 € al mes con IVA, sin permanencia. '
+                       'La muestra que te mando es la misma app, con tu nombre.',
+    'Ya tenemos programa': '¿Cuál usáis? Si os va bien, no te hago cambiar. Esto encaja cuando los avisos entran por teléfono o WhatsApp '
+                           'y se apuntan a mano. Si quieres, te digo en dos líneas qué cambiaría.',
+    'No tengo tiempo': 'Por eso es corta: tres minutos, desde el móvil. Y si te encaja, la pongo en marcha yo.',
+    '¿Quién eres?': 'Oscar, de OOOX (ooox.es). Hago apps para oficios: la web de citas, la oficina en el móvil y los papeles del técnico.',
+}
+
 def seguimiento_1(d):
     """A los dos o tres días, si no ha contestado: una pregunta, para escuchar (y ajustar su muestra)."""
     return '\n\n'.join([hola(d),

@@ -95,9 +95,14 @@ def main():
     a.add_argument('--negocio', required=True); a.add_argument('--categoria', default=''); a.add_argument('--persona', default='')
     a.add_argument('--zona', default=''); a.add_argument('--enlace', default='https://ooox.es/'); a.add_argument('--hasta', default='domingo')
     a.add_argument('--whatsapp', default=''); a.add_argument('--fuente', default='Google Maps'); a.add_argument('--out', required=True)
+    # para los correos en frío: lo que dice su ficha (de la lista) y de dónde salió su correo
+    a.add_argument('--nota', default=''); a.add_argument('--resenas', default=''); a.add_argument('--h24', default='')
+    a.add_argument('--web', default=''); a.add_argument('--fuente-correo', default='vuestra web')
     x = a.parse_args()
     d = {'negocio': T.corto(x.negocio), 'oficio': T.oficio_de(x.categoria, x.negocio), 'persona': x.persona, 'zona': x.zona,
-         'enlace': x.enlace, 'hasta': x.hasta, 'whatsapp': x.whatsapp, 'fuente': x.fuente}
+         'enlace': x.enlace, 'hasta': x.hasta, 'whatsapp': x.whatsapp, 'fuente': x.fuente,
+         'nota': x.nota, 'resenas': x.resenas, 'h24': x.h24.lower() in ('si', 'sí', '1', 'true'),
+         'web': None if not x.web else x.web.lower() in ('si', 'sí', '1', 'true'), 'fuente_correo': x.fuente_correo}
     out = os.path.abspath(x.out); os.makedirs(out, exist_ok=True)
     asyncio.run(pantallas(d, os.path.join(out, 'cap')))
     asyncio.run(portada(d, out))
@@ -108,7 +113,14 @@ def main():
                 + '\n\nRESPUESTA (cuando te escribe él, desde su muestra o por la carta)\n' + T.respuesta(d)
                 + '\n\nWHATSAPP (después de la llamada, si dijo que sí; con la imagen portada.jpg)\n' + T.whatsapp(d)
                 + '\n\nCORREO EN TEXTO (si lo prefiere por correo)\n' + T.correo_texto(d) + '\n\nSEGUIMIENTO 1 (a los 2 o 3 días)\n' + T.seguimiento_1(d)
-                + '\n\nSEGUIMIENTO 2 (el último)\n' + T.seguimiento_2(d) + '\n')
+                + '\n\nSEGUIMIENTO 2 (el último)\n' + T.seguimiento_2(d)
+                + '\n\n========== CORREOS EN FRÍO (sin contacto previo: leer antes la guía, pestaña «Captación») ==========\n'
+                + 'ASUNTOS\n' + '\n'.join('- ' + s for s in T.asuntos_frio(d))
+                + '\n\nFRÍO 1 (día 1: sin enlace ni imagen)\n' + T.frio_1(d)
+                + '\n\nFRÍO 2 (día 4, en el mismo hilo)\n' + T.frio_2(d)
+                + '\n\nFRÍO 3 (día 10, en el mismo hilo; después, nada más)\n' + T.frio_3(d)
+                + '\n\nSI CONTESTA «SÍ»: el correo con la imagen y el enlace (correo.html), que empieza por «Lo prometido».'
+                + '\n\nRESPUESTAS CORTAS\n' + '\n'.join(f'- {k}: {v}' for k, v in T.RESPUESTAS.items()) + '\n')
     print('Listo:', out)
 
 if __name__ == '__main__':
