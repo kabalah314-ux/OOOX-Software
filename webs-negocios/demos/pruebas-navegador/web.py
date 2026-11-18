@@ -150,8 +150,8 @@ async def main():
         es(all(r1) and [x['id'] for x in v] == ['atasco', 'fuga', 'termo', 'cisterna', 'otra'] and f.get('n') == 'Fugas y goteras' and f.get('p') == '80–150 €' and '110' in f.get('u', '') and f.get('h') == 'Reservar Fugas y goteras' and await wv.locator('#svDots i').count() == 5,
            f'servicios: lo que cambia la oficina en su app (nombre, precio, orden y quitar uno) sale en la web sin recargar ({v[:2]})')
         await wv.evaluate("document.querySelector('[data-incluye=fuga]').click()"); await wv.wait_for_timeout(450)
-        d = await wv.evaluate("({t:document.querySelector('#dT').textContent,filas:document.querySelectorAll('#dRows > *').length,tot:document.querySelector('#dTot').textContent,alt:document.querySelector('#dAlt').textContent})")
-        es('Fugas y goteras' in d['t'] and d['filas'] == 0 and d['tot'] == '80–150 €' and '110' in d['alt'], f'servicios: con un precio propio, «Qué incluye» da ese total y su urgente, sin las líneas del catálogo ({d})')
+        d = await wv.evaluate("({t:document.querySelector('#dT').textContent,filas:document.querySelectorAll('#dRows > *').length,tot:document.querySelector('#dTot').textContent,alt:document.querySelector('#dAlt').textContent,res:document.querySelector('#dResT').textContent})")
+        es('Fugas y goteras' in d['t'] and d['res'] == 'Reservar Fugas y goteras' and d['filas'] == 0 and d['tot'] == '80–150 €' and '110' in d['alt'], f'servicios: con un precio propio, «Qué incluye» da ese total y su urgente, sin las líneas del catálogo ({d})')
         await wv.goto(B + 'cita.html'); await wv.wait_for_selector('#f')
         cn = await wv.evaluate("[...document.querySelectorAll('.avc span')].map(e=>e.textContent)")
         await wv.locator('.avc:has(input[value=fuga])').click(); await wv.wait_for_timeout(250)

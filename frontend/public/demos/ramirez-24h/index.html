@@ -811,7 +811,7 @@ function pintaDesglose(){const p=AV[avIdx()],tt=total(p,false),suf=p.suf?' '+L(p
  $('#dTot').textContent=propio?precioNorm(x):(p.desde?t('desde',{p:eur(tt.a)}):rango(tt.a,tt.b))+suf;
  $('#dAlt').textContent=t(u?'d.urg.n':'d.urg',{p:eur(propio?urgDesde(x):ug.a+URGE),s:eur(URGE)});
  $('#dNote').textContent=p.nota?L(p.nota):'';$('#dNote').hidden=!p.nota;
- $('#dRes').setAttribute('href',citaUrl(p.id));$('#dResT').textContent=t('sv.resA',{a:t('av.'+p.id)})}
+ $('#dRes').setAttribute('href',citaUrl(p.id));$('#dResT').textContent=t('sv.resA',{a:nomSv(x)})}
 /* --- lo que cuesta --- */
 $('#verEj').onclick=()=>{const p=$('#pEj'),on=p.hidden;p.hidden=!on;$('#verEj').setAttribute('aria-expanded',String(on));$('#verEj').textContent=t(on?'cu.ej2':'cu.ej');
  if(on&&!RM)gsap.fromTo('#pEj p',{opacity:0,x:-10},{opacity:1,x:0,duration:.35,ease:'power3.out',stagger:.06})};
