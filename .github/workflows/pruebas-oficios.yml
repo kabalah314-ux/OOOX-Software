@@ -57,9 +57,10 @@ jobs:
   pantallas:
     name: Pantallas en ${{ matrix.motor }}
     runs-on: ubuntu-24.04   # sistema fijo, como la versión del probador: «latest» cambia solo con los años
-    # La instalación de lo que necesita el navegador a veces tarda casi media hora (WebKit, 18-11-2026: 28 minutos), y con
-    # 40 minutos para todo el trabajo se cortaban las pruebas a medias. Cada paso lleva su tope y el trabajo, la suma.
-    timeout-minutes: 70
+    # La instalación de lo que necesita el navegador a veces tarda más de media hora (WebKit, 18-11-2026: 28 minutos y, en
+    # la tanda siguiente, más de 32): el espejo de Ubuntu da los paquetes muy despacio. Por eso los paquetes se guardan de
+    # una vez para la siguiente (caché de GitHub) y cada paso lleva su tope; el trabajo, la suma.
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -73,13 +74,29 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Paquetes del navegador guardados de otra vez
+        id: apt
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/paquetes-apt
+          key: apt-${{ matrix.motor }}-playwright-1.65.1-ubuntu-24.04-v1
       - name: Instalar Playwright y el navegador
-        timeout-minutes: 32
+        timeout-minutes: 50
         # Versiones fijas: así una versión nueva del probador no hace fallar la prueba de la noche sin que haya cambiado la app.
-        # Para subir de versión: cambiar el número aquí, mirar que las tres pasan y solo entonces dejarlo.
+        # Para subir de versión: cambiar el número aquí (y en las dos claves de la caché), mirar que las tres pasan y solo
+        # entonces dejarlo. Con los paquetes guardados, apt no los vuelve a bajar: solo los que hayan cambiado.
         run: |
           pip install playwright==1.65.1 pillow==13.0.0
+          echo 'APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99-guardar-paquetes >/dev/null
+          if ls ~/paquetes-apt/*.deb >/dev/null 2>&1; then sudo cp ~/paquetes-apt/*.deb /var/cache/apt/archives/; fi
           python -m playwright install --with-deps ${{ matrix.motor }}
+          mkdir -p ~/paquetes-apt && cp /var/cache/apt/archives/*.deb ~/paquetes-apt/ 2>/dev/null || true
+      - name: Guardar los paquetes del navegador para la próxima vez
+        if: steps.apt.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/paquetes-apt
+          key: apt-${{ matrix.motor }}-playwright-1.65.1-ubuntu-24.04-v1
       - name: Pantallas en ${{ matrix.motor }}
         timeout-minutes: 35
         env:
