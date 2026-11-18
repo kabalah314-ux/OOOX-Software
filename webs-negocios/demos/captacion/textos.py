@@ -17,6 +17,8 @@ import html, re
 
 # la segunda capa de la información de privacidad (frontend/public/privacidad.html): cada mensaje lleva su enlace
 PRIVACIDAD = 'ooox.es/privacidad'
+# quién firma: nombre y apellido, para que quede claro quién escribe (LSSI, art. 20); el nombre completo, en la página
+FIRMA = 'Oscar Conesa'
 
 ESCENA = {
     'fontaneria': 'Estás debajo de un fregadero y suena el móvil. No puedes cogerlo.',
@@ -48,7 +50,7 @@ def hola(d):
     return f"Hola, {d['persona']}:" if d.get('persona') else 'Hola:'
 
 def firma(d):
-    return 'Oscar' + (f"\n{d['whatsapp']}" if d.get('whatsapp') else '')
+    return FIRMA + (f"\n{d['whatsapp']}" if d.get('whatsapp') else '')
 
 def asuntos(d):
     n = d['negocio']
@@ -100,7 +102,7 @@ def correo_html(d, imagen):
                 'Tu técnico enseña el precio, el cliente firma en la pantalla y el parte y la garantía salen solos.')
             + p(f'<a href="{e["enlace"]}" style="color:#1a0dab">Ábrela y toca.</a> Son tres minutos y no hay que registrarse.')
             + p('Si algo no encaja con cómo trabajáis, lo cambio hasta que encaje.')
-            + p('Oscar' + (f"<br>{e['whatsapp']}" if d.get('whatsapp') else ''))
+            + p(FIRMA + (f"<br>{e['whatsapp']}" if d.get('whatsapp') else ''))
             + p(f"P.D. La muestra está guardada hasta el {e['hasta']}. Después la quito: lleva el nombre de tu negocio y no quiero que ande por ahí.")
             + '<p style="margin:18px 0 0;font-size:12px;color:#80868b">Si prefieres que no te escriba más, contesta «no» y no te escribo más. '
               f'Cómo trato tus datos: <a href="https://{PRIVACIDAD}" style="color:#80868b">{PRIVACIDAD}</a></p></div>')
@@ -116,7 +118,7 @@ def carta(d):
         'tienes a alguien libre; tú lo repartes con un toque; tu técnico enseña el precio y el cliente firma en la pantalla. '
         'Son tres minutos y no hay que registrarse.',
         'Si te encaja, escríbeme por WhatsApp' + (f": {d['whatsapp']}." if d.get('whatsapp') else '.') + ' Si algo no encaja con cómo trabajáis, lo cambio.',
-        'Oscar',
+        FIRMA,
         f"P.D. La muestra estará hasta el {d['hasta']}. Después la quito: lleva el nombre de tu negocio y no quiero que ande por ahí.",
         f"(Al pie, pequeño) Tu dirección la he sacado de tu ficha pública de {f}. Si no quieres que te escriba, dímelo y la borro. "
         f"Cómo trato tus datos: {PRIVACIDAD}"])
@@ -156,19 +158,19 @@ def frio_1(d):
     return '\n\n'.join([hola(d), primera_linea(d),
         f"Os he preparado una muestra: la web de citas y la app de la oficina, con el nombre de {d['negocio']}. "
         'El cliente pide hora solo cuando tenéis a alguien libre, y el técnico cierra cada trabajo con el precio firmado en el móvil.',
-        '¿Te la mando? Son tres minutos.', 'Oscar · OOOX (ooox.es)', pie_frio(d)])
+        '¿Te la mando? Son tres minutos.', FIRMA + ' · OOOX (ooox.es)', pie_frio(d)])
 
 def frio_2(d):
     """A los 4 días, en el mismo hilo: una línea."""
     return '\n\n'.join([hola(d),
         f"¿Te la mando o lo dejo estar? Es la muestra de {d['negocio']}: su web de citas y la app de la oficina. Con un «sí», te llega hoy.",
-        'Oscar', pie_frio(d)])
+        FIRMA, pie_frio(d)])
 
 def frio_3(d):
     """A los 10 días, en el mismo hilo: el último, sin presión. Después, nada más."""
     return '\n\n'.join([hola(d),
         f"Último correo, prometido. Si algún día quieres ver cómo quedaría {d['negocio']} con su web de citas y su app, contesta «sí» y te la mando. "
-        'Si no, no vuelvo a escribirte.', 'Suerte con los avisos.', 'Oscar', pie_frio(d)])
+        'Si no, no vuelvo a escribirte.', 'Suerte con los avisos.', FIRMA, pie_frio(d)])
 
 RESPUESTAS = {
     '¿Cuánto cuesta?': 'Alta de 400 € (a los primeros negocios, 200 € y el primer mes gratis) y 30 € al mes con IVA, sin permanencia. '
