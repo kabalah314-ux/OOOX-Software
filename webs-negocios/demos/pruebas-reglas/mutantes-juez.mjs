@@ -92,7 +92,7 @@ const M = [
   ['la zona de un cliente lleva los avisos de todos', 'const { S, filas } = await carga(neg), Pf = K.perfilCliente(S, cfg, tel);', 'const { S, filas } = await carga(neg), Pf = Object.assign(K.perfilCliente(S, cfg, tel) || {}, { avisos: S.avisos.map(a => Object.assign({}, a)) });'],
   ['la zona no lleva la llave de cada aviso', "a.llave = f && f.llave ? f.llave : '';", "a.llave = '';"],
   // la furgoneta (16-11-2026)
-  ['la furgoneta no se guarda en el servidor', ', furgos: S.furgos || {} });', ' });'],
+  ['la furgoneta no se guarda en el servidor', ', furgos: S.furgos || {} }, S.web ?', ' }, S.web ?'],
   ['un técnico recibe todas las furgonetas', 'cab.furgos = F ? { [q.id]: F } : {};', 'cab.furgos = cb.furgos || {};'],
   // los servicios de la web (18-11-2026)
   ["la foto de la web se da aunque ya no esté puesta", "const puesta = !!W && Object.keys(W.av).some(k => W.av[k] && W.av[k].foto === p.ref);", "const puesta = true;"],
