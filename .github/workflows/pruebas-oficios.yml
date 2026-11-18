@@ -57,7 +57,9 @@ jobs:
   pantallas:
     name: Pantallas en ${{ matrix.motor }}
     runs-on: ubuntu-24.04   # sistema fijo, como la versión del probador: «latest» cambia solo con los años
-    timeout-minutes: 40
+    # La instalación de lo que necesita el navegador a veces tarda casi media hora (WebKit, 18-11-2026: 28 minutos), y con
+    # 40 minutos para todo el trabajo se cortaban las pruebas a medias. Cada paso lleva su tope y el trabajo, la suma.
+    timeout-minutes: 70
     strategy:
       fail-fast: false
       matrix:
@@ -72,12 +74,14 @@ jobs:
         with:
           node-version: 22
       - name: Instalar Playwright y el navegador
+        timeout-minutes: 32
         # Versiones fijas: así una versión nueva del probador no hace fallar la prueba de la noche sin que haya cambiado la app.
         # Para subir de versión: cambiar el número aquí, mirar que las tres pasan y solo entonces dejarlo.
         run: |
           pip install playwright==1.65.1 pillow==13.0.0
           python -m playwright install --with-deps ${{ matrix.motor }}
       - name: Pantallas en ${{ matrix.motor }}
+        timeout-minutes: 35
         env:
           NAVEGADOR: ${{ matrix.motor }}
         # Las pantallas se prueban con la hora fija (un martes a media mañana) y la app se repite a otras horas.
