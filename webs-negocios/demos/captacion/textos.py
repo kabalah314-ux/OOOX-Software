@@ -12,13 +12,16 @@
 #   persona   con quién habló Oscar (puede ir vacío: entonces, «Hola:»)
 #   enlace    su demo con su nombre
 #   hasta     hasta cuándo está la demo («domingo 30»)
-#   whatsapp  el WhatsApp de Oscar (vacío mientras no lo haya)
+#   whatsapp  el WhatsApp de Oscar (por defecto, WHATSAPP; vacío, los textos salen sin número)
 import html, re
 
 # la segunda capa de la información de privacidad (frontend/public/privacidad.html): cada mensaje lleva su enlace
 PRIVACIDAD = 'ooox.es/privacidad'
 # quién firma: nombre y apellido, para que quede claro quién escribe (LSSI, art. 20); el nombre completo, en la página
 FIRMA = 'Oscar Conesa'
+# el WhatsApp de Oscar (18-11-2026), como se escribe en una carta o una firma; el mismo que abre «Lo quiero para mi
+# negocio» en la demo (frontend/public/demos/ramirez-24h/js/ooox-contacto.js)
+WHATSAPP = '670 40 95 50'
 
 ESCENA = {
     'fontaneria': 'Estás debajo de un fregadero y suena el móvil. No puedes cogerlo.',

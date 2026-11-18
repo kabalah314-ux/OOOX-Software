@@ -3,12 +3,13 @@
    «Lo quiero para mi negocio» abre el WhatsApp de Oscar con el mensaje ya escrito, para que la petición le llegue
    directa. Lo usan la demo guiada (oficio-guia.js), la página de los tres móviles y la del vídeo: son de la demo, así
    que las copias de los negocios no lo llevan (copias.mjs, COMUNES).
-   Mientras no haya número, los enlaces se quedan como están (escriben a software@ooox.es).
+   El número está puesto desde el 18-11-2026. Si se deja vacío, los enlaces se quedan como están (escriben a
+   software@ooox.es).
    ============================================================ */
 (function(g){
 'use strict';
-/* el WhatsApp de Oscar: prefijo de España y el número, todo junto y sin espacios (por ejemplo, 34600111222) */
-const WA='';
+/* el WhatsApp de Oscar: prefijo de España y el número, todo junto y sin espacios (670 40 95 50) */
+const WA='34670409550';
 const MSG={
  demo:'Hola, Oscar. He probado la demo de OOOX Oficios y lo quiero para mi negocio. Mi negocio es: ',
  video:'Hola, Oscar. He visto el vídeo de OOOX Oficios y lo quiero para mi negocio. Mi negocio es: '};

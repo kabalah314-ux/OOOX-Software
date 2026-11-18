@@ -24,11 +24,13 @@ conversación y dos seguimientos. Detalle y fuentes en la guía, pestaña «Capt
 
 ```
 python3 muestra.py --negocio "Fontanería Serra" --categoria Fontanería --persona Jordi --zona "Sants, Barcelona" \
-  --enlace "<su demo>" --hasta "domingo 30" --whatsapp "<el de Oscar>" --nota 4.8 --resenas 127 --h24 si --web si \
+  --enlace "<su demo>" --hasta "domingo 30" --nota 4.8 --resenas 127 --h24 si --web si \
   --out /tmp/captacion/serra
 ```
 
-«Fontanería Serra» es un negocio inventado, para el ejemplo.
+«Fontanería Serra» es un negocio inventado, para el ejemplo. El WhatsApp de Oscar (670 40 95 50) sale en la carta y en
+la firma de los correos que van con permiso (los correos en frío no lo llevan): está en `textos.py` (`WHATSAPP`) y es el
+mismo al que lleva «Lo quiero para mi negocio» en la demo.
 
 ## Lo que falta
 

@@ -44,14 +44,15 @@ def marco(pg, trozo, sin=None):
 def dentro(r, W, H, tol=1):
     return r and r['x'] >= -tol and r['y'] >= -tol and r['x'] + r['w'] <= W + tol and r['y'] + r['h'] <= H + tol
 
-# «Lo quiero para mi negocio» va al WhatsApp de Oscar (js/ooox-contacto.js). Para probar ese camino con o sin el número de
-# verdad puesto, en el móvil y en la página del vídeo se sirve ese archivo con uno de mentira.
+# «Lo quiero para mi negocio» va al WhatsApp de Oscar (js/ooox-contacto.js, con su número desde el 18-11-2026). En el
+# ordenador se prueba con el número de verdad; en el móvil y en la página del vídeo se sirve ese archivo con uno de
+# mentira, y una vez sin número, para que el camino del correo (si algún día se vacía) siga probado.
 WA_PRUEBA = '34600000000'
-async def con_numero(ctx):
+async def con_numero(ctx, numero=WA_PRUEBA):
     import re
     async def sirve(route):
         r = await route.fetch()
-        await route.fulfill(response=r, body=re.sub(r"const WA='[^']*'", f"const WA='{WA_PRUEBA}'", await r.text(), count=1))
+        await route.fulfill(response=r, body=re.sub(r"const WA='[^']*'", f"const WA='{numero}'", await r.text(), count=1))
     await ctx.route('**/js/ooox-contacto.js', sirve)
 ENLACES_WA = "[...document.querySelectorAll('a[data-contacto]')].map(a=>({k:a.dataset.contacto,href:a.href,t:a.target,en:a.closest('.gu-b')?'guia':'pagina'}))"
 def va_a_whatsapp(L, k, frase):
@@ -150,8 +151,8 @@ async def main():
         wa = await pg.evaluate("window.OOOX_CONTACTO&&OOOX_CONTACTO.wa||''")
         lo = await pg.locator('.gu-b a[data-contacto="demo"]').get_attribute('href') or ''
         from urllib.parse import unquote
-        es(lo.startswith(f'https://wa.me/{wa}?text=') and 'OOOX Oficios' in unquote(lo) if wa else lo.startswith('mailto:'),
-           f'«Lo quiero para mi negocio» abre el WhatsApp de Oscar con el mensaje escrito (o, sin número, el correo) ({lo[:60]})')
+        es(wa and lo.startswith(f'https://wa.me/{wa}?text=') and 'OOOX Oficios' in unquote(lo),
+           f'«Lo quiero para mi negocio» abre el WhatsApp de Oscar, con su número de verdad, y el mensaje escrito ({lo[:60]})')
         es(await pg.locator('.gu-b a[href="video.html"]').count() == 1 and (await pg.locator('.gu-b [data-g=sal]').inner_text()).strip() == 'Volver a la demo',
            'el final lleva «Volver a la demo» y el vídeo')
         A = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{U}')")
@@ -234,6 +235,14 @@ async def main():
             L = await pg.evaluate(ENLACES_WA)
             es(va_a_whatsapp(L, 'video', 'He visto el vídeo de OOOX Oficios y lo quiero para mi negocio'), f'vídeo a {w} px: «Lo quiero para mi negocio» abre WhatsApp con el mensaje escrito')
             await ctx.close()
+        # sin número (si algún día se vacía js/ooox-contacto.js), «Lo quiero» se queda en el correo, en la misma pestaña
+        ctx = await br.new_context(viewport={'width': 375, 'height': 812}); await pon_hora(ctx); await con_numero(ctx, '')
+        pg = oye(await ctx.new_page(), 'vídeo sin número')
+        await pg.goto(B + 'video.html'); await pg.wait_for_timeout(700)
+        L = await pg.evaluate(ENLACES_WA)
+        es(bool(L) and all(e['href'].startswith('mailto:software@ooox.es') and e['t'] != '_blank' for e in L),
+           f'sin número, «Lo quiero para mi negocio» escribe a software@ooox.es ({L[:1]})')
+        await ctx.close()
         es(existe('assets/video/oficios-demo-correo.jpg'), 'la imagen del correo está publicada')
 
         # ---------- 4. movimiento reducido: nada late ni se dibuja ----------

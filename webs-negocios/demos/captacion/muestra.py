@@ -1,7 +1,8 @@
 # La muestra de un negocio (17-11-2026): su imagen para el correo y el WhatsApp, y sus textos.
 #
 #   python3 muestra.py --negocio "Fontanería Serra" [--categoria Fontanería] [--persona Jordi] [--zona Sants]
-#                      [--enlace URL] [--hasta "domingo 30"] [--whatsapp "600 00 00 00"] --out CARPETA
+#                      [--enlace URL] [--hasta "domingo 30"] [--whatsapp "670 40 95 50"] --out CARPETA
+#   (--whatsapp: por defecto, el de Oscar, textos.WHATSAPP; con --whatsapp "" los textos salen sin número)
 #
 # Saca de la demo de Ramírez, con el nombre del negocio puesto, tres pantallas (su web de citas, la oficina y el
 # técnico), las pone en portada.html y deja en CARPETA:
@@ -94,7 +95,7 @@ def main():
     a = argparse.ArgumentParser()
     a.add_argument('--negocio', required=True); a.add_argument('--categoria', default=''); a.add_argument('--persona', default='')
     a.add_argument('--zona', default=''); a.add_argument('--enlace', default='https://ooox.es/'); a.add_argument('--hasta', default='domingo')
-    a.add_argument('--whatsapp', default=''); a.add_argument('--fuente', default='Google Maps'); a.add_argument('--out', required=True)
+    a.add_argument('--whatsapp', default=T.WHATSAPP); a.add_argument('--fuente', default='Google Maps'); a.add_argument('--out', required=True)
     # para los correos en frío: lo que dice su ficha (de la lista) y de dónde salió su correo
     a.add_argument('--nota', default=''); a.add_argument('--resenas', default=''); a.add_argument('--h24', default='')
     a.add_argument('--web', default=''); a.add_argument('--fuente-correo', default='vuestra web')
