@@ -34,7 +34,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.17a';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.18a';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* el idioma del cliente (17-11-2026): castellano, catalán o inglés. En el aviso solo va si no es el castellano */
 const IDIOMAS=['es','ca','en'],NOM_IDIOMA={es:'castellano',ca:'catalán',en:'inglés'};
@@ -446,11 +446,11 @@ function publico(N){const x={id:N.id,publico:true};
  return x}
 
 /* ---------- las acciones ---------- */
-const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato','escribir','furgo'].concat(CON_ACC);
+const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato','escribir','furgo','web'].concat(CON_ACC);
 function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  const R=err=>({ok:false,err});
  const A=typeof a.id==='string'?S.avisos.find(x=>x.id===a.id):null;
- const esC=q.rol==='centralita',esT=q.rol==='tecnico'&&typeof q.id==='string'&&!!cfg.tec[q.id],mio=!!A&&esT&&A.tec===q.id;
+ const esC=q.rol==='centralita',esT=q.rol==='tecnico'&&typeof q.id==='string'&&!!cfg.tec[q.id],mio=!!A&&esT&&A.tec===q.id,esJ=esT&&!!cfg.tec[q.id].jefe;
  const nom=q.rol==='cliente'?'Cliente':esT?cfg.tec[q.id].n:esC?'Centralita':'Web';
  const log=(X,txt)=>{X.h.push({t,q:nom,txt});X.v=(X.v||0)+1};
  const msg=(X,k,cuando,hasta)=>{if(SEGUIR.includes(k)&&(X.noMsg||noEscribe(S,X.cli.tel)))return;X.msgs=X.msgs.filter(m=>m.k!==k||m.env);const m={k,t:cuando||t,env:0};if(hasta)m.hasta=hasta;X.msgs.push(m)};
@@ -767,6 +767,29 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
    F.cnt=t;apuntaF(F,t,nom,'Recuento'+(dif.length?'. '+dif.join('; '):': todo cuadra'));return ok({cambios:dif.length})}
   ks.forEach(k=>{F.st[k]=Math.min(9999,hay(F.st,k)+L[k])});apuntaF(F,t,nom,'Cargado: '+ks.map(k=>L[k]+' × '+cfg.cat[k].t).join('; '));return ok()}
 
+ /* lo que sale en la web (18-11-2026): la oficina o el dueño cambian, servicio a servicio, el nombre, la frase, el precio
+    orientativo con cita («desde» y, si quiere, «hasta»), la foto y si sale o no; o el orden de todos. Es lo que enseñan la web
+    y la página de citas: el presupuesto de la puerta y los precios del parte siguen saliendo del catálogo. «quitar» deja el
+    servicio como viene en los datos del negocio. Siempre queda al menos un servicio a la vista */
+ case 'web':{
+  if(!esC&&!esJ)return R('permiso');
+  const W0=webOk(S.web)?S.web:{av:{},orden:[]},ids=webIds(cfg),W={av:Object.assign({},W0.av),orden:Array.isArray(W0.orden)?W0.orden.slice():[]};
+  if(a.orden!==undefined){if(a.av!==undefined||!Array.isArray(a.orden)||a.orden.length!==ids.length||new Set(a.orden).size!==ids.length||!a.orden.every(x=>ids.includes(x)))return R('web');
+   W.orden=a.orden.slice();S.web=W;return ok()}
+  if(typeof a.av!=='string'||!ids.includes(a.av))return R('av');
+  if(a.quitar!==undefined){if(a.quitar!==true||!tiene(W.av,a.av))return R('estado');delete W.av[a.av];if(!webVistos(W,ids))return R('web');S.web=W;return ok()}
+  const o=Object.assign({},tiene(W.av,a.av)&&W.av[a.av]&&typeof W.av[a.av]==='object'?W.av[a.av]:{});delete o.t;
+  if(a.n!==undefined){const n=txt(a.n).trim().replace(/\s+/g,' ');if(n&&(n.length<2||n.length>40))return R('webNombre');if(n)o.n=n;else delete o.n}
+  if(a.d!==undefined){const d=txt(a.d).trim().replace(/\s+/g,' ');if(d.length>140)return R('webFrase');if(d)o.d=d;else delete o.d}
+  if(a.desde!==undefined||a.hasta!==undefined){const de=a.desde,ha=a.hasta;
+   if(de==null&&ha==null){delete o.desde;delete o.hasta}
+   else{if(!eurWeb(de)||(ha!=null&&(!eurWeb(ha)||ha<de)))return R('webPrecio');o.desde=cent(de);if(ha!=null&&cent(ha)>o.desde)o.hasta=cent(ha);else delete o.hasta}}
+  if(a.oculto!==undefined){if(typeof a.oculto!=='boolean')return R('webOculto');if(a.oculto)o.oculto=true;else delete o.oculto}
+  if(a.foto!==undefined){if(a.foto===''||a.foto===null)delete o.foto;else if(fotoVale(a.foto))o.foto=a.foto;else return R('foto')}
+  if(Object.keys(o).length){o.t=t;W.av[a.av]=o}else delete W.av[a.av];
+  if(!webVistos(W,ids))return R('web');
+  S.web=W;return ok()}
+
  case 'escribir':{
   if(!esC)return R('permiso');if(typeof a.si!=='boolean')return R('si');const t9=tel9(a.tel),L=t9?S.avisos.filter(x=>x.cli&&x.cli.tel===t9):[];if(!L.length)return R('tel');
   const ult=L.reduce((x,y)=>y.t>x.t?y:x);
@@ -894,6 +917,33 @@ function textoMaterial(cfg,g,dia){if(!g||!g.cosas||!g.cosas.length)return'';
    reponer hasta el máximo. Un técnico puede tener la suya («furgoneta» en su ficha). */
 const FURGO_H=60;   /* los movimientos que se guardan de cada furgoneta */
 const tiene=(o,k)=>!!o&&typeof o==='object'&&Object.prototype.hasOwnProperty.call(o,k);
+/* ---------- lo que sale en la web (18-11-2026) ---------- */
+/* los servicios de la web son las averías de los datos del negocio (la revisión del contrato no sale) */
+const webIds=cfg=>(cfg.N&&Array.isArray(cfg.N.averias)?cfg.N.averias:[]).map(a=>a.id).filter(id=>!!cfg.av[id]&&id!==REV);
+const eurWeb=x=>typeof x==='number'&&isFinite(x)&&x>0&&x<=99999,cent=x=>Math.round(x*100)/100;
+const webOk=W=>!!W&&typeof W==='object'&&!Array.isArray(W)&&!!W.av&&typeof W.av==='object'&&!Array.isArray(W.av);
+const webVistos=(W,ids)=>ids.filter(id=>!(tiene(W.av,id)&&W.av[id]&&W.av[id].oculto===true)).length;
+/* la lista de la web en su orden, con lo que ha cambiado el negocio encima de lo de sus datos. Cada servicio:
+   {id, n, d, oculto, cambiado} y, si los ha puesto el negocio, {desde, hasta} (el precio con cita), {foto} y nPropio (el
+   nombre lo ha escrito él: no se traduce). Sin precio propio, cada página lo calcula con el catálogo (rango) */
+function webDe(S,cfg){const W=S&&webOk(S.web)?S.web:{av:{},orden:[]},ids=webIds(cfg),ord=(Array.isArray(W.orden)?W.orden:[]).filter((x,i,L)=>ids.includes(x)&&L.indexOf(x)===i);
+ return ord.concat(ids.filter(x=>!ord.includes(x))).map(id=>{const b=cfg.av[id],o=tiene(W.av,id)&&W.av[id]&&typeof W.av[id]==='object'?W.av[id]:{};
+  const r={id,n:typeof o.n==='string'&&o.n?o.n:txt(b.n),d:typeof o.d==='string'&&o.d?o.d:txt(b.d),oculto:o.oculto===true,cambiado:Object.keys(o).some(k=>k!=='t')};
+  if(typeof o.n==='string'&&o.n)r.nPropio=true;
+  if(typeof o.d==='string'&&o.d)r.dPropia=true;
+  if(eurWeb(o.desde)){r.desde=o.desde;if(eurWeb(o.hasta)&&o.hasta>o.desde)r.hasta=o.hasta}
+  if(fotoVale(o.foto))r.foto=o.foto;
+  return r})}
+/* los precios de un servicio de la web, en céntimos: con cita («a» y, si hay, «b») y el urgente «desde»: de día («u», el de
+   con cita más el suplemento de urgencia) y de noche y festivos («un», con el recargo). Con un precio propio, el de noche es
+   ese precio con el recargo en euros redondos, como en la web; si no, los del catálogo. «x» es uno de webDe */
+function webPrecios(cfg,x){if(!x||typeof x.id!=='string'||!cfg.av[x.id])return null;const s=cfg.urge&&cfg.cat[cfg.urge]?cfg.cat[cfg.urge].p10:0;
+ if(eurWeb(x.desde)){const a=Math.round(x.desde*100);return{a,b:eurWeb(x.hasta)&&x.hasta>x.desde?Math.round(x.hasta*100):null,u:a+s,un:Math.round(x.desde*(1+cfg.recargo))*100+s,propio:true}}
+ const R=rango(cfg,x.id,false),U=rango(cfg,x.id,true);return{a:R.a,b:R.b,u:R.a+s,un:U.a+s,propio:false}}
+/* lo que se puede dar a quien mira la web (la página de citas, con servidor): lo mismo que guarda el negocio, sin la hora */
+function webPublica(S){if(!S||!webOk(S.web))return null;const av={};
+ for(const k of Object.keys(S.web.av)){const o=S.web.av[k];if(!o||typeof o!=='object')continue;const x={};['n','d','desde','hasta','oculto','foto'].forEach(f=>{if(o[f]!==undefined)x[f]=o[f]});av[k]=x}
+ return{av,orden:Array.isArray(S.web.orden)?S.web.orden.slice():[]}}
 const hay=(st,k)=>tiene(st,k)&&Number.isInteger(st[k])&&st[k]>0?st[k]:0;
 /* la furgoneta de un técnico, solo si lleva la cuenta */
 const furgoDe=(S,tec)=>{const F=S&&typeof tec==='string'&&tiene(S.furgos,tec)?S.furgos[tec]:null;return F&&typeof F==='object'&&F.on===true?F:null};
@@ -936,5 +986,5 @@ function textoCarga(cfg,c){if(!c||!c.lin)return'';const T=cfg.tec[c.tec],L=[],id
  if(!L.length)return'';
  return'Material para el '+fechaLarga(c.dia)+(T?', '+T.n:'')+':\n'+L.join('\n')+'\n'+cfg.N.nombre}
 
-g.OficioNucleo={esFoto,esRef,canon,huellaDatos,publico,garanDe,VOY_ANTES,voyDesde,voyYa,voyTarde,VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,lleva,cargaDe,reponerDe,kitDe,furgoDe,textoCarga,FURGO_H,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,parteNombre,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen};
+g.OficioNucleo={esFoto,esRef,canon,huellaDatos,publico,garanDe,VOY_ANTES,voyDesde,voyYa,voyTarde,VERSION,ESQ,PAGOS,ORIGEN,MSG,SEGUIR,porMandar,noEscribe,REV,CONT,durDe,durLineas,durEst,ocupacion,proximaCita,llegadas,chocaUrg,urgenciaAhora,agendaDe,turnosDe,libresDe,cabeTec,eligeTec,repartoDia,cuantasCaben,reservaDe,tocaRevision,iniDe,COMISION_URG,urgenciasMes,planDe,perDe,vigente,contratoDe,conDe,gratisDe,pendientesContratos,cuotasMes,datosFacturaContrato,material,textoMaterial,lleva,cargaDe,reponerDe,kitDe,furgoDe,textoCarga,FURGO_H,desiste,pideYa,porFacturar,datosFactura,trabajosMes,csv,CSV_CAB,rentabilidad,quienDe,fincaDe,franjaTxt,esFecha,trabaja,ausente,capacidad,capacidadTotal,puedeIr,sobran,nuevo,cfgDe,aplicar,precio,rango,horas,urgente,tarifaDe,madrid,hhmm,hora,masDias,masMeses,fechaLarga,fechaCorta,eur,tel9,telBonito,nomCli,parteNombre,normDir,garantiaDe,franjasDe,diasDe,laborable,etaMin,mensaje,minutos,enPausa,vistaCliente,perfilCliente,CLIENTE_DEMO,resumen,webDe,webPrecios,webPublica,webIds};
 })(typeof globalThis!=='undefined'?globalThis:this);

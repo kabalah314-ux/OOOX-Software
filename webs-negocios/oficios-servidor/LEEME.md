@@ -62,6 +62,11 @@ negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como 
 - **La furgoneta** (16-11-2026): la cuenta de la furgoneta de cada técnico (`furgos`) va en la cabecera del negocio, con
   los contadores, las ausencias y los contratos. La oficina la recibe entera; cada técnico, solo la suya (`{esq, furgos:
   {su id: …}}`). La cambian «furgo» (llevar la cuenta, contar, cargar) y «terminar» (lo usado se descuenta).
+- **Los servicios de la web** (18-11-2026): lo que el negocio cambia en su app de «¿Qué necesitas arreglar?» (nombre,
+  frase, precio con cita, foto, orden y si sale; la acción «web», solo la oficina o el dueño) va en la cabecera (`web`).
+  Lo recibe todo el equipo (no hay nada privado; los técnicos, como `{esq, furgos, web}`) y, sin la hora de cada cambio,
+  la página de citas, con los huecos. La foto se guarda aparte, como las de los avisos, con `aviso: 'web'`, y se ve con
+  `foto` y `web: true` sin código, mientras siga puesta en la web.
 - **La marca (`clave`)**: el aparato pone una marca al azar a cada acción. Si la manda dos veces porque se cortó la
   red, la segunda no se hace: se devuelve el resultado de la primera. La marca vale solo para quien la puso y tiene
   que tener 12 letras o más.
@@ -86,12 +91,12 @@ Contesta siempre `{ok:true, …}` o `{ok:false, err}`. Nunca lanza.
 | `hacer` | Oficina o técnico | lo anterior y `accion`, `desde`, `clave`; y `t`, `ya` si se hizo sin conexión | `r` (lo que dicen las reglas), `v`, `cambios`, `huella` |
 | `leer` | Oficina o técnico | `negocio, persona, codigo, desde` | `cambios`, `huella` |
 | `pedir` | Cualquiera, desde la web | `negocio, accion` (solo `pedir`), `clave` | `id, llave` y nada más |
-| `huecos` | Cualquiera | `negocio` | `dias: [{dia, hoy, franjas: [{id, ok}]}]`, sin cifras ni datos |
+| `huecos` | Cualquiera | `negocio` | `dias: [{dia, hoy, franjas: [{id, ok}]}]`, sin cifras ni datos; `urg`; y `web`: los servicios como los enseña la web del negocio (`{av, orden}`, o `null` si no ha cambiado nada) |
 | `ver` | El cliente, con su enlace | `negocio, aviso, llave` | `vista` |
 | `acceso` | Solo la oficina | `negocio, persona, codigo, tel` y, para cambiarlo, `cambia: true` | `tel, codigo, nuevo` |
 | `perfil` | El cliente, en su zona | `negocio, tel, codigo` (el suyo) | `perfil`: `{tel, cli, avisos}`; cada aviso, con su `vista` y su `llave` |
 | `equipo` | La oficina o el técnico que es el dueño (`jefe`) | `negocio, persona, codigo` y, para cambiar algo, `hace` (`codigo` o `baja`) y `a` (la persona) | sin `hace`: `yo, equipo` (cada persona con `estado`: `sin`, `activo` o `baja`) y `accesos` (los 20 últimos cambios, sin códigos). Con `hace:'codigo'`: `persona, codigo, tuyo` (el código nuevo sale solo esta vez). Con `hace:'baja'`: `persona` (y `ya` si no tenía acceso) |
-| `foto` | La oficina, un técnico o el cliente en su zona | `negocio, persona, codigo` (o `tel, codigo`) y `ref` | `datos`: la foto, si quien la pide puede ver su aviso; si no, `nadie`, como si no existiera |
+| `foto` | La oficina, un técnico o el cliente en su zona; con `web: true`, cualquiera | `negocio, persona, codigo` (o `tel, codigo`) y `ref`; o `negocio, ref, web: true` | `datos`: la foto, si quien la pide puede ver su aviso (o, con `web`, si es la de un servicio de la web que sigue puesta); si no, `nadie`, como si no existiera |
 
 `cambios` es `{v, entero, cab, avisos}`. `entero:true` quiere decir «tira lo que tengas y quédate con esto». La oficina
 recibe todos los avisos y la cabecera (contadores, ausencias y, desde el 15-11, los contratos de mantenimiento); un técnico,

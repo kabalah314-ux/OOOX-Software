@@ -200,6 +200,20 @@ if (cfg.mapa || true) {
   Y.E.llega({ v: 4, entero: true, cab: { esq: K.ESQ, furgos: FF }, avisos: [] }); Y.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ }, avisos: [] });
   es(!K.furgoDe(Y.E.estado(), tecE) && !('furgos' in Y.E.guardado().B), 'al recibirlo todo de nuevo sin furgoneta, no se queda la de antes');
 }
+// 13 quater. los servicios de la web (18-11-2026): viajan en la cabecera, a todo el equipo; el dueño los cambia y los ve al momento
+{ const W1 = { av: { [NV.averias[0].id]: { n: 'Lo primero', desde: 80, t: 1 } }, orden: [] }, jefe = NV.tecnicos.find(t => t.jefe), Y = aparato(T1, 'tecnico');
+  Y.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, furgos: {}, web: W1 }, avisos: [] });
+  es(JSON.stringify(Y.E.estado().web) === JSON.stringify(W1) && JSON.stringify(Y.E.guardado().B.web) === JSON.stringify(W1) && K.webDe(Y.E.estado(), cfg)[0].n === 'Lo primero', 'un técnico recibe los servicios de la web y se le quedan guardados');
+  Y.E.llega({ v: 2, entero: false, cab: { esq: K.ESQ, furgos: {} }, avisos: [] });
+  es(JSON.stringify(Y.E.estado().web) === JSON.stringify(W1), 'si la cabecera no los trae (un servidor de antes), se quedan los que tenía');
+  Y.E.llega({ v: 3, entero: false, cab: { esq: K.ESQ, furgos: {}, web: null }, avisos: [] });
+  es(!('web' in Y.E.guardado().B) && K.webDe(Y.E.estado(), cfg)[0].n === cfg.av[NV.averias[0].id].n, 'si el servidor dice que no hay ninguno cambiado, vuelven los de siempre');
+  Y.E.llega({ v: 4, entero: false, cab: { esq: K.ESQ, furgos: {}, web: W1 }, avisos: [] }); Y.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, furgos: {} }, avisos: [] });
+  es(!('web' in Y.E.guardado().B), 'al recibirlo todo de nuevo sin ellos, no se quedan los de antes');
+  if (jefe) { const Z = aparato(jefe.id, 'tecnico'); Z.E.llega({ v: 1, entero: true, cab: { esq: K.ESQ, furgos: {}, web: null }, avisos: [] });
+    const r = Z.E.hacer({ tipo: 'web', av: NV.averias[0].id, desde: 95 });
+    es(r.ok && K.webDe(Z.E.estado(), cfg)[0].desde === 95 && Z.E.pendientes() === 1, 'el dueño cambia un precio: lo ve al momento y queda por enviar'); }
+}
 // 14. respuestas viejas y respuestas enteras
 { const B = Object.assign(K.nuevo(), { v: 5, avisos: [{ id: 'A', n: 1, x: 'nuevo' }] }), ver = { A: 5 };
   es(!E.mezcla(B, ver, { v: 3, entero: false, cab: {}, avisos: [{ id: 'A', v: 3, datos: { id: 'A', n: 1, x: 'viejo' } }] }) && B.avisos[0].x === 'nuevo' && B.v === 5, 'una respuesta más vieja que lo que hay no pisa nada');

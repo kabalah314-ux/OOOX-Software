@@ -36,7 +36,7 @@ function repite(id, N) {
   for (const d of n.diario) { const c0 = JSON.stringify(S.contratos || []), r = K.aplicar(S, cfg, JSON.parse(JSON.stringify(d.accion)), d.q, d.t); if (!r.ok || S.v !== d.v) return false; if (JSON.stringify(S.contratos || []) !== c0) vc = d.v; }
   const sin = a => { const x = Object.assign({}, a); delete x.llave; return x; };
   const guardado = [...n.avisos.values()].map(f => f.datos).sort((a, b) => a.n - b.n);
-  return S.v === n.v && igual(S.avisos, guardado.map(sin)) && igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc, furgos: S.furgos || {} }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0, furgos: {} }, n.cab))
+  return S.v === n.v && igual(S.avisos, guardado.map(sin)) && igual(Object.assign({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc, furgos: S.furgos || {} }, S.web ? { web: S.web } : {}), Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0, furgos: {} }, n.cab))
     && [...n.avisos.values()].every(f => igual(f.vista, K.vistaCliente(Object.assign({}, S, { avisos: guardado }), cfg, f.id)));
 }
 
@@ -80,7 +80,7 @@ let id2;
   id2 = (await hacer(OF, { tipo: 'pedir', av: NR.averias[0].id, origen: 'llamada', cli: Object.assign(cliDe(NR), { nombre: 'Pere Soler', tel: '698765432', dir: 'Avenida de Otra Cosa 3' }) })).r.id;
   const o = await leer(OF, 0), a = await leer(T(tecR[0]), 0), b = await leer(T(tecR[1]), 0);
   es(o.ok && o.cambios.avisos.length === 2 && o.cambios.avisos.every(x => x.datos) && Array.isArray(o.cambios.cab.ausencias), 'la oficina recibe todos los avisos de su negocio');
-  es(a.ok && a.cambios.avisos.length === 1 && a.cambios.avisos[0].id === id1 && a.cambios.avisos[0].datos.cli.tel === '612345678' && igual(a.cambios.cab, { esq: K.ESQ, furgos: {} }), 'un técnico recibe solo el aviso que lleva, y nada de las ausencias de los demás');
+  es(a.ok && a.cambios.avisos.length === 1 && a.cambios.avisos[0].id === id1 && a.cambios.avisos[0].datos.cli.tel === '612345678' && igual(a.cambios.cab, { esq: K.ESQ, furgos: {}, web: null }), 'un técnico recibe solo el aviso que lleva, y nada de las ausencias de los demás (los servicios de la web, que son públicos, sí)');
   es(b.ok && b.cambios.avisos.length === 0 && !JSON.stringify(b).includes('Montse') && !JSON.stringify(b).includes('Pere'), 'otro técnico no recibe nada: ni nombres ni teléfonos');
   const va = a.cambios.v;
   await hacer(OF, { tipo: 'asignar', id: id1, tec: tecR[1] });
@@ -472,6 +472,33 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   const ac2 = await J.atiende(Object.assign({ que: 'acceso', tel: '612345633' }, OF2)), fx = await J.atiende({ que: 'foto', negocio: 'voltio-fotos', tel: '612345633', codigo: ac2.codigo, ref });
   es(ac2.ok && !fx.ok && fx.err === 'nadie', 'otro cliente, con su código bueno, no ve la foto de un aviso que no es suyo');
   es(repite('voltio-fotos', NV), 'repetir el diario da lo mismo, con las referencias'); }
+
+// los servicios de la web (18-11-2026): los cambian la oficina o el dueño; van a todo el equipo, a la cita y, la foto, a cualquiera
+{ A.alta('voltio-web', NV, K.ESQ); A.persona('voltio-web', 'oficina', 'centralita', 'oficina', 'codigo-oficina-w'); tecV.forEach(t => A.persona('voltio-web', t, 'tecnico', t, 'codigo-w-' + t));
+  const OW = { negocio: 'voltio-web', persona: 'oficina', codigo: 'codigo-oficina-w' }, TW = t => ({ negocio: 'voltio-web', persona: t, codigo: 'codigo-w-' + t });
+  const jefe = NV.tecnicos.find(t => t.jefe), nojefe = NV.tecnicos.find(t => !t.jefe), av1 = NV.averias[0].id, av2 = NV.averias[1].id, FOTO = 'data:image/jpeg;base64,' + 'C'.repeat(900);
+  const h0 = await J.atiende({ que: 'huecos', negocio: 'voltio-web' }), l0 = await leer(TW(nojefe.id), 0);
+  es(h0.ok && h0.web === null && l0.ok && l0.cambios.cab.web === null, 'sin cambios, ni la cita ni el equipo reciben servicios cambiados');
+  const w1 = await hacer(OW, { tipo: 'web', av: av1, n: 'Lo primero', desde: 80, hasta: 150, foto: FOTO });
+  const X = crudo('voltio-web'), ref = X.cab.web && X.cab.web.av[av1] && X.cab.web.av[av1].foto;
+  es(w1.ok && /^f:[0-9a-f]{16}$/.test(ref) && X.fotos.get(ref).datos === FOTO && X.fotos.get(ref).aviso === 'web' && !JSON.stringify(X.cab).includes('base64') && !JSON.stringify(X.diario).includes('base64'),
+    'la oficina cambia un servicio con su foto: la foto se guarda aparte, como las de los avisos, y la cabecera lleva su referencia');
+  es(w1.cambios && w1.cambios.cab.web && w1.cambios.cab.web.av[av1].n === 'Lo primero' && !JSON.stringify(w1.cambios).includes('base64'), 'y le vuelve lo cambiado, sin la foto');
+  const lt = await leer(TW(nojefe.id), 0), rt = await hacer(TW(nojefe.id), { tipo: 'web', av: av1, n: 'Otro nombre' });
+  es(lt.ok && lt.cambios.cab.web && lt.cambios.cab.web.av[av1].desde === 80 && !rt.ok && rt.err === 'permiso', 'un técnico recibe los servicios de la web, pero no los cambia');
+  const rj = jefe ? await hacer(TW(jefe.id), { tipo: 'web', av: av2, oculto: true }) : { ok: true };
+  es(!jefe || (rj.ok && crudo('voltio-web').cab.web.av[av2].oculto === true), 'el dueño, sí');
+  const h1 = await J.atiende({ que: 'huecos', negocio: 'voltio-web' });
+  es(h1.ok && h1.web && h1.web.av[av1].n === 'Lo primero' && h1.web.av[av1].foto === ref && !('t' in h1.web.av[av1]) && Array.isArray(h1.web.orden), 'la cita recibe los servicios cambiados, con la referencia de la foto y sin la hora');
+  const fw = await J.atiende({ que: 'foto', negocio: 'voltio-web', ref, web: true }), fx = await J.atiende({ que: 'foto', negocio: 'voltio-web', ref: 'f:' + '1'.repeat(16), web: true });
+  es(fw.ok && fw.datos === FOTO && !fx.ok && fx.err === 'nadie', 'la foto de un servicio de la web la ve cualquiera, sin código; una que no está puesta, no');
+  const p = await hacer(OW, { tipo: 'pedir', av: av1, origen: 'llamada', foto: 'data:image/jpeg;base64,' + 'D'.repeat(700), cli: Object.assign(cliDe(NV), { tel: '612345611' }) }), refA = p.ok ? crudo('voltio-web').avisos.get(p.r.id).datos.foto : '';
+  const fa = await J.atiende({ que: 'foto', negocio: 'voltio-web', ref: refA, web: true }), fo = await J.atiende(Object.assign({ que: 'foto', ref }, OW));
+  es(p.ok && /^f:/.test(refA) && !fa.ok && fa.err === 'nadie', 'la foto de un aviso no se ve por la puerta de la web');
+  es(!fo.ok && fo.err === 'nadie', 'ni la de la web por la de los avisos (la app la pide por la de la web)');
+  const q1 = await hacer(OW, { tipo: 'web', av: av1, foto: '' }), fq = await J.atiende({ que: 'foto', negocio: 'voltio-web', ref, web: true }), fv = await J.atiende({ que: 'foto', negocio: 'voltio', ref, web: true });
+  es(q1.ok && !fq.ok && fq.err === 'nadie' && !fv.ok, 'quitada de la web, ya no se ve; ni desde otro negocio');
+  es(repite('voltio-web', NV), 'repetir el diario da lo mismo, con los servicios de la web'); }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

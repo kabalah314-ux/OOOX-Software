@@ -78,6 +78,7 @@ function paso(W, a, q, t) {
   const otros0 = new Map(S.avisos.filter(x => x !== A0).map(x => [x.id, JSON.stringify(x)]));
   const Av0 = tipo === 'contrato' && a && typeof a.aviso === 'string' ? S.avisos.find(x => x.id === a.aviso) : null, Av0j = Av0 ? JSON.stringify(Av0) : '';
   const fz0 = JSON.stringify(S.furgos === undefined ? null : S.furgos);   // la furgoneta de cada técnico, antes (16-11-2026)
+  const web0 = JSON.stringify(S.web === undefined ? null : S.web);   // los servicios de la web, antes (18-11-2026)
   let r;
   try { r = K.aplicar(S, cfg, a, q, t) } catch (e) { rota('no-revienta', (tipo || '¿?') + ' → ' + e.message) }
   W.leyes++;
@@ -98,7 +99,21 @@ function paso(W, a, q, t) {
   if (tipo === 'contrato' && rol !== 'centralita') { const C1 = (S.contratos || []).find(c => c.id === r.id);   // el técnico: desde un aviso suyo, en casa del cliente y para ese teléfono
     if (rol !== 'tecnico' || !Av0 || Av0.tec !== q.id || !['curso', 'hecho'].includes(JSON.parse(Av0j).e) || !C1 || C1.cli.tel !== JSON.parse(Av0j).cli.tel) rota('cada-uno-lo-suyo', 'contrato dado de alta por ' + rol + ' ' + (q && q.id)) }
   if (tipo === 'furgo' && rol !== 'centralita' && !(rol === 'tecnico' && q.id === a.tec)) rota('cada-uno-lo-suyo', 'la furgoneta de ' + a.tec + ' tocada por ' + rol + ' ' + (q && q.id));
-  if (!['pedir', 'contrato', 'furgo'].concat(SOLO_CENTRALITA, SOLO_SU_TECNICO, LOS_DOS).includes(tipo)) rota('acciones-conocidas', 'se ha aceptado «' + tipo + '»');
+  if (tipo === 'web' && rol !== 'centralita' && !(rol === 'tecnico' && !!cfg.tec[q.id] && !!cfg.tec[q.id].jefe)) rota('cada-uno-lo-suyo', 'la web cambiada por ' + rol + ' ' + (q && q.id));
+  if (!['pedir', 'contrato', 'furgo', 'web'].concat(SOLO_CENTRALITA, SOLO_SU_TECNICO, LOS_DOS).includes(tipo)) rota('acciones-conocidas', 'se ha aceptado «' + tipo + '»');
+  // --- los servicios de la web (18-11-2026): solo los cambia «web», y siempre queda alguno a la vista
+  if (tipo !== 'web' && JSON.stringify(S.web === undefined ? null : S.web) !== web0) rota('la-web-solo-la-cambia-web', tipo + ' ha cambiado los servicios de la web');
+  if (tipo === 'web') { const L = K.webDe(S, cfg), Wv = S.web;
+    if (!Wv || typeof Wv !== 'object' || !Wv.av || typeof Wv.av !== 'object' || Array.isArray(Wv.av) || !Array.isArray(Wv.orden)) rota('la-web-bien-guardada', 'web: ' + JSON.stringify(Wv).slice(0, 120));
+    if (!L.some(x => !x.oculto)) rota('la-web-con-algo', 'no queda ningún servicio a la vista');
+    for (const k of Object.keys(Wv.av)) { const o = Wv.av[k];
+      if (!cfg.av[k] || k === K.REV || !o || typeof o !== 'object' || !Object.keys(o).some(f => f !== 't')) rota('la-web-bien-guardada', k + ': ' + JSON.stringify(o).slice(0, 120));
+      if (o.n !== undefined && (typeof o.n !== 'string' || o.n.length < 2 || o.n.length > 40 || o.n !== o.n.trim())) rota('la-web-bien-guardada', k + ': el nombre «' + o.n + '»');
+      if (o.d !== undefined && (typeof o.d !== 'string' || !o.d || o.d.length > 140)) rota('la-web-bien-guardada', k + ': la frase');
+      if (o.desde !== undefined && !(typeof o.desde === 'number' && o.desde > 0 && o.desde <= 99999 && Math.round(o.desde * 100) / 100 === o.desde)) rota('la-web-bien-guardada', k + ': desde ' + o.desde);
+      if (o.hasta !== undefined && !(o.desde !== undefined && typeof o.hasta === 'number' && o.hasta > o.desde && o.hasta <= 99999)) rota('la-web-bien-guardada', k + ': hasta ' + o.hasta);
+      if (o.oculto !== undefined && o.oculto !== true) rota('la-web-bien-guardada', k + ': oculto ' + o.oculto);
+      if (o.foto !== undefined && !(K.esFoto(o.foto) || K.esRef(o.foto))) rota('la-web-bien-guardada', k + ': la foto') } }
   // --- contador, y nada cambia fuera del aviso tocado
   if (S.v !== v0 + 1) rota('version-sube-de-uno-en-uno', v0 + ' → ' + S.v);
   if (S.avisos.length !== n0 + (tipo === 'pedir' ? 1 : 0)) rota('nadie-desaparece', n0 + ' → ' + S.avisos.length);
@@ -430,6 +445,23 @@ function generador(G) {
   const firma = () => r() < .06 ? pick(['', 'M1', null, 7]) : FIRMA, mats = cat.filter(k => cfg.cat[k].mat);
   const modo = () => r() < .06 ? pick(['paypal', '', null, 'constructor']) : pick(K.PAGOS);
 
+  /* los servicios de la web (18-11-2026): casi siempre la oficina o el dueño; nombre, frase, precio, foto, si sale, el orden o
+     «dejarlo como al principio»; a veces, lo que no vale */
+  const jefe = tecs.find(k => cfg.tec[k].jefe), FOTO_W = 'data:image/jpeg;base64,' + 'QUJD'.repeat(60);
+  function web(S) {
+    const ids = K.webDe(S, cfg).map(x => x.id), av = r() < .9 ? pick(ids) : pick(RAROS.concat([K.REV, 'nada']));
+    const quien = pick([C, C, C, jefe ? T(jefe) : C, T(pick(tecs)), { rol: 'cliente' }, {}]), v = r();
+    if (v < .12) { const o = ids.slice().sort(() => r() - .5); if (r() < .15) o.pop(); else if (r() < .1) o[0] = pick(RAROS); return [{ tipo: 'web', orden: r() < .05 ? pick(RAROS) : o }, quien] }
+    if (v < .2) return [{ tipo: 'web', av, quitar: r() < .9 ? true : pick(RAROS) }, quien];
+    const a = { tipo: 'web', av };
+    if (r() < .5) a.n = pick(['Fugas y goteras', '', 'X', 'x'.repeat(41), '  Dos   espacios ', 'yy', pick(RAROS)]);
+    if (r() < .3) a.d = pick(['Lo arreglamos hoy.', '', '   ', 'x'.repeat(141), pick(RAROS)]);
+    if (r() < .5) { a.desde = pick([80, 79.5, 0.01, 99999, 120.005, 0, -1, 100000, null, '80', NaN, pick(RAROS)]); if (r() < .6) a.hasta = pick([150, 70, 80, null, 99999, '150', pick(RAROS)]) }
+    if (r() < .3) a.oculto = r() < .9 ? r() < .6 : pick(RAROS);
+    if (r() < .15) a.foto = pick([FOTO_W, '', null, 'f:0123456789abcdef', 'f:0123', pick(RAROS)]);
+    return [a, quien];
+  }
+
   /* la furgoneta: casi siempre la de alguien que existe, por él o por la oficina; a veces, lo que no vale */
   function furgo(S) {
     const tec = r() < .06 ? pick(RAROS) : pick(tecs), F = S.furgos && typeof tec === 'string' && Object.prototype.hasOwnProperty.call(S.furgos, tec) ? S.furgos[tec] : null, v = r();
@@ -491,6 +523,8 @@ function generador(G) {
     const noacepta = () => [{ tipo: 'noacepta', id: A.id, modo: modo(), local: r() < .15, pres: r() < .6 ? { lineas: lineas(A, 0) } : r() < .15 ? pick(RAROS) : undefined }, suyo];
     const posicion = () => r() < .2 ? [{ tipo: 'sinPosicion', id: A.id }, r() < .85 ? suyo : pick([C, T(pick(tecs)), { rol: 'cliente' }])]
       : [{ tipo: 'posicion', id: A.id, lat: r() < .1 ? pick([91, -200, '41.3', null, NaN, undefined]) : 41.3 + r() * .2, lon: r() < .05 ? pick([181, 'x', null]) : 2.05 + r() * .2, prec: pick([5, 30, 800, -1, 'x', undefined]) }, r() < .85 ? suyo : pick([C, T(pick(tecs)), { rol: 'cliente' }])];
+    // el idioma del cliente (18-11-2026): antes salía solo entre las de cualquier cosa, y algún recorrido no llegaba a aceptarlo
+    if (u > .918 && u <= .93) return [{ tipo: 'idioma', id: A.id, idioma: r() < .9 ? pick(['es', 'ca', 'en']) : pick(RAROS) }, r() < .7 ? C : r() < .8 ? suyo : pick([{ rol: 'cliente' }, T(pick(tecs))])];
     if (A.e !== 'hecho' && A.e !== 'cancelado' && u > .93) return falta();
     // es garantía, rebajar y corregir la forma de pago (16-11-2026)
     const garantia = () => [{ tipo: 'garantia', id: A.id, de: r() < .85 ? undefined : pick(RAROS.concat(S.avisos.map(x => x.id))), quitar: A.enGar && r() < .35 ? true : r() < .03 ? pick(RAROS) : undefined }, r() < .9 ? C : pick([suyo, { rol: 'cliente' }])];
@@ -530,13 +564,14 @@ function generador(G) {
       return r() < .12 ? [{ tipo: 'ausencia', tec: pick(tecs.concat(RAROS)), de: pick([de, '2020-01-01', '2026-02-30', 7, null]), a: pick([al, '1999-12-31', 'mañana']) }, pick([C, C, T(pick(tecs))])] : [{ tipo: 'ausencia', tec: pick(tecs), de, a: al, motivo: pick(['Vacaciones', 'Baja', '', 'x'.repeat(100)]) }, C] }
     if (u >= .075 && u < .1) return contrato(S, t);
     if (u >= .112 && u < .13) return furgo(S);
+    if (u >= .13 && u < .142) return web(S);
     if (u >= .1 && u < .112) { const X = S.avisos.length ? pick(S.avisos) : null, tel = X && X.cli && X.cli.tel && r() < .9 ? (r() < .5 ? X.cli.tel : K.telBonito(X.cli.tel)) : pick(['600000999', '', null, 7]);
       return [{ tipo: 'escribir', tel, si: r() < .08 ? pick([undefined, 'no', 1, null]) : r() < .45 }, r() < .9 ? C : T(pick(tecs))] }
     if (u < .075) return [{ tipo: 'quitarAusencia', aus: S.ausencias && S.ausencias.length && r() < .8 ? pick(S.ausencias).id : pick(['U99', null, 7]) }, C];
     const vivos = S.avisos.filter(a => a.e !== 'hecho' && a.e !== 'cancelado');
     if (!S.avisos.length || (vivos.length < 4 && r() < .6) || r() < .08) return pedir(S, t);
     const A = vivos.length && r() < .78 ? pick(vivos) : pick(S.avisos);
-    return u < .15 ? cualquiera(S, A) : sensata(S, A, t);
+    return u < .162 ? cualquiera(S, A) : sensata(S, A, t);   // «web» (.13–.142) sale de las sensatas: las de cualquier cosa siguen siendo un 2 %
   };
 }
 
@@ -644,7 +679,7 @@ for (const archivo of opc.negocio) {
       for (const k in R.W.acept) acept[k] = (acept[k] || 0) + R.W.acept[k]; for (const k in R.W.rech) rech[k] = (rech[k] || 0) + R.W.rech[k];
     }
     // el recorrido tiene que haber pasado por todo: si no, la prueba no prueba
-    const faltan = ['pedir', 'completar', 'asignar', 'soltar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'descartar', 'escribir', 'ausencia', 'quitarAusencia', 'falta', 'furgo', 'garantia', 'corregirPago', 'rebajar', 'idioma'].concat(Object.keys(cfg.planes || {}).length ? ['contrato', 'cobroContrato', 'bajaContrato'] : []).filter(k => !acept[k]);
+    const faltan = ['pedir', 'web', 'completar', 'asignar', 'soltar', 'mover', 'voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'anotar', 'terminar', 'cobrar', 'cancelar', 'enviado', 'descartar', 'escribir', 'ausencia', 'quitarAusencia', 'falta', 'furgo', 'garantia', 'corregirPago', 'rebajar', 'idioma'].concat(Object.keys(cfg.planes || {}).length ? ['contrato', 'cobroContrato', 'bajaContrato'] : []).filter(k => !acept[k]);
     const sinVer = ['nuevo', 'asignado', 'camino', 'curso', 'hecho', 'ausente', 'cancelado'].filter(e => !estados.has(e));
     if (opc.tandas >= 50 && (faltan.length || sinVer.length)) { fallos++; mal++; console.log('  EL RECORRIDO SE QUEDA CORTO en ' + NN.id + ': sin aceptar ' + faltan.join(', ') + ' · sin ver ' + sinVer.join(', ')) }
     const nA = Object.values(acept).reduce((s, x) => s + x, 0), nR = Object.values(rech).reduce((s, x) => s + x, 0);

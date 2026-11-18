@@ -70,7 +70,8 @@ export function limpiaCodigo(c) {
 
 const texto = (x, max) => typeof x === 'string' && x.length > 0 && x.length <= max;
 const R = (err, mas) => Object.assign({ ok: false, err }, mas);
-const cabDe = S => ({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc: S.vc || 0, furgos: S.furgos || {} });   // para la oficina; de «furgos», cada técnico recibe solo la suya
+const cabDe = S => Object.assign({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc: S.vc || 0, furgos: S.furgos || {} }, S.web ? { web: S.web } : {});   // para la oficina; de «furgos», cada técnico recibe solo la suya
+// «web» (18-11-2026): los servicios tal como los ha cambiado el negocio para su web; va a todo el equipo y, sin la hora, a la cita
 // «vc» es la versión en la que cambiaron por última vez los contratos: la oficina los recibe solo si han cambiado desde lo
 // que ya tiene, porque pueden ser muchos y llevar firmas, y la cabecera viaja con cada cambio
 
@@ -116,6 +117,7 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
     let cab = { esq: cb.esq };
     if (esC) { cab = Object.assign({}, cb); if (d > 0 && !((cb.vc || 0) > d)) delete cab.contratos; }   // los contratos, solo si han cambiado
     else { const F = cb.furgos && typeof cb.furgos === 'object' && Object.prototype.hasOwnProperty.call(cb.furgos, q.id) ? cb.furgos[q.id] : null; cab.furgos = F ? { [q.id]: F } : {}; }   // el técnico, solo su furgoneta (16-11-2026)
+    cab.web = cb.web || null;   // los servicios de la web, a todos (el dueño los cambia desde su app; nada de ellos es privado)
     return { v: c.v, entero: d === 0, cab, avisos: c.avisos.map(f => paraQuien(q, f)).filter(Boolean) };
   }
 
@@ -140,7 +142,7 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       const guardar = tocados.map(a => { const f = filas.get(a.id), de = new Set((f && f.de) || []); if (a.tec) de.add(a.tec);
         return { id: a.id, v: S.v, datos: a, de: [...de], llave: a.llave || (f && f.llave) || '', vista: K.vistaCliente(S, cfg, a.id) }; });
       const res = { ok: true, r, v: S.v };
-      const fotos = foto ? [{ ref: foto.ref, datos: foto.datos, aviso: accion.tipo === 'pedir' ? String(r.id || '') : String(accion.id || '') }] : [];
+      const fotos = foto ? [{ ref: foto.ref, datos: foto.datos, aviso: accion.tipo === 'pedir' ? String(r.id || '') : accion.tipo === 'web' ? 'web' : String(accion.id || '') }] : [];   // la de un servicio de la web no es de ningún aviso
       const g = await almacen.guarda(neg.id, neg.v || 0, { v: S.v, cab: cabDe(S), avisos: guardar, diario: { v: S.v, t, q, accion, clave: clave || '', res, nuevos }, fotos });
       if (g && g.ok) return { res, nuevos };
     }
@@ -185,7 +187,8 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       const { S } = await carga(neg), t = ahora(), q = p && typeof p === 'object' ? p : {};
       const dis = typeof q.dis === 'string' && Object.prototype.hasOwnProperty.call(cfg.zonas.dis, q.dis) ? q.dis : null, av = typeof q.av === 'string' && Object.prototype.hasOwnProperty.call(cfg.av, q.av) ? q.av : '';
       const u = K.urgenciaAhora(S, cfg, dis, t, av);
-      return { ok: true, dias: K.diasDe(S, cfg, t, TOPES.dias, false, av ? { av, cli: { dis: dis || '' } } : null).map(d => ({ dia: d.dia, hoy: !!d.hoy, franjas: d.franjas.map(f => ({ id: f.id, ok: !!f.ok })) })), urg: u ? { de: u.de, a: u.a } : null };
+      return { ok: true, dias: K.diasDe(S, cfg, t, TOPES.dias, false, av ? { av, cli: { dis: dis || '' } } : null).map(d => ({ dia: d.dia, hoy: !!d.hoy, franjas: d.franjas.map(f => ({ id: f.id, ok: !!f.ok })) })), urg: u ? { de: u.de, a: u.a } : null,
+        web: typeof K.webPublica === 'function' ? K.webPublica(S) : null };   // y sus servicios tal como los enseña la web del negocio (18-11-2026)
     },
 
     /* lo que ve el cliente con el enlace de su aviso */
@@ -243,10 +246,16 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
     },
 
     /* una foto, por su referencia: la oficina, cualquiera de su negocio; un técnico, la de un aviso que puede ver; el
-       cliente (con su teléfono y su código), la de un aviso suyo. A quien no puede verla se le dice lo mismo que si no
-       existiera */
+       cliente (con su teléfono y su código), la de un aviso suyo; y cualquiera, con «web», la de un servicio de la web. A
+       quien no puede verla se le dice lo mismo que si no existiera */
     async foto(neg, cfg, p) {
       if (typeof p.ref !== 'string' || !/^f:[0-9a-f]{16}$/.test(p.ref)) return R('foto');
+      if (p.web === true) {   // la de un servicio de la web (18-11-2026): la ve cualquiera, sin código, mientras siga puesta en la web
+        const W = typeof K.webPublica === 'function' ? K.webPublica((await carga(neg)).S) : null;
+        const puesta = !!W && Object.keys(W.av).some(k => W.av[k] && W.av[k].foto === p.ref);
+        const f = puesta ? await almacen.foto(neg.id, p.ref) : null;
+        return f && typeof f.datos === 'string' ? { ok: true, ref: p.ref, datos: f.datos } : R('nadie');
+      }
       let q = null, tel = '';
       if (p.tel != null) { const c = await cliente(neg, p); if (!c.ok) return c; tel = c.tel; }
       else { const w = await quien(neg, cfg, p); if (!w.ok) return w; q = w.q; }

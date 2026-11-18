@@ -43,6 +43,8 @@ function mezcla(B,ver,c){
  if(Number.isInteger(cab.esq))B.esq=cab.esq;
  /* la furgoneta (16-11-2026): la oficina las recibe todas; un técnico, la suya */
  if(cab.furgos&&typeof cab.furgos==='object'&&!Array.isArray(cab.furgos))B.furgos=cab.furgos;else if(c.entero)delete B.furgos;
+ /* los servicios de la web (18-11-2026): los recibe todo el equipo; sin ellos, los de siempre */
+ if('web' in cab){if(cab.web&&typeof cab.web==='object'&&!Array.isArray(cab.web))B.web=cab.web;else delete B.web}else if(c.entero)delete B.web;
  if('n' in cab){B.n=cab.n||0;B.nu=cab.nu||0;B.ausencias=Array.isArray(cab.ausencias)?cab.ausencias:[];B.nc=cab.nc||0;
   /* los contratos llegan solo cuando han cambiado: si no vienen, se quedan los que ya había (salvo al recibirlo todo) */
   if(Array.isArray(cab.contratos))B.contratos=cab.contratos;else if(c.entero)B.contratos=[]}

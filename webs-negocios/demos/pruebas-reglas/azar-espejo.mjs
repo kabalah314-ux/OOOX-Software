@@ -59,6 +59,9 @@ async function tanda(semilla) {
       () => ({ tipo: 'ausencia', tec: uno(N.tecnicos).id, de: hoy, a: K.masDias(hoy, Math.floor(rnd() * 3)), motivo: 'baja' }),
       () => { const u = d.E.estado().ausencias || []; return { tipo: 'quitarAusencia', aus: u.length ? uno(u).id : 'U1' }; },
       () => ({ tipo: 'cobrar', id: a, modo: 'efectivo' }),
+      // los servicios de la web (18-11-2026)
+      () => ({ tipo: 'web', av: uno(N.averias).id, desde: 50 + Math.floor(rnd() * 100), foto: rnd() < .3 ? 'data:image/jpeg;base64,' + 'W'.repeat(40 + Math.floor(rnd() * 4) * 4) : undefined }),
+      () => ({ tipo: 'web', av: uno(N.averias).id, oculto: rnd() < .5 }),
     ])();
     return uno([
       () => ({ tipo: 'voy', id: a }), () => ({ tipo: 'voy', id: a }), () => ({ tipo: 'ausente', id: a }),
@@ -148,7 +151,9 @@ async function tanda(semilla) {
         if (d.crea.has(m)) { const r = d.crea.get(m); ley(r !== null, 'toda-creacion-tiene-respuesta', m);
           if (d.abandonadas.has(m)) ley(!esta, 'lo-que-no-llego-a-salir-no-esta', m);
           else if (r.ok) ley(esta, 'lo-creado-esta-en-el-diario', m); else if (!r.duda) ley(!esta, 'lo-no-creado-no-esta', m + ' ' + r.err); }
-        else { const f = d.fin.get(m); ley(f === 'hecha' || f === 'rechazada', 'ninguna-accion-se-pierde', m + ' ' + f); ley((f === 'hecha') === esta, 'una-vez-y-solo-una', m); }
+        /* la puede haber mandado otra pestaña de la misma persona, con lo juntado al abrir; entonces esta la quita de su cola
+           (ya está hecha) y su final lo apunta la otra (lo destapó la semilla 20474927 al añadir «web», 18-11-2026) */
+        else { const f = d.fin.get(m) || D.filter(o => o !== d && o.persona === d.persona).map(o => o.fin.get(m)).find(Boolean); ley(f === 'hecha' || f === 'rechazada', 'ninguna-accion-se-pierde', m + ' ' + f); ley((f === 'hecha') === esta, 'una-vez-y-solo-una', m); }
       }
     }
     leyesServidor();

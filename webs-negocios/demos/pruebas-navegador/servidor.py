@@ -23,7 +23,12 @@ ok = 0; fallos = []; errores = []
 CORTE = {'hasta': 0.0, 'cuando': []}; de_red = []; T0 = time.monotonic()
 ahora = lambda: f'{time.monotonic() - T0:.1f} s'
 def corte(seg): CORTE['hasta'] = time.monotonic() + seg; CORTE['cuando'].append(f'{ahora()} (+{seg} s)')
-def es_corte(e): return NAV == 'webkit' and 'due to access control checks' in str(e) and time.monotonic() < CORTE['hasta']
+# Lo mismo al recargar o cambiar de página (18-11-2026): la llamada que iba de camino se corta, y el WebKit de Linux la apunta
+# igual (lo vio la batería de GitHub dos veces seguidas en la oficina, «oficios_v», antes de ningún corte de red). Cada página
+# lo marca sola: unos segundos desde cada goto o reload, y solo para esos errores y en ese motor.
+RECARGA = {'hasta': 0.0}
+def recargando(seg=3): RECARGA['hasta'] = max(RECARGA['hasta'], time.monotonic() + seg)
+def es_corte(e): return NAV == 'webkit' and 'due to access control checks' in str(e) and time.monotonic() < max(CORTE['hasta'], RECARGA['hasta'])
 
 def es(c, txt):
     global ok
@@ -56,6 +61,10 @@ async def pagina(ctx, nombre):
     pg = await ctx.new_page()
     pg.on('console', lambda m: errores.append(f'{nombre}: {m.text}') if m.type == 'error' and 'Failed to load resource' not in m.text and not webkit_linux.es_rareza(m.text) else None)
     pg.on('pageerror', lambda e: (de_red if es_corte(e) else errores).append(f'{nombre}! {e} [a los {ahora()}]'))
+    va, otra = pg.goto, pg.reload
+    async def goto(*a, **k): recargando(); return await va(*a, **k)
+    async def reload(*a, **k): recargando(); return await otra(*a, **k)
+    pg.goto, pg.reload = goto, reload
     return pg
 
 async def entra(pg, persona, codigo):
@@ -429,6 +438,31 @@ async def main():
         es(await t2.locator('#mEq').count() == (1 if T2 == jefe else 0), 'un técnico que no es el dueño no ve «Equipo y accesos»')
         await t2.locator('dialog[open] [data-x]').last.click()
         es(await pasa(t2, tiene(A1, 'curso')), 'el técnico, con su código de vuelta, recupera lo suyo')
+
+        # ---------- 13 ter. los servicios de la web con servidor (18-11-2026): la oficina los cambia y la cita los enseña ----------
+        av1, n1 = N['averias'][0]['id'], N['averias'][0]['n']
+        await o.evaluate("location.hash='#/'"); await o.wait_for_selector('[data-a=menu]'); await o.click('[data-a=menu]'); await o.wait_for_selector('#mWeb'); await o.wait_for_timeout(250); await o.click('#mWeb')
+        es(await pasa(o, "document.querySelectorAll('.wsf').length>0", 8000), 'la oficina abre «Servicios de la web» desde «Tu sesión»')
+        await o.click(f'[data-ed={av1}]'); await o.wait_for_selector('#wF')
+        fw = tempfile.NamedTemporaryFile(suffix='.png', delete=False); fw.write(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==')); fw.close()
+        await o.set_input_files('#wF', fw.name)
+        es(await pasa(o, f"(()=>{{const w=(Oficio.estado().web||{{av:{{}}}}).av['{av1}'];return !!w&&/^f:[0-9a-f]{{16}}$/.test(w.foto||'')&&Oficio.red().cola===0}})()", 9000), 'la foto llega al servidor y la app se queda con su referencia, como las de los avisos')
+        es(await pasa(o, "(()=>{const i=document.querySelector('.wsg');return !!i&&/^data:image\\//.test(i.getAttribute('src')||'')})()", 9000), 'y la enseña: la pide por la puerta de la web')
+        await o.fill('#wN', 'Lo primero de la web'); await o.fill('#wDe', '80'); await o.click('#wOk')
+        es(await pasa(o, "Oficio.red().cola===0&&!!document.querySelector('.wsl')", 9000) and estado()['cab'].get('web', {}).get('av', {}).get(av1, {}).get('n') == 'Lo primero de la web', 'el nombre y el precio se guardan en el servidor')
+        await o.keyboard.press('Escape')
+        cw = await contexto(br); w = await pagina(cw, 'cita con servicios cambiados'); await w.goto(B + 'cita.html'); await w.wait_for_selector('#f')
+        lw = await w.evaluate("[...document.querySelectorAll('.avc')].map(l=>({n:l.querySelector('span').textContent,src:l.querySelector('img').getAttribute('src')}))")
+        es(lw and lw[0]['n'] == 'Lo primero de la web', f'la cita del cliente, en otro navegador, enseña el nombre que ha puesto la oficina ({lw[:1]})')
+        es(await pasa(w, "/^data:image\\//.test(document.querySelector('.avc img').getAttribute('src')||'')", 9000), 'y su foto, que cualquiera puede ver sin código')
+        await w.click(f'.avc:has(input[value={av1}])'); await w.wait_for_timeout(250)
+        es('80' in await w.locator('.rango .num').inner_text(), f'y su precio con cita ({await w.locator(".rango .num").inner_text()})')
+        fuera_w = await w.evaluate('__n.fuera'); await cw.close()
+        es(not [u for u in fuera_w if '/functions/' in u], 'sin hablar con el servidor de verdad')
+        await o.evaluate("location.hash='#/'"); await o.wait_for_selector('[data-a=menu]'); await o.click('[data-a=menu]'); await o.wait_for_selector('#mWeb'); await o.wait_for_timeout(250); await o.click('#mWeb')
+        await pasa(o, "document.querySelectorAll('.wsf').length>0", 8000); await o.click(f'[data-ed={av1}]'); await o.wait_for_selector('#wQu'); await o.click('#wQu')
+        es(await pasa(o, f"Oficio.red().cola===0&&!(Oficio.estado().web&&Oficio.estado().web.av['{av1}'])", 9000), f'y se deja como al principio («{n1}»)')
+        await o.keyboard.press('Escape')
 
         # ---------- 14. cerrar la sesión ----------
         await o.goto(B + 'app.html#/bandeja'); await o.wait_for_selector('[data-a=menu]'); await o.click('[data-a=menu]'); await o.wait_for_selector('#mSal'); await o.wait_for_timeout(250); await o.click('#mSal')

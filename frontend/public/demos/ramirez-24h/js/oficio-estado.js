@@ -77,11 +77,12 @@ const R=SV?(function(){
   juez({que:'entrar',negocio:N.id,persona:yo.persona,codigo:yo.codigo,huella:hSrv},20000).then(r=>{if(ses===yo&&r&&r.ok&&datosDe(r))avisa()}).catch(()=>{})}
  /* lo que el servidor no aceptó se queda apuntado en el aparato hasta que se lea: un aviso de unos segundos no basta */
  /* las fotos (16-11-2026): el aviso lleva la referencia de cada una («f:…») y la foto se pide al verla, a quien la puede ver.
-    Quedan en memoria mientras la app está abierta. Mientras llega, un hueco del mismo tamaño; sin red, se pide otra vez luego */
+    Quedan en memoria mientras la app está abierta. Mientras llega, un hueco del mismo tamaño; sin red, se pide otra vez luego.
+    Con «web» (18-11-2026), la de un servicio de la web: la ve cualquiera, sin código, mientras el negocio la tenga puesta */
  const FOTOS=new Map(),PIDE=new Map(),VACIA='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
  function fotoSrc(x,cli){if(typeof x!=='string'||!x)return'';if(!K.esRef||!K.esRef(x))return x;if(FOTOS.has(x))return FOTOS.get(x);
   const t=PIDE.get(x);if(!t||Date.now()-t>30000){PIDE.set(x,Date.now());
-   const p=cli&&cli.tel?juez({que:'foto',negocio:N.id,tel:cli.tel,codigo:cli.codigo,ref:x},20000):ses?juez(con({que:'foto',ref:x}),20000):null;
+   const p=cli==='web'?juez({que:'foto',negocio:N.id,ref:x,web:true},20000):cli&&cli.tel?juez({que:'foto',negocio:N.id,tel:cli.tel,codigo:cli.codigo,ref:x},20000):ses?juez(con({que:'foto',ref:x}),20000):null;
    if(p)p.then(r=>{if(r&&r.ok&&typeof r.datos==='string'&&K.esFoto(r.datos)){FOTOS.set(x,r.datos);PIDE.delete(x);avisa()}}).catch(()=>{})}
   return VACIA}
  const rechazos=()=>{const L=leeJ(K_REC);return Array.isArray(L)?L.filter(x=>x&&typeof x==='object'):[]};

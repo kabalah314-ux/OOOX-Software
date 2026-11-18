@@ -1555,5 +1555,68 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   for (let i = 0; i < 3; i++) hv({ tipo: 'anotar', id: a1, foto: REF }, C);
   es(hv({ tipo: 'anotar', id: a1, foto: REF }, C).err === 'fotos' && Ax(a1).fotos.length === 4, 'y con referencias también caben cuatro fotos por aviso'); }
 
+// ---------- 52. los servicios de la web (18-11-2026): la oficina o el dueño cambian lo que su web enseña ----------
+{ const SW = K.nuevo(); let tw = Date.parse('2026-11-18T10:00:00+01:00'); const hw = (a, q) => K.aplicar(SW, cfg, a, q, tw += M);
+  const IDS = N.averias.map(x => x.id).filter(id => cfg.av[id] && id !== K.REV), J = N.tecnicos.find(x => x.jefe), NJ = N.tecnicos.find(x => !x.jefe);
+  const FOTO = 'data:image/jpeg;base64,' + 'A'.repeat(400), REF = 'f:0123456789abcdef';
+  const L0 = K.webDe(SW, cfg);
+  es(L0.map(x => x.id).join() === IDS.join() && L0.every(x => !x.oculto && !x.cambiado && !x.nPropio && !x.dPropia && x.desde === undefined && x.foto === undefined) && L0[0].n === cfg.av[IDS[0]].n && L0[0].d === cfg.av[IDS[0]].d && !IDS.includes(K.REV),
+    'sin cambios, la web enseña las averías del negocio en su orden, con su nombre y su frase (la revisión del contrato no sale)');
+  es(K.webPublica(SW) === null && K.webPublica(null) === null, 'sin cambios, no hay nada que dar a la página de citas');
+  { const N2 = JSON.parse(JSON.stringify(N)); N2.averias.push(Object.assign({}, N2.averias[0], { id: K.REV })); const c2 = K.cfgDe(N2);
+    es(!!c2.av[K.REV] && !K.webDe({}, c2).some(y => y.id === K.REV) && hw({ tipo: 'web', av: K.REV, n: 'Revisión' }, C).err === 'av', 'aunque los datos trajeran una avería «revision» (el validador no lo deja), la revisión del contrato no sale en la web'); }
+  const v0 = SW.v, r1 = hw({ tipo: 'web', av: 'fuga', n: '  Fugas   y goteras ', desde: 80, hasta: 150 }, C);
+  es(r1.ok && SW.v === v0 + 1 && SW.web.av.fuga.n === 'Fugas y goteras' && SW.web.av.fuga.desde === 80 && SW.web.av.fuga.hasta === 150 && SW.web.av.fuga.t === tw && SW.avisos.length === 0,
+    'la oficina cambia el nombre (sin espacios de sobra) y el precio con cita: queda con su hora y sin tocar ningún aviso');
+  let L = K.webDe(SW, cfg), x = L.find(y => y.id === 'fuga');
+  es(x.n === 'Fugas y goteras' && x.nPropio === true && !x.dPropia && x.d === cfg.av.fuga.d && x.cambiado && x.desde === 80 && x.hasta === 150, 'la lista lo lleva, marcado como nombre propio (no se traduce)');
+  es(hw({ tipo: 'web', av: 'atasco', d: 'Lo desatascamos hoy.' }, T(J.id)).ok && SW.web.av.atasco.d === 'Lo desatascamos hoy.' && K.webDe(SW, cfg).find(y => y.id === 'atasco').dPropia === true && K.webDe(SW, cfg).find(y => y.id === 'atasco').d === 'Lo desatascamos hoy.', 'el dueño (técnico jefe) también puede');
+  const antes = JSON.stringify(SW.web);
+  es(hw({ tipo: 'web', av: 'fuga', n: 'Otro' }, T(NJ.id)).err === 'permiso' && hw({ tipo: 'web', av: 'fuga', n: 'Otro' }, CLI).err === 'permiso' && hw({ tipo: 'web', av: 'fuga', n: 'Otro' }, { rol: 'tecnico', id: 'nadie' }).err === 'permiso' && JSON.stringify(SW.web) === antes,
+    'un técnico que no es el dueño, el cliente o alguien que no existe, no');
+  es(hw({ tipo: 'web', av: 'nada', n: 'Otro' }, C).err === 'av' && hw({ tipo: 'web', av: K.REV, n: 'Otro' }, C).err === 'av' && hw({ tipo: 'web', av: 3, n: 'Otro' }, C).err === 'av' && hw({ tipo: 'web', n: 'Otro' }, C).err === 'av',
+    'solo los servicios que salen en la web');
+  const v1 = SW.v;
+  es(hw({ tipo: 'web', av: 'fuga', n: 'F' }, C).err === 'webNombre' && hw({ tipo: 'web', av: 'fuga', n: 'x'.repeat(41) }, C).err === 'webNombre' && hw({ tipo: 'web', av: 'fuga', d: 'x'.repeat(141) }, C).err === 'webFrase' && SW.v === v1 && JSON.stringify(SW.web) === antes,
+    'un nombre de 1 letra o de 41, o una frase de 141, no valen y no cambian nada');
+  es(hw({ tipo: 'web', av: 'grifo', n: 'Gr', d: 'x'.repeat(140) }, C).ok && hw({ tipo: 'web', av: 'grifo', n: 'y'.repeat(40) }, C).ok && SW.web.av.grifo.n === 'y'.repeat(40) && SW.web.av.grifo.d.length === 140, 'de 2 a 40 letras el nombre y hasta 140 la frase, sí');
+  es(hw({ tipo: 'web', av: 'grifo', n: '', d: '  ' }, C).ok && !('grifo' in SW.web.av), 'vacíos vuelven a lo de siempre y, sin nada cambiado, el servicio sale de la lista de cambios');
+  const P = (de, ha) => hw({ tipo: 'web', av: 'termo', desde: de, hasta: ha }, C).err;
+  es(P(0) === 'webPrecio' && P(-5) === 'webPrecio' && P(100000) === 'webPrecio' && P('80') === 'webPrecio' && P(NaN) === 'webPrecio' && P(Infinity) === 'webPrecio' && P(null, 90) === 'webPrecio' && P(90, 80) === 'webPrecio' && P(90, '120') === 'webPrecio' && !('termo' in SW.web.av),
+    'el precio: «desde» en euros, más de 0 y hasta 99.999, y «hasta» mayor; si no, nada');
+  es(P(99999) === undefined && SW.web.av.termo.desde === 99999 && P(79.555, 79.555) === undefined && SW.web.av.termo.desde === 79.56 && !('hasta' in SW.web.av.termo) && P(90) === undefined && !('hasta' in SW.web.av.termo) && P(90, 120.004) === undefined && SW.web.av.termo.hasta === 120,
+    'con céntimos se redondea; «hasta» igual que «desde», o sin él, queda solo «desde»');
+  es(P(null, null) === undefined && !('termo' in SW.web.av), 'sin precio, vuelve el del catálogo');
+  es(hw({ tipo: 'web', av: 'cisterna', oculto: 'si' }, C).err === 'webOculto' && hw({ tipo: 'web', av: 'cisterna', oculto: true }, C).ok && SW.web.av.cisterna.oculto === true && K.webDe(SW, cfg).find(y => y.id === 'cisterna').oculto,
+    'un servicio se puede quitar de la web');
+  for (const id of IDS) if (id !== 'otra') hw({ tipo: 'web', av: id, oculto: true }, C);
+  const v2 = SW.v, r2 = hw({ tipo: 'web', av: 'otra', oculto: true }, C);
+  es(r2.err === 'web' && SW.v === v2 && !SW.web.av.otra, 'pero tiene que quedar al menos uno');
+  es(hw({ tipo: 'web', av: 'cisterna', oculto: false }, C).ok && !SW.web.av.cisterna, 'y se vuelve a poner');
+  for (const id of IDS) if (SW.web.av[id] && SW.web.av[id].oculto) hw({ tipo: 'web', av: id, oculto: false }, C);
+  es(hw({ tipo: 'web', av: 'termo', foto: 'nada' }, C).err === 'foto' && hw({ tipo: 'web', av: 'termo', foto: FOTO }, C).ok && SW.web.av.termo.foto === FOTO && K.webDe(SW, cfg).find(y => y.id === 'termo').foto === FOTO,
+    'una foto que vale se pone; otra cosa, no');
+  es(hw({ tipo: 'web', av: 'termo', foto: REF }, C).ok && SW.web.av.termo.foto === REF && hw({ tipo: 'web', av: 'termo', foto: '' }, C).ok && !SW.web.av.termo, 'con servidor, la referencia de la foto; y vacía, la de siempre');
+  es(hw({ tipo: 'web', av: 'termo', quitar: true }, C).err === 'estado' && hw({ tipo: 'web', av: 'fuga', quitar: 'si' }, C).err === 'estado' && SW.web.av.fuga && hw({ tipo: 'web', av: 'fuga', quitar: true }, C).ok && !SW.web.av.fuga,
+    '«Dejarlo como al principio» quita lo cambiado de un servicio; si no había nada, no');
+  const O = IDS.slice().reverse();
+  es(hw({ tipo: 'web', orden: O }, C).ok && SW.web.orden.join() === O.join() && K.webDe(SW, cfg).map(y => y.id).join() === O.join(), 'el orden se cambia de una vez');
+  const O2 = JSON.stringify(SW.web.orden), mal1 = [O.slice(1), O.concat([O[0]]), O.slice(1).concat([O[1]]), O.slice(0, -1).concat(['nada']), 'fuga', O.slice(0, -1).concat([K.REV])];
+  es(mal1.every(o => hw({ tipo: 'web', orden: o }, C).err === 'web') && hw({ tipo: 'web', orden: O, av: 'fuga' }, C).err === 'web' && hw({ tipo: 'web', orden: O }, T(NJ.id)).err === 'permiso' && JSON.stringify(SW.web.orden) === O2,
+    'un orden al que le falta, le sobra o repite un servicio, o que trae otro que no sale, no vale');
+  SW.web.orden = [O[0], 'viejo', O[0]]; L = K.webDe(SW, cfg);
+  es(L.map(y => y.id).join() === [O[0]].concat(IDS.filter(id => id !== O[0])).join(), 'un orden guardado incompleto (un servicio nuevo en los datos) pone primero lo que trae y después el resto, en su orden');
+  hw({ tipo: 'web', orden: IDS }, C);
+  const SX = K.nuevo(); SX.web = { av: { fuga: { n: 'Fugas', desde: 80, t: 1 }, grifo: { oculto: true, foto: REF, t: 2 } }, orden: ['grifo'] };
+  const Pub = K.webPublica(SX);
+  es(JSON.stringify(Pub) === JSON.stringify({ av: { fuga: { n: 'Fugas', desde: 80 }, grifo: { oculto: true, foto: REF } }, orden: ['grifo'] }) && Pub.orden !== SX.web.orden, 'lo que va a la página de citas: lo mismo, sin la hora, y copiado');
+  SX.web = { av: [], orden: [] };
+  es(K.webPublica(SX) === null && K.webDe(SX, cfg).every(y => !y.cambiado), 'unos cambios mal guardados no cuentan');
+  const pf = K.webPrecios(cfg, { id: 'fuga' }), pr = K.rango(cfg, 'fuga', false), pu = K.rango(cfg, 'fuga', true), sup = cfg.cat[cfg.urge].p10;
+  es(pf.a === pr.a && pf.b === pr.b && pf.u === pr.a + sup && pf.un === pu.a + sup && !pf.propio, 'los precios de la web sin cambios: los del catálogo, y el urgente de día y de noche con el suplemento');
+  const po = K.webPrecios(cfg, { id: 'fuga', desde: 80, hasta: 150 }), p2 = K.webPrecios(cfg, { id: 'fuga', desde: 79.5, hasta: 70 });
+  es(po.a === 8000 && po.b === 15000 && po.u === 8000 + sup && po.un === Math.round(80 * (1 + cfg.recargo)) * 100 + sup && po.propio && p2.a === 7950 && p2.b === null && p2.un === 11100 + sup && K.webPrecios(cfg, { id: 'nada' }) === null,
+    'con su precio: el de noche lleva el recargo en euros redondos, como en la web; un «hasta» menor no cuenta'); }
+
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

@@ -169,6 +169,26 @@ dialog.hoja.llena{max-height:100svh;height:100svh;border-radius:0}
 .eqe.activo{color:var(--bien)}.eqe.baja{color:var(--mal)}
 .eqa{display:grid;justify-items:end;gap:2px;flex:none}
 .eqt{margin:6px 0 0;font-weight:600}.eqh li{font-size:.875rem;color:var(--tenue)}
+/* los servicios de la web (18-11-2026): la lista, en su orden, y cambiar uno */
+.wsl{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.wsf{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--linea);border-radius:12px}
+.wsf.fuera{border-style:dashed}.wsf.fuera .wsi{opacity:.45}
+.wsi{flex:none;width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--asfalto-3)}
+.wsn{display:grid;gap:2px;flex:1;min-width:0}.wsn b{overflow-wrap:anywhere}.wsn small{font-size:.875rem;color:var(--tenue)}
+.wsn .wso{color:var(--mal)}.wsn .wsc{color:var(--bien)}
+.wsa{display:grid;justify-items:end;gap:6px;flex:none}
+.wsm{display:flex;gap:4px}
+.wmv{display:grid;place-items:center;width:44px;height:40px;border:1px solid var(--linea);border-radius:10px;color:inherit}
+.wmv svg{width:20px;height:20px}.wmv.wup svg{transform:rotate(180deg)}.wmv:disabled{opacity:.3}
+.wsh{padding:0;border:0}
+.wpr{margin:0;padding:0;border:0;min-width:0}
+.wpx{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wpx>label{display:grid;gap:6px;align-content:start;font-weight:600}
+.wpe{display:flex;align-items:center;gap:8px;font-weight:600}.wpe input{flex:1;min-width:0}
+.campo .ayuda .mal{color:var(--mal)}
+.wfo{display:flex;align-items:center;gap:14px}
+.wsg{flex:none;width:96px;height:77px;border-radius:10px;object-fit:cover;background:var(--asfalto-3)}
+.wfb{display:grid;gap:4px;justify-items:start}
 /* la foto del cliente: miniatura que se amplía (oficina y técnico) */
 .fotob{display:flex;align-items:center;gap:12px;margin-top:12px;padding:0;text-align:left;color:inherit}
 .fotob .fotoc{margin-top:0}

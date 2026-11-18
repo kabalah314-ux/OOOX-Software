@@ -94,6 +94,13 @@ const M = [
   // la furgoneta (16-11-2026)
   ['la furgoneta no se guarda en el servidor', ', furgos: S.furgos || {} });', ' });'],
   ['un técnico recibe todas las furgonetas', 'cab.furgos = F ? { [q.id]: F } : {};', 'cab.furgos = cb.furgos || {};'],
+  // los servicios de la web (18-11-2026)
+  ["la foto de la web se da aunque ya no esté puesta", "const puesta = !!W && Object.keys(W.av).some(k => W.av[k] && W.av[k].foto === p.ref);", "const puesta = true;"],
+  ["la cita no recibe los servicios de la web", "web: typeof K.webPublica === 'function' ? K.webPublica(S) : null };", "web: null };"],
+  ["los técnicos no reciben los servicios de la web", "    cab.web = cb.web || null;", ""],
+  ["la foto de la web se guarda sin decir que es de la web", "accion.tipo === 'web' ? 'web' : ", ""],
+  ["los servicios de la web no se guardan en la cabecera", "}, S.web ? { web: S.web } : {});", "}, {});"],
+  ["la foto de la web pasa por la puerta de los avisos", "      if (p.web === true) {", "      if (p.web === 'nunca') {"],
 ];
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mutantes-juez-'));

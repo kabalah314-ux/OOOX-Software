@@ -49,6 +49,9 @@ async function tanda(semilla) {
       () => ({ tipo: 'anotar', id, foto: 'data:image/jpeg;base64,' + 'F'.repeat(40 + Math.floor(rnd() * 6) * 4) }),   // fotos (16-11-2026): seis distintas, que se repiten
       () => ({ tipo: 'mover', id, cita: null }), () => ({ tipo: 'ausencia', tec: uno(d.N.tecnicos).id, de: K.madrid(reloj.t).date, a: K.masDias(K.madrid(reloj.t).date, Math.floor(rnd() * 3)), motivo: 'baja' }),
       () => ({ tipo: 'cobrar', id, modo: 'efectivo' }),
+      // los servicios de la web (18-11-2026): el precio, alguna foto (cuatro distintas, que se repiten) y si sale
+      () => ({ tipo: 'web', av: uno(d.N.averias).id, desde: 50 + Math.floor(rnd() * 100), foto: rnd() < .3 ? 'data:image/jpeg;base64,' + 'W'.repeat(40 + Math.floor(rnd() * 4) * 4) : undefined }),
+      () => ({ tipo: 'web', av: uno(d.N.averias).id, oculto: rnd() < .5 }),
       () => furgo(d, uno(d.N.tecnicos).id), () => furgo(d, uno(d.N.tecnicos).id),
     ].concat(Object.keys(cfg.planes || {}).length ? [   // los contratos de mantenimiento, si el negocio tiene planes
       () => ({ tipo: 'contrato', plan: uno(Object.keys(cfg.planes)), cli: x && rnd() < .5 ? Object.assign({}, x.cli) : cli(d.N), acepta: 'mensaje', modo: uno(['efectivo', 'tarjeta', 'pendiente']) }),
@@ -77,7 +80,7 @@ async function tanda(semilla) {
     let a = null;
     for (let i = 0; i < 4; i++) {
       a = accion(d);
-      const S = Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, d.q.rol === 'centralita' && d.cab ? JSON.parse(JSON.stringify(d.cab)) : d.cab && d.cab.furgos ? { furgos: JSON.parse(JSON.stringify(d.cab.furgos)) } : {}, { v: d.v, avisos: JSON.parse(JSON.stringify([...d.avisos.values()].sort((x, y) => x.n - y.n))) });
+      const S = Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, d.q.rol === 'centralita' && d.cab ? JSON.parse(JSON.stringify(d.cab)) : d.cab && d.cab.furgos ? { furgos: JSON.parse(JSON.stringify(d.cab.furgos)) } : {}, d.cab && d.cab.web ? { web: JSON.parse(JSON.stringify(d.cab.web)) } : {}, { v: d.v, avisos: JSON.parse(JSON.stringify([...d.avisos.values()].sort((x, y) => x.n - y.n))) });
       if (K.aplicar(S, cfgs[d.neg], JSON.parse(JSON.stringify(a)), d.q, reloj.t).ok) return a;
     }
     return a;
@@ -89,7 +92,7 @@ async function tanda(semilla) {
       if (d.q.rol === 'tecnico') ley(x.fuera ? igual(Object.keys(x).sort(), ['fuera', 'id', 'v']) : x.datos && x.datos.tec === d.q.id, 'el-tecnico-recibe-solo-lo-suyo', d.persona + ' recibió ' + x.id);
       else ley(!!x.datos, 'la-oficina-recibe-entero');
     }
-    if (d.q.rol === 'tecnico') ley(igual(Object.keys(c.cab || {}).sort(), ['esq', 'furgos']) && c.cab.esq === K.ESQ && Object.keys(c.cab.furgos).every(k => k === d.q.id), 'el-tecnico-recibe-solo-su-furgoneta', d.persona + ': ' + JSON.stringify(Object.keys((c.cab || {}).furgos || {})));
+    if (d.q.rol === 'tecnico') ley(igual(Object.keys(c.cab || {}).sort(), ['esq', 'furgos', 'web']) && c.cab.esq === K.ESQ && Object.keys(c.cab.furgos).every(k => k === d.q.id) && (c.cab.web === null || (typeof c.cab.web === 'object' && !Array.isArray(c.cab.web))), 'el-tecnico-recibe-solo-su-furgoneta', d.persona + ': ' + JSON.stringify(Object.keys((c.cab || {}).furgos || {})));
     else if (!c.entero) ley(('contratos' in (c.cab || {})) === (((c.cab || {}).vc || 0) > d.v), 'los-contratos-solo-cuando-cambian', d.persona + ' desde ' + d.v);
     if (c.entero) d.avisos.clear();
     for (const x of c.avisos) { if (x.fuera) d.avisos.delete(x.id); else d.avisos.set(x.id, x.datos); }
@@ -115,7 +118,7 @@ async function tanda(semilla) {
       ley(!JSON.stringify(guardado).includes('data:image') && !JSON.stringify(n.diario).includes('data:image'), 'las-fotos-van-aparte', id);
       for (const a of guardado) for (const r of [a.foto].concat(a.fotos || []).filter(Boolean)) ley(n.fotos && n.fotos.has(r) && n.fotos.get(r).datos.startsWith('data:image/'), 'cada-referencia-tiene-su-foto', a.id + ' ' + r);
       ley(igual(S.avisos, guardado.map(sin)), 'lo-guardado-es-el-diario', id);
-      ley(igual({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc, furgos: S.furgos || {} }, Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0, furgos: {} }, n.cab)), 'la-cabecera-es-el-diario', id);
+      ley(igual(Object.assign({ esq: S.esq, n: S.n || 0, nu: S.nu || 0, ausencias: S.ausencias || [], contratos: S.contratos || [], nc: S.nc || 0, vc, furgos: S.furgos || {} }, S.web ? { web: S.web } : {}), Object.assign({ esq: 0, n: 0, nu: 0, ausencias: [], contratos: [], nc: 0, vc: 0, furgos: {} }, n.cab)), 'la-cabecera-es-el-diario', id);
       const Sg = Object.assign({}, S, { avisos: guardado });
       for (const f of n.avisos.values()) {
         ley(igual(f.vista, K.vistaCliente(Sg, cfg, f.id)), 'lo-que-ve-el-cliente-esta-al-dia', f.id);
@@ -132,7 +135,7 @@ async function tanda(semilla) {
     ley(r.ok, 'leer-con-su-codigo'); recibe(d, r.cambios);
     const n = A.crudo(d.neg), espera = [...n.avisos.values()].filter(f => d.q.rol === 'centralita' || f.datos.tec === d.q.id).map(f => f.datos).sort((a, b) => a.n - b.n);
     ley(d.v === n.v && igual([...d.avisos.values()].sort((a, b) => a.n - b.n), espera), 'el-aparato-al-dia-tiene-lo-que-le-toca', d.persona + ' de ' + d.neg);
-    const orden = o => Object.fromEntries(Object.entries(Object.assign({}, o, { contratos: (o && o.contratos) || [] })).sort(([x], [y]) => x < y ? -1 : 1));   // sin contratos guardados es como una lista vacía
+    const orden = o => Object.fromEntries(Object.entries(Object.assign({}, o, { contratos: (o && o.contratos) || [], web: (o && o.web) || null })).sort(([x], [y]) => x < y ? -1 : 1));   // sin contratos guardados es como una lista vacía; sin servicios de la web cambiados, «null» (18-11-2026)
     if (d.q.rol === 'tecnico') ley(igual(((d.cab || {}).furgos || {})[d.q.id] || null, ((n.cab || {}).furgos || {})[d.q.id] || null), 'el-tecnico-tiene-su-furgoneta', d.persona);
     if (d.q.rol === 'centralita') ley(igual(orden(d.cab), orden(n.cab)), 'la-oficina-tiene-la-cabecera', Object.keys(Object.assign({}, d.cab, n.cab)).filter(k => !igual(d.cab[k], n.cab[k])).map(k => k + ': ' + String(JSON.stringify(d.cab[k])).slice(0, 80) + ' / ' + String(JSON.stringify(n.cab[k])).slice(0, 80)).join(' · '));
   }

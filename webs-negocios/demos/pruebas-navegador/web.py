@@ -92,10 +92,13 @@ async def main():
             pg = oye(await ctx.new_page(), 'hora')
             await pon_hora(ctx, iso)
             await pg.goto(B + 'index.html'); await pg.wait_for_timeout(500)
-            web = await pg.evaluate("({u:document.body.classList.contains('is-urg'),t:document.querySelector('#ahoraT').textContent})")
+            web = await pg.evaluate("({u:document.body.classList.contains('is-urg'),t:document.querySelector('#ahoraT').textContent,urg:Object.fromEntries([...document.querySelectorAll('[data-urg]')].map(e=>[e.dataset.urg,e.textContent]))})")
             await pg.goto(B + 'app.html'); await pg.wait_for_timeout(300)
             app = await pg.evaluate("OficioNucleo.urgente(OficioNucleo.cfgDe(OFICIO_NEGOCIO),Date.now())")
             es(web['u'] == urg and app == urg, f'tarifa {nombre}: {"urgencia" if urg else "normal"} en la web y en la app (web {web["u"]}, app {app})')
+            # el urgente de cada tarjeta (18-11-2026): de día, el de con cita y el suplemento; de noche y festivos, también el recargo
+            P = await pg.evaluate("(()=>{const cfg=OficioNucleo.cfgDe(OFICIO_NEGOCIO);return Object.fromEntries(OficioNucleo.webDe({},cfg).map(x=>{const p=OficioNucleo.webPrecios(cfg,x);return[x.id,(p.un*(%s)+p.u*(%s))/100]}))})()" % (int(urg), int(not urg)))
+            es(all(abs(float(re.sub(r'[^0-9,]', '', web['urg'][k]).replace(',', '.')) - P[k]) < 0.01 for k in P), f'tarifa {nombre}: el urgente de cada tarjeta es el de las reglas a esa hora ({web["urg"]} / {P})')
             await ctx.close()
 
         # ---------- 4. el desglose de cada avería cuadra ----------
@@ -114,6 +117,8 @@ async def main():
             vistos.add(n)
             sa, sb = round(sum(r['sa']), 2), round(sum(r['sb']), 2)
             es(r['abierto'] and r['t'] and abs(r['t'][0] - sa) < 0.01 and abs(r['t'][-1] - sb) < 0.01, f'desglose «{n}»: las filas suman el total ({sa}–{sb} vs {r["tot"]})')
+            ua = await pg.evaluate(f"document.querySelector('[data-urg=\"{av}\"]').textContent")
+            es(re.findall(r'(\d+(?:,\d+)?) €', ua)[:1] == re.findall(r'(\d+(?:,\d+)?) €', r['alt'])[:1], f'tarjeta «{n}»: el urgente de la tarjeta es el de «Qué incluye» ({ua} / {r["alt"][:60]})')
             es(r['res'] == f'cita.html?servicio={av}&lang=es' and r['resT'] == f'Reservar {n}' and 'suplemento' in r['alt'] and '%' not in r['alt'], f'desglose «{n}»: reserva ese servicio y explica la urgencia con una cifra, sin porcentajes ({r["res"]}, {r["alt"]})')
             await pg.keyboard.press('Escape'); await pg.wait_for_timeout(250)
             es(await pg.evaluate("document.querySelector('#p-desglose').getAttribute('aria-hidden')") == 'true', f'desglose «{n}»: se cierra con Escape')
@@ -122,7 +127,8 @@ async def main():
         # ---------- 4 bis. cada tarjeta de servicio (auditoría A3, 16-11): su precio es el de la cita y su botón abre la cita con ese servicio ----------
         for av in avs:
             tj = await pg.evaluate(f"""(()=>{{const c=document.querySelector('.svc[data-av="{av}"]'),a=c.querySelector('[data-reserva]');
-              return{{n:c.querySelector('h3').textContent.trim(),p:c.querySelector('[data-precio]').textContent.trim(),href:a.getAttribute('href'),aria:a.getAttribute('aria-label'),img:c.querySelector('img').getAttribute('src'),d:c.querySelector('.svd').textContent.trim()}}}})()""")
+              return{{k:c.querySelector('.svk').textContent.trim(),u:c.querySelector('.svu').textContent.trim(),n:c.querySelector('h3').textContent.trim(),p:c.querySelector('[data-precio]').textContent.trim(),href:a.getAttribute('href'),aria:a.getAttribute('aria-label'),img:c.querySelector('img').getAttribute('src'),d:c.querySelector('.svd').textContent.trim()}}}})()""")
+            es(tj['k'] == 'Con cita' and re.match(r'Urgente\s*desde \d+', tj['u']), f'tarjeta «{tj["n"]}»: dos precios, con cita y urgente ({tj["k"]} {tj["p"]} · {tj["u"]})')
             es(tj['href'] == f'cita.html?servicio={av}&lang=es' and tj['aria'] == f'Reservar {tj["n"]}' and tj['d'] and av in tj['img'], f'tarjeta «{tj["n"]}»: foto, frase, y «Reservar {tj["n"]}» lleva a cita.html?servicio={av} (con el idioma)')
             await pg.goto(B + tj['href']); await pg.wait_for_selector('#f')
             ci = await pg.evaluate("({el:(document.querySelector('.elegida')||{}).textContent||'',r:(document.querySelector('.rango .num')||{}).textContent||'',grid:document.querySelectorAll('input[name=av]').length})")
@@ -131,6 +137,30 @@ async def main():
             await pg.click('#cambiaAv'); await pg.wait_for_timeout(150)
             es(await pg.locator('input[name=av]').count() == len(avs) and await pg.locator(f'input[name=av][value={av}]').is_checked(), f'tarjeta «{tj["n"]}»: en la cita se puede cambiar de servicio sin empezar de nuevo')
             await pg.goto(B + 'index.html'); await pg.wait_for_timeout(500)
+
+        # ---------- 4 ter. los servicios de la web los cambia el negocio desde su app (18-11-2026): se ven al momento ----------
+        cw = await br.new_context(viewport={'width': 1280, 'height': 860}, timezone_id='Europe/Madrid'); await pon_hora(cw, '2026-11-16T10:00:00+01:00')
+        wv = oye(await cw.new_page(), 'web en vivo'); ap = oye(await cw.new_page(), 'app que cambia la web')
+        await wv.goto(B + 'index.html'); await ap.goto(B + 'app.html'); await wv.wait_for_timeout(700)
+        r1 = await ap.evaluate("""(()=>{const C={rol:'centralita',id:'oficina'},h=a=>Oficio.hacer(a,C).ok;
+          return [h({tipo:'web',av:'fuga',n:'Fugas y goteras',desde:80,hasta:150}),h({tipo:'web',av:'grifo',oculto:true}),h({tipo:'web',orden:['atasco','fuga','termo','cisterna','grifo','otra']})]})()""")
+        await wv.wait_for_timeout(700)
+        v = await wv.evaluate("[...document.querySelectorAll('#svs .svc')].map(c=>({id:c.dataset.av,n:c.querySelector('h3').textContent,p:c.querySelector('[data-precio]').textContent,u:c.querySelector('[data-urg]').textContent,h:c.querySelector('[data-reserva]').getAttribute('aria-label')}))")
+        f = next((x for x in v if x['id'] == 'fuga'), {})
+        es(all(r1) and [x['id'] for x in v] == ['atasco', 'fuga', 'termo', 'cisterna', 'otra'] and f.get('n') == 'Fugas y goteras' and f.get('p') == '80–150 €' and '110' in f.get('u', '') and f.get('h') == 'Reservar Fugas y goteras' and await wv.locator('#svDots i').count() == 5,
+           f'servicios: lo que cambia la oficina en su app (nombre, precio, orden y quitar uno) sale en la web sin recargar ({v[:2]})')
+        await wv.evaluate("document.querySelector('[data-incluye=fuga]').click()"); await wv.wait_for_timeout(450)
+        d = await wv.evaluate("({t:document.querySelector('#dT').textContent,filas:document.querySelectorAll('#dRows > *').length,tot:document.querySelector('#dTot').textContent,alt:document.querySelector('#dAlt').textContent})")
+        es('Fugas y goteras' in d['t'] and d['filas'] == 0 and d['tot'] == '80–150 €' and '110' in d['alt'], f'servicios: con un precio propio, «Qué incluye» da ese total y su urgente, sin las líneas del catálogo ({d})')
+        await wv.goto(B + 'cita.html'); await wv.wait_for_selector('#f')
+        cn = await wv.evaluate("[...document.querySelectorAll('.avc span')].map(e=>e.textContent)")
+        await wv.locator('.avc:has(input[value=fuga])').click(); await wv.wait_for_timeout(250)
+        es(cn == ['Atasco', 'Fugas y goteras', 'Sin agua caliente', 'Cisterna que pierde', 'Otra avería'] and 'De 80 € a 150 €' in await wv.locator('.rango .num').inner_text(), f'servicios: la cita, igual: su orden, su nombre, su precio y sin el que se ha quitado ({cn})')
+        await wv.goto(B + 'cita.html?servicio=fuga'); await wv.wait_for_selector('#f')
+        es('Fugas y goteras' in await wv.locator('.elegida').inner_text(), 'servicios: y «Reservar» desde la web dice «Has elegido Fugas y goteras»')
+        await ap.evaluate("Oficio.reiniciar()"); await wv.goto(B + 'index.html'); await wv.wait_for_timeout(600)
+        es(await wv.locator('#svs .svc').count() == 6 and 'Fuga de agua' in await wv.locator('.svc[data-av=fuga] h3').inner_text(), 'servicios: al reiniciar la demo, vuelven los de siempre')
+        await cw.close()
 
         # ---------- 5. el código postal y el menú ----------
         await pg.locator('#cp').fill('08008'); await pg.wait_for_timeout(200)
@@ -211,6 +241,39 @@ async def main():
             es(len(vistas) >= 5 and not malas, f'pantallas a {w}×{h}: cada una entra entera, con el título a la vista y nada bajo la barra ({sorted(vistas)}) {malas}')
             nl = await pg.evaluate("document.querySelectorAll('section[data-largo] .btn,section[data-largo] .svp').length")
             es(nl > 0 and len(enteros) == nl, f'pantallas a {w}×{h}: en la de los servicios (más alta que el móvil), cada precio y cada «Reservar» se ve entero en alguna parada ({len(enteros)} de {nl})')
+            await ctx.close()
+        # ---------- 7 ter. en el móvil, los servicios en una fila que se pasa de lado (18-11-2026) ----------
+        # La pantalla de los servicios entra entera y se queda quieta: las tarjetas, cuadradas, se pasan con el dedo de lado, y
+        # el gesto hacia abajo va a la pantalla siguiente. Antes era una pantalla larga con paradas por filas, y al pasar por
+        # encima con el dedo daba saltos.
+        for w, h in ((360, 640), (390, 844)):
+            ctx = await br.new_context(viewport={'width': w, 'height': h}, is_mobile=True, has_touch=True, timezone_id='Europe/Madrid'); await pon_hora(ctx)
+            pg = oye(await ctx.new_page(), f'servicios en fila {w}')
+            await pg.goto(B + 'index.html'); await pg.wait_for_function("document.body.classList.contains('ready')", timeout=12000); await pg.wait_for_timeout(600)
+            await pg.evaluate("(()=>{let t=0;for(let e=document.getElementById('averias');e;e=e.offsetParent)t+=e.offsetTop;scrollTo(0,t)})()"); await pg.wait_for_timeout(1300)
+            r = await pg.evaluate("""(()=>{const s=document.getElementById('averias'),u=document.getElementById('svs'),C=[...u.children],cs=getComputedStyle(u),b=C.map(c=>c.getBoundingClientRect());
+              const c0=C[0],q=c0.getBoundingClientRect(),en=(x,y)=>{const e=document.elementFromPoint(q.left+q.width*x,q.top+q.height*y);return e?(e.closest('a')?e.closest('a').getAttribute('href'):e.closest('button')?'boton:'+(e.closest('button').dataset.incluye||''):e.tagName):''};
+              return{alto:s.offsetHeight,vh:innerHeight,n:C.length,fila:b.every(x=>Math.abs(x.top-b[0].top)<1),cuadradas:b.every(x=>Math.abs(x.width-x.height)<2),ox:cs.overflowX,snap:cs.scrollSnapType,dots:document.querySelectorAll('#svDots i').length,
+               mas:u.scrollWidth>u.clientWidth,dentro:document.documentElement.scrollWidth<=innerWidth+1,foto:en(.5,.25),titulo:en(.3,.62),incluye:(()=>{const i=c0.querySelector('[data-incluye]').getBoundingClientRect();const e=document.elementFromPoint(i.left+i.width/2,i.top+i.height/2);return e&&e.closest('[data-incluye]')?'boton':''})()}})()""")
+            es(r['alto'] <= r['vh'] + 1 and r['n'] == 6 and r['fila'] and r['cuadradas'] and r['ox'] == 'auto' and 'x' in r['snap'] and r['dots'] == 6 and r['mas'] and r['dentro'],
+               f'servicios a {w}×{h}: una sola pantalla, con las seis tarjetas cuadradas en una fila que se pasa de lado ({r})')
+            es(r['foto'] == 'cita.html?servicio=fuga&lang=es' and r['titulo'] == 'cita.html?servicio=fuga&lang=es' and r['incluye'] == 'boton', f'servicios a {w}×{h}: tocar la tarjeta (la foto o el nombre) abre la cita con ese servicio; «Qué incluye», su desglose ({r["foto"]}, {r["titulo"]}, {r["incluye"]})')
+            if NAV == 'chromium':   # el dedo de verdad solo se puede simular en Chromium
+                cdp = await ctx.new_cdp_session(pg)
+                async def dedo(x0, y0, x1, y1):
+                    await cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': x0, 'y': y0}]})
+                    for i in range(1, 11):
+                        await cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x0 + (x1 - x0) * i / 10, 'y': y0 + (y1 - y0) * i / 10}]}); await asyncio.sleep(.016)
+                    await cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
+                u = await pg.evaluate("(()=>{const b=document.getElementById('svs').getBoundingClientRect();return[b.top+b.height/2]})()")
+                y0 = await pg.evaluate('scrollY')
+                await dedo(w * .75, u[0], w * .25, u[0] + 8); await pg.wait_for_timeout(1200)   # medio móvil de lado, como se pasa una foto
+                lado = await pg.evaluate("({sl:document.getElementById('svs').scrollLeft,y:scrollY,dot:[...document.querySelectorAll('#svDots i')].findIndex(d=>d.classList.contains('on'))})")
+                paso = await pg.evaluate("(()=>{const c=document.querySelector('#svs .svc');return c.offsetWidth+parseFloat(getComputedStyle(document.getElementById('svs')).columnGap||'12')})()")
+                es(abs(lado['sl'] - paso) < 3 and lado['y'] == y0 and lado['dot'] == 1, f'servicios a {w}×{h}: con el dedo de lado pasa a la tarjeta siguiente, la pantalla no se mueve y el punto lo marca ({lado}, antes {y0})')
+                await dedo(w / 2, u[0], w / 2, u[0] - 260); await pg.wait_for_timeout(1700)
+                y2 = await pg.evaluate("(()=>{let t=0;for(let e=document.getElementById('cuesta');e;e=e.offsetParent)t+=e.offsetTop;return[scrollY,t]})()")
+                es(abs(y2[0] - y2[1]) < 2, f'servicios a {w}×{h}: el gesto hacia abajo va a la pantalla siguiente ({y2})')
             await ctx.close()
         # la entrada lleva también a la cita; los barrios, también en lista; las averías se llaman como en la cita y la app
         ctx = await br.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True, timezone_id='Europe/Madrid'); await pon_hora(ctx)
