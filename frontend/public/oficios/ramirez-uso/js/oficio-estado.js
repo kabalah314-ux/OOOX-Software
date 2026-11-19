@@ -9,6 +9,45 @@
    ============================================================ */
 (function(g){
 'use strict';
+/* LA MUESTRA CON EL NOMBRE DE UN NEGOCIO (19-11-2026), para la captación: la carta lleva un código QR con un enlace a la
+   demo con el nombre de ese negocio dentro («?m=…»), sin guardar nada en ningún servidor. Solo en la demo (sin servidor y
+   con la muestra de avisos): pone su nombre, su marca y su zona en lugar de los del negocio de ejemplo y, arriba y siempre a la vista,
+   que es una muestra preparada por OOOX y hasta cuándo. Caducada, a más de 90 días o mal hecha, no cambia nada.
+   El enlace: base64url de {"v":1,"n":"Fontanería Serra","z":"Sants","h":"2026-12-20"} (captacion/tanda.py lo hace).
+   Se queda para toda la pestaña (también en los marcos de la página de los tres móviles) hasta que se cierra. */
+function muestraDe(g,N){
+ const MK='ooox:muestra',sto=(()=>{try{return g.sessionStorage}catch(e){return null}})();
+ const limpia=s=>String(s==null?'':s).normalize('NFC').replace(/[^\p{L}\p{N} &.,'’·\-]/gu,'').replace(/\s+/g,' ').trim().slice(0,48);
+ const lee=t=>{try{if(typeof t!=='string'||!/^[A-Za-z0-9_-]{8,400}$/.test(t))return null;const b=atob(t.replace(/-/g,'+').replace(/_/g,'/'));
+  const j=JSON.parse(new TextDecoder().decode(Uint8Array.from(b,c=>c.charCodeAt(0))));return j&&typeof j==='object'&&!Array.isArray(j)?j:null}catch(e){return null}};
+ const de=w=>{try{return new URLSearchParams(w.location.search).get('m')}catch(e){return null}};
+ let t=de(g);if(!t&&g.parent&&g.parent!==g)t=de(g.parent);if(!t&&sto)try{t=sto.getItem(MK)}catch(e){}
+ if(!t)return null;const j=lee(t);
+ const hoy=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid'}).format(new Date()),dias=h=>(Date.parse(h+'T12:00:00Z')-Date.parse(hoy+'T12:00:00Z'))/864e5;
+ const n=j&&limpia(j.n),z=j&&limpia(j.z),h=j&&typeof j.h==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(j.h)?j.h:'';
+ if(!j||j.v!==1||n.length<2||!h){try{sto&&sto.removeItem(MK)}catch(e){}return null}
+ if(!(dias(h)>=0)||dias(h)>90){try{sto&&sto.removeItem(MK)}catch(e){}return{n,h,caducada:true}}
+ try{sto&&sto.setItem(MK,t)}catch(e){}
+ /* lo del negocio de ejemplo, cambiado por lo suyo: lo mismo que hace captacion/muestra.py con el archivo de datos */
+ const w=n.split(' '),m=w.length<2?[n,'']:[w.slice(0,-1).join(' '),w[w.length-1]],corto=m[1]||m[0],viejo=Array.isArray(N.marca)?N.marca.filter(Boolean).join(' '):'',ant=Array.isArray(N.marca)&&N.marca[0]?String(N.marca[0]):'';
+ N.nombre=n;N.marca=m;N.razon=n;N.dir=[z,N.ciudad].filter(Boolean).join(', ');
+ const cambia=x=>typeof x==='string'&&ant?x.split('el logo de '+ant).join('el logo de '+corto).split('the '+ant+' logo').join('the '+corto+' logo'):Array.isArray(x)?x.map(cambia):x&&typeof x==='object'?(Object.keys(x).forEach(k=>{x[k]=cambia(x[k])}),x):x;
+ (N.tecnicos||[]).forEach(T=>{if(T&&typeof T.coche==='string')T.coche=cambia(T.coche)});
+ return{n,z,h,viejo}}
+/* el aviso de arriba: qué es, para quién y hasta cuándo, y cómo escribir a Oscar. Solo en la página de arriba, no en sus marcos */
+function avisoMuestra(g,M){if(!M||g.top!==g)return;const d=g.document;
+ const pon=()=>{if(d.getElementById('muestraOoox'))return;const f=M.h.split('-').reverse().join('-'),e=d.createElement('div');e.id='muestraOoox';e.setAttribute('role','note');
+  e.style.cssText='position:relative;z-index:50;padding:10px 14px;background:#ffd23f;color:#111;font:600 15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-align:center';
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const wa='https://wa.me/34670409550?text='+encodeURIComponent('Hola, Oscar. He visto la muestra de OOOX Oficios para '+M.n+' y me interesa.');
+  e.innerHTML=M.caducada?'Esta muestra ya ha caducado. Lo que ves es la demo de OOOX Oficios, con un negocio inventado.'
+   :'Muestra preparada por OOOX para <b>'+esc(M.n)+'</b>. No es su web: es una demo con clientes inventados, hasta el '+esc(f)+'. <a href="'+wa+'" target="_blank" rel="noopener" style="color:#111">Me interesa</a>';
+  d.body.insertBefore(e,d.body.firstChild);
+  /* la página de los tres móviles lleva la marca arriba: también la suya */
+  const wm=d.querySelector('.fila1 .wm'),Mk=g.OFICIO_NEGOCIO&&g.OFICIO_NEGOCIO.marca;
+  if(wm&&!M.caducada&&Array.isArray(Mk)){wm.innerHTML=esc(Mk[0])+(Mk[1]?'<span>'+esc(Mk[1])+'</span>':'');wm.setAttribute('aria-label',M.n)}};
+ if(d.body)pon();else d.addEventListener('DOMContentLoaded',pon)}
+const MUESTRA=(()=>{const N0=g.OFICIO_NEGOCIO,sv=N0&&N0.servidor&&typeof N0.servidor==='object';try{return N0&&!sv&&typeof g.OFICIO_MUESTRA==='function'?muestraDe(g,N0):null}catch(e){return null}})();
 const K=g.OficioNucleo,N=g.OFICIO_NEGOCIO,cfg=K.cfgDe(N),CLAVE='oficio:'+N.id;
 const OE=g.OficioEspejo,SV=N.servidor&&typeof N.servidor==='object'&&typeof N.servidor.url==='string'&&OE?N.servidor:null;
 if(N.servidor&&!SV)console.error('Los datos del negocio piden servidor, pero falta js/oficio-espejo.js o la dirección.');
@@ -246,4 +285,5 @@ g.Oficio=R?{K,N,cfg,DEMO,SRV:true,estado:R.estado,hacer:R.hacer,crear:R.crear,re
 if(N.prueba===true&&typeof document!=='undefined'&&document.body&&!document.getElementById('prb')){const p=document.createElement('p');p.id='prb';
  p.textContent=_('Copia de prueba de OOOX Oficios. Este negocio aún no está en marcha:')+' '+(R?_('lo que hagas aquí se guarda en el servidor de pruebas, no llega a ningún cliente.'):_('lo que hagas aquí se queda en este navegador.'));
  p.style.cssText='margin:0;padding:7px 16px;background:#3a2f0a;color:#ffd34d;font:500 .8125rem/1.35 system-ui,sans-serif;text-align:center';document.body.prepend(p)}
+if(typeof document!=='undefined')avisoMuestra(g,MUESTRA);
 })(window);

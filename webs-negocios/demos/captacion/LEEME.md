@@ -32,10 +32,21 @@ python3 muestra.py --negocio "Fontanería Serra" --categoria Fontanería --perso
 la firma de los correos que van con permiso (los correos en frío no lo llevan): está en `textos.py` (`WHATSAPP`) y es el
 mismo al que lleva «Lo quiero para mi negocio» en la demo.
 
-## Lo que falta
+## La tanda de cartas (19-11-2026)
 
-1. **La demo con su nombre** (el enlace): un solo enlace por negocio que lleve sus datos dentro, para no guardar nada
-   en ningún servidor ni en este repositorio. Con aviso arriba («Muestra preparada por OOOX para …; no es su web»),
-   sin indexar y con fecha de caducidad.
-2. **La tanda desde la lista** (`PIPELINE-oficios-lista-larga.csv`, en la carpeta de Oscar): un archivo por negocio y
-   una hoja para apuntar llamadas, permisos y respuestas. La lista no entra nunca aquí: el repositorio es público.
+- **La demo con su nombre** ya está: el enlace lleva sus datos dentro (`prueba.html?m=…`: base64url de
+  `{"v":1,"n":"<negocio>","z":"<barrio>","h":"<hasta>"}`), sin guardar nada en ningún servidor ni aquí. Arriba, siempre:
+  «Muestra preparada por OOOX para …. No es su web: es una demo con clientes inventados, hasta el …», con «Me interesa»
+  (el WhatsApp de Oscar con su nombre ya escrito). Caducada, a más de 90 días o mal hecha, es la demo de siempre. Solo en
+  la demo (sin servidor); el código, en `js/oficio-estado.js` («muestraDe»), y su prueba, `pruebas-navegador/muestra_enlace.py`.
+  El enlace es de ooox.es: hasta que se publique la demo nueva, el QR abre la versión de antes.
+- `tanda.py` saca de la lista (en la carpeta de Oscar, nunca aquí) los primeros de cada zona de Barcelona, sin la
+  centralita de las decenas de fichas «Fontanero <barrio>» (teléfonos 93694…), y deja `cartas.pdf` (dos cartas A5 por hoja
+  A4, en horizontal, para cortar por la mitad; cada una con el QR de su muestra) y `hoja.csv` (una fila por carta, en el
+  mismo orden, para apuntar la visita, el permiso y los seguimientos):
+
+```
+python3 tanda.py --lista PIPELINE-oficios-lista-larga.csv --contactos PIPELINE-oficios-contactos.csv --out <carpeta> --max 40 --hasta 2026-12-20
+```
+
+Lo que queda antes de mandarlas: pasar la lista por la Lista Robinson (las de autónomos) y publicar la demo.
