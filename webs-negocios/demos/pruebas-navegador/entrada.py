@@ -70,8 +70,8 @@ async def caso(p,port,w,h,mobile,nombre,espera_blob):
     fin_video=e['ended'] or (e['paused'] and e['d']>0 and e['t']>=e['d']-0.1)
     ok(fin_video or (e['src']=='' and e['poster']==f'fin-{o}.webp'), f'{nombre}: se queda en el último fotograma (o en su foto) ({e})',video=True)
     if corre: ok(2.6<=e['d']<=4.5, f'{nombre}: la entrada es corta ({e["d"]} s)',video=True)
-    vis=await pg.evaluate("(()=>{const r=document.querySelector('#h1').getBoundingClientRect(),c=document.querySelector('#index .espera').getBoundingClientRect();return r.height>0&&r.top>=0&&r.bottom<=innerHeight&&c.bottom<=innerHeight})()")
-    ok(vis, f'{nombre}: «Fontaneros 24 horas.» y «Pedir cita», a la vista')
+    vis=await pg.evaluate("(()=>{const r=document.querySelector('#h1').getBoundingClientRect(),c=document.querySelector(innerWidth>=900?'#index .stage-acts .urg':'.bar .urg').getBoundingClientRect();return r.height>0&&r.top>=0&&r.bottom<=innerHeight&&c.height>0&&c.bottom<=innerHeight})()")
+    ok(vis, f'{nombre}: «Fontaneros 24 horas.» y «Pedir cita urgente», a la vista')
     # 3. el siguiente gesto pasa a la primera sección; y hacia arriba vuelve a la portada, que no se repite
     await pg.wait_for_timeout(1000); await gesto(pg,True,con,w,h)
     pasa=await hasta(pg,"scrollY>innerHeight*.6",7000); y=await pg.evaluate('scrollY')
