@@ -89,11 +89,22 @@ def hasta_txt(h):
     D = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']; M = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
     return f'{D[h.weekday()]} {h.day} de {M[h.month - 1]}'
 
-def enlace(url, n, z, h, t='', d=''):
+# los distritos de Barcelona (las claves del mapa de la web de muestra) y un punto de cada uno: para contar los minutos desde su barrio
+DISTRITO = {'cve': (41.3826, 2.1769), 'eix': (41.3900, 2.1630), 'stm': (41.3735, 2.1420), 'cor': (41.3850, 2.1300), 'sar': (41.4010, 2.1300),
+            'gra': (41.4036, 2.1550), 'hor': (41.4180, 2.1600), 'nou': (41.4400, 2.1770), 'and': (41.4350, 2.1900), 'smt': (41.4060, 2.1990)}
+
+def distrito(xy):
+    if not xy: return ''
+    return min(DISTRITO, key=lambda k: (DISTRITO[k][0] - xy[0]) ** 2 + ((DISTRITO[k][1] - xy[1]) * 0.75) ** 2)
+
+def enlace(url, n, z, h, t='', d='', nota=0, res=0, b=''):
+    """El enlace de su muestra: todo va dentro (nada se guarda en ningún sitio). nota y res: las de Google, de verdad; b: su distrito."""
     o = {'v': 1, 'n': n}
     if re.fullmatch(r'[6789]\d{8}', t or ''): o['t'] = t
     if d: o['d'] = d[:80]
     if z: o['z'] = z
+    if nota and res: o['r'] = round(float(nota), 1); o['c'] = int(res)
+    if b: o['b'] = b
     o['h'] = h.isoformat()
     j = json.dumps(o, ensure_ascii=False, separators=(',', ':')).encode()
     return url + '?m=' + base64.urlsafe_b64encode(j).decode().rstrip('=')
@@ -265,12 +276,12 @@ def main():
         vistos.add(k)
         p, nota, res, por, piso = puntos(a, c, d)
         if p < 0: continue
-        filas.append(dict(z=z, barrio=barrio, p=p, nota=nota, res=res, por=por, piso=piso, nombre=a['nombre'].strip(), corto=nombre_corto(a['nombre']), tel=t, dir=d,
+        filas.append(dict(z=z, barrio=barrio, dis=distrito(xy), p=p, nota=nota, res=res, por=por, piso=piso, nombre=a['nombre'].strip(), corto=nombre_corto(a['nombre']), tel=t, dir=d,
                           cat=a.get('categoria', ''), web=c.get('web', ''), email=c.get('email', ''), ig=c.get('instagram', ''), maps=a.get('url', ''), fuente=a.get('fuente', '')))
     filas.sort(key=lambda r: (-r['p'], -r['res'])); filas = filas[:o.max]
     filas.sort(key=lambda r: (list(NOM_ZONA).index(r['z']), -r['p'], -r['res']))   # por zonas, para ir de visita o repartir
     os.makedirs(o.out, exist_ok=True); fo = os.path.join(o.out, 'moviles'); os.makedirs(fo, exist_ok=True)
-    for r in filas: r['enlace'] = enlace(o.url, r['corto'], r['barrio'], h, r['tel'], r['dir'])
+    for r in filas: r['enlace'] = enlace(o.url, r['corto'], r['barrio'], h, r['tel'], r['dir'], r['nota'], r['res'], r['dis'])
     # la foto de su web de citas con su nombre: de la demo de este repositorio, servida en local con el mismo enlace
     srv, base = servir(o.sitio)
     try: asyncio.run(fotos([base + 'cita.html?' + r['enlace'].split('?', 1)[1] for r in filas], fo))

@@ -50,7 +50,9 @@ function avisoMuestra(g,M){if(!M||g.top!==g)return;const d=g.document;
   d.body.insertBefore(e,d.body.firstChild);
   /* la página de los tres móviles lleva la marca arriba: también la suya */
   const wm=d.querySelector('.fila1 .wm'),Mk=g.OFICIO_NEGOCIO&&g.OFICIO_NEGOCIO.marca;
-  if(wm&&!M.caducada&&Array.isArray(Mk)){wm.innerHTML=esc(Mk[0])+(Mk[1]?'<span>'+esc(Mk[1])+'</span>':'');wm.setAttribute('aria-label',M.n)}};
+  if(wm&&!M.caducada&&Array.isArray(Mk)){wm.innerHTML=esc(Mk[0])+(Mk[1]?'<span>'+esc(Mk[1])+'</span>':'');wm.setAttribute('aria-label',M.n)}
+  /* lo que la página marca: fuera lo del negocio de ejemplo que no es suyo (el fundador), y su nombre donde va el nombre */
+  if(!M.caducada){d.querySelectorAll('[data-muestra-oculta]').forEach(x=>{x.hidden=true;x.style.display='none'});d.querySelectorAll('[data-muestra-nombre]').forEach(x=>{x.textContent=M.n})}};
  if(d.body)pon();else d.addEventListener('DOMContentLoaded',pon)}
 const MUESTRA=(()=>{const N0=g.OFICIO_NEGOCIO,sv=N0&&N0.servidor&&typeof N0.servidor==='object';try{return N0&&!sv&&typeof g.OFICIO_MUESTRA==='function'?muestraDe(g,N0):null}catch(e){return null}})();
 const K=g.OficioNucleo,N=g.OFICIO_NEGOCIO,cfg=K.cfgDe(N),CLAVE='oficio:'+N.id;
