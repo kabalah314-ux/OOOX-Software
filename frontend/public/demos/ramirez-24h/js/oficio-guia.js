@@ -185,7 +185,8 @@ function pinta(){const p=PASOS[G.i],b=G.L.b,t=typeof p.t==='function'?p.t():p.t,
  if(p.modal==='intro')b.innerHTML='<p class="gu-k">Demo guiada · unos 4 minutos</p><h2 id="guT">Así funciona OOOX Oficios</h2>'+
   '<p class="gu-x" id="guX">Vas a ver un aviso de principio a fin. Haces de <b>cliente</b>, de <b>técnico</b> y, sobre todo, de <b>oficina</b>: repartir, apuntar las llamadas y los cobros, lo de cada día. Lo que hace uno, lo ven los otros al momento. Es un negocio inventado, así que nada llega a nadie.</p>'+
   '<div class="gu-bt"><button class="btn pri" data-g="ya">Empezar</button><button class="txt" data-g="sal">Prefiero mirarlo solo</button></div>';
- else if(p.modal==='fin'){const W=window.OOOX_CONTACTO,wa=W&&W.wa?W.url('demo'):'';b.innerHTML='<p class="gu-k">Fin de la demo guiada</p><h2 id="guT">Así trabaja un negocio con OOOX Oficios</h2>'+
+ else if(p.modal==='fin'){const W=window.OOOX_CONTACTO,mu=document.querySelector('#muestraOoox a[href^="https://wa.me/"]'),wa=mu?mu.href:W&&W.wa?W.url('demo'):'';   // con la muestra de un negocio, el mensaje ya lleva su nombre
+ b.innerHTML='<p class="gu-k">Fin de la demo guiada</p><h2 id="guT">Así trabaja un negocio con OOOX Oficios</h2>'+
   '<ul class="gu-lista"><li>Las citas entran solas, sin llamadas.</li><li>Las llamadas se apuntan en un momento y se reparten con un toque, a quien llega antes.</li><li>Precio firmado, parte y garantía, sin papeles.</li><li>Sabes qué se ha cobrado y qué falta.</li></ul>'+
   '<p class="gu-adapta" id="guX"><b>Y la adaptamos a tu forma de trabajar:</b> tus precios, tus zonas, tus horarios, tus técnicos y tus papeles. Si algo no encaja, lo cambiamos hasta que encaje.</p>'+
   /* «Lo quiero»: al WhatsApp de Oscar con el mensaje escrito (js/ooox-contacto.js); sin número, por correo.

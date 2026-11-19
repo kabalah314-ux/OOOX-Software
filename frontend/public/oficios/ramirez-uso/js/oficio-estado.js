@@ -33,7 +33,7 @@ function muestraDe(g,N){
  try{sto&&sto.setItem(MK,t)}catch(e){}
  /* lo del negocio de ejemplo, cambiado por lo suyo: lo mismo que hace captacion/muestra.py con el archivo de datos */
  const w=n.split(' '),m=w.length<2?[n,'']:[w.slice(0,-1).join(' '),w[w.length-1]],corto=m[1]||m[0],viejo=Array.isArray(N.marca)?N.marca.filter(Boolean).join(' '):'',ant=Array.isArray(N.marca)&&N.marca[0]?String(N.marca[0]):'';
- N.nombre=n;N.marca=m;N.razon=n;
+ N.nombre=n;N.marca=m;N.razon=n;N.nif="—";   // el NIF de ejemplo no va con el nombre de un negocio de verdad
  N.dir=dd?(N.ciudad&&dd.toLowerCase().indexOf(String(N.ciudad).toLowerCase())<0?dd+', '+N.ciudad:dd):[z,N.ciudad].filter(Boolean).join(', ');
  if(t9)N.tel=t9.replace(/^(\d{3})(\d{2})(\d{2})(\d{2})$/,'$1 $2 $3 $4');
  const cambia=x=>typeof x==='string'&&ant?x.split('el logo de '+ant).join('el logo de '+corto).split('the '+ant+' logo').join('the '+corto+' logo'):Array.isArray(x)?x.map(cambia):x&&typeof x==='object'?(Object.keys(x).forEach(k=>{x[k]=cambia(x[k])}),x):x;
