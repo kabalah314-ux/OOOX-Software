@@ -1,0 +1,72 @@
+# La copia de cada noche de OOOX Oficios, fuera de Supabase.
+# A las 02:17 (hora UTC) la base de datos hace su copia de todo lo de oficios, cifrada con la llave pública de Oscar
+# (webs-negocios/oficios-mantenimiento/esquema.sql). A las 03:05 esto la baja, comprueba que llega entera, que es de
+# esa noche y que está cifrada para su llave, y la guarda 90 días aquí, en GitHub (en «Artifacts» de cada ejecución).
+# Sin la llave privada de Oscar no se puede leer: ni GitHub ni nadie que la baje ve nada.
+# Para volver a poner una copia: webs-negocios/oficios-mantenimiento/LEEME.md, «Restaurar una copia».
+# Si algo falla, abre una incidencia con la etiqueta «copia» (GitHub avisa a Oscar por correo).
+#
+# GitHub solo lo lanza solo desde la rama principal. Un cambio en este archivo lo lanza una vez en la rama donde se
+# suba, para ver que funciona (así no abre incidencias).
+# Probado así, con la base de datos de verdad, el 16-11-2026 (rama ramirez-nueva).
+name: Copia de cada noche de OOOX Oficios
+on:
+  schedule:
+    - cron: '5 3 * * *'
+  push:
+    paths:
+      - '.github/workflows/copia-nocturna.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  copia:
+    name: Bajar la copia cifrada y guardarla
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      SRV: https://hquvlfujruskpgnkmnfl.supabase.co
+      LLAVE: sb_publishable_XZG_z_f0ya0f-7esYS8zrw_OOI35qpf
+      # la subllave de cifrado de la llave de Oscar (E139 A2E4 23A3 3471 B3AA 045D E468 D379 0166 03CC)
+      SUBLLAVE: 6A80F1DADA740166
+    outputs:
+      nombre: ${{ steps.baja.outputs.nombre }}
+    steps:
+      - name: Bajarla y comprobarla
+        id: baja
+        run: |
+          set -eu
+          cod=$(curl -sS -o r.json -w '%{http_code}' --max-time 60 -X POST "$SRV/rest/v1/rpc/oficios_copia" \
+                -H "apikey: $LLAVE" -H 'Content-Type: application/json' -d '{}')
+          [ "$cod" = 200 ] || { echo "::error::El servidor contesta HTTP $cod"; exit 1; }
+          [ "$(jq -r .ok r.json)" = true ] || { echo "::error::El servidor dice: $(jq -r .err r.json)"; exit 1; }
+          jq -r .datos r.json | base64 -d > copia.pgp
+          # llega entera
+          [ "$(sha256sum copia.pgp | cut -d' ' -f1)" = "$(jq -r .sha256 r.json)" ] || { echo "::error::La copia no llega entera (no cuadra su huella)"; exit 1; }
+          # es de las últimas 30 horas: si no, la de esta noche no se ha hecho
+          hecha=$(jq -r .hecha r.json); edad=$(( $(date +%s) - $(date -d "$hecha" +%s) ))
+          [ "$edad" -lt 108000 ] || { echo "::error::La copia más nueva es de $hecha: la de esta noche no se ha hecho"; exit 1; }
+          # está cifrada para la llave de Oscar (se mira sin descifrarla: aquí no está su llave privada)
+          gpg --batch --list-packets copia.pgp > paquetes.txt 2>&1 || true
+          grep -qi "keyid $SUBLLAVE" paquetes.txt || { echo "::error::La copia no está cifrada para la llave de Oscar"; cat paquetes.txt; exit 1; }
+          dia=$(date -u -d "$hecha" +%Y-%m-%d); nombre="oficios-$dia"
+          mkdir copia && mv copia.pgp "copia/$nombre.pgp"
+          jq '{id, hecha, bytes, sha256, huella_llave}' r.json > "copia/$nombre.json"
+          echo "nombre=$nombre" >> "$GITHUB_OUTPUT"
+          echo "Copia $nombre: $(jq -r .bytes r.json) bytes, cifrada para la llave de Oscar, guardada 90 días." >> "$GITHUB_STEP_SUMMARY"
+      - name: Guardarla 90 días
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.baja.outputs.nombre }}
+          path: copia/
+          retention-days: 90
+          if-no-files-found: error
+      - name: Si algo ha fallado, abrir una incidencia
+        if: failure() && github.event_name != 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create copia --color D93F0B --description "La copia de cada noche ha fallado" -R "$GITHUB_REPOSITORY" 2>/dev/null || true
+          gh issue create -R "$GITHUB_REPOSITORY" --label copia --title "La copia de esta noche ha fallado ($(date -u +%Y-%m-%d))" \
+            --body "@kabalah314-ux, la copia de seguridad de esta noche no se ha podido bajar o no cuadra. Lo que ha pasado está en la ejecución: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Las 7 últimas copias siguen guardadas en la base de datos; la revisión diaria de Claude lo mira."
