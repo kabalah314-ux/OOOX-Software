@@ -40,8 +40,23 @@ function rellena(){const x=docDe('cli'),W=winDe('cli');if(!x||!W)return;
  setTimeout(()=>clic('cli','#f button[type=submit]'),60)}
 /* la cita que acaba de pedir: la primera que no estaba al empezar */
 const nuevaCita=()=>{const A=avs().find(a=>G&&!G.I0.has(a.id)&&a.origen==='cita');if(A&&G)G.C=A.id;return A};
+/* la llamada que acaba de apuntar la oficina: el aviso que sigue la guía desde ahí */
+const nuevaLlamada=()=>{const A=avs().find(a=>G&&!G.I0.has(a.id)&&a.origen==='llamada');if(A&&G)G.U=A.id;return A};
+/* lo que falta por cobrar de antes (la transferencia de Andreu, en la muestra) */
+const pendiente=()=>avs().filter(a=>a.e==='hecho'&&a.pago&&!a.pago.cobrado&&(!G||a.id!==G.U)).sort((a,b)=>b.fin-a.fin)[0];
 const fila=(k,id)=>{const a=q(k,'a.fila[href="#/aviso/'+id+'"]');return a?(a.closest('li')||a):null};
 function libres(){const ocup=new Set(avs().filter(a=>a.e==='camino'||a.e==='curso').map(a=>a.tec));return(N().tecnicos||[]).map(t=>t.id).filter(t=>!ocup.has(t))}
+function asignaCita(){if(clic('cen','button.tec[data-a=asignar][data-id="'+G.C+'"]'))return;const W=winDe('cen');if(!W)return;
+ for(const t of (N().tecnicos||[]).map(x=>x.id))if(W.Oficio.hacer({tipo:'asignar',id:G.C,tec:t},{rol:'centralita',id:'marta'}).ok)return}
+/* «Rellenar por mí» en «Nuevo aviso»: lo que contaría Toni por teléfono, como lo apuntaría la oficina */
+function apunta(){const x=docDe('cen'),W=winDe('cen');if(!x||!W)return;cierraHojas('cen');
+ const pulsa=s=>{const b=docDe('cen')&&docDe('cen').querySelector(s);if(b&&b.getAttribute('aria-checked')!=='true')b.click()};
+ pulsa('#fNuevo [data-b-av=atasco]');pulsa('#fNuevo [data-b-or=llamada]');pulsa('#fNuevo [data-b-cu=urg]');
+ setTimeout(()=>{const y=docDe('cen');if(!y)return;
+  [['n_tel','600 123 789'],['n_nomap','Toni Serra Puig'],['n_dir','C/ de Verdi 80, 1.º 2.ª'],['n_cp','08012'],['n_nota','El váter no traga y está a punto de salirse el agua.']].forEach(([id,v])=>{
+   const i=y.getElementById(id);if(!i)return;i.value=v;i.dispatchEvent(new W.Event('input',{bubbles:true}))});
+  setTimeout(()=>{const f=docDe('cen')&&docDe('cen').getElementById('fNuevo');if(f)f.requestSubmit()},80)},120)}
+function cobra(){const A=av(G.P);if(!A)return;cierraHojas('cen');const W=winDe('cen');if(W)W.Oficio.hacer({tipo:'cobrar',id:A.id,modo:'transferencia'},{rol:'centralita',id:'marta'})}
 function asigna(){if(clic('cen','button.dar[data-id="'+G.U+'"]')||clic('cen','.btn[data-a=asignar][data-id="'+G.U+'"]'))return;
  const W=winDe('cen');if(!W)return;for(const t of libres())if(W.Oficio.hacer({tipo:'asignar',id:G.U,tec:t},{rol:'centralita',id:'marta'}).ok)return}
 /* el técnico del aviso en su móvil: si no es el que se ve, se cambia */
@@ -76,10 +91,13 @@ const PASOS=[
   el:()=>q('cli','#tu'),hecho:()=>!!q('cli','#rConfirma'),bot:[['Rellenar por mí',rellena]]},
  {cap:0,k:'cli',t:'Revisa y confirma',x:'Así le llega al negocio. Toca «Confirmar la cita».',
   el:()=>q('cli','#rConfirma'),hecho:()=>!!nuevaCita(),bot:[['Hazlo por mí',()=>clic('cli','#rConfirma')]]},
- {cap:1,k:'cen',t:'Ha entrado en la oficina',x:'Al momento y sin una llamada. Las citas esperan aquí hasta que las repartes.',
-  prep:()=>ponHash('cen','#/'),el:()=>fila('cen',G.C)||q('cen','main'),sig:true},
- {cap:1,k:'cen',t:'Y entra una urgencia por teléfono',x:'Una fuga en Gràcia. La app te dice qué técnico llega antes: asígnasela con un toque.',
-  el:()=>hashDe('cen')==='#/aviso/'+G.U?(q('cen','.btn[data-a=asignar][data-id="'+G.U+'"]')||q('cen','main')):fila('cen',G.U),
+ {cap:1,k:'cen',t:'Ha entrado en la oficina: repártela',x:'Ha llegado sola, sin una llamada. Es lo que harás cada día: elige qué técnico va. Toca su nombre.',
+  prep:()=>ponHash('cen','#/aviso/'+G.C),el:()=>{const b=q('cen','button.tec[data-a=asignar][data-id="'+G.C+'"]');return b?(b.parentElement||b):(fila('cen',G.C)||q('cen','main'))},
+  hecho:()=>en(G.C,['asignado','camino','curso','hecho']),bot:[['Hazlo por mí',asignaCita]]},
+ {cap:1,k:'cen',t:'Suena el teléfono: apúntalo',x:'Toni tiene el váter atascado. Lo que te cuenta va en «Nuevo aviso»: qué le pasa, que es urgente y sus datos. Si quieres, te lo relleno.',
+  prep:()=>ponHash('cen','#/nuevo'),el:()=>q('cen','#fNuevo')||q('cen','main'),hecho:()=>!!nuevaLlamada(),bot:[['Rellenar por mí',apunta]]},
+ {cap:1,k:'cen',t:'Asígnalo a quien llega antes',x:'La app te dice qué técnico llega antes a su casa. Asígnaselo con un toque.',
+  el:()=>hashDe('cen')==='#/aviso/'+G.U?(q('cen','.btn.pri[data-a=asignar][data-id="'+G.U+'"]')||q('cen','button.tec[data-a=asignar][data-id="'+G.U+'"]')||q('cen','main')):(fila('cen',G.U)||q('cen','main')),
   hecho:()=>en(G.U,['asignado','camino','curso','hecho']),bot:[['Hazlo por mí',asigna]]},
  {cap:2,k:'tec',t:()=>nom(G.T)+' recibe el aviso',x:'Toca «Voy»: al cliente le llega que va de camino, quién va y en qué furgoneta.',
   prep:ponTecnico,el:()=>q('tec','[data-a=voy][data-id="'+G.U+'"]'),hecho:()=>en(G.U,['camino','curso','hecho']),bot:[['Hazlo por mí',voy]]},
@@ -95,6 +113,11 @@ const PASOS=[
   hecho:()=>en(G.U,['hecho']),bot:[['Hazlo por mí',termina]]},
  {cap:3,k:'hoja',t:'Los papeles salen solos',x:'El parte y la garantía, con la firma del cliente y sin escribir nada. Se los mandas por WhatsApp con un toque: el mensaje ya va escrito.',
   prep:hoja,el:()=>$('.hojap'),sig:true},
+ {cap:3,k:'cen',t:'Te pagan por transferencia: apúntalo',
+  x:()=>{const A=av(G.P),n=A&&A.cli&&A.cli.nombre;return(n||'Un cliente')+' te ha pagado lo de ayer por transferencia. Ábrelo en «Por cobrar», toca «Apuntar cobro», elige «Transferencia» y confírmalo.'},
+  prep:()=>{const A=pendiente();G.P=A?A.id:'';ponHash('cen','#/cobros')},
+  el:()=>abierta('cen')?(q('cen','dialog[open] #oM')||abierta('cen')):hashDe('cen')==='#/aviso/'+G.P?(q('cen','.btn[data-a=cobrar][data-id="'+G.P+'"]')||q('cen','main')):(q('cen','main a[href="#/aviso/'+G.P+'"]')||q('cen','main')),
+  hecho:()=>{const A=av(G.P);return!A||!!(A.pago&&A.pago.cobrado)},bot:[['Hazlo por mí',cobra]]},
  {cap:3,k:'cen',t:'Y la oficina lo tiene todo',x:'Lo cobrado hoy, lo que falta por cobrar y el mes listo para tu gestoría.',
   prep:()=>ponHash('cen','#/cobros'),el:()=>q('cen','.resumen.pest')||q('cen','main'),sig:true},
  {modal:'fin'}];
@@ -159,11 +182,11 @@ function capas(){const v=d.createElement('div');v.className='gu-velo';v.hidden=t
  d.body.append(v,h,s,b);return{v,h,s,b}}
 
 function pinta(){const p=PASOS[G.i],b=G.L.b,t=typeof p.t==='function'?p.t():p.t,x=typeof p.x==='function'?p.x():p.x;
- if(p.modal==='intro')b.innerHTML='<p class="gu-k">Demo guiada · unos 3 minutos</p><h2 id="guT">Así funciona OOOX Oficios</h2>'+
-  '<p class="gu-x" id="guX">Vas a ver un aviso de principio a fin. Haces de <b>cliente</b>, de <b>oficina</b> y de <b>técnico</b>: lo que hace uno, lo ven los otros al momento. Es un negocio inventado, así que nada llega a nadie.</p>'+
+ if(p.modal==='intro')b.innerHTML='<p class="gu-k">Demo guiada · unos 4 minutos</p><h2 id="guT">Así funciona OOOX Oficios</h2>'+
+  '<p class="gu-x" id="guX">Vas a ver un aviso de principio a fin. Haces de <b>cliente</b>, de <b>técnico</b> y, sobre todo, de <b>oficina</b>: repartir, apuntar las llamadas y los cobros, lo de cada día. Lo que hace uno, lo ven los otros al momento. Es un negocio inventado, así que nada llega a nadie.</p>'+
   '<div class="gu-bt"><button class="btn pri" data-g="ya">Empezar</button><button class="txt" data-g="sal">Prefiero mirarlo solo</button></div>';
  else if(p.modal==='fin'){const W=window.OOOX_CONTACTO,wa=W&&W.wa?W.url('demo'):'';b.innerHTML='<p class="gu-k">Fin de la demo guiada</p><h2 id="guT">Así trabaja un negocio con OOOX Oficios</h2>'+
-  '<ul class="gu-lista"><li>Las citas entran solas, sin llamadas.</li><li>Repartes con un toque, a quien llega antes.</li><li>Precio firmado, parte y garantía, sin papeles.</li><li>Sabes qué se ha cobrado y qué falta.</li></ul>'+
+  '<ul class="gu-lista"><li>Las citas entran solas, sin llamadas.</li><li>Las llamadas se apuntan en un momento y se reparten con un toque, a quien llega antes.</li><li>Precio firmado, parte y garantía, sin papeles.</li><li>Sabes qué se ha cobrado y qué falta.</li></ul>'+
   '<p class="gu-adapta" id="guX"><b>Y la adaptamos a tu forma de trabajar:</b> tus precios, tus zonas, tus horarios, tus técnicos y tus papeles. Si algo no encaja, lo cambiamos hasta que encaje.</p>'+
   /* «Lo quiero»: al WhatsApp de Oscar con el mensaje escrito (js/ooox-contacto.js); sin número, por correo.
      «Volver a la demo»: se quita la guía y se navega por su cuenta */
@@ -258,7 +281,7 @@ async function arranca(){if(G)sal(true);monta();H.classList.add('gu-on');
  fs.forEach(f=>{if(f!==t)f.setAttribute('src',f.getAttribute('src'))});
  G.raf=requestAnimationFrame(tick);await carga(fs);if(!G)return;
  const L=avs();G.I0=new Set(L.map(a=>a.id));
- const U=L.filter(a=>a.e==='nuevo'&&!a.cita).sort((a,b)=>b.t-a.t)[0];G.U=U?U.id:'';
+ G.U='';G.P='';
  ve(0)}
 /* al salir, la demo queda para tocarla por su cuenta. Sin haber empezado («Prefiero mirarlo solo»), la página se queda
    donde está. A media guía o al final: en el móvil, con el móvil a la vista; en el ordenador, al final se vuelve arriba

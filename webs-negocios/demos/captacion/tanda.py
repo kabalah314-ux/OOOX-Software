@@ -2,8 +2,10 @@
 # repositorio, que es público) saca, para los primeros de cada zona de Barcelona:
 #   cartas.pdf    una carta A4 por negocio, «al estilo tradicional» (19-11-2026, noche): su nombre, la foto de su web de
 #                 citas con su nombre en un móvil, y GRATIS junto al código QR de su muestra: la demo con sus datos dentro
-#                 del enlace (?m=…, ver «muestraDe» en js/oficio-estado.js)
-#   sobres-C5.pdf su sobre (C5, para la carta doblada por la mitad), con su nombre y su dirección
+#                 del enlace (?guia&m=…, ver «muestraDe» en js/oficio-estado.js). Cada carta son dos páginas: la carta y,
+#                 detrás, el sobre de la misma hoja (20-11-2026): se imprime a doble cara por el lado largo y se dobla en
+#                 tres, primero la franja de abajo hacia arriba y luego la de arriba hacia abajo (las marcas del borde)
+#   sobres-C5.pdf (solo con --sobre-c5) el sobre C5 de antes, para la carta doblada por la mitad
 #   hoja.csv    una fila por negocio, en el orden de las cartas, para apuntar la visita, el permiso y los seguimientos
 # Antes de mandarlas: pasar la lista por la Lista Robinson (las de autónomos) y publicar la demo (el enlace es de ooox.es).
 # Uso: python3 tanda.py --lista <lista-larga.csv> --contactos <contactos.csv> --out <carpeta> [--max 40] [--hasta 2026-12-20]
@@ -107,7 +109,8 @@ def enlace(url, n, z, h, t='', d='', nota=0, res=0, b=''):
     if b: o['b'] = b
     o['h'] = h.isoformat()
     j = json.dumps(o, ensure_ascii=False, separators=(',', ':')).encode()
-    return url + '?m=' + base64.urlsafe_b64encode(j).decode().rstrip('=')
+    # «guia»: al abrirla, empieza sola la demo guiada (20-11-2026)
+    return url + '?guia&m=' + base64.urlsafe_b64encode(j).decode().rstrip('=')
 
 def qr_matriz(texto):
     """El QR más pequeño que se lee: cada uno se comprueba leyéndolo (con OpenCV, si está); si no se lee, el siguiente tamaño.
@@ -154,12 +157,12 @@ body{color:#151515;font:400 11.6pt/1.55 Lora,Georgia,serif;-webkit-print-color-a
 .cab{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:4mm;border-bottom:.3mm solid #151515}
 .marca{font:700 15pt/1 "Inter Display",Inter,sans-serif;letter-spacing:.32em}
 .fecha{font-style:italic;font-size:10pt;color:#555}
-.arriba{display:grid;grid-template-columns:1fr 50mm;gap:9mm;margin-top:7mm;align-items:start}
+.arriba{display:grid;grid-template-columns:1fr 46.5mm;gap:9mm;margin-top:7mm;align-items:start}
 .saludo{font-style:italic;font-size:15pt;color:#444;margin:0}
 .nombre{margin:1mm 0 0;font-weight:700;line-height:1.08;letter-spacing:-.01em}
 .p{margin:4.2mm 0 0;max-width:108mm}
 .hecho{margin-top:4.6mm;font-weight:700;font-size:12.6pt}
-.movil{position:relative;width:50mm;height:101mm;border-radius:7.5mm;background:#141414;padding:2.1mm;box-shadow:0 2.5mm 6mm rgba(0,0,0,.22)}
+.movil{position:relative;width:46.5mm;height:94mm;border-radius:7.5mm;background:#141414;padding:2.1mm;box-shadow:0 2.5mm 6mm rgba(0,0,0,.22)}
 .movil img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;border-radius:5.6mm}
 .pie-movil{margin:2.4mm 0 0;font:italic 9pt/1.3 Lora,serif;color:#666;text-align:center}
 .gratis{display:grid;grid-template-columns:auto 1fr;gap:8mm;align-items:center;margin-top:6mm;padding:5mm 7mm;border:.7mm solid #151515;border-radius:6mm}
@@ -171,7 +174,7 @@ body{color:#151515;font:400 11.6pt/1.55 Lora,Georgia,serif;-webkit-print-color-a
 .sin b{font-weight:700;color:#151515}
 .flecha{position:absolute;left:-7.4mm;top:50%;width:7mm;height:7mm;margin-top:-3.5mm}
 .txt{position:relative}
-.ventajas{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm;margin-top:6mm}
+.ventajas{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm;margin-top:15mm}
 .v{font:400 9.8pt/1.42 Inter,sans-serif;color:#222}
 .v svg{display:block;width:8mm;height:8mm;margin-bottom:2mm}
 .cierre{margin-top:6mm;max-width:150mm}
@@ -192,6 +195,75 @@ body{color:#151515;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .dentro{position:absolute;left:14mm;bottom:10mm;font:italic 13pt/1.3 Lora,serif;color:#151515}
 .dentro span{padding:0 1.5mm;background:linear-gradient(transparent 52%,#ffd23f 52%,#ffd23f 92%,transparent 92%)}
 .linea{position:absolute;left:14mm;right:14mm;bottom:22mm;border-top:.25mm solid #151515;opacity:.15}"""
+
+def fuente_archivo(nombre, archivo, peso=400, estilo='normal'):
+    """Una letra de la carpeta fuentes/, metida en el PDF (no hace falta tenerla instalada)."""
+    try:
+        with open(os.path.join(AQUI, 'fuentes', archivo), 'rb') as f: b = base64.b64encode(f.read()).decode()
+    except OSError: return ''
+    fmt = 'opentype' if archivo.endswith('.otf') else 'truetype'
+    return f"@font-face{{font-family:'{nombre}';src:url(data:font/{fmt};base64,{b}) format('{fmt}');font-weight:{peso};font-style:{estilo}}}"
+
+# La carta autosobre (20-11-2026): la misma hoja A4, impresa por las dos caras y doblada en tres (como una carta de las de
+# antes), hace de sobre. Por fuera, tres franjas de 99 mm, de arriba abajo en la cara de atrás:
+#   A · la solapa: «¡Tenemos un regalo para ti!» y las flechas de por dónde se abre (el borde de arriba de la hoja);
+#   B · la cara del sobre: su nombre y su dirección, el sello de OOOX con su matasellos; va girada 180°, para que se lea
+#       derecha una vez doblada;
+#   C · lo primero que se ve al abrir la solapa: «Tu regalo está dentro». Doblado: primero se sube la franja de abajo y
+#       luego se baja la de arriba. Imprimir a doble cara, por el lado largo.
+CSS_FUERA = r"""
+.fuera{width:210mm;height:297mm;position:relative;page-break-after:always;break-after:page;overflow:hidden;color:#1a1a1a}
+.fuera:last-child{page-break-after:auto;break-after:auto}
+.pan{position:absolute;left:0;width:210mm;height:99mm;overflow:hidden}
+.pA{top:0}.pB{top:99mm;transform:rotate(180deg)}.pC{top:198mm}
+.avion{position:absolute;inset:4.5mm;border:2.6mm solid transparent;border-image:repeating-linear-gradient(-45deg,#ffd23f 0 3.2mm,#fff 3.2mm 4.4mm,#151515 4.4mm 7.6mm,#fff 7.6mm 8.8mm) 4}
+.scr{font-family:'Chorus',cursive;font-weight:400;font-style:normal}
+.bask{font-family:'Baskerville Libre',Georgia,serif}
+.cri{font-family:'Crimson It',Georgia,serif;font-style:italic}
+/* A · la solapa */
+.pA .abre{position:absolute;left:0;right:0;top:11mm;text-align:center;font-size:12.5pt;letter-spacing:.06em}
+.pA .fl{position:absolute;top:9.5mm;width:9mm;height:12mm}
+.pA .t{position:absolute;left:12mm;right:12mm;top:30mm;text-align:center;font-size:40pt;line-height:1.05}
+.pA .sub{position:absolute;left:0;right:0;top:57mm;text-align:center;font-size:13pt;color:#444}
+.pA .lacre{position:absolute;left:50%;bottom:14mm;width:17mm;height:17mm;margin-left:-8.5mm}
+/* B · la cara del sobre */
+.pB .rem{position:absolute;left:13mm;top:12mm;font-size:8.6pt;letter-spacing:.12em;text-transform:uppercase;color:#444}
+.pB .sello{position:absolute;right:15mm;top:10mm;width:30mm;height:30mm;transform:rotate(6deg)}
+.pB .mata{position:absolute;right:33mm;top:12mm;width:42mm;height:28mm;opacity:.55}
+.pB .para{position:absolute;left:62mm;right:14mm;top:43mm}
+.pB .para .a{font-size:15pt;color:#555}
+.pB .para .n{font-size:30pt;line-height:1.02;margin-top:-1mm}
+.pB .para .d{margin-top:2.5mm;font-size:10.8pt;line-height:1.45;padding-top:2mm;border-top:.25mm solid #1a1a1a;display:inline-block;min-width:80mm}
+/* C · al abrir */
+.pC .t{position:absolute;left:0;right:0;top:22mm;text-align:center;font-size:32pt;line-height:1}
+.pC .x{position:absolute;left:30mm;right:30mm;top:41mm;text-align:center;font-size:12.5pt;line-height:1.4;color:#333}
+.pC .fl{position:absolute;left:50%;top:70mm;width:10mm;height:14mm;margin-left:-5mm}
+/* las marcas para doblar, en el borde: también en la carta */
+.pl{position:absolute;width:6mm;border-top:.25mm solid #9a9a9a}.pl.i{left:0}.pl.d{right:0}"""
+
+FLECHA_ARRIBA = '<svg class="fl" style="{}" viewBox="0 0 24 32" fill="none" stroke="#1a1a1a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 30C12 20 6 16 12 3M6 9l6-6 6 6"/></svg>'
+LACRE = ('<svg class="lacre" viewBox="0 0 100 100"><path d="M50 4c9 0 12 6 20 8s14 1 18 9-1 13 1 21 8 12 4 20-10 7-14 14-4 15-13 18-13-3-21-1-13 9-21 5-6-11-12-16-15-3-17-12 6-13 5-21-7-14-1-20 13-3 20-8S41 4 50 4z" fill="#ffd23f" stroke="#151515" stroke-width="2"/>'
+         '<circle cx="50" cy="50" r="27" fill="none" stroke="#151515" stroke-width="1.6"/><text x="50" y="57" text-anchor="middle" font-family="Chorus,serif" font-size="24" fill="#151515">O</text></svg>')
+MATASELLOS = ('<svg class="mata" viewBox="0 0 150 100" fill="none" stroke="#1a1a1a" stroke-width="1.4"><circle cx="40" cy="50" r="30"/><circle cx="40" cy="50" r="22"/>'
+              '<text x="40" y="47" text-anchor="middle" font-family="Baskerville Libre,serif" font-size="8" fill="#1a1a1a" stroke="none">BARCELONA</text>'
+              '<text x="40" y="60" text-anchor="middle" font-family="Baskerville Libre,serif" font-size="8" fill="#1a1a1a" stroke="none">{fecha}</text>'
+              + ''.join(f'<path d="M74 {y}c10-6 20 6 30 0s20-6 30 0 10 6 14 3"/>' for y in (30, 42, 54, 66)) + '</svg>')
+
+def marcas_doblez():
+    return ''.join(f'<i class="pl {l}" style="top:{y}mm"></i>' for y in (99, 198) for l in ('i', 'd'))
+
+def fuera_html(d, f, fecha_corta):
+    T = textos.carta_futuro(d); e = html.escape
+    n = d['negocio']; tn = 30 if len(n) <= 18 else 25 if len(n) <= 26 else 21
+    return (f'<section class="fuera">'
+            f'<div class="pan pA"><div class="avion"></div>'
+            f'{FLECHA_ARRIBA.format("left:58mm")}<p class="abre cri">{e(T["abre"])}</p>{FLECHA_ARRIBA.format("right:58mm")}'
+            f'<p class="t scr">{e(T["regalo"])}</p><p class="sub cri">{e(T["regalo_sub"])}</p>{LACRE}</div>'
+            f'<div class="pan pB"><div class="avion"></div><p class="rem bask">{e(T["remite"])}</p>{MATASELLOS.format(fecha=e(fecha_corta))}{SELLO}'
+            f'<div class="para"><div class="a scr">{e(T["sobre_para"])}</div><div class="n scr" style="font-size:{tn}pt">{e(n)}</div>'
+            f'<div class="d bask">{e(f["dir"])}<br>Barcelona</div></div></div>'
+            f'<div class="pan pC">{FLECHA_ARRIBA.format("")}<p class="t scr">{e(T["dentro_t"])}</p><p class="x cri">{e(T["dentro_x"])}</p></div>'
+            f'{marcas_doblez()}</section>')
 
 def tam_nombre(n):
     """El nombre, lo más grande que quepa en dos líneas de la columna."""
@@ -218,7 +290,7 @@ def carta_html(d, f, fecha, foto):
             f'<p class="esc">{e(T["escanea"])}</p><p class="sin">{e(T["sin"]).replace(e(d["hasta"]), "<b>" + e(d["hasta"]) + "</b>")}</p></div></div>'
             '<div class="ventajas">' + ''.join(f'<div class="v">{ICONOS[i]}{e(x)}</div>' for i, x in enumerate(T['ventajas'])) + '</div>'
             f'<p class="cierre">{e(T["cierre"])}</p><div class="firma">{e(T["firma"])}</div><p class="quien">{e(T["firma"])} · {e(T["firma_pie"])}</p>'
-            f'<p class="legal">{e(T["legal"])}</p></section>')
+            f'<p class="legal">{e(T["legal"])}</p>{marcas_doblez()}</section>')
 
 def sobre_html(d, f):
     T = textos.carta_futuro(d); e = html.escape
@@ -256,7 +328,7 @@ def servir(carpeta):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--lista', required=True); ap.add_argument('--contactos', required=True); ap.add_argument('--out', required=True)
-    ap.add_argument('--max', type=int, default=40); ap.add_argument('--sitio', default=os.path.join(AQUI, '../../../frontend/public/demos/ramirez-24h')); ap.add_argument('--hasta', default=''); ap.add_argument('--url', default=URL); ap.add_argument('--fecha', default='')
+    ap.add_argument('--max', type=int, default=40); ap.add_argument('--sitio', default=os.path.join(AQUI, '../../../frontend/public/demos/ramirez-24h')); ap.add_argument('--hasta', default=''); ap.add_argument('--url', default=URL); ap.add_argument('--fecha', default=''); ap.add_argument('--sobre-c5', action='store_true', help='además, los sobres C5 de antes')
     o = ap.parse_args()
     L = list(csv.DictReader(open(o.lista, encoding='utf-8-sig'), delimiter=';')); C = list(csv.DictReader(open(o.contactos, encoding='utf-8-sig'), delimiter=';'))
     assert len(L) == len(C) and all(a['nombre'] == c['nombre'] for a, c in zip(L, C)), 'las dos listas no van fila a fila'
@@ -291,10 +363,11 @@ def main():
         d = dict(negocio=r['corto'], oficio=textos.oficio_de(r['cat'], r['nombre']), persona='', enlace=r['enlace'], hasta=hasta_txt(h), whatsapp=textos.WHATSAPP,
                  fuente='Google Maps' if r['fuente'] == 'google' else 'Bing Maps')
         with open(os.path.join(fo, f'movil-{i + 1:02d}.jpg'), 'rb') as fh: foto = 'data:image/jpeg;base64,' + base64.b64encode(fh.read()).decode()
-        cartas.append(carta_html(d, r, fecha, foto)); sobres.append(sobre_html(d, r))
-    FU = fuente('Barlow Condensed', os.path.join(o.sitio, 'assets/fuentes/barlow-condensed-800.woff2'))
-    asyncio.run(pdf('<!doctype html><html lang="es"><meta charset="utf-8"><style>' + FU + CSS_CARTA + '</style><body>' + ''.join(cartas) + '</body></html>', os.path.join(o.out, 'cartas.pdf')))
-    asyncio.run(pdf('<!doctype html><html lang="es"><meta charset="utf-8"><style>' + CSS_SOBRE + '</style><body>' + ''.join(sobres) + '</body></html>', os.path.join(o.out, 'sobres-C5.pdf')))
+        cartas.append(carta_html(d, r, fecha, foto) + fuera_html(d, r, hoy.strftime('%d.%m.%Y'))); sobres.append(sobre_html(d, r))
+    FU = (fuente('Barlow Condensed', os.path.join(o.sitio, 'assets/fuentes/barlow-condensed-800.woff2')) + fuente_archivo('Chorus', 'texgyrechorus-mediumitalic.otf')
+          + fuente_archivo('Baskerville Libre', 'LibreBaskerville-Regular.ttf') + fuente_archivo('Crimson It', 'CrimsonPro-Italic.ttf', estilo='italic'))
+    asyncio.run(pdf('<!doctype html><html lang="es"><meta charset="utf-8"><style>' + FU + CSS_CARTA + CSS_FUERA + '</style><body>' + ''.join(cartas) + '</body></html>', os.path.join(o.out, 'cartas.pdf')))
+    if o.sobre_c5: asyncio.run(pdf('<!doctype html><html lang="es"><meta charset="utf-8"><style>' + CSS_SOBRE + '</style><body>' + ''.join(sobres) + '</body></html>', os.path.join(o.out, 'sobres-C5.pdf')))
     with open(os.path.join(o.out, 'hoja.csv'), 'w', encoding='utf-8-sig', newline='') as fh:
         w = csv.writer(fh, delimiter=';')
         w.writerow(['Orden', 'Zona', 'Negocio', 'En la carta', 'Teléfono', 'Dirección', 'Nota', 'Reseñas', 'Por qué', 'Web', 'Correo', 'Instagram', 'Maps', 'Su muestra', 'Hasta',

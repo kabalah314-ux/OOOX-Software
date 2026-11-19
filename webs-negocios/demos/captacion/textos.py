@@ -152,6 +152,13 @@ def carta_futuro(d):
         'firma_pie': 'OOOX · ooox.es',
         'sobre_para': 'Para',
         'sobre_dentro': f'Dentro hay algo hecho solo para {n}.',
+        # la misma hoja, doblada en tres, hace de sobre (20-11-2026, lo pidió Oscar: «para no pagar extras»)
+        'regalo': '¡Tenemos un regalo para ti!',
+        'regalo_sub': f'Hecho solo para {n}',
+        'abre': 'Ábrelo por aquí',
+        'dentro_t': 'Tu regalo está dentro',
+        'dentro_x': 'Despliega la hoja: es un programa con tu nombre, listo para probar.',
+        'remite': 'OOOX · Oscar Conesa · Barcelona',
         'legal': (f"Tu dirección la he sacado de tu ficha pública de {d.get('fuente') or 'Google Maps'}. Si no quieres que te escriba, "
                   f"dímelo y la borro. Cómo trato tus datos: {PRIVACIDAD}"),
     }
