@@ -34,8 +34,12 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.19a';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.19b';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
+/* un correo que se puede usar (19-11-2026): algo, una arroba, algo, un punto y al menos dos letras */
+const EMAIL=/^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,}$/;
+/* lo que el cliente dice que ha pagado desde su zona: lo que no se paga ahí mismo */
+const PAGA_ZONA=['bizum','transferencia'];
 /* el idioma del cliente (17-11-2026): castellano, catalán o inglés. En el aviso solo va si no es el castellano */
 const IDIOMAS=['es','ca','en'],NOM_IDIOMA={es:'castellano',ca:'catalán',en:'inglés'};
 /* por dónde entra un aviso: reserva en la web, botón de WhatsApp de la web, WhatsApp directo, teléfono, en persona */
@@ -420,7 +424,9 @@ const noEscribe=(S,tel)=>{const t9=tel9(tel);return!!t9&&S.avisos.some(x=>x.noMs
 const idiomaDe=(S,tel)=>{const t9=tel9(tel);let u=null;if(t9)S.avisos.forEach(x=>{if(x.cli&&x.cli.tel===t9&&(!u||x.t>u.t))u=x});return u&&IDIOMAS.includes(u.idioma)?u.idioma:'es'};
 /* los mensajes que ya toca mandar: ni los mandados, ni los dejados, ni los caducados, ni los de seguimiento a quien dijo que no */
 function porMandar(S,ahora){const no=new Set(S.avisos.filter(x=>x.noMsg&&x.cli&&x.cli.tel).map(x=>x.cli.tel));
- return[].concat(...S.avisos.filter(a=>a.e!=='cancelado'&&Array.isArray(a.msgs)).map(a=>a.msgs.filter(m=>!m.env&&m.t<=ahora&&!(m.hasta&&m.hasta<ahora)&&!(SEGUIR.includes(m.k)&&(a.noMsg||no.has(a.cli&&a.cli.tel)))).map(m=>({a,m})))).sort((x,y)=>x.m.t-y.m.t)}
+ /* el presupuesto que el cliente ya ha pedido hacer desde su zona (19-11-2026) no se le recuerda */
+ const pedidos=new Set(S.avisos.filter(x=>x.dePres&&x.e!=='cancelado').map(x=>x.dePres));
+ return[].concat(...S.avisos.filter(a=>a.e!=='cancelado'&&Array.isArray(a.msgs)).map(a=>a.msgs.filter(m=>!m.env&&m.t<=ahora&&!(m.hasta&&m.hasta<ahora)&&!(SEGUIR.includes(m.k)&&(a.noMsg||no.has(a.cli&&a.cli.tel)))&&!(m.k==='presupuesto'&&pedidos.has(a.id))).map(m=>({a,m})))).sort((x,y)=>x.m.t-y.m.t)}
 
 /* ---------- el tiempo de trabajo, sin las pausas ---------- */
 function minutos(A,t){if(!A.ini)return 0;const fin=A.fin||t||Date.now();let ms=fin-A.ini;(A.pausas||[]).forEach(p=>{ms-=(p[1]||fin)-p[0]});return Math.max(0,Math.round(ms/MIN))}
@@ -447,7 +453,7 @@ function publico(N){const x={id:N.id,publico:true};
  return x}
 
 /* ---------- las acciones ---------- */
-const CON_ACC=['cobroContrato','renovar','bajaContrato'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato','escribir','furgo','web'].concat(CON_ACC);
+const CON_ACC=['cobroContrato','renovar','bajaContrato','pagadoCon'],SIN_AVISO=['pedir','ausencia','quitarAusencia','contrato','escribir','furgo','web','misDatos','olvido'].concat(CON_ACC);
 function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  const R=err=>({ok:false,err});
  const A=typeof a.id==='string'?S.avisos.find(x=>x.id===a.id):null;
@@ -459,11 +465,13 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  const msg=(X,k,cuando,hasta)=>{if(SEGUIR.includes(k)&&(X.noMsg||noEscribe(S,X.cli.tel)))return;X.msgs=X.msgs.filter(m=>m.k!==k||m.env);const m={k,t:cuando||t,env:0};if(hasta)m.hasta=hasta;X.msgs.push(m)};
  const sinMsg=(X,ks)=>{X.msgs=X.msgs.filter(m=>m.env||!ks.includes(m.k))};
  const ok=r=>{S.v++;return Object.assign({ok:true},r)};
- const datosCli=(c0,parcial)=>{const c1=c0&&typeof c0==='object'?c0:{},nombre=txt(c1.nombre).trim().replace(/\s+/g,' ').slice(0,60),apellidos=txt(c1.apellidos).trim().replace(/\s+/g,' ').slice(0,80),tel=tel9(c1.tel),dir=txt(c1.dir).trim().replace(/\s+/g,' ').slice(0,120),cp=soloNum(c1.cp).slice(0,5);
+ const datosCli=(c0,parcial)=>{const c1=c0&&typeof c0==='object'?c0:{},email=txt(c1.email).trim().toLowerCase().slice(0,120),nombre=txt(c1.nombre).trim().replace(/\s+/g,' ').slice(0,60),apellidos=txt(c1.apellidos).trim().replace(/\s+/g,' ').slice(0,80),tel=tel9(c1.tel),dir=txt(c1.dir).trim().replace(/\s+/g,' ').slice(0,120),cp=soloNum(c1.cp).slice(0,5);
   const dis=cfg.zonas.cp[cp]||(typeof c1.dis==='string'&&cfg.zonas.dis[c1.dis]?c1.dis:'');
   if(!parcial){if(nombre.length<2)return{err:'nombre'};if(apellidos.length<2)return{err:'apellidos'};if(!tel)return{err:'tel'};if(dir.length<5)return{err:'dir'};if(!dis)return{err:cp.length===5?'zona':'cp'}}
   else if(cp.length===5&&!dis)return{err:'zona'};
-  return{cli:{nombre,apellidos,tel,dir,cp,dis}}};
+  /* el correo, si lo ha dado (desde su zona, 19-11-2026): para mandarle las facturas */
+  if(email&&!EMAIL.test(email))return{err:'email'};
+  return{cli:Object.assign({nombre,apellidos,tel,dir,cp,dis},email?{email}:{})}};
  const unaCita=c=>c&&typeof c==='object'&&typeof c.dia==='string'&&typeof c.fr==='string';
  /* queda escrito cuando la oficina pone una cita donde el cliente no habría podido */
  const porOf=c=>!c.of?'':c.of==='margen'?', con menos de dos horas de margen':c.of==='reserva'?', en el hueco que se guarda para urgencias':', hoy mismo y en el hueco que se guarda para urgencias';
@@ -494,8 +502,11 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   const c0=conDe(S,cfg,X,t);if(c0)X.con=c0;
   /* y en una revisión sin contrato, el plan de mantenimiento que quiere: lo firma con la oficina */
   const plan=X.av===REV&&!c0&&typeof a.plan==='string'?planDe(cfg,a.plan):null;if(plan)X.quiere=plan.id;
+  /* «Pedir cita para hacerlo» (19-11-2026): la cita es para hacer un presupuesto suyo que no aceptó en la visita, de su mismo
+     teléfono y de los últimos 90 días, que nadie ha pedido ya. Se apunta cuál; su recordatorio ya no sale (porMandar) */
+  const P0=typeof a.dePres==='string'&&X.cli.tel?S.avisos.find(x=>x.id===a.dePres&&x.noPres&&x.cli&&x.cli.tel===X.cli.tel&&t-x.noPres.t<=90*DIA&&!S.avisos.some(y=>y.dePres===x.id&&y.e!=='cancelado')):null;if(P0)X.dePres=P0.id;
   if(noEscribe(S,X.cli.tel))X.noMsg=t;   // quien dijo que no quiere mensajes de seguimiento, lo sigue diciendo en su aviso nuevo
-  S.avisos.push(X);log(X,(cita?'Cita pedida'+porOf(cita):'Aviso recibido')+(c0?'. Cliente con contrato de mantenimiento ('+c0.id+')':'')+(vuelve?'. El cliente dice que ha vuelto a fallar el trabajo '+vuelve:'')+(plan?'. Quiere el '+plan.n.toLowerCase():''));
+  S.avisos.push(X);log(X,(cita?'Cita pedida'+porOf(cita):'Aviso recibido')+(c0?'. Cliente con contrato de mantenimiento ('+c0.id+')':'')+(vuelve?'. El cliente dice que ha vuelto a fallar el trabajo '+vuelve:'')+(plan?'. Quiere el '+plan.n.toLowerCase():'')+(P0?'. Quiere hacer el presupuesto de '+P0.id+' ('+eur(P0.noPres.total)+')':''));
   if(X.cli.tel)msg(X,'recibido');
   return ok({id})}
 
@@ -653,6 +664,41 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   if(!PAGOS.includes(a.modo)||a.modo==='pendiente')return R('modo');
   A.pago={modo:a.modo,t,cobrado:true};sinMsg(A,['cobro']);log(A,'Cobrado ('+a.modo+')');return ok()}
 
+ /* desde su zona (19-11-2026), el cliente dice que ya lo ha pagado por Bizum o por transferencia. No es cobrado: lo mira la
+    oficina y lo da por cobrado con «cobrar». Mientras, no se le recuerda el pago */
+ case 'pagado':{
+  if(!esCli)return R('permiso');if(A.e!=='hecho'||!A.tot||!A.tot.total||!A.pago||A.pago.cobrado)return R('estado');
+  if(!PAGA_ZONA.includes(a.modo))return R('modo');if(A.pago.dice&&A.pago.dice.modo===a.modo)return R('estado');
+  A.pago.dice={modo:a.modo,t};sinMsg(A,['cobro']);log(A,'El cliente dice que lo ha pagado ('+a.modo+')');return ok()}
+ /* lo mismo con la cuota de su contrato de mantenimiento */
+ case 'pagadoCon':{
+  if(!C)return R('contrato');if(q.rol!=='cliente'||!tel9(q.id)||tel9(C.cli&&C.cli.tel)!==tel9(q.id))return R('permiso');
+  const p=C.per[C.per.length-1];if(C.e!=='activo'||!p||!p.pago||p.pago.cobrado||!(p.precio>0))return R('estado');
+  if(!PAGA_ZONA.includes(a.modo))return R('modo');if(p.pago.dice&&p.pago.dice.modo===a.modo)return R('estado');
+  p.pago.dice={modo:a.modo,t};logC(C,'El cliente dice que ha pagado la cuota ('+a.modo+')');return ok()}
+ /* «¿Sigue todo bien?» contestado desde su zona: ya no se le pregunta por mensaje. La reseña se le pide igual que a todos */
+ case 'bien':{
+  if(!esCli)return R('permiso');if(A.e!=='hecho'||A.sinTrabajo||A.bien)return R('estado');
+  A.bien=t;sinMsg(A,['seguimiento']);log(A,'El cliente dice que sigue todo bien');return ok()}
+ /* sus datos, cambiados por él (19-11-2026): el nombre en sus avisos sin factura (con la factura ya hecha, se queda el nombre que
+    lleva) y el correo en todos. La dirección de una cita se cambia llamando. La oficina lo ve en el historial */
+ case 'misDatos':{
+  const t9=tel9(q.id);if(q.rol!=='cliente'||!t9)return R('permiso');const L=S.avisos.filter(x=>x.cli&&x.cli.tel===t9);if(!L.length)return R('tel');
+  const nombre=txt(a.nombre).trim().replace(/\s+/g,' ').slice(0,60),apellidos=txt(a.apellidos).trim().replace(/\s+/g,' ').slice(0,80),email=txt(a.email).trim().toLowerCase().slice(0,120);
+  if(nombre.length<2)return R('nombre');if(apellidos.length<2)return R('apellidos');if(email&&!EMAIL.test(email))return R('email');
+  let n=0;L.forEach(x=>{const c=Object.assign({},x.cli);let cambia=false;
+   if(!x.fac&&(c.nombre!==nombre||c.apellidos!==apellidos)){c.nombre=nombre;c.apellidos=apellidos;cambia=true}
+   if(txt(c.email)!==email){if(email)c.email=email;else delete c.email;cambia=true}
+   if(cambia){x.cli=c;x.v=(x.v||0)+1;n++}});
+  if(!n)return R('estado');log(L.reduce((x,y)=>y.t>x.t?y:x),'El cliente cambia sus datos desde su zona');return ok()}
+ /* pide que se borren sus datos (19-11-2026): queda en su último aviso para que la oficina se lo pida a OOOX, que lo hace en el
+    servidor (olvidar_cliente). Desde ese momento, ningún mensaje de seguimiento */
+ case 'olvido':{
+  const t9=tel9(q.id);if(q.rol!=='cliente'||!t9)return R('permiso');const L=S.avisos.filter(x=>x.cli&&x.cli.tel===t9);if(!L.length)return R('tel');
+  if(L.some(x=>x.olvido))return R('estado');const ult=L.reduce((x,y)=>y.t>x.t?y:x);ult.olvido={t};
+  L.forEach(x=>{if(!x.noMsg){x.noMsg=t;x.msgs=x.msgs.filter(m=>m.env||!SEGUIR.includes(m.k));x.v=(x.v||0)+1}});
+  log(ult,'El cliente pide que se borren sus datos');return ok()}
+
  /* La factura la hace el programa del negocio, no esta app. La oficina apunta que ya está hecha, con su número si quiere,
     para que ningún trabajo se quede sin facturar. «quitar» lo deshace si se marcó por error. */
  /* «Es garantía» (16-11-2026): la oficina decide que el aviso vuelve sobre un trabajo que sigue en garantía. Antes de empezar:
@@ -804,7 +850,9 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
   S.web=W;return ok()}
 
  case 'escribir':{
-  if(!esC)return R('permiso');if(typeof a.si!=='boolean')return R('si');const t9=tel9(a.tel),L=t9?S.avisos.filter(x=>x.cli&&x.cli.tel===t9):[];if(!L.length)return R('tel');
+  /* la oficina, o el cliente con su teléfono desde su zona (19-11-2026) */
+  const yo=q.rol==='cliente'&&!!tel9(q.id)&&tel9(a.tel)===tel9(q.id);
+  if(!esC&&!yo)return R('permiso');if(typeof a.si!=='boolean')return R('si');const t9=tel9(a.tel),L=t9?S.avisos.filter(x=>x.cli&&x.cli.tel===t9):[];if(!L.length)return R('tel');
   const ult=L.reduce((x,y)=>y.t>x.t?y:x);
   if(a.si){if(!L.some(x=>x.noMsg))return R('estado');L.forEach(x=>{if(x.noMsg){delete x.noMsg;x.v=(x.v||0)+1}});log(ult,'Vuelve a querer los mensajes de seguimiento')}
   else{if(L.every(x=>x.noMsg))return R('estado');L.forEach(x=>{x.noMsg=t;x.msgs=x.msgs.filter(m=>m.env||!SEGUIR.includes(m.k));x.v=(x.v||0)+1});log(ult,'No quiere mensajes de seguimiento')}
@@ -827,7 +875,7 @@ function vistaCliente(S,cfg,id){const A=S.avisos.find(x=>x.id===id);if(!A)return
 /* Lo que es de un cliente lo decide su teléfono. Se le da lo que ya lleva en sus papeles (presupuesto, parte y garantía)
    y la vista de cada aviso. Nunca el diario interno, los mensajes, la nota con la que entró el aviso ni nada de otro cliente.
    Se devuelve una copia: tocarla no cambia los avisos. */
-const PERFIL=['enGar','rebajas','id','av','e','urg','t','cita','tec','ini','fin','min','sinTrabajo','pres','amp','tot','pago','gar','obs','conf','fotos','fac','cli','con','vuelve','quiere'];
+const PERFIL=['enGar','rebajas','id','av','e','urg','t','cita','tec','ini','fin','min','sinTrabajo','pres','amp','tot','pago','gar','obs','conf','fotos','fac','cli','con','vuelve','quiere','noPres','dePres','bien','olvido'];
 const CONT=['id','plan','cli','t','acepta','firma','des','e','per','baja'];   /* lo que el cliente ve de su contrato: no el historial */
 const CLIENTE_DEMO='2468-1357';   /* en la demo, sin servidor, los clientes de muestra entran con este código */
 /* el edificio de una dirección: la calle y su número, sin el piso ni la puerta («C/ Verdi 28, 2.º 1.ª» y «C/ Verdi 28, bajos», la misma finca) */
@@ -837,12 +885,15 @@ function perfilCliente(S,cfg,tel){const t9=tel9(tel);if(!t9||!S||!Array.isArray(
  const mios=S.avisos.filter(a=>a&&a.cli&&tel9(a.cli.tel)===t9).sort((a,b)=>b.t-a.t);
  const contratos=(S.contratos||[]).filter(C=>C&&C.cli&&tel9(C.cli.tel)===t9).sort((a,b)=>b.t-a.t).map(C=>{const o={};CONT.forEach(k=>{if(C[k]!==undefined)o[k]=JSON.parse(JSON.stringify(C[k]))});return o});
  if(!mios.length&&!contratos.length)return null;
- const avisos=mios.map(A=>{const o={};PERFIL.forEach(k=>{if(A[k]!==undefined)o[k]=JSON.parse(JSON.stringify(A[k]))});o.vista=vistaCliente(S,cfg,A.id);return o});
+ /* del presupuesto que no aceptó, solo la fecha y el total: para pedir cita y hacerlo desde su zona (19-11-2026) */
+ const avisos=mios.map(A=>{const o={};PERFIL.forEach(k=>{if(A[k]!==undefined)o[k]=JSON.parse(JSON.stringify(A[k]))});if(o.noPres)o.noPres={t:o.noPres.t,total:o.noPres.total};o.vista=vistaCliente(S,cfg,A.id);return o});
  /* sus datos, del último aviso que los tenga: uno que entró por WhatsApp puede llevar solo el teléfono */
  const c=(mios.find(a=>txt(a.cli.nombre).trim()&&txt(a.cli.dir).trim())||mios.find(a=>txt(a.cli.nombre).trim())||mios[0]||{cli:contratos[0].cli}).cli;
  /* sus fincas: un administrador lleva varias direcciones con el mismo teléfono. Los pisos de un mismo edificio, juntos */
  const fincas=[];mios.concat(contratos).forEach(a=>{const k=fincaDe(a.cli.dir);if(k.length>4&&!fincas.some(f=>f.k===k))fincas.push({k,dir:edificio(a.cli.dir),cp:txt(a.cli.cp),dis:txt(a.cli.dis)})});
- return{tel:t9,cli:{nombre:txt(c.nombre),apellidos:txt(c.apellidos),dir:txt(c.dir),cp:txt(c.cp),dis:txt(c.dis)},avisos,fincas,contratos}}
+ /* su correo, del último aviso que lo tenga; y si quiere los mensajes de seguimiento (lo cambia él en su zona, 19-11-2026) */
+ const em=(mios.find(a=>txt(a.cli.email))||{cli:{}}).cli.email;
+ return{tel:t9,cli:Object.assign({nombre:txt(c.nombre),apellidos:txt(c.apellidos),dir:txt(c.dir),cp:txt(c.cp),dis:txt(c.dis)},em?{email:txt(em)}:{}),avisos,fincas,contratos,escribe:!noEscribe(S,t9)}}
 
 /* ---------- las cifras del día para la centralita ---------- */
 /* los contratos que piden algo a la oficina: renovar (del mes antes de acabar a dos meses después), dar la cita de la revisión y cobrar */

@@ -109,6 +109,93 @@ async def zona_nueva(pg, B, es, COD):
         iban = await pg.evaluate('(Oficio.N.pago||{}).iban||""'); eur = await pg.evaluate(f"Oficio.K.eur({D['tot']['total']})")
         es(D['id'] in m and eur in m and (not iban or iban in m) and 'concepto' in m, f'Pagos: {D["id"]}, {eur} y cómo pagarlo')
 
+async def zona_tarde(pg, B, es, COD):
+    '''Lo de la tarde del 19-11-2026: «Ya lo he pagado», el recibo, lo pendiente (el presupuesto que no aceptó, «¿sigue todo
+    bien?» y la reseña) y la cuenta (su nombre y su correo, los mensajes, descargar sus datos y pedir que se borren)'''
+    S = await pg.evaluate('Oficio.estado()'); tel9 = lambda s: ''.join(ch for ch in str(s) if ch.isdigit())[-9:]
+    vias = await pg.evaluate("(()=>{const p=Oficio.N.pago||{};return [Oficio.K.tel9(p.bizum)?'bizum':'',p.iban?'transferencia':''].filter(Boolean)})()")
+    yo = None
+    # «Ya lo he pagado»: lo dice él y sigue pendiente hasta que la oficina lo mira; después, su recibo
+    D = next((a for a in S['avisos'] if a['e'] == 'hecho' and (a.get('tot') or {}).get('total', 0) > 0 and not (a.get('pago') or {}).get('cobrado') and not (a.get('pago') or {}).get('dice')), None)
+    es(D and vias, 'la muestra tiene un trabajo por cobrar y el negocio, Bizum o cuenta')
+    if D and vias:
+        yo = D; await entra(pg, B, tel9(D['cli']['tel']), COD); await pg.goto(B + 'cliente.html#/pagos'); await pg.wait_for_selector(f'[data-pagado="{D["id"]}"]')
+        n0 = await pg.locator('#tabs a[href="#/pagos"] .n').count()
+        await pg.click(f'[data-pagado="{D["id"]}"]'); await pg.wait_for_selector('dialog[open] #pSi')
+        if len(vias) > 1:
+            es(await pg.locator('dialog[open] #pSi').is_disabled(), 'con dos formas, hasta elegir una no se puede avisar'); await pg.click(f'dialog[open] [data-modo="{vias[-1]}"]')
+        es(await pg.locator(f'dialog[open] [data-modo="{vias[-1]}"][aria-checked=true]').count() == 1 and 'te lo confirmamos' in await pg.locator('dialog[open]').inner_text(), 'cómo lo ha pagado, y que lo miramos y se lo confirmamos')
+        await pg.click('dialog[open] #pSi'); await pg.wait_for_selector('dialog[open]', state='detached')
+        A1 = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{D['id']}')")
+        es(A1['pago']['dice']['modo'] == vias[-1] and not A1['pago']['cobrado'] and 'Avisado' in await pg.locator('#toast').inner_text(), f'{D["id"]}: avisado ({vias[-1]}); sigue pendiente')
+        es('Nos avisaste' in await pg.locator('main').inner_text() and await pg.locator(f'[data-pagado="{D["id"]}"]').count() == 0 and (n0 == 0 or await pg.locator('#tabs a[href="#/pagos"] .n').count() == 0 or int(await pg.locator('#tabs a[href="#/pagos"] .n').inner_text()) < 2), 'lo dice en su pago, y ese ya no cuenta en el número de «Pagos»')
+        o = await pg.context.new_page(); await o.goto(B + 'app.html#/aviso/' + D['id']); await o.wait_for_selector('#dice')
+        es('dice que lo ha pagado' in await o.locator('#dice').inner_text(), 'la oficina lo ve en el aviso')
+        await o.click('[data-a=cobrar]'); await o.wait_for_selector('dialog[open] #oOk')
+        es(await o.locator(f'dialog[open] [data-modo="{vias[-1]}"][aria-checked=true]').count() == 1 and not await o.locator('dialog[open] #oOk').is_disabled(), 'y al apuntar el cobro sale ya marcada su forma de pago')
+        await o.click('dialog[open] #oOk'); await o.wait_for_timeout(200); await o.close()
+        await pg.goto(B + 'cliente.html#/pagos'); await pg.reload(); await pg.wait_for_selector(f'#pagado a[href="#/aviso/{D["id"]}/recibo"]')
+        await pg.click(f'#pagado a[href="#/aviso/{D["id"]}/recibo"]'); await pg.wait_for_selector('.papel h1')
+        pa = await pg.locator('.papel').inner_text(); eur = await pg.evaluate(f"Oficio.K.eur({D['tot']['total']})")
+        es('Recibo' in pa and eur in pa and 'no es una factura' in pa and (await pg.title()).startswith('Recibo ' + D['id']), f'cobrado: su recibo ({eur}), que no es la factura, con su nombre para guardarlo')
+    # un presupuesto que no aceptó: «Pedir cita para hacerlo»
+    NP = next((a for a in S['avisos'] if a.get('noPres') and a['e'] == 'hecho' and not any(x.get('dePres') == a['id'] for x in S['avisos'])), None)
+    es(NP, 'la muestra tiene un presupuesto sin aceptar')
+    if NP:
+        yo = yo or NP; await entra(pg, B, tel9(NP['cli']['tel']), COD); await pg.wait_for_selector(f'#pend a[data-pres="{NP["id"]}"]')
+        eur = await pg.evaluate(f"Oficio.K.eur({NP['noPres']['total']})")
+        es(eur in await pg.locator('#pend').inner_text() and 'No lo aceptaste' in await pg.locator('#pend').inner_text(), f'Lo pendiente: el presupuesto de {eur} que no aceptó')
+        await pg.click(f'#pend a[data-pres="{NP["id"]}"]'); await pg.wait_for_selector('#presN')
+        es(NP['id'] in await pg.locator('#presN').inner_text() and eur in await pg.locator('main').inner_text() and await pg.input_value('#c_tel') != '', 'en pedir cita: qué presupuesto es, su importe y sus datos ya puestos')
+        await pg.locator('.hora[data-fr]:not([disabled])').first.click(); await pg.click('#f [type=submit]'); await pg.wait_for_selector('#rConfirma')
+        es('Hacer el presupuesto ' + NP['id'] in await pg.locator('main').inner_text(), 'el resumen lo dice')
+        await pg.click('#rConfirma'); await pg.wait_for_url('**#/aviso/*'); nid = pg.url.split('#/aviso/')[1].split('/')[0]
+        N2 = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{nid}')")
+        es(N2.get('dePres') == NP['id'], f'{nid}: la cita es para hacer el presupuesto de {NP["id"]}')
+        o = await pg.context.new_page(); await o.goto(B + 'app.html#/aviso/' + nid); await o.wait_for_selector('#presB')
+        es(NP['id'] in await o.locator('#presB').inner_text() and eur in await o.locator('#presB').inner_text(), 'la oficina lo ve en el aviso, con el importe'); await o.close()
+        await pg.goto(B + 'cliente.html#/'); await pg.reload(); await pg.wait_for_selector('#pend')
+        es('Ya has pedido cita para hacerlo' in await pg.locator('#pend').inner_text() and await pg.locator(f'#pend a[data-pres="{NP["id"]}"]').count() == 0, 'y en su zona, que ya lo ha pedido')
+    # «¿Sigue todo bien?» después de su último trabajo, y la reseña, que se pide a todos igual
+    ahora = await pg.evaluate('Date.now()'); DIA = 86400000
+    B2 = next((a for a in S['avisos'] if a['e'] == 'hecho' and not a.get('sinTrabajo') and a['av'] != 'revision' and not a.get('bien') and a.get('fin') and DIA <= ahora - a['fin'] <= 30 * DIA and not any(x.get('vuelve') == a['id'] for x in S['avisos'])), None)
+    es(B2, 'la muestra tiene un trabajo de hace unos días')
+    if B2:
+        yo = B2; await entra(pg, B, tel9(B2['cli']['tel']), COD); await pg.wait_for_selector(f'[data-bien="{B2["id"]}"]')
+        es('¿Sigue todo bien?' in await pg.locator('#pend').inner_text() and await pg.locator('#pend a[href*="servicio="]').count() >= 1, f'{B2["id"]}: «¿Sigue todo bien?», con «Ha vuelto a fallar»')
+        es(await pg.locator('#resSi').count() == 1 and await pg.locator('#resNo').count() == 1, 'y la reseña, antes de contestar nada')
+        await pg.click(f'[data-bien="{B2["id"]}"]'); await pg.wait_for_function(f"!document.querySelector('[data-bien=\"{B2['id']}\"]')")
+        A3 = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{B2['id']}')")
+        es(A3.get('bien') and not any(m['k'] == 'seguimiento' and not m.get('env') for m in A3['msgs']) and 'Gracias' in await pg.locator('#toast').inner_text(), '«Sí, todo bien»: gracias, y ya no se le pregunta por mensaje')
+        es(await pg.locator('#resSi').count() == 1, 'la reseña sigue igual: no depende de lo que ha contestado')
+        await pg.click('#resNo'); await pg.wait_for_timeout(200)
+        es(await pg.locator('#resSi').count() == 0 and 'más adelante' in await pg.locator('#toast').inner_text(), '«Ahora no»: deja de salir')
+        await pg.reload(); await pg.wait_for_selector('#v h1')
+        es(await pg.locator('#resSi').count() == 0, 'y no vuelve a salir al volver')
+    if not yo: return
+    # la cuenta: su nombre y su correo, los mensajes, descargar sus datos y pedir que se borren
+    tel = tel9(yo['cli']['tel'])
+    await pg.goto(B + 'cliente.html#/cuenta'); await pg.wait_for_selector('#misDatos')
+    await pg.click('#misDatos'); await pg.wait_for_selector('dialog[open] #dEm')
+    es(await pg.input_value('dialog[open] #dNom') != '' and await pg.input_value('dialog[open] #dApe') != '', 'sus datos: el nombre y los apellidos ya puestos')
+    await pg.fill('dialog[open] #dEm', 'mal@'); await pg.click('dialog[open] #dSi'); await pg.wait_for_selector('dialog[open] .campo.mal')
+    es('no está bien escrito' in await pg.locator('dialog[open] .campo.mal').inner_text() and await pg.locator('dialog[open] #dEm[aria-invalid=true]').count() == 1, 'un correo mal escrito: lo dice en su campo')
+    await pg.fill('dialog[open] #dEm', 'cliente@ejemplo.com'); await pg.click('dialog[open] #dSi'); await pg.wait_for_selector('dialog[open]', state='detached')
+    es('cliente@ejemplo.com' in await pg.locator('main').inner_text() and 'Datos guardados' in await pg.locator('#toast').inner_text(), 'guardado: su correo sale en su cuenta')
+    es((await pg.locator('#escribe').inner_text()).startswith('No quiero'), 'los mensajes de después de los trabajos: los recibe')
+    await pg.click('#escribe'); await pg.wait_for_function("document.querySelector('#escribe')&&document.querySelector('#escribe').dataset.si==='1'")
+    es(await pg.evaluate(f"Oficio.K.noEscribe(Oficio.estado(),'{tel}')") and 'Quiero volver' in await pg.locator('#escribe').inner_text(), 'no los quiere: apuntado, y puede volver a quererlos')
+    async with pg.expect_download() as dl: await pg.click('#descarga')
+    d = await dl.value; j = json.load(open(await d.path(), encoding='utf-8'))
+    es(d.suggested_filename.startswith('mis-datos-') and j['tel'] == tel and j['avisos'] and not any('llave' in a for a in j['avisos']), 'descargar sus datos: un archivo con lo suyo')
+    await pg.click('#olvido'); await pg.wait_for_selector('dialog[open] #oSi')
+    es('borrará tu nombre' in await pg.locator('dialog[open]').inner_text() and 'facturas' in await pg.locator('dialog[open]').inner_text(), 'pedir que se borren: dice antes qué se borra y qué se guarda')
+    await pg.click('dialog[open] #oSi'); await pg.wait_for_selector('#olvN')
+    es(await pg.locator('#olvido').count() == 0 and await pg.locator('#misDatos').count() == 0 and 'menos de un mes' in await pg.locator('#olvN').inner_text(), 'pedido: lo dice, y sus datos ya no se cambian desde aquí')
+    ult = await pg.evaluate(f"Oficio.estado().avisos.filter(a=>Oficio.K.tel9(a.cli.tel)==='{tel}').sort((a,b)=>b.t-a.t)[0].id")
+    o = await pg.context.new_page(); await o.goto(B + 'app.html#/aviso/' + ult); await o.wait_for_selector('#olvB')
+    es('que se borren sus datos' in await o.locator('#olvB').inner_text(), 'la oficina lo ve en sus avisos'); await o.close()
+
 async def main():
     ok = 0; mal = []
     def es(c, t):
@@ -207,6 +294,7 @@ async def main():
             es(P2 and P2['tel'] != TEL and all(a['id'] in t3 for a in P2['avisos']), 'con un toque entra como otro cliente de muestra y ve lo suyo')
             await pg.goto(B + 'cliente.html#/'); await pg.click('#salir'); await pg.wait_for_selector('#fE')
             await zona_nueva(pg, B, es, COD)
+            await zona_tarde(pg, B, es, COD)
             await pg.goto(B + 'cliente.html#/')
             if await pg.locator('#salir').count(): await pg.click('#salir'); await pg.wait_for_selector('#fE')
             # desde la oficina: «Su zona» en el aviso, con el mensaje, el enlace y el código; el enlace entra solo

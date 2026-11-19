@@ -60,6 +60,19 @@ p.tja{display:block;font-size:.9375rem;line-height:1.4;color:var(--suave)}
 p.tja a{color:var(--texto);font-weight:600}
 .tja .btn.peq{min-height:44px}
 .btn.mal{border-color:var(--mal);color:var(--mal)}
+/* elegir una opción (cómo lo ha pagado): como en la app de la oficina */
+.op{min-height:48px;padding:0 14px;border-radius:999px;border:2px solid var(--control);font-weight:600}
+.op[aria-checked=true]{border-color:var(--senal);background:var(--asfalto-3)}
+.op[role=radio]{display:inline-flex;align-items:center;gap:8px}
+.op[role=radio]::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--control);box-sizing:border-box}
+.op[role=radio][aria-checked=true]::before{border-color:var(--senal);background:radial-gradient(circle,var(--senal) 0 3.5px,transparent 4.5px)}
+.hb .campo+.campo{margin-top:12px}
+.hb .vacio{margin-top:12px}
+/* lo pagado: una línea por recibo */
+.recs{display:grid;gap:8px}
+.recs a{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:12px;background:var(--asfalto-2);border:1px solid var(--linea);color:inherit;text-decoration:none}
+.recs a:hover{border-color:var(--control)}
+.recs small{color:var(--suave)}
 /* las revisiones: lo que tiene con su contrato o lo que se le ofrece */
 .oferta{display:grid;gap:6px;padding:14px;border-radius:12px;border:1px solid var(--linea);background:var(--asfalto-2)}
 .oferta .pr{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
@@ -123,7 +136,7 @@ body.tabs .idiomas{padding-bottom:calc(84px + var(--sb))}
 <script>
 (function(){
 'use strict';
-const {K,N,cfg}=Oficio,P=OficioPapeles,I=OficioIdioma,_=I.T,esc=P.esc,$=(s,r)=>(r||document).querySelector(s);
+const {K,N,cfg}=Oficio,P=OficioPapeles,I=OficioIdioma,_=I.T,esc=P.esc,$=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 /* Con servidor (los datos del negocio lo traen), el cliente entra con su teléfono y el código que le mandó la oficina, y el
    servidor le da lo suyo y nada más. Sin servidor: en la demo, con los avisos de muestra de este navegador; una copia sin
    servidor todavía no tiene zona, porque sus avisos solo están en el navegador de la oficina. */
@@ -144,7 +157,9 @@ const ERR={tel:'El teléfono tiene que tener 9 cifras.',cod:'Ese código no es. 
  red:'No hay conexión. Comprueba internet y prueba otra vez.',servidor:'Ahora no se puede abrir tu zona. Prueba otra vez en un momento.',
  /* al cancelar una cita desde aquí */
  tarde:'Ya faltan menos de 24 horas para tu cita: para cancelarla, llámanos al {tel}.',estado:'Esta cita ya no se puede cancelar desde aquí. Llámanos al {tel}.',
- muchos:'Has hecho muchos cambios seguidos. Espera un rato o llámanos al {tel}.',noVa:'No se ha podido cancelar. Prueba otra vez o llámanos al {tel}.'};
+ muchos:'Has hecho muchos cambios seguidos. Espera un rato o llámanos al {tel}.',noVa:'No se ha podido cancelar. Prueba otra vez o llámanos al {tel}.',
+ /* lo demás de la zona (19-11-2026) */
+ noSale:'No se ha podido hacer. Prueba otra vez o llámanos al {tel}.',nombre:'Pon tu nombre.',apellidos:'Pon tus apellidos.',email:'Ese correo no está bien escrito.'};
 const err=k=>_(ERR[k]||ERR.servidor,{n:N.nombre,tel:N.tel});
 /* en qué campo sale cada error; los demás salen encima del botón */
 const CAMPO={tel:'tel',cod:'cod',forma:'cod',clave:'cod'};
@@ -224,7 +239,7 @@ const TABS=()=>[['',_('Inicio'),sv('<path d="M4 11 12 4.5 20 11v8.5a1 1 0 0 1-1 
  ['cuenta',_('Cuenta'),sv('<circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.9-3.5 3.7-5.5 7-5.5s6.1 2 7 5.5"/>')]];
 /* en qué parte está cada pantalla: los papeles de un trabajo, en Trabajos; el contrato, en Inicio, con las revisiones */
 const PARTES=['trabajos','pagos','cuenta'],parteDe=r=>r.v==='aviso'?'trabajos':PARTES.includes(r.v)?r.v:'';
-function tabs(Pf,parte){const n=pendientes(Pf).length;
+function tabs(Pf,parte){const n=pendientes(Pf).filter(x=>!dice(x)).length;
  return TABS().map(([k,t,ic])=>'<a href="#/'+k+'"'+(k===parte?' aria-current="page"':'')+'>'+ic+'<span>'+t+'</span>'+(k==='pagos'&&n?'<b class="n" aria-hidden="true">'+n+'</b><span class="vh"> ('+(n===1?_('1 pendiente'):_('{n} pendientes',{n}))+')</span>':'')+'</a>').join('')}
 
 /* un administrador de fincas: lo suyo, agrupado por dirección */
@@ -262,6 +277,11 @@ function tjHecho(a,hoy,Pf){const gar=a.gar?' · '+(a.gar.hasta>=hoy?_('garantía
  return caja(html,ya?'<p class="tja">'+_('Ya nos has avisado de que ha vuelto a fallar: {id}.',{id:'<a href="'+enlace(ya)+'">'+esc(ya.id)+'</a>'})+'</p>'
   :'<div class="tja"><a class="btn peq" href="cita.html?servicio='+encodeURIComponent(a.av)+'&amp;garantia='+encodeURIComponent(a.id)+'" data-yo="'+esc(a.id)+'">'+_('Ha vuelto a fallar')+'</a><small>'+_('Pide cita y miramos si entra en la garantía.')+'</small></div>')}
 
+/* lo que ya ha dicho que ha pagado, desde aquí (19-11-2026): lo mira la oficina */
+const dice=x=>{const p=x.a?x.a.pago:x.C.per[x.C.per.length-1].pago;return p&&p.dice||null};
+/* cómo se le puede decir que lo ha pagado: lo que no se paga en el momento y tiene el negocio */
+const VIAS=()=>{const pg=N.pago&&typeof N.pago==='object'?N.pago:{};return[K.tel9(pg.bizum)?'bizum':'',typeof pg.iban==='string'&&pg.iban?'transferencia':''].filter(Boolean)};
+const MODO=k=>k==='bizum'?_('Bizum'):_('Transferencia');
 /* lo que tiene por pagar: trabajos terminados sin cobrar y la cuota de su contrato */
 function pendientes(Pf){const L=[];Pf.avisos.forEach(a=>{if(a.e==='hecho'&&a.tot&&a.tot.total>0&&!(a.pago&&a.pago.cobrado))L.push({a,total:a.tot.total})});
  (Pf.contratos||[]).forEach(C=>{const u=C.per&&C.per[C.per.length-1];if(C.e==='activo'&&u&&u.pago&&!u.pago.cobrado&&u.precio>0)L.push({C,total:u.precio})});return L}
@@ -290,6 +310,27 @@ function bRev(Pf,hoy){if(!cfg.av[K.REV]||!PLAN0)return'';
   return'<a class="tj" href="#/contrato/'+esc(C.id)+'"><b>'+(CS.length===1?_('Tu contrato de mantenimiento'):esc(_(Pl?Pl.n:'Mantenimiento')))+'</b><span>'+esc(C.cli.dir)+'</span><span>'+(C.e!=='activo'?_('De baja'):vig?_('Del {de} al {a}',{de:K.fechaCorta(u.de),a:K.fechaCorta(u.a)}):_('Acabó el {fecha}',{fecha:K.fechaCorta(u.a)}))+' · '+_('{precio} al año',{precio:K.eur(u.precio)})+(u.pago.cobrado?'':' · '+_('pendiente de pago'))+'</span><span class="mas">'+_('Ver el contrato')+'</span></a>'}).join('')+'</div>';
  return h+'</section>'}
 
+/* Lo pendiente (19-11-2026): un presupuesto que no aceptó (de los últimos 90 días), «¿sigue todo bien?» después de su último
+   trabajo y la reseña. La reseña se le pide a todos igual, haya dicho lo que haya dicho: no depende de «¿sigue todo bien?» */
+const DIA_MS=86400000;
+const resenaUrl=()=>{const r=typeof N.resenas==='string'?N.resenas.trim():'';return r?(/^https?:\/\//.test(r)?r:'https://'+r):''};
+const RES_K=Pf=>'oficio:'+N.id+':resena:'+Pf.tel;
+/* «Ahora no» la esconde unos meses; si ha ido a escribirla, ya no sale */
+const resenaVista=Pf=>{try{const x=JSON.parse(mem.get(RES_K(Pf))||'null');return!!x&&(x.hecha||Date.now()-x.t<120*DIA_MS)}catch(e){return false}};
+function bPend(Pf,hoy){const ahora=Date.now(),L=[];
+ Pf.avisos.filter(a=>a.noPres&&a.e==='hecho'&&ahora-a.noPres.t<=90*DIA_MS).sort((x,y)=>y.noPres.t-x.noPres.t).forEach(a=>{const ya=Pf.avisos.find(x=>x.dePres===a.id&&x.e!=='cancelado');
+  L.push(caja('<div class="tj"><span class="k"><span>'+esc(a.id)+' · '+K.fechaCorta(K.madrid(a.noPres.t).date)+'</span></span><b>'+_('Presupuesto de {total}',{total:K.eur(a.noPres.total)})+'</b><small>'+esc(avN(a))+'. '+_('No lo aceptaste en la visita.')+'</small></div>',
+   ya?'<p class="tja">'+_('Ya has pedido cita para hacerlo: {id}.',{id:'<a href="'+enlace(ya)+'">'+esc(ya.id)+'</a>'})+'</p>'
+   :'<div class="tja"><a class="btn peq" href="cita.html?servicio='+encodeURIComponent(a.av)+'&amp;pres='+encodeURIComponent(a.id)+'" data-yo="'+esc(a.id)+'" data-pres="'+esc(a.id)+'">'+_('Pedir cita para hacerlo')+'</a><small>'+_('El técnico te lo vuelve a presentar y lo firmas antes de empezar.')+'</small></div>'))});
+ const B=Pf.avisos.filter(a=>a.e==='hecho'&&!a.sinTrabajo&&a.av!==K.REV&&!a.bien&&a.fin&&ahora-a.fin>=DIA_MS&&ahora-a.fin<=30*DIA_MS&&!Pf.avisos.some(x=>x.vuelve===a.id)).sort((x,y)=>y.fin-x.fin)[0];
+ if(B){const g=B.gar&&B.gar.hasta>=hoy;
+  L.push(caja('<div class="tj"><span class="k"><span>'+esc(B.id)+' · '+K.fechaCorta(K.madrid(B.fin).date)+'</span></span><b>'+_('¿Sigue todo bien?')+'</b><small>'+esc(avN(B))+'</small></div>',
+   '<div class="tja"><button class="btn peq" data-bien="'+esc(B.id)+'">'+_('Sí, todo bien')+'</button><a class="btn peq" href="cita.html?servicio='+encodeURIComponent(B.av)+(g?'&amp;garantia='+encodeURIComponent(B.id):'')+'" data-yo="'+esc(B.id)+'">'+_('Ha vuelto a fallar')+'</a>'+(g?'<small>'+_('Sigue en garantía: pide cita y miramos si entra en ella.')+'</small>':'')+'</div>'))}
+ const R=resenaUrl();
+ if(R&&Pf.avisos.some(a=>a.e==='hecho'&&!a.sinTrabajo)&&!resenaVista(Pf))L.push(caja('<div class="tj"><b>'+_('¿Nos dejas una reseña?')+'</b><small>'+_('Cuenta cómo te ha ido, sea como sea: a otros vecinos les sirve para decidir.')+'</small></div>',
+  '<div class="tja"><a class="btn peq" href="'+esc(R)+'" target="_blank" rel="noopener" id="resSi">'+_('Escribir una reseña')+'</a><button class="btn peq" id="resNo">'+_('Ahora no')+'</button></div>'));
+ return L.length?'<section class="sec" id="pend"><h2>'+_('Lo pendiente')+'</h2><div class="tarjetas">'+L.join('')+'</div></section>':''}
+
 const avisoSrv=()=>SRV&&Z.err?'<p class="ojo" role="status">'+(Z.err==='red'?_('Sin conexión: ves lo último que llegó.'):_('No se ha podido poner al día: ves lo último que llegó.'))+'</p>':'';
 const pieDemo=()=>Oficio.DEMO?'<p class="vacio" style="margin-top:28px">'+_('Demo de OOOX Oficios: los clientes, los avisos y los importes son inventados.')+'</p>':'';
 
@@ -301,8 +342,8 @@ function vInicio(Pf){const c=Pf.cli,hoy=K.madrid().date,n=(c.nombre||'').split('
  {const o=ahora.slice().sort((x,y)=>(ORDEN[x.e]-ORDEN[y.e])||((x.cita?x.cita.dia:'')<(y.cita?y.cita.dia:'')?-1:1)),p0=F.length<2?o[0]:null,resto=F.length<2?o.slice(1):o;
   h+='<section class="sec"><h2>'+_('Ahora')+'</h2>'+(o.length?(p0?caja(tjProta(p0),accCita(p0),true):'')+(resto.length?'<div'+(p0?' style="margin-top:10px"':'')+'>'+grupo(F,resto,a=>caja(tjAhora(a),accCita(a)))+'</div>':''):'<p class="vacio">'+_('No tienes ninguna cita ni ningún aviso abierto.')+'</p>')+
    '<div class="acciones"><a class="btn pri" href="cita.html" id="otra" data-yo="">'+_('Pedir cita')+'</a></div><p class="vacio" style="margin-top:10px">'+_('¿Es urgente? Llámanos al {tel}: salimos en el momento.',{tel:telA()})+'</p></section>'}
- if(L.length){const tot=L.reduce((s,x)=>s+x.total,0);h+='<section class="sec"><h2>'+_('Por pagar')+'</h2><a class="tj" href="#/pagos"><b>'+K.eur(tot)+'</b><small>'+(L.length===1?_('Tienes 1 pago pendiente.'):_('Tienes {n} pagos pendientes.',{n:L.length}))+'</small><span class="mas">'+_('Ver cómo pagar')+'</span></a></section>'}
- h+=bRev(Pf,hoy);
+ if(L.length){const tot=L.reduce((s,x)=>s+x.total,0),av=L.filter(dice).length;h+='<section class="sec"><h2>'+_('Por pagar')+'</h2><a class="tj" href="#/pagos"><b>'+K.eur(tot)+'</b><small>'+(L.length===1?_('Tienes 1 pago pendiente.'):_('Tienes {n} pagos pendientes.',{n:L.length}))+(av?' '+(av===L.length?_('Ya nos has avisado de que lo has pagado: lo estamos mirando.'):_('De alguno ya nos has avisado de que lo has pagado.')):'')+'</small><span class="mas">'+_('Ver cómo pagar')+'</span></a></section>'}
+ h+=bPend(Pf,hoy)+bRev(Pf,hoy);
  h+='<p class="nores">'+(n?_('¿No eres {nombre}?',{nombre:esc(n)})+' ':'')+'<button class="txt" id="salir">'+_('Salir de tu zona')+'</button></p>';
  return h+pieDemo()}
 
@@ -315,20 +356,35 @@ function vTrabajos(Pf){const hoy=K.madrid().date,F=Pf.fincas||[],hechos=Pf.aviso
 /* Pagos: lo que tiene por pagar y cómo, y sus facturas. Pagar con tarjeta desde aquí, más adelante */
 function comoPagar(){const pg=N.pago&&typeof N.pago==='object'?N.pago:{},via=[K.tel9(pg.bizum)?_('por Bizum al {tel}',{tel:esc(K.telBonito(pg.bizum))}):'',typeof pg.iban==='string'&&pg.iban?_('por transferencia a la cuenta {iban}',{iban:'<b class="num">'+esc(pg.iban)+'</b>'}):''].filter(Boolean);
  return'<p class="vacio" style="margin-top:12px">'+(via.length>1?_('Puedes pagarlo {uno} o {otro}.',{uno:via[0],otro:via[1]}):via.length?_('Puedes pagarlo {uno}.',{uno:via[0]}):_('Llámanos al {tel} y te decimos cómo pagarlo.',{tel:telA()}))+(via.length?' '+_('Pon el número del trabajo en el concepto.'):'')+'</p>'}
+/* debajo de cada pago pendiente: «Ya lo he pagado» (19-11-2026) o, si ya lo ha dicho, que lo estamos mirando */
+function accPago(x){const d=dice(x),id=x.a?x.a.id:x.C.id;
+ if(d)return'<p class="tja">'+_('Nos avisaste el {fecha} de que lo has pagado por {modo}. Lo miramos y te lo confirmamos aquí.',{fecha:K.fechaCorta(K.madrid(d.t).date),modo:MODO(d.modo).toLowerCase()})+'</p>';
+ return VIAS().length?'<div class="tja"><button class="btn peq" data-pagado="'+esc(id)+'"'+(x.C?' data-con="1"':'')+'>'+_('Ya lo he pagado')+'</button></div>':''}
 function vPagos(Pf){const L=pendientes(Pf),hechos=Pf.avisos.filter(a=>a.e==='hecho'),fac=hechos.filter(a=>a.fac);
+ const pag=hechos.filter(a=>a.pago&&a.pago.cobrado&&a.tot&&a.tot.total>0).sort((x,y)=>y.pago.t-x.pago.t);
  let h='<h1>'+_('Tus pagos')+'</h1>'+avisoSrv();
- h+='<section class="sec"><h2>'+_('Por pagar')+'</h2>'+(L.length?'<div class="tarjetas">'+L.map(x=>x.a?
+ h+='<section class="sec"><h2>'+_('Por pagar')+'</h2>'+(L.length?'<div class="tarjetas">'+L.map(x=>caja(x.a?
    '<a class="tj" href="#/aviso/'+esc(x.a.id)+'"><span class="k"><span>'+esc(x.a.id)+' · '+K.fechaCorta(K.madrid(x.a.fin||x.a.t).date)+'</span><span class="pill cobro">'+_('Pendiente de pago')+'</span></span><b>'+K.eur(x.total)+'</b><small>'+esc(avN(x.a))+'</small></a>'
-  :'<a class="tj" href="#/contrato/'+esc(x.C.id)+'"><span class="k"><span>'+esc(x.C.id)+'</span><span class="pill cobro">'+_('Pendiente de pago')+'</span></span><b>'+K.eur(x.total)+'</b><small>'+esc(_((K.planDe(cfg,x.C.plan)||{n:'Mantenimiento'}).n))+' · '+_('la cuota del año')+'</small></a>').join('')+'</div>'+comoPagar()
+  :'<a class="tj" href="#/contrato/'+esc(x.C.id)+'"><span class="k"><span>'+esc(x.C.id)+'</span><span class="pill cobro">'+_('Pendiente de pago')+'</span></span><b>'+K.eur(x.total)+'</b><small>'+esc(_((K.planDe(cfg,x.C.plan)||{n:'Mantenimiento'}).n))+' · '+_('la cuota del año')+'</small></a>',accPago(x))).join('')+'</div>'+comoPagar()
   :'<p class="vacio">'+_('No tienes nada pendiente de pago.')+'</p>')+'</section>';
+ /* lo pagado, con su recibo (19-11-2026) */
+ if(pag.length)h+='<section class="sec" id="pagado"><h2>'+_('Pagado')+'</h2><div class="recs">'+pag.slice(0,12).map(a=>'<a href="#/aviso/'+esc(a.id)+'/recibo"><span>'+_('Recibo')+' · '+esc(a.id)+'<br><small>'+K.fechaCorta(K.madrid(a.pago.t).date)+' · '+esc(avN(a))+'</small></span><b class="num">'+K.eur(a.tot.total)+'</b></a>').join('')+'</div>'+
+  (pag.length>12?'<p class="vacio" style="margin-top:8px">'+_('Los más antiguos, en cada trabajo.')+'</p>':'')+'</section>';
  h+='<section class="sec"><h2>'+_('Tus facturas')+'</h2>'+(fac.length?fac.map(a=>'<p class="fac">'+(a.fac.num?_('Factura {num}',{num:esc(a.fac.num)}):_('Factura hecha'))+' · '+_('trabajo {id}',{id:esc(a.id)})+(a.tot?' · '+K.eur(a.tot.total):'')+'</p>').join('')+'<p class="vacio" style="margin-top:8px">'+_('Las hace {razon} con su programa de facturas. Si no te ha llegado alguna, pídesela.',{razon:esc(N.razon)})+'</p>'
   :'<p class="vacio">'+_('Las facturas las hace {razon} con su programa de facturas. Cuando las suba, las tendrás aquí.',{razon:esc(N.razon)})+'</p>')+'</section>';
  return h+pieDemo()}
 
-/* Cuenta: sus datos y salir */
-function vCuenta(Pf){const c=Pf.cli,F=Pf.fincas||[];
+/* Cuenta: sus datos (y cambiarlos), los mensajes, descargar o pedir que se borren sus datos, y salir (19-11-2026) */
+function vCuenta(Pf){const c=Pf.cli,F=Pf.fincas||[],olv=Pf.avisos.find(a=>a.olvido);
  return'<h1>'+_('Tu cuenta')+'</h1>'+avisoSrv()+
-  '<section class="sec datos"><h2>'+_('Tus datos')+'</h2><p><b>'+esc(K.nomCli(c))+'</b></p>'+(F.length>1?'<p>'+F.map(f=>esc(f.dir)).join('<br>')+'</p><p>'+K.telBonito(Pf.tel)+'</p>':'<p>'+esc(c.dir)+'</p><p>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(Pf.tel)+'</p>')+'<p class="vacio" style="margin-top:8px">'+_('Si algo no está bien, díselo a {n} al {tel}.',{n:esc(N.nombre),tel:esc(N.tel)})+'</p></section>'+
+  '<section class="sec datos"><h2>'+_('Tus datos')+'</h2><p><b>'+esc(K.nomCli(c))+'</b></p>'+(c.email?'<p>'+esc(c.email)+'</p>':'')+(F.length>1?'<p>'+F.map(f=>esc(f.dir)).join('<br>')+'</p><p>'+K.telBonito(Pf.tel)+'</p>':'<p>'+esc(c.dir)+'</p><p>'+esc(c.cp)+' '+esc(N.ciudad)+' · '+K.telBonito(Pf.tel)+'</p>')+
+   (olv?'':'<div class="acciones"><button class="btn" id="misDatos">'+_('Cambiar mi nombre o mi correo')+'</button></div>')+
+   '<p class="vacio" style="margin-top:10px">'+_('La dirección y el teléfono van en cada cita: para cambiarlos, llámanos al {tel}.',{tel:telA()})+'</p></section>'+
+  (olv?'':'<section class="sec" id="msgs"><h2>'+_('Los mensajes')+'</h2><p class="vacio">'+(Pf.escribe!==false?_('Después de cada trabajo te escribimos por WhatsApp para saber si todo va bien, pedirte una reseña y recordarte la próxima revisión.'):_('No te mandamos mensajes después de los trabajos. Los de tus citas (la confirmación y cuándo llegamos) te llegan igual.'))+'</p>'+
+   '<div class="acciones"><button class="btn" id="escribe"'+(Pf.escribe!==false?'':' data-si="1"')+'>'+(Pf.escribe!==false?_('No quiero esos mensajes'):_('Quiero volver a recibirlos'))+'</button></div></section>')+
+  '<section class="sec" id="guardado"><h2>'+_('Lo que tenemos de ti')+'</h2><p class="vacio">'+_('Puedes descargar todo lo que {n} tiene guardado de ti, o pedir que lo borre.',{n:esc(N.nombre)})+'</p>'+
+   '<div class="acciones"><button class="btn" id="descarga">'+_('Descargar mis datos')+'</button>'+(olv?'':'<button class="btn" id="olvido">'+_('Pedir que se borren')+'</button>')+'</div>'+
+   (olv?'<p class="ojo" id="olvN">'+_('Pediste el {fecha} que se borren tus datos. {n} lo hace en menos de un mes y, cuando esté hecho, ya no podrás entrar en tu zona. Las facturas se guardan los años que pide la ley.',{fecha:K.fechaCorta(K.madrid(olv.olvido.t).date),n:esc(N.nombre)})+'</p>':'')+'</section>'+
   '<section class="sec"><h2>'+_('Este aparato')+'</h2><p class="vacio">'+_('Tu zona se queda abierta en este navegador. Si no es tuyo, sal al terminar.')+'</p><div class="acciones"><button class="btn" id="salir">'+_('Salir')+'</button></div></section>'+pieDemo()}
 
 const DEMO_PAPEL=()=>Oficio.DEMO?'<p class="pie">'+_('Documento de ejemplo de una demo: empresa, cliente e importes son inventados.')+'</p>':'';
@@ -389,6 +445,73 @@ function hCancela(id){const Pf=perfil(),a=Pf&&Pf.avisos.find(x=>x.id===id);if(!a
    const p=$('#cErr',d);p.textContent=err(e);p.hidden=false;si.disabled=false;si.textContent=_('Sí, cancelarla');
    if(r.err==='tarde'||r.err==='estado'){si.hidden=true;pinta()}})}}
 
+/* lo nuevo de la zona (19-11-2026): una hoja para preguntar, y lo que pasa al contestar */
+function hojaC(id,tit,cuerpo,pie,vuelve){const d=document.createElement('dialog');d.className='hoja';d.setAttribute('aria-labelledby',id);
+ d.innerHTML='<div class="hc"><h2 id="'+id+'">'+tit+'</h2><button class="x" data-x aria-label="'+_('Cerrar')+'">'+X_SVG+'</button></div><div class="hb">'+cuerpo+'</div><div class="hp">'+pie+'</div>';
+ document.body.appendChild(d);d.addEventListener('close',()=>{d.remove();const b=vuelve&&$(vuelve);if(b)b.focus()});
+ d.addEventListener('click',x=>{if(x.target===d||x.target.closest('[data-x]'))d.close()});d.showModal();return d}
+/* la respuesta de la zona: bien, o el porqué en una línea. Si el código ya no vale, fuera; si ya estaba hecho, se pinta como está */
+function trasZona(r,d,pErr,bt,txt,bien){
+ if(r.ok){if(d)d.close();pinta();if(bien)toast(bien);return true}
+ if(r.err==='clave'){if(d)d.close();const s0=sesion();if(s0)fuera(s0,'clave');return false}
+ if(r.err==='estado'){if(d)d.close();pinta();toast(_('Ya estaba hecho.'));return false}
+ const e=r.err==='limite'?'muchos':r.err==='red'||r.err==='bloqueo'?r.err:ERR[r.err]?r.err:'noSale';
+ if(pErr){pErr.textContent=err(e);pErr.hidden=false}else toast(err(e));if(bt){bt.disabled=false;bt.textContent=txt}return false}
+/* «Ya lo he pagado»: cómo (Bizum o transferencia, lo que tenga el negocio) */
+function hPagado(id,con){const Pf=perfil();if(!Pf)return;const X=con?(Pf.contratos||[]).find(c=>c.id===id):Pf.avisos.find(a=>a.id===id);if(!X)return;
+ const V=VIAS(),tot=con?X.per[X.per.length-1].precio:X.tot.total;let modo=V.length===1?V[0]:'';
+ const ops=()=>V.map(k=>'<button type="button" class="op" data-modo="'+k+'" role="radio" aria-checked="'+(modo===k)+'">'+MODO(k)+'</button>').join('');
+ const d=hojaC('pTit',_('¿Cómo lo has pagado?'),'<p><b>'+(con?_('La cuota de tu contrato {id}',{id:esc(X.id)}):esc(avN(X))+' · '+esc(X.id))+'</b><br><span class="num">'+K.eur(tot)+'</span></p>'+
+  '<div class="ops" id="pM" role="radiogroup" aria-label="'+_('Cómo lo has pagado')+'">'+ops()+'</div><p class="vacio">'+_('Lo miramos en el banco y te lo confirmamos aquí. Hasta entonces sale como pendiente.')+'</p><p class="fallo" id="pErr" role="alert" hidden></p>',
+  '<button class="btn pri ancho" id="pSi"'+(modo?'':' disabled')+'>'+_('Avisar de que lo he pagado')+'</button>','[data-pagado="'+CSS.escape(id)+'"]');
+ d.addEventListener('click',e=>{const o=e.target.closest('[data-modo]');if(o){modo=o.dataset.modo;$('#pM',d).innerHTML=ops();$('#pSi',d).disabled=false;const n=$('[data-modo="'+modo+'"]',d);if(n)n.focus()}});
+ const si=$('#pSi',d);si.onclick=()=>{if(si.disabled||!modo)return;si.disabled=true;si.textContent=_('Avisando…');
+  zona(con?{tipo:'pagadoCon',id,modo}:{tipo:'pagado',id,modo}).then(r=>trasZona(r,d,$('#pErr',d),si,_('Avisar de que lo he pagado'),_('Avisado. Lo miramos y te lo confirmamos aquí.')))}}
+/* cambiar su nombre o su correo */
+function hDatos(){const Pf=perfil();if(!Pf)return;const c=Pf.cli,hayFac=Pf.avisos.some(a=>a.fac);
+ const cm=(id,lb,v,o)=>'<div class="campo"><label for="'+id+'">'+lb+'</label><input id="'+id+'" value="'+esc(v||'')+'" '+(o||'')+'><p class="err" id="e'+id+'" hidden></p></div>';
+ const d=hojaC('dTit',_('Tus datos'),'<form id="fD" novalidate>'+cm('dNom',_('Nombre'),c.nombre,'autocomplete="given-name"')+cm('dApe',_('Apellidos'),c.apellidos,'autocomplete="family-name"')+
+  cm('dEm',_('Correo (opcional)'),c.email,'type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false"')+'</form>'+
+  '<p class="vacio">'+_('Con el correo te podemos mandar las facturas.')+(hayFac?' '+_('En las facturas ya hechas se queda el nombre que llevan.'):'')+'</p><p class="fallo" id="dErr" role="alert" hidden></p>',
+  '<button class="btn pri ancho" id="dSi" type="submit" form="fD">'+_('Guardar')+'</button>','#misDatos');
+ const f=$('#fD',d),si=$('#dSi',d),CAMPOS={nombre:'dNom',apellidos:'dApe',email:'dEm'};
+ f.addEventListener('submit',e=>{e.preventDefault();if(si.disabled)return;
+  $$('.campo',d).forEach(x=>{x.classList.remove('mal');const m=$('.err',x);m.hidden=true;$('input',x).removeAttribute('aria-invalid')});$('#dErr',d).hidden=true;
+  si.disabled=true;si.textContent=_('Guardando…');
+  zona({tipo:'misDatos',nombre:$('#dNom',d).value,apellidos:$('#dApe',d).value,email:$('#dEm',d).value}).then(r=>{
+   if(r.ok||!CAMPOS[r.err]){if(r.err==='estado'){si.disabled=false;si.textContent=_('Guardar');const p=$('#dErr',d);p.textContent=_('No has cambiado nada.');p.hidden=false;return}
+    trasZona(r,d,$('#dErr',d),si,_('Guardar'),_('Datos guardados.'));return}
+   const i=$('#'+CAMPOS[r.err],d),x=i.closest('.campo'),m=$('.err',x);x.classList.add('mal');m.textContent=err(r.err);m.hidden=false;i.setAttribute('aria-invalid','true');i.setAttribute('aria-describedby','e'+CAMPOS[r.err]);i.focus();
+   si.disabled=false;si.textContent=_('Guardar')})})}
+/* los mensajes de después de los trabajos: sí o no */
+function escribe(b){const Pf=perfil();if(!Pf||b.disabled)return;const si=!!b.dataset.si;b.disabled=true;
+ zona({tipo:'escribir',tel:Pf.tel,si}).then(r=>{b.disabled=false;if(trasZona(r,null,null,null,'',si?_('Vuelves a recibir los mensajes de después de los trabajos.'):_('Hecho: no te mandamos más mensajes después de los trabajos.'))){const n=$('#escribe');if(n)n.focus()}})}
+/* descargar lo suyo: lo mismo que ve aquí, en un archivo */
+function descarga(){const Pf=perfil();if(!Pf)return;
+ const o={negocio:{nombre:N.nombre,razon:N.razon,nif:N.nif,tel:N.tel},descargado:new Date().toISOString(),tel:Pf.tel,datos:Pf.cli,
+  avisos:Pf.avisos.map(a=>{const x=JSON.parse(JSON.stringify(a));delete x.llave;delete x.vista;return x}),contratos:Pf.contratos||[]};
+ const b=new Blob([JSON.stringify(o,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),l=document.createElement('a');
+ l.href=u;l.download='mis-datos-'+N.id+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
+ toast(_('Descargado: {archivo}.',{archivo:l.download}))}
+/* pedir que se borren sus datos: se dice qué pasa antes */
+function hOlvido(){const Pf=perfil();if(!Pf)return;const ab=Pf.avisos.filter(a=>a.e!=='hecho'&&a.e!=='cancelado');
+ const d=hojaC('oTit',_('¿Pedir que se borren tus datos?'),'<p>'+_('{razon} borrará tu nombre, tu teléfono, tus direcciones, tus fotos y tus firmas. Las facturas se guardan los años que pide la ley.',{razon:esc(N.razon)})+'</p>'+
+  '<p class="vacio">'+_('Desde ahora no te mandamos mensajes después de los trabajos. Cuando esté hecho, ya no podrás entrar en tu zona: descarga antes tus papeles si los quieres.')+'</p>'+
+  (ab.length?'<p class="ojo">'+(ab.length===1?_('Tienes un aviso abierto ({id}): sigue en pie. Si ya no lo quieres, cancélalo o llámanos.',{id:esc(ab[0].id)}):_('Tienes {n} avisos abiertos: siguen en pie. Si ya no los quieres, cancélalos o llámanos.',{n:ab.length}))+'</p>':'')+
+  '<p class="fallo" id="oErr" role="alert" hidden></p>','<button class="btn mal ancho" id="oSi">'+_('Sí, pedirlo')+'</button><button class="btn ancho" data-x>'+_('No')+'</button>','#olvido');
+ const si=$('#oSi',d);si.onclick=()=>{if(si.disabled)return;si.disabled=true;si.textContent=_('Pidiéndolo…');
+  zona({tipo:'olvido'}).then(r=>{if(trasZona(r,d,$('#oErr',d),si,_('Sí, pedirlo'),_('Pedido. {n} lo hace en menos de un mes.',{n:N.nombre}))){const n=$('#olvN');if(n){n.tabIndex=-1;n.focus()}}})}}
+/* «¿Sigue todo bien?»: sí */
+function bien(b){const id=b.dataset.bien;if(b.disabled)return;b.disabled=true;
+ zona({tipo:'bien',id}).then(r=>{b.disabled=false;if(trasZona(r,null,null,null,'',_('Gracias. Si vuelve a fallar, aquí lo tienes.'))){const h=$('#v h1');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}})}
+/* lo que necesita la página de pedir cita para hacer un presupuesto: lo deja aquí, en este navegador */
+function ponPres(id){const Pf=perfil(),a=Pf&&Pf.avisos.find(x=>x.id===id);if(!a||!a.noPres)return;
+ mem.set('oficio:'+N.id+':pres',JSON.stringify({id:a.id,av:a.av,total:a.noPres.total,t:a.noPres.t,urg:!!a.urg}))}
+/* la reseña: al ir a escribirla ya no sale; «Ahora no», en unos meses */
+function resena(si,b){const Pf=perfil();if(!Pf)return;mem.set(RES_K(Pf),JSON.stringify(si?{t:Date.now(),hecha:true}:{t:Date.now()}));
+ if(si&&Oficio.DEMO){toast(_('En la demo no se abre: en la de verdad, va a la página de reseñas de Google del negocio.'))}
+ setTimeout(()=>{pinta();if(!si){toast(_('Vale. Te lo volvemos a preguntar más adelante.'));const h=$('#pend h2')||$('#v h1');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}},0)}
+
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.f)F[i.dataset.f]=i.value});
 const dentro=()=>{F={tel:'',cod:'',err:'',va:false};if(location.hash!=='#/')location.hash='#/';pinta();toast(_('Ya estás en tu zona.'))};
 const fallo=r=>{F.err=r;pinta();const i=$('#z_'+(CAMPO[r]||'tel'));if(i)i.focus()};
@@ -397,8 +520,15 @@ document.addEventListener('submit',e=>{if(e.target.id!=='fE')return;e.preventDef
  const r=entra(F.tel,F.cod);if(r)fallo(r);else dentro()});
 document.addEventListener('click',e=>{
  /* un enlace a la página de pedir cita: lleva sus datos ya puestos (sin parar el enlace) */
- const y=e.target.closest('[data-yo]');if(y){ponYo(y.dataset.yo);return}
- const b=e.target.closest('[data-entra],#salir,#imprime,#otraVez,[data-lang],[data-cambia],[data-cancela]');if(!b)return;
+ const y=e.target.closest('[data-yo]');if(y){ponYo(y.dataset.yo);if(y.dataset.pres)ponPres(y.dataset.pres);return}
+ const rs=e.target.closest('#resSi,#resNo');if(rs){if(rs.id==='resSi'&&Oficio.DEMO)e.preventDefault();resena(rs.id==='resSi',rs);return}
+ const b=e.target.closest('[data-entra],#salir,#imprime,#otraVez,[data-lang],[data-cambia],[data-cancela],[data-pagado],[data-bien],#misDatos,#escribe,#descarga,#olvido');if(!b)return;
+ if(b.dataset.pagado){hPagado(b.dataset.pagado,!!b.dataset.con);return}
+ if(b.dataset.bien){bien(b);return}
+ if(b.id==='misDatos'){hDatos();return}
+ if(b.id==='escribe'){escribe(b);return}
+ if(b.id==='descarga'){descarga();return}
+ if(b.id==='olvido'){hOlvido();return}
  if(b.dataset.lang){const l=b.dataset.lang;if(I.pon(l)){fijos();$('#tabs')._h='';pinta();const n=$('#idiomas [data-lang="'+l+'"]');if(n)n.focus()}return}
  if(b.dataset.entra){if(!entra(b.dataset.entra,K.CLIENTE_DEMO)){F={tel:'',cod:'',err:'',va:false};pinta()}return}
  if(b.dataset.cambia){aCambiar(b.dataset.cambia);return}

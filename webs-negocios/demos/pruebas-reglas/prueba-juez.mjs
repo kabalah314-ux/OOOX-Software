@@ -215,7 +215,7 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
 
 // 13. la zona del cliente: la oficina le da un código y el cliente entra con su teléfono y ese código
 { reloj.t += 601000; crudo('ramirez').fallos = []; const v0 = crudo('ramirez').v, d0 = crudo('ramirez').diario.length;
-  const cfg = K.cfgDe(NR), PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'cli', 'vista', 'llave', 'vuelve', 'quiere'];
+  const cfg = K.cfgDe(NR), PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'cli', 'vista', 'llave', 'vuelve', 'quiere', 'noPres', 'dePres', 'bien', 'olvido'];
   /* el estado tal como lo carga el juez */
   const est = () => { const n = crudo('ramirez'); return Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, JSON.parse(JSON.stringify(n.cab)), { v: n.v, avisos: [...n.avisos.values()].map(f => JSON.parse(JSON.stringify(f.datos))).sort((a, b) => (a.n || 0) - (b.n || 0)) }); };
   const acceso = (quien, tel, mas) => J.atiende(Object.assign({ que: 'acceso', tel }, quien, mas));
@@ -312,6 +312,18 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   crudo('ramirez').topes.clear();
   { let n = 0, ul; for (let i = 0; i < 30 && !(ul && ul.err === 'limite'); i++) { ul = await zona(TM, cod, { tipo: 'cancelar', id: 'R-9999' }); n++ }
     es(ul.err === 'limite' && n === 21 && (await zona(TP, a5.codigo, { tipo: 'cancelar', id: 'R-9999' })).err !== 'limite', 'veinte cambios por hora y teléfono: el siguiente espera; a los demás clientes no les afecta') }
+  crudo('ramirez').topes.clear();
+  // lo demás de su zona (19-11-2026, tarde): sus datos, los mensajes y pedir que se borren («ya lo he pagado» y «¿sigue todo
+  // bien?» los prueban las reglas). Lo que no es de la zona, ni con su código
+  { const zd = await zona(TM, cod, { tipo: 'misDatos', nombre: 'Montse', apellidos: 'Vila Roig', email: ' Montse@Correu.cat ' }, 'marca-zona-datos');
+    es(zd.ok && zd.perfil.cli.email === 'montse@correu.cat' && zd.perfil.avisos.every(a => K.tel9(a.cli.tel) === TM && Object.keys(a).every(k => PERFIL_OK.includes(k))) && crudo('ramirez').avisos.get(pOtro.id).datos.cli.apellidos === 'Vila',
+      'cambia sus datos: contesta con su perfil al día, y nada de otro cliente');
+    const ze = await zona(TM, cod, { tipo: 'escribir', tel: TM, si: false }), zx = await zona(TM, cod, { tipo: 'escribir', tel: TP, si: false });
+    es(ze.ok && ze.perfil.escribe === false && zx.err === 'permiso' && (await zona(TM, cod, { tipo: 'escribir', tel: TM, si: true })).perfil.escribe === true, 'los mensajes de después de los trabajos: los suyos sí, los de otro teléfono no');
+    const zc = await zona(TM, cod, { tipo: 'cobrar', id: pc.id, modo: 'bizum' }), zf = await zona(TM, cod, { tipo: 'facturar', id: pc.id }), zw = await zona(TM, cod, { tipo: 'web', av: NR.averias[0].id, n: 'Hola' });
+    es([zc, zf, zw].every(x => x.err === 'permiso'), 'cobrar, facturar o tocar la web desde la zona, no');
+    const zo = await zona(TM, cod, { tipo: 'olvido' });
+    es(zo.ok && zo.perfil.avisos.filter(a => a.olvido).length === 1 && zo.perfil.escribe === false && (await zona(TM, cod, { tipo: 'olvido' })).err === 'estado', 'pide que se borren sus datos: queda pedido una vez y sin mensajes de seguimiento'); }
   crudo('ramirez').topes.clear();
   es(new Set(Array.from({ length: 200 }, () => codigoCliente())).size === 200 && Array.from({ length: 50 }, () => codigoCliente()).every(c => limpiaCodigo(c) === c) && limpiaCodigo('ABCD EFGH') === 'abcd-efgh'
     && limpiaCodigo('abcd-efgi') === '' && limpiaCodigo('abc-defg') === '' && limpiaCodigo(12345678) === '', 'los códigos salen distintos y con su forma, y se leen escritos de cualquier manera, pero no con letras que no se usan'); }

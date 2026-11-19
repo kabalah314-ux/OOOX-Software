@@ -19,7 +19,9 @@
 
 export const QUE = ['entrar', 'hacer', 'leer', 'pedir', 'huecos', 'ver', 'acceso', 'perfil', 'equipo', 'foto', 'zona'];
 /** Lo que puede hacer el cliente desde su zona (19-11-2026): cambiar o cancelar su cita. Las reglas miran que el aviso sea suyo y la hora */
-export const ZONA = ['mover', 'cancelar'];
+/* lo que el cliente puede hacer en su zona: cambiar o cancelar su cita (19-11-2026, mañana) y, desde la tarde, decir que ya ha pagado
+   (un trabajo o la cuota de su contrato), contestar «¿sigue todo bien?», cambiar sus datos y los mensajes, y pedir que se borren */
+export const ZONA = ['mover', 'cancelar', 'pagado', 'pagadoCon', 'bien', 'misDatos', 'escribir', 'olvido'];
 export const TOPES = {
   accion: 400000,     // letras que puede pesar una acción (cabe una foto reducida)
   intentos: 5,        // veces que vuelve a leer si alguien se le adelanta
@@ -279,9 +281,9 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       return { ok: true, perfil: Pf };
     },
 
-    /* El cliente, en su zona (19-11-2026): con su teléfono y su código, cambiar o cancelar su cita (ZONA). Las reglas miran
-       que el aviso sea de ese teléfono y que falten al menos 24 horas; aquí, el código y el freno. Contesta con su perfil ya
-       al día, el mismo que daría «perfil» */
+    /* El cliente, en su zona (19-11-2026): con su teléfono y su código, lo que dice ZONA. Las reglas miran que el aviso (o el
+       contrato) sea de ese teléfono, y en una cita, que falten al menos 24 horas; aquí, el código y el freno. Contesta con su
+       perfil ya al día, el mismo que daría «perfil» */
     async zona(neg, cfg, p) {
       const c = await cliente(neg, p); if (!c.ok) return c;
       const a = p.accion; if (!a || typeof a !== 'object' || Array.isArray(a) || !ZONA.includes(a.tipo)) return R('permiso');

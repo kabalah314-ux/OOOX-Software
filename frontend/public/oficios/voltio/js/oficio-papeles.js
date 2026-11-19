@@ -1,7 +1,7 @@
-/* OOOX Oficios · los papeles de un aviso: el presupuesto, el parte de trabajo y la garantía.
+/* OOOX Oficios · los papeles de un aviso: el presupuesto, el parte de trabajo, la garantía y el recibo (19-11-2026).
    Son los mismos en la app de la oficina (app.html) y en la zona del cliente (cliente.html).
    Solo usan lo que el cliente puede ver de su aviso (lo que da K.perfilCliente): nunca el diario ni los mensajes.
-   Uso: OficioPapeles.doc(aviso, 'presupuesto' | 'parte' | 'garantia', {K, N, cfg, firmaSvg}) devuelve el HTML del papel.
+   Uso: OficioPapeles.doc(aviso, 'presupuesto' | 'parte' | 'garantia' | 'recibo', {K, N, cfg, firmaSvg}) devuelve el HTML del papel.
    En la zona del cliente salen en su idioma (js/oficio-idioma.js); en la oficina, sin ese archivo, en castellano.
    Las traducciones, como el texto en castellano, son provisionales hasta que las revise el abogado. */
 (function(g){
@@ -19,10 +19,12 @@ const plazo=m=>!(m>0)?'':m%12===0?(m===12?_('1 año'):_('{n} años',{n:m/12})):(
 /* los meses entre dos fechas («2026-11-16» y «2027-05-16»): los de la garantía de un trabajo, aunque el negocio cambie su plazo después */
 const meses=(a,b)=>typeof a==='string'&&typeof b==='string'?(+b.slice(0,4)-+a.slice(0,4))*12+(+b.slice(5,7)-+a.slice(5,7)):0;
 
-/* los papeles que tiene un aviso: el presupuesto si se firmó, el parte si se terminó y la garantía si la tiene */
-function tipos(A){if(!A||!A.tot)return[];return[A.pres&&['presupuesto',_('Presupuesto')],A.e==='hecho'&&['parte',_('Parte de trabajo')],A.gar&&['garantia',_('Garantía')]].filter(Boolean)}
+/* los papeles que tiene un aviso: el presupuesto si se firmó, el parte si se terminó, la garantía si la tiene y el recibo si se
+   ha cobrado algo (19-11-2026) */
+const cobrado=A=>A.e==='hecho'&&!!A.pago&&!!A.pago.cobrado&&A.tot.total>0;
+function tipos(A){if(!A||!A.tot)return[];return[A.pres&&['presupuesto',_('Presupuesto')],A.e==='hecho'&&['parte',_('Parte de trabajo')],A.gar&&['garantia',_('Garantía')],cobrado(A)&&['recibo',_('Recibo')]].filter(Boolean)}
 /* el que se enseña: el pedido si lo tiene; si no, el parte de un trabajo terminado o el primero */
-function elige(A,tipo){const T=tipos(A);if(!T.length)return'';return T.find(x=>x[0]===tipo)?tipo:T[T.length>1&&A.e==='hecho'?1:0][0]}
+function elige(A,tipo){const T=tipos(A);if(!T.length)return'';return T.find(x=>x[0]===tipo)?tipo:A.e==='hecho'&&T.find(x=>x[0]==='parte')?'parte':T[0][0]}
 /* el nombre de un papel: qué es, de qué aviso y de qué día, p. ej. «Parte de trabajo R-0012 16-11-2026». Es el título de la página
    mientras se ve, y el navegador lo propone como nombre del archivo al guardarlo en PDF (auditoría UX-25) */
 function nombre(A,tipo,K){const x=tipos(A).find(y=>y[0]===elige(A,tipo));if(!x)return'';return x[1]+' '+A.id+' '+K.madrid(A.fin||A.t).date.split('-').reverse().join('-')}
@@ -66,6 +68,10 @@ function doc(A,tipo,o){const K=o.K,N=o.N,cfg=o.cfg,firmaSvg=o.firmaSvg,foto=type
   '<h2>'+_('Pago')+'</h2><p>'+(A.tot&&!A.tot.total?(A.enGar?_('No hay nada que pagar: va en la garantía.'):_('No hay nada que pagar: va en tu contrato de mantenimiento.')):A.pago&&A.pago.cobrado?_('Cobrado el {fecha}: {modo}.',{fecha:f(K.madrid(A.pago.t).date),modo:_(PAGO[A.pago.modo]||'').toLowerCase()}):_('Pendiente de pago.'))+'</p>'+
   (A.obs?'<h2>'+_('Nota del técnico')+'</h2><p>'+esc(A.obs)+'</p>':'')+(A.fotos&&A.fotos.length?'<h2>'+_('Fotos')+'</h2><div class="fotos">'+A.fotos.map(x=>'<img src="'+esc(foto(x))+'" alt="'+_('Foto del trabajo')+'">').join('')+'</div>':'')+
   (A.conf?'<h2>'+_('Conforme')+'</h2>'+fir(A.conf,_('Firmado por el cliente')):'')+'<p class="pie">'+_('Este parte no es una factura.')+' '+_('La factura la emite {razon} con su programa de facturas{num}.',{razon:esc(N.razon),num:A.fac?(A.fac.num?' '+_('(factura n.º {num})',{num:esc(A.fac.num)}):' '+_('(ya está hecha)')):''})+(A.gar?' '+_('Garantía de {plazo}, hasta el {fecha}.',{plazo:plazo(meses(K.madrid(A.fin).date,A.gar.hasta)),fecha:f(A.gar.hasta)}):'')+'</p>';
+ /* el recibo de lo cobrado: lo que se ha pagado, cuándo y cómo. No es la factura */
+ else if(tipo==='recibo')d='<h1>'+_('Recibo')+'</h1><p class="dn">'+_('Trabajo {id} · cobrado el {fecha}',{id:A.id,fecha:f(K.madrid(A.pago.t).date)})+'</p>'+cli+
+  '<h2>'+_('Recibido')+'</h2><p class="gran num">'+K.eur(A.tot.total)+'</p><p>'+_('{razon} ha recibido {total} por el trabajo {id}, el {fecha}: {modo}.',{razon:esc(N.razon),total:K.eur(A.tot.total),id:A.id,fecha:f(K.madrid(A.pago.t).date),modo:_(PAGO[A.pago.modo]||'').toLowerCase()})+'</p>'+tot(A.tot)+
+  '<p class="pie">'+_('Este recibo no es una factura.')+' '+_('La factura la emite {razon} con su programa de facturas{num}.',{razon:esc(N.razon),num:A.fac?(A.fac.num?' '+_('(factura n.º {num})',{num:esc(A.fac.num)}):' '+_('(ya está hecha)')):''})+'</p><p class="sello">'+_('Pagado')+'</p>';
  else d='<h1>'+_('Garantía')+'</h1><p class="dn">'+_('Trabajo {id} · terminado el {fecha}',{id:A.id,fecha:f(K.madrid(A.fin).date)})+'</p><p class="gran" style="margin-top:18px">'+plazo(meses(K.madrid(A.fin).date,A.gar.hasta))+'</p><p>'+_('Hasta el {fecha}.',{fecha:'<b>'+f(A.gar.hasta)+'</b>'})+'</p>'+cli+'<h2>'+_('Qué cubre')+'</h2><p>'+(A.tot.lineas.some(l=>l.mat)?_('{averia}: la mano de obra y el material que pusimos ({material}).',{averia:esc(_(av.n)),material:A.tot.lineas.filter(l=>l.mat).map(l=>esc(lt(l).toLowerCase())).join(', ')}):_('{averia}: la mano de obra.',{averia:esc(_(av.n))}))+'</p>'+
   '<p style="margin-top:12px">'+_('Si lo que arreglamos vuelve a fallar antes de esa fecha, volvemos sin cobrarte la visita ni la mano de obra.')+'</p><h2>'+_('Cómo pedirla')+'</h2><p>'+_('Llama al {tel} o escribe por WhatsApp con el número del trabajo: {id}.',{tel:N.tel,id:'<b>'+A.id+'</b>'})+'</p><p class="pie">'+esc(N.razon)+' · NIF '+N.nif+'</p><p class="sello">'+_('Garantía de {n}',{n:esc(N.nombre)})+'</p>';
  return cab+d}

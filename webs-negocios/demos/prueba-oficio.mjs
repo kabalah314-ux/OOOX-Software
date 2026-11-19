@@ -1187,7 +1187,7 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
     es(c1.ok && rk.ok && c2.ok && !GK(k1).con, 'el alta de otro cliente no toca los avisos que no son suyos') }
   // lo de dentro no lo ve el cliente
   const vc = K.vistaCliente(SG, cfg, g5), pf = K.perfilCliente(SG, cfg, '600000506');
-  es(!('noPres' in vc) && !('noMsg' in vc) && !('prox' in K.vistaCliente(SG, cfg, g2)) && pf && !pf.avisos.some(a => 'noPres' in a || 'msgs' in a), 'el cliente no ve el presupuesto guardado ni los apuntes del seguimiento');
+  es(!('noPres' in vc) && !('noMsg' in vc) && !('prox' in K.vistaCliente(SG, cfg, g2)) && pf && !pf.avisos.some(a => 'msgs' in a || (a.noPres && Object.keys(a.noPres).join() !== 't,total')) && pf.avisos.some(a => a.noPres), 'el cliente no ve los apuntes del seguimiento; del presupuesto que no aceptó, solo la fecha y el total (para hacerlo desde su zona, 19-11-2026)');
   // «cada», solo si vale
   const NC = JSON.parse(JSON.stringify(N)); NC.catalogo.revinst.cada = 2; NC.catalogo.desp.cada = 61; NC.catalogo.mo.cada = 12.5; NC.catalogo.grifo.cada = '12';
   const cc = K.cfgDe(NC);
@@ -1673,6 +1673,67 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(ct.ok && A(rq).con && A(rq).con.rev === PL.rev && K.vistaCliente(S, cfg, rq).enCon === true && K.perfilCliente(S, cfg, otro(60).tel).avisos.find(a => a.id === rq).quiere === PL.id, 'al darle de alta el plan, su revisión pedida va incluida');
   const rc = ap({ tipo: 'pedir', av: K.REV, cli: otro(60), cita: hueco(), plan: PL.id }, CLI).id;
   es(A(rc).con && !A(rc).quiere, 'con el contrato ya hecho, no se apunta que quiere el plan'); }
+
+// ---------- 54. lo demás de la zona del cliente (19-11-2026, tarde): «ya lo he pagado», «¿sigue todo bien?», hacer un
+//      presupuesto que no aceptó, sus datos y su correo, los mensajes y pedir que se borren sus datos ----------
+{ empieza(); const P = globalThis.OficioPapeles, tel = '622 33 44 55', Z = { rol: 'cliente', id: '622334455' }, OTRO = { rol: 'cliente', id: '699000777' };
+  const cli = { nombre: 'Berta', apellidos: 'Prueba Dos', tel, dir: 'C/ de Aribau 80, 3.º', cp: '08036' };
+  /* un trabajo terminado: pagado o no; y una visita en la que no aceptó el presupuesto */
+  const hecho = (modo, c) => { const id = ap({ tipo: 'pedir', av: 'cisterna', cli: c || cli, origen: 'llamada' }, C).id; ap({ tipo: 'asignar', id, tec: 'jordi' }, C); ap({ tipo: 'voy', id }, T('jordi'));
+    ap({ tipo: 'empezar', id, pres: { lineas: [{ k: 'cisterna' }], firma: F } }, T('jordi')); ap({ tipo: 'terminar', id, modo, firma: F }, T('jordi')); return id };
+  const debe = hecho('pendiente'), pagado = hecho('tarjeta'), deOtro = hecho('pendiente', Object.assign({}, cli, { nombre: 'Otra', tel: '699 00 07 77' }));
+  es(A(debe).e === 'hecho' && !A(debe).pago.cobrado && A(debe).msgs.some(m => m.k === 'cobro' && !m.env) && A(pagado).pago.cobrado, 'uno por pagar y otro pagado');
+  // «Ya lo he pagado»: solo el cliente de ese teléfono, por Bizum o transferencia, y no es cobrado: lo mira la oficina
+  es(ap({ tipo: 'pagado', id: debe, modo: 'bizum' }, OTRO).err === 'permiso' && ap({ tipo: 'pagado', id: debe, modo: 'bizum' }, CLI).err === 'permiso' && ap({ tipo: 'pagado', id: debe, modo: 'bizum' }, C).err === 'permiso', 'nadie más lo dice por él, ni la oficina');
+  es(ap({ tipo: 'pagado', id: debe, modo: 'efectivo' }, Z).err === 'modo' && ap({ tipo: 'pagado', id: debe, modo: 7 }, Z).err === 'modo' && ap({ tipo: 'pagado', id: pagado, modo: 'bizum' }, Z).err === 'estado', 'en efectivo o con tarjeta no se dice desde aquí; lo ya cobrado, tampoco');
+  es(ap({ tipo: 'pagado', id: debe, modo: 'transferencia' }, Z).ok && A(debe).pago.dice.modo === 'transferencia' && !A(debe).pago.cobrado && A(debe).pago.modo === 'pendiente' && !A(debe).msgs.some(m => m.k === 'cobro' && !m.env) && A(debe).h.at(-1).txt === 'El cliente dice que lo ha pagado (transferencia)',
+    'queda dicho, sigue pendiente y ya no se le recuerda el pago');
+  es(ap({ tipo: 'pagado', id: debe, modo: 'transferencia' }, Z).err === 'estado' && ap({ tipo: 'pagado', id: debe, modo: 'bizum' }, Z).ok && A(debe).pago.dice.modo === 'bizum', 'dos veces lo mismo no; corregir cómo, sí');
+  es(K.perfilCliente(S, cfg, tel).avisos.find(a => a.id === debe).pago.dice.modo === 'bizum' && !P.tipos(K.perfilCliente(S, cfg, tel).avisos.find(a => a.id === debe)).some(x => x[0] === 'recibo'), 'lo ve en su zona; sin recibo hasta que se cobra');
+  es(ap({ tipo: 'cobrar', id: debe, modo: 'bizum' }, C).ok && A(debe).pago.cobrado && !A(debe).pago.dice && P.tipos(A(debe)).some(x => x[0] === 'recibo') && P.elige(A(debe), '') === 'parte', 'la oficina lo apunta como cobrado: ya tiene su recibo (y se sigue enseñando el parte)');
+  { const html = P.doc(A(debe), 'recibo', { K, N: cfg.N, cfg, firmaSvg: () => '' });
+    es(html.includes('Recibo') && html.includes(K.eur(A(debe).tot.total)) && html.includes('bizum') && html.includes('no es una factura') && !/undefined|NaN|null/.test(html), 'el recibo: cuánto, cuándo, cómo, y que no es la factura') }
+  // «¿Sigue todo bien?»: lo contesta él; ya no se le pregunta por mensaje
+  es(A(pagado).msgs.some(m => m.k === 'seguimiento' && !m.env), 'después del trabajo se le iba a preguntar');
+  es(ap({ tipo: 'bien', id: pagado }, OTRO).err === 'permiso' && ap({ tipo: 'bien', id: deOtro }, Z).err === 'permiso', 'solo lo suyo');
+  es(ap({ tipo: 'bien', id: pagado }, Z).ok && A(pagado).bien > 0 && !A(pagado).msgs.some(m => m.k === 'seguimiento' && !m.env) && A(pagado).msgs.some(m => m.k === 'resena') && ap({ tipo: 'bien', id: pagado }, Z).err === 'estado',
+    'contestado: no se le pregunta otra vez, y la reseña se le pide igual que a todos');
+  { const ab = ap({ tipo: 'pedir', av: 'grifo', cli, origen: 'llamada' }, C).id; es(ap({ tipo: 'bien', id: ab }, Z).err === 'estado', 'de un aviso sin terminar, no') }
+  // un presupuesto que no aceptó: lo pide desde su zona y su recordatorio ya no sale
+  const np = ap({ tipo: 'pedir', av: 'cisterna', cli, origen: 'llamada' }, C).id; ap({ tipo: 'asignar', id: np, tec: 'jordi' }, C); ap({ tipo: 'voy', id: np }, T('jordi'));
+  es(ap({ tipo: 'noacepta', id: np, modo: 'pendiente', pres: { lineas: [{ k: 'cisterna' }] } }, T('jordi')).ok && A(np).noPres && A(np).noPres.total > 0 && A(np).msgs.some(m => m.k === 'presupuesto' && !m.env), 'no aceptó el presupuesto: se le recordará');
+  const hueco = () => { for (const d of K.diasDe(S, cfg, t, 6)) { const f = !d.hoy && d.franjas.find(x => x.ok); if (f) return { dia: d.dia, fr: f.id } } return null };
+  const ajeno = ap({ tipo: 'pedir', av: 'cisterna', cli: Object.assign({}, cli, { nombre: 'Otra', tel: '699 00 07 77' }), cita: hueco(), dePres: np }, CLI).id;
+  es(ajeno && !A(ajeno).dePres, 'con otro teléfono no cuenta');
+  const dp = ap({ tipo: 'pedir', av: 'cisterna', cli, cita: hueco(), dePres: np }, CLI).id;
+  es(A(dp).dePres === np && A(dp).h[0].txt.includes('Quiere hacer el presupuesto de ' + np) && K.perfilCliente(S, cfg, tel).avisos.find(a => a.id === dp).dePres === np, 'la cita es para hacerlo: lo ve la oficina y lo ve él');
+  { const tm = A(np).msgs.find(m => m.k === 'presupuesto').t + M; es(!K.porMandar(S, tm).some(x => x.a.id === np && x.m.k === 'presupuesto'), 'y su recordatorio ya no sale') }
+  const dp2 = ap({ tipo: 'pedir', av: 'cisterna', cli, cita: hueco(), dePres: np }, CLI).id;
+  es(!A(dp2).dePres && ap({ tipo: 'cancelar', id: dp }, C).ok && A(ap({ tipo: 'pedir', av: 'cisterna', cli, cita: hueco(), dePres: np }, CLI).id).dePres === np, 'una sola cita para el mismo presupuesto; si se cancela, se puede pedir otra');
+  // sus datos: el nombre en lo que no tiene factura; el correo en todos. Nadie más, y bien escrito
+  ap({ tipo: 'facturar', id: pagado, num: 'F-9' }, C);
+  es(ap({ tipo: 'misDatos', nombre: 'Berta', apellidos: 'Nova', email: '' }, CLI).err === 'permiso' && ap({ tipo: 'misDatos', nombre: 'B', apellidos: 'Nova' }, Z).err === 'nombre' && ap({ tipo: 'misDatos', nombre: 'Berta', apellidos: '' }, Z).err === 'apellidos' && ap({ tipo: 'misDatos', nombre: 'Berta', apellidos: 'Nova', email: 'berta@' }, Z).err === 'email' && ap({ tipo: 'misDatos', nombre: 'Berta', apellidos: 'Nova' }, { rol: 'cliente', id: '611000999' }).err === 'tel',
+    'con su teléfono, un nombre, unos apellidos y, si lo pone, un correo bien escrito');
+  const antesOtro = JSON.stringify(A(deOtro));
+  es(ap({ tipo: 'misDatos', nombre: '  Berta  ', apellidos: 'Nova  Prova', email: ' Berta@Correu.CAT ' }, Z).ok && A(debe).cli.apellidos === 'Nova Prova' && A(pagado).cli.apellidos === 'Prueba Dos' && A(pagado).cli.email === 'berta@correu.cat' && A(np).cli.email === 'berta@correu.cat' && JSON.stringify(A(deOtro)) === antesOtro,
+    'cambia el nombre donde no hay factura, el correo en todos, y nada de otro cliente');
+  es(K.perfilCliente(S, cfg, tel).cli.email === 'berta@correu.cat' && ap({ tipo: 'misDatos', nombre: 'Berta', apellidos: 'Nova Prova', email: 'berta@correu.cat' }, Z).err === 'estado' && ap({ tipo: 'misDatos', nombre: 'Berta', apellidos: 'Nova Prova', email: '' }, Z).ok && !('email' in A(debe).cli),
+    'lo ve en su zona; sin cambios, nada; sin correo, se quita');
+  es(ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, cli, { email: 'mal@' }) }, C).err === 'email' && A(ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, cli, { email: 'B@x.es' }), origen: 'llamada' }, C).id).cli.email === 'b@x.es', 'la oficina también lo puede apuntar, bien escrito');
+  // los mensajes de después de los trabajos: él mismo, con su teléfono
+  es(K.perfilCliente(S, cfg, tel).escribe === true && ap({ tipo: 'escribir', tel: '699 00 07 77', si: false }, Z).err === 'permiso' && ap({ tipo: 'escribir', tel, si: false }, Z).ok && K.perfilCliente(S, cfg, tel).escribe === false && K.perfilCliente(S, cfg, '699000777').escribe === true,
+    'no los quiere: solo los suyos');
+  es(ap({ tipo: 'escribir', tel, si: true }, Z).ok && K.perfilCliente(S, cfg, tel).escribe === true, 'y los vuelve a querer');
+  // pedir que se borren sus datos: queda en su último aviso y, desde ya, ningún mensaje de seguimiento
+  es(ap({ tipo: 'olvido' }, CLI).err === 'permiso' && ap({ tipo: 'olvido' }, { rol: 'cliente', id: '611000999' }).err === 'tel', 'solo con su teléfono');
+  es(ap({ tipo: 'olvido' }, Z).ok && S.avisos.filter(a => a.olvido).length === 1 && S.avisos.filter(a => K.tel9(a.cli.tel) === Z.id).every(a => a.noMsg && !a.msgs.some(m => !m.env && K.SEGUIR.includes(m.k))) && !A(deOtro).olvido && ap({ tipo: 'olvido' }, Z).err === 'estado',
+    'pedido una vez, sin mensajes de seguimiento, y nada de otro cliente');
+  es(K.perfilCliente(S, cfg, tel).avisos.some(a => a.olvido) && K.perfilCliente(S, cfg, tel).escribe === false, 'lo ve en su zona');
+  // la cuota de su contrato
+  const PL = Object.values(cfg.planes)[0], ct = ap({ tipo: 'contrato', plan: PL.id, cli: Object.assign({}, cli, { dir: 'C/ de Aribau 82, 1.º' }), acepta: 'mensaje' }, C).id, Ct = () => S.contratos.find(c => c.id === ct), u = () => Ct().per.at(-1);
+  es(!u().pago.cobrado && ap({ tipo: 'pagadoCon', id: ct, modo: 'bizum' }, OTRO).err === 'permiso' && ap({ tipo: 'pagadoCon', id: ct, modo: 'efectivo' }, Z).err === 'modo' && ap({ tipo: 'pagadoCon', id: 'C-9999', modo: 'bizum' }, Z).err === 'contrato', 'la cuota: él, por Bizum o transferencia, de un contrato que existe');
+  es(ap({ tipo: 'pagadoCon', id: ct, modo: 'transferencia' }, Z).ok && u().pago.dice.modo === 'transferencia' && !u().pago.cobrado && K.pendientesContratos(S, cfg, t).cobrar.some(x => x.id === ct) && ap({ tipo: 'cobroContrato', id: ct, modo: 'transferencia' }, C).ok && u().pago.cobrado && !u().pago.dice && ap({ tipo: 'pagadoCon', id: ct, modo: 'bizum' }, Z).err === 'estado',
+    'dicho, sigue por cobrar hasta que la oficina lo apunta'); }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);

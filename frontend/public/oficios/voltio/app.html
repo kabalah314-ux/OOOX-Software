@@ -110,6 +110,7 @@ main>*:has(+ .accion){margin-bottom:18px}
 .dice{margin-top:12px;padding-left:12px;border-left:3px solid var(--control);color:var(--texto)}
 .fotoc{margin-top:12px;width:132px;height:99px;object-fit:cover;border-radius:8px}
 .ojo{margin-top:12px;padding:12px 14px 12px 16px;border-radius:12px;background:var(--asfalto-3);color:var(--texto);box-shadow:inset 4px 0 0 var(--control)}
+.ojo.mal{box-shadow:inset 4px 0 0 var(--mal)}
 .ojo a{font-weight:600}
 .tecs{display:grid;gap:8px}
 .tec{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:60px;padding:8px 12px;border-radius:12px;border:2px solid var(--control)}
@@ -671,6 +672,12 @@ function bGar(A){const puede=Q.rol==='centralita'&&['nuevo','asignado','camino',
  if(A.enGar){const de=el(A.enGar.de);return'<p class="ojo" id="garB">En garantía del trabajo '+(de?'<a href="#/aviso/'+de.id+'">'+de.id+'</a>':esc(A.enGar.de))+': no se cobra la visita, la mano de obra ni lo que se puso entonces.'+(puede?' <button class="txt" data-a="noGar" data-id="'+A.id+'">Quitar</button>':'')+'</p>'}
  /* el cliente lo ha pedido desde su zona con «Ha vuelto a fallar» (19-11-2026): se dice, pero la oficina decide igual */
  const G=A.gar0&&el(A.gar0);if(!G)return'';return'<p class="ojo" id="garB">'+(A.vuelve===G.id?'El cliente dice que ha vuelto a fallar ':'Revisar si puede ser garantía: ')+'<a href="#/aviso/'+G.id+'">'+G.id+'</a>, '+esc(cfg.av[G.av].n.toLowerCase())+', terminado el '+K.fechaCorta(K.madrid(G.fin).date)+'. Lo decide la oficina al verlo: al cliente no se le promete nada antes.'+(puede?' <button class="btn peq" data-a="esGar" data-id="'+A.id+'">Es garantía</button>':'')+'</p>'}
+/* desde su zona (19-11-2026): la cita es para hacer un presupuesto que no aceptó; y si ha pedido que se borren sus datos */
+function bZona(A){let h='';const P=A.dePres&&el(A.dePres);
+ if(P&&P.noPres)h+='<p class="ojo" id="presB">El cliente quiere hacer el presupuesto que no aceptó en <a href="#/aviso/'+P.id+'">'+P.id+'</a>: '+K.eur(P.noPres.total)+', '+esc(cfg.av[P.av].n.toLowerCase())+'. El técnico lo puede volver a presentar tal cual.</p>';
+ const O=Q.rol==='centralita'&&A.cli&&A.cli.tel?S.avisos.find(x=>x.olvido&&x.cli&&x.cli.tel===A.cli.tel):null;
+ if(O)h+='<p class="ojo mal" id="olvB">El cliente pidió '+hace(O.olvido.t)+' que se borren sus datos. Pídeselo a OOOX por escrito: los borra del servidor. Las facturas, en tu programa de facturas, se guardan los años que pide la ley.</p>';
+ return h}
 function bReparto(A){const r=K.resumen(S,cfg,Date.now()),rep=['nuevo','asignado','ausente'].includes(A.e);
  /* en una urgencia por repartir: en cuánto llegaría cada uno, y si llegaría tarde a su cita o se saldría de su horario */
  const LL=rep&&!A.cita&&!A.tec?K.llegadas(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):[],ll=id=>LL.find(x=>x.tec===id),pri=LL.find(x=>!x.choca&&!x.fuera);
@@ -727,6 +734,8 @@ function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
  let h='<section class="blq"><h2>'+(A.e==='hecho'?(A.sinTrabajo?'Solo el desplazamiento':'Total del trabajo'):'Presupuesto firmado')+'</h2><p class="gordo num">'+K.eur(T.total)+'</p><p class="ln">IVA del '+T.tipo+' % incluido'+(T.urg?' · tarifa de urgencia':'')+(p?' · '+(p.cobrado?(T.total?'cobrado, '+PAGO[p.modo].toLowerCase():'nada que cobrar: '+(A.enGar?'va en garantía':'va en su contrato')):'pendiente de pago'):'')+'</p>';
  h+='<ul class="lins">'+T.lineas.map(l=>'<li><span>'+esc(l.t)+(lq(l)?', '+lq(l):'')+(l.con?', en su contrato':l.gar?', en garantía':'')+'</span><span class="num">'+(l.con||l.gar?'Incluido':K.eur(l.imp))+'</span></li>').join('')+'</ul>';
  if(A.rebajas&&A.rebajas.length)h+='<p class="ln" id="rebs">'+A.rebajas.map(x=>'Rebajado el '+K.fechaCorta(K.madrid(x.t).date)+' de '+K.eur(x.antes)+' a '+K.eur(x.ahora)+': '+esc(x.motivo)+(x.devolver?'. Hay que devolverle '+K.eur(x.devolver)+'.':'')).join('<br>')+'</p>';
+ /* desde su zona, el cliente dice que ya lo ha pagado (19-11-2026): se mira en el banco y se apunta el cobro */
+ if(p&&!p.cobrado&&p.dice)h+='<p class="ojo" id="dice">El cliente dice que lo ha pagado por '+PAGO[p.dice.modo].toLowerCase()+' '+hace(p.dice.t)+'. Míralo en el banco y apunta el cobro.</p>';
  if(p&&!p.cobrado)h+='<div class="acts"><button class="btn pri" data-a="cobrar" data-id="'+A.id+'">Apuntar cobro</button></div>';
  /* corregir (16-11-2026): la oficina, la forma de pago de lo cobrado; la oficina o su técnico mientras trabaja, rebajar el precio */
  {const pu=[];if(Q.rol==='centralita'&&A.e==='hecho'&&T.total>0&&p&&p.cobrado)pu.push('<button class="btn peq" data-a="corrPago" data-id="'+A.id+'">Corregir la forma de pago</button>');
@@ -829,7 +838,7 @@ function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
  if(!A)return'<div class="cab"><div><h1>Aviso</h1><p class="sub">No encuentro el aviso '+esc(id)+'.'+(Oficio.DEMO?' Puede que la demo se haya reiniciado.':'')+'</p></div></div><p class="fin"><a class="txt" href="#/">Volver al inicio</a></p>';
  const av=cfg.av[A.av],mio=esT&&A.tec===Q.id,abierto=['nuevo','asignado','ausente'].includes(A.e),t=cfg.tec[A.tec];
  let h='<a class="atras" href="#/'+(esT?'hoy':'bandeja')+'">'+I.atras+(esT?'Hoy':'Bandeja')+'</a>';
- h+='<div class="cab"><div><h1>'+esc(av.n)+'</h1><p class="sub">'+A.id+(barrio(A)?' · '+esc(barrio(A)):'')+' · '+(A.cita?'cita '+diaTxt(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente')+'</p></div><span class="pill '+A.e+'">'+EST[A.e]+'</span></div>'+pista(A)+bGar(A);
+ h+='<div class="cab"><div><h1>'+esc(av.n)+'</h1><p class="sub">'+A.id+(barrio(A)?' · '+esc(barrio(A)):'')+' · '+(A.cita?'cita '+diaTxt(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente')+'</p></div><span class="pill '+A.e+'">'+EST[A.e]+'</span></div>'+pista(A)+bGar(A)+bZona(A);
  if(esT){h+=bCliente(A,true)+bContrato(A);
   if(mio&&A.e==='curso')h+=bTrabajo(A);
   h+=bFalta(A);
@@ -1055,7 +1064,8 @@ function vContratos(){const ahora=Date.now(),hoy=K.madrid().date,Pd=K.pendientes
  const al=Pd.renovar.map(x=>li(x.vencido?'atn':'','Renovar · '+nom(x.id),esc(x.id)+' · '+(x.vencido?'acabó':'acaba')+' el '+K.fechaCorta(x.a),'<button class="btn peq" data-a="conRen" data-c="'+x.id+'">Renovar contrato</button>'))
   .concat(Pd.revision.map(x=>{const C=contrato(x.id),ab=C&&S.avisos.find(a=>['nuevo','asignado','camino','ausente'].includes(a.e)&&a.av!==K.REV&&K.tel9(a.cli.tel)===K.tel9(C.cli.tel));
    return li('','Revisión · '+nom(x.id),esc(x.id)+(x.toca?' · toca el '+K.fechaCorta(x.toca):'')+(ab?' · tiene abierto el aviso <a href="#/aviso/'+ab.id+'">'+ab.id+'</a>: se puede hacer en esa misma visita':''),'<button class="btn peq" data-a="conRev" data-c="'+x.id+'">Crear aviso de revisión</button>')}))
-  .concat(Pd.cobrar.map(x=>li('','Cuota por cobrar · '+nom(x.id),esc(x.id)+' · '+K.eur(x.precio),'<button class="btn peq" data-a="conCob" data-c="'+x.id+'">Apuntar cobro</button>')));
+  .concat(Pd.cobrar.map(x=>{const C=contrato(x.id),u=C&&C.per[C.per.length-1],di=u&&u.pago&&u.pago.dice;
+   return li(di?'atn':'','Cuota por cobrar · '+nom(x.id),esc(x.id)+' · '+K.eur(x.precio)+(di?' · el cliente dice que la ha pagado por '+PAGO[di.modo].toLowerCase():''),'<button class="btn peq" data-a="conCob" data-c="'+x.id+'">Apuntar cobro</button>')}));
  let h='<div class="cab"><div><h1>Contratos</h1><p class="sub">'+(act?(act===1?'1 contrato de mantenimiento en marcha.':act+' contratos de mantenimiento en marcha.'):'Todavía no hay ningún contrato de mantenimiento.')+'</p></div><button class="btn pri peq" data-a="conAlta">'+I.mas+'Nuevo contrato</button></div>';
  h+='<div class="dosc">';
  if(al.length)h+='<section class="sec tareas"><h2>Por hacer <span class="n">'+al.length+'</span></h2><ul class="porhacer" id="conAl" aria-label="Lo que piden los contratos">'+al.join('')+'</ul></section>';
@@ -1098,8 +1108,8 @@ function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;cons
   Oficio.crear(a,Q).then(r=>{bt.disabled=false;if(!r.ok)return di(errDe(r)||'No se ha podido dar de alta.');d.close();
    /* el técnico con servidor no tiene la lista de contratos: se queda en su aviso; el papel lo tienen la oficina y el cliente en su zona */
    if(Q.rol==='centralita'||contrato(r.id)){toast('Contrato '+r.id+' dado de alta.');location.hash='#/papel/'+r.id+'/contrato'}else{toast('Contrato '+r.id+' dado de alta. El cliente lo tiene en su zona.');pinta()}})}}
-function hConCob(C){let modo='';const u=C.per[C.per.length-1],L=['efectivo','tarjeta','bizum','transferencia'];
- const d=hoja(hc('Cuota cobrada')+'<div class="hb"><p>'+esc(C.id)+' · '+esc(K.nomCli(C.cli))+' · <b class="num">'+K.eur(u.precio)+'</b></p><div class="campo"><span class="lb">¿Cómo ha pagado?</span><div id="ccM">'+modos(L,'')+'</div></div></div><div class="hp"><button class="btn pri ancho" id="ccOk" disabled>Apuntar el cobro</button></div>');
+function hConCob(C){const u=C.per[C.per.length-1],L=['efectivo','tarjeta','bizum','transferencia'];let modo=u.pago&&u.pago.dice?u.pago.dice.modo:'';
+ const d=hoja(hc('Cuota cobrada')+'<div class="hb"><p>'+esc(C.id)+' · '+esc(K.nomCli(C.cli))+' · <b class="num">'+K.eur(u.precio)+'</b></p>'+(u.pago&&u.pago.dice?'<p class="ojo">El cliente dice que la ha pagado por '+PAGO[u.pago.dice.modo].toLowerCase()+' '+hace(u.pago.dice.t)+'. Míralo en el banco antes de apuntarla.</p>':'')+'<div class="campo"><span class="lb">¿Cómo ha pagado?</span><div id="ccM">'+modos(L,modo)+'</div></div></div><div class="hp"><button class="btn pri ancho" id="ccOk"'+(modo?'':' disabled')+'>Apuntar el cobro</button></div>');
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#ccOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#ccM',d).innerHTML=modos(L,modo);$('#ccOk',d).disabled=false}
   else if(hacer({tipo:'cobroContrato',id:C.id,modo}).ok){d.close();toast('Cuota cobrada.')}})}
 function hConRen(C){let modo='pendiente';const P=cfg.planes[C.plan],u=C.per[C.per.length-1],L=['efectivo','tarjeta','bizum','transferencia','pendiente'];
@@ -1503,7 +1513,7 @@ function hCompletar(A){const c=A.cli;
 function hCancelar(A){const d=hoja(hc('¿Cancelar el aviso?')+'<div class="hb"><p>'+A.id+', '+esc(cfg.av[A.av].n.toLowerCase())+(K.nomCli(A.cli)?' de '+esc(K.nomCli(A.cli)):'')+'. Sale de la bandeja y, si tenía cita, su hueco queda libre. No se puede deshacer.</p></div><div class="hp"><button class="btn ancho" id="xOk" style="border-color:var(--mal);color:var(--mal)">Cancelar el aviso</button><button class="btn ancho" data-x>Volver</button></div>');
  $('#xOk',d).onclick=()=>{if(hacer({tipo:'cancelar',id:A.id}).ok){d.close();toast('Aviso cancelado.');location.hash='#/bandeja'}}}
 const modos=(L,sel)=>'<div class="ops" role="radiogroup" aria-label="Cómo paga">'+L.map(k=>'<button type="button" class="op" data-modo="'+k+'" role="radio" aria-checked="'+(sel===k)+'">'+PAGO[k]+'</button>').join('')+'</div>';
-function hCobrar(A){let modo='';const d=hoja(hc('Marcar como cobrado')+'<div class="hb"><p>'+A.id+' · '+esc(K.nomCli(A.cli))+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div id="oM">'+modos(['transferencia','bizum','efectivo','tarjeta'],'')+'</div></div><div class="hp"><button class="btn pri ancho" id="oOk" disabled>Apuntar cobro</button></div>');
+function hCobrar(A){let modo=A.pago&&A.pago.dice?A.pago.dice.modo:'';const d=hoja(hc('Marcar como cobrado')+'<div class="hb"><p>'+A.id+' · '+esc(K.nomCli(A.cli))+' · <b class="num">'+K.eur(A.tot.total)+'</b></p><div id="oM">'+modos(['transferencia','bizum','efectivo','tarjeta'],modo)+'</div></div><div class="hp"><button class="btn pri ancho" id="oOk"'+(modo?'':' disabled')+'>Apuntar cobro</button></div>');
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#oOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#oM',d).innerHTML=modos(['transferencia','bizum','efectivo','tarjeta'],modo);$('#oOk',d).disabled=false}
   else if(hacer({tipo:'cobrar',id:A.id,modo}).ok){d.close();toast('Cobro apuntado: '+K.eur(A.tot.total)+'.')}})}
 

@@ -179,7 +179,11 @@ if(B.fijo&&B.av!==K.REV)mem.set(N.id+':av',B.av);
    garantía al verlo, así que aquí no se promete nada. Con la revisión: «plan», el mantenimiento que quiere (lo da de alta la
    oficina antes de la visita) y «con», que va en su contrato. Las reglas lo comprueban todo al pedirla */
 const GAR=/^[A-Za-z0-9]{1,4}-\d{1,7}$/.test(P.get('garantia')||'')?P.get('garantia'):'',PLAN=K.planDe(cfg,P.get('plan')||'')?P.get('plan'):'',CON=P.get('con')==='1';
-const extra=()=>B.av===K.REV?{enCon:CON,quiere:CON?'':PLAN}:{vuelve:GAR};
+/* «Pedir cita para hacerlo», desde su zona (19-11-2026): un presupuesto suyo que no aceptó. Lo que se sabe de él (importe, fecha,
+   si fue en una urgencia) lo deja su zona en este navegador; sin eso, se dice solo el número */
+const PRES=/^[A-Za-z0-9]{1,4}-\d{1,7}$/.test(P.get('pres')||'')&&!GAR?P.get('pres'):'';
+const PRESX=(()=>{if(!PRES)return null;try{const x=JSON.parse(mem.get('oficio:'+N.id+':pres')||'null');return x&&x.id===PRES&&x.total>0&&typeof x.t==='number'?x:null}catch(e){return null}})();
+const extra=()=>B.av===K.REV?{enCon:CON,quiere:CON?'':PLAN}:{vuelve:GAR,pres:PRESX&&B.av===PRESX.av?PRESX:null};
 /* desde «Pedir cita» de la zona del cliente: sus datos ya puestos, una sola vez */
 {const y=mem.get('oficio:'+N.id+':yo');if(y){try{const o=JSON.parse(y);['tel','dir','cp'].forEach(k=>{if(o&&typeof o[k]==='string')B[k]=k==='tel'?K.telBonito(o[k]):o[k]});if(o)B.nomap=[o.nombre,o.apellidos].filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()).join(' ')}catch(e){}try{localStorage.removeItem('oficio:'+N.id+':yo')}catch(e){}}}
 const ERR={av:'Elige qué necesitas arreglar.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nomap:'Escribe tu nombre y al menos un apellido.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en {ciudad}.'};
@@ -246,11 +250,14 @@ const fotoAv=id=>{if(id===K.REV)id='otra';   /* la revisión no tiene foto propi
  const x=svDe(id);return x&&x.foto?(SRV?Oficio.fotoSrc(x.foto,'web'):x.foto):'assets/img/av-'+id+'-s.webp'};
 /* «o»: lo de la revisión (19-11-2026): «enCon», que va en su contrato; «quiere», el plan que quiere, con la revisión dentro */
 const precioTxt=(av,o)=>{o=o||{};const e=v=>K.eur(v).replace(',00','');
+ if(o.pres)return K.eur(o.pres.total);
  if(av===K.REV&&o.enCon)return _('Incluida en tu contrato');const Pl=av===K.REV&&o.quiere?K.planDe(cfg,o.quiere):null;if(Pl)return _('{precio} al año',{precio:e(Pl.precio)});
  const x=svDe(av),R=x&&K.webPrecios?K.webPrecios(cfg,x):(()=>{const r=K.rango(cfg,av,false);return r&&{a:r.a,b:r.b}})();if(!R)return'';return R.b?_('De {a} a {b}',{a:e(R.a),b:e(R.b)}):_('Desde {a}',{a:e(R.a)})};
 const PRECIO_NOTA='IVA incluido, en una vivienda. Con cita, tarifa normal. El precio final se cierra y lo firmas antes de empezar.';
 const nomPlan=Pl=>esc(_(Pl.n).toLowerCase());
 const notaPrecio=(av,o)=>{o=o||{};const Pl=av===K.REV&&!o.enCon&&o.quiere?K.planDe(cfg,o.quiere):null;
+ if(o.pres)return o.pres.urg?_('Es el presupuesto que te dimos el {fecha}, con el suplemento de urgencia. Con cita no lo lleva: el técnico te lo vuelve a presentar y lo firmas antes de empezar.',{fecha:K.fechaCorta(K.madrid(o.pres.t).date)})
+  :_('Es el presupuesto que te dimos el {fecha}, IVA incluido. El técnico te lo vuelve a presentar y lo firmas antes de empezar.',{fecha:K.fechaCorta(K.madrid(o.pres.t).date)});
  return av===K.REV&&o.enCon?_('La revisión y el desplazamiento van en tu contrato de mantenimiento.'):Pl?_('Con el {plan}, esta revisión va incluida. IVA incluido. Te escribimos para darlo de alta antes de la visita.',{plan:nomPlan(Pl)}):_(PRECIO_NOTA)};
 /* lo que se puede comprobar antes de enviar (lo mismo que mira el núcleo); así se corrige todo de una vez */
 function revisa(){const E=[],nm=s=>String(s||'').trim().replace(/\s+/g,' ');
@@ -283,13 +290,14 @@ function vPedir(){
  /* ¿no puede esperar?: a la portada, donde se llama o se manda una foto y se ve en cuánto llegamos y el suplemento */
  return TIT()+'<p class="lead" id="urgLead">'+_('¿No puedes esperar?')+' <a href="./">'+_('Contrata el servicio urgente')+'</a></p>'+
   (U&&U.e!=='cancelado'&&U.e!=='hecho'?'<p class="ult">'+_('Ya tienes un aviso: {id}, {av}.',{id:U.id,av:esc(nomAv(U.av).toLowerCase())})+' <a href="#/aviso/'+U.id+'">'+_('Ver cómo va')+'</a>. '+_('Para cambiarlo, llámanos al {tel}.',{tel:esc(N.tel)})+'</p>':'')+
+  (PRES&&B.av!==K.REV?'<p class="ult" id="presN">'+_('Pides cita para hacer el presupuesto {id}, que no aceptaste en la visita. El técnico te lo vuelve a presentar y lo firmas antes de empezar.',{id:esc(PRES)})+'</p>':'')+
   (GAR&&B.av!==K.REV?'<p class="ult" id="garN">'+_('Pides cita porque ha vuelto a fallar el trabajo {id}, que sigue en garantía. Al verlo, te decimos si entra en ella.',{id:esc(GAR)})+'</p>':'')+
   resumenMal+
   '<form id="f" novalidate><p class="obl">'+_('Todo es necesario salvo lo que pone «Opcional».')+'</p>'+
   '<fieldset id="av"><legend><b>1</b>'+_('¿Qué necesitas arreglar?')+'</legend>'+
    (elegida||'<div class="avs">'+webL().filter(a=>!a.oculto||a.id===B.av).map(a=>'<label class="avc"><img src="'+esc(fotoAv(a.id))+'" alt="" width="52" height="52" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>'+esc(nomAv(a.id))+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>')+
    (malEn('av')?'<p class="fallo">'+err('av')+'</p>':'')+
-   (B.av?'<p class="rango"><span class="rk">'+_('Precio orientativo')+'</span><b class="num">'+precioTxt(B.av,extra())+'</b><small>'+notaPrecio(B.av,extra())+'</small></p>':'')+
+   (B.av?'<p class="rango"><span class="rk">'+(extra().pres?_('Presupuesto'):_('Precio orientativo'))+'</span><b class="num">'+precioTxt(B.av,extra())+'</b><small>'+notaPrecio(B.av,extra())+'</small></p>':'')+
    '<div class="campo"><label for="c_nota">'+_('Explícanos cuál es el problema')+' <small class="opc">'+_('Opcional')+'</small></label><textarea id="c_nota" data-b="nota" placeholder="'+esc(_('¿Algún detalle importante que debamos saber? Explícanos cuál es la situación.'))+'">'+esc(B.nota)+'</textarea>'+(otra?'<p class="ayuda">'+_('Si no sabes explicarlo, manda una foto: con eso nos basta para prepararlo.')+'</p>':'')+'</div>'+
    '<div class="fotow"><span class="lb">'+_('Una foto')+' <small class="opc">'+_('Opcional · ayuda a preparar la visita')+'</small></span><div class="fotoz">'+(B.foto?'<img src="'+esc(B.foto)+'" alt="'+_('La foto que has añadido')+'">':'')+
     '<label class="btn peq">'+(B.fotoVa?_('Preparando la foto…'):B.foto?_('Cambiar la foto'):_('Añadir una foto'))+'<input class="vh" type="file" accept="image/*" id="c_foto"></label>'+(B.foto?'<button type="button" class="txt" id="fQuita">'+_('Quitar')+'</button>':'')+'</div>'+
@@ -341,8 +349,9 @@ function vResumen(dias){const cp=String(B.cp).replace(/\D/g,'');
    fila(_('Qué arreglar'),esc(nomAv(B.av)),'av')+
    fila(_('Cuándo'),esc(I.fechaLarga(B.dia))+', '+esc(frTxt(B.fr))+(alt.length?'<br><small>'+_('También te va bien: {cuando}',{cuando:esc(alt.join(' · '))})+'</small>':''),'fr')+
    fila(_('Tarifa'),_('Normal, con cita'),null)+
-   fila(_('Precio orientativo'),precioTxt(B.av,extra())+'<br><small>'+(B.av===K.REV&&(CON||PLAN)?notaPrecio(B.av,extra()):_('IVA incluido. El precio final se cierra y lo firmas antes de empezar.'))+'</small>',null)+
+   fila(extra().pres?_('Presupuesto'):_('Precio orientativo'),precioTxt(B.av,extra())+'<br><small>'+(B.av===K.REV&&(CON||PLAN)||extra().pres?notaPrecio(B.av,extra()):_('IVA incluido. El precio final se cierra y lo firmas antes de empezar.'))+'</small>',null)+
    (GAR&&B.av!==K.REV?fila(_('Garantía'),_('Ha vuelto a fallar el trabajo {id}',{id:esc(GAR)}),null):'')+
+   (PRES&&B.av!==K.REV?fila(_('Presupuesto'),_('Hacer el presupuesto {id}',{id:esc(PRES)}),null):'')+
    fila(_('Dirección'),esc(B.dir.trim())+', '+esc(cp)+' '+esc(zonaDe(cp)),'tu')+
    fila(_('A nombre de'),esc(String(B.nomap).trim().replace(/\s+/g,' '))+'<br><small>'+_('{tel} · por WhatsApp',{tel:esc(K.telBonito(K.tel9(B.tel)))})+'</small>','tu')+
    (B.nota.trim()||B.foto?fila(_('Lo que nos cuentas'),(B.nota.trim()?esc(B.nota.trim()):'')+(B.foto?(B.nota.trim()?'<br>':'')+'<img class="rfoto" src="'+esc(B.foto)+'" alt="'+_('La foto que mandas')+'">':''),'av'):'')+
@@ -434,7 +443,7 @@ document.addEventListener('change',e=>{const i=e.target;
 /* ir a un campo desde el aviso de errores, o volver del resumen a la parte que se quiere cambiar */
 const irA=id=>{const t=document.getElementById(id);if(!t)return;t.scrollIntoView({block:'center'});const x=t.matches('input,textarea,button')?t:t.querySelector('input:checked,input,button:not([disabled])');if(x)x.focus({preventScroll:true})};
 async function envia(){if(B.va)return;B.va=true;B.err='';pinta();
- const pn=K.parteNombre(B.nomap),r=await Oficio.crear(Object.assign({tipo:'pedir',av:B.av,origen:'cita',idioma:I.lang(),nota:B.nota,foto:B.foto,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},GAR&&B.av!==K.REV?{garDe:GAR}:{},B.av===K.REV&&PLAN&&!CON?{plan:PLAN}:{}),{rol:'cliente'});
+ const pn=K.parteNombre(B.nomap),r=await Oficio.crear(Object.assign({tipo:'pedir',av:B.av,origen:'cita',idioma:I.lang(),nota:B.nota,foto:B.foto,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},GAR&&B.av!==K.REV?{garDe:GAR}:{},PRES&&B.av!==K.REV?{dePres:PRES}:{},B.av===K.REV&&PLAN&&!CON?{plan:PLAN}:{}),{rol:'cliente'});
  B.va=false;
  if(!r.ok){if(SRV&&r.err==='franja'){H.t=0;traeHuecos(true)}const k=r.err==='franja'?'llena':r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;B.err=k;
   /* si es de un dato (la franja se ha llenado, el teléfono…), se vuelve al formulario con ese dato marcado */
