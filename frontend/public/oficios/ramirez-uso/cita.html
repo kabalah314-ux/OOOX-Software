@@ -42,6 +42,34 @@ legend b{color:var(--senal)}
 .op[role=radio]::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--control);box-sizing:border-box}
 .op[role=radio][aria-checked=true]::before{border-color:var(--senal);background:radial-gradient(circle,var(--senal) 0 3.5px,transparent 4.5px)}
 .op[disabled]{border-style:dashed;color:var(--tenue);cursor:not-allowed}
+h1.grande{font-size:2.5rem;line-height:.95}
+/* «¿Cuándo te va bien?»: el calendario de lunes a viernes y las franjas del día elegido */
+.cal{display:grid;gap:8px}
+.cal-mes{font:700 1.25rem/1 var(--fd)}
+.cal-sem,.cal-dias{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.cal-sem span{text-align:center;font-size:.8125rem;font-weight:600;color:var(--tenue)}
+.dia{display:grid;justify-items:center;align-content:center;gap:5px;min-height:62px;border-radius:14px;border:2px solid var(--control);background:var(--asfalto-2);color:var(--texto)}
+.dia b{font:800 1.625rem/1 var(--fd)}
+.dia i{width:6px;height:6px;border-radius:50%;background:var(--bien)}
+@media (hover:hover){button.dia:hover{border-color:var(--suave)}}
+.dia[aria-checked=true]{border-color:var(--senal);background:var(--senal);color:var(--negro)}
+.dia[aria-checked=true] i{background:var(--negro)}
+.dia.no{border-color:transparent;background:none;color:var(--tenue);opacity:.45}
+.dia.no:has(small){opacity:1}
+.dia.no b{font-weight:600}
+.dia small{font-size:.6875rem;line-height:1}
+.dia.hoy{border:2px dashed var(--linea)}
+.dia.hoy small{color:var(--senal);font-weight:600}
+.cal-nota{font-size:.875rem;color:var(--tenue)}
+.horas{display:grid;gap:8px;margin-top:6px}
+.hd{font:700 1.375rem/1.1 var(--fd)}
+.hk{margin-top:4px;font-size:.875rem;font-weight:600;color:var(--suave)}
+.hs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.op.hora{min-height:60px;padding:8px 12px;border-radius:14px}
+.op.hora span{display:grid;gap:2px;text-align:left;font:700 1.1875rem/1.05 var(--fd)}
+.op.hora small{margin:0;font:400 .8125rem/1.2 var(--fb);color:var(--suave)}
+.op.hora[disabled] small{color:var(--tenue)}
+@media (min-width:560px){h1.grande{font-size:3.25rem}.dia{min-height:72px}.dia b{font-size:1.875rem}}
 .otras{margin-top:18px}
 /* el mapa del técnico de camino: nueve teselas alrededor de su última posición y un punto en el centro */
 .mapa{margin-top:16px}
@@ -163,6 +191,28 @@ function traeHuecos(otra){if(!SRV)return;if(H.va){if(otra)H.otra=true;return}H.v
  const a=document.activeElement;if(ruta().v!=='aviso'?!(a&&a.closest&&a.closest('#f input,#f textarea')):webOtra)pinta()})}
 const diaCorto=f=>{const h=K.madrid().date;return f===h?_('hoy'):f===K.masDias(h,1)?_('mañana'):I.diaSemCorto(f)+' '+(+f.slice(8))};
 const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?I.franja(f):''};
+const mayus=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const TIT=()=>'<h1 class="grande">'+_('Pide tu cita aquí.')+'</h1>';
+/* «¿Cuándo te va bien?» (19-11-2026, lo pidió Oscar): un calendario de lunes a viernes, que son los días con cita, desde
+   esta semana hasta la del último día con hueco. Se eligen los días con algún hueco; hoy, los festivos y los días llenos
+   se ven apagados (hoy es solo para las urgencias). Debajo, las franjas del día elegido: por la mañana y por la tarde */
+function calendario(dias){const hoy=K.madrid().date,de={};dias.forEach(x=>de[x.dia]=x);
+ const sem=f=>new Date(f+'T12:00:00Z').getUTCDay(),lunes=f=>K.masDias(f,1-(sem(f)||7));
+ const ini=sem(hoy)>=1&&sem(hoy)<=5?hoy:dias[0].dia,fin=dias[dias.length-1].dia,m1=I.mes(ini),m2=I.mes(fin);
+ let cel='';for(let s0=lunes(ini);s0<=fin;s0=K.masDias(s0,7))for(let i=0;i<5;i++){const f=K.masDias(s0,i),x=de[f],n=+f.slice(8);
+  if(x&&x.franjas.some(z=>z.ok))cel+='<button type="button" class="dia" data-dia="'+f+'" role="radio" aria-checked="'+(B.dia===f)+'" aria-label="'+esc(I.fechaLarga(f))+'"><b>'+n+'</b><i></i></button>';
+  else{const k=f===hoy?_('hoy'):cfg.festivos.includes(f)?_('festivo'):x?_('completo'):'';
+   cel+='<span class="dia no'+(f===hoy?' hoy':'')+'" aria-hidden="true"><b>'+n+'</b>'+(k?'<small>'+k+'</small>':'')+'</span>'}}
+ return'<div class="cal"><p class="cal-mes" aria-hidden="true">'+esc(mayus(m1===m2?m1:m1+' – '+m2))+'</p>'+
+  '<div class="cal-sem" aria-hidden="true">'+[0,1,2,3,4].map(i=>'<span>'+esc(I.diaSemCorto(K.masDias(lunes(ini),i)))+'</span>').join('')+'</div>'+
+  '<div class="cal-dias" role="radiogroup" aria-label="'+_('Día')+'">'+cel+'</div>'+
+  '<p class="cal-nota">'+_('Hoy y los fines de semana, solo servicio urgente.')+'</p></div>'}
+function horas(fr){const de=id=>(cfg.franjas.find(z=>z.id===id)||{de:0}).de;
+ const b=f=>'<button type="button" class="op hora" data-fr="'+f.id+'" role="radio" aria-checked="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'><span>'+frTxt(f.id)+
+  '<small>'+(f.libres==null?(f.ok?_('libre'):_('no disponible')):f.ok?(f.libres===1?_('queda 1'):_('quedan {n}',{n:f.libres})):f.libres?_('ya no da tiempo'):_('completa'))+'</small></span></button>';
+ const g=(k,L)=>L.length?'<p class="hk">'+k+'</p><div class="hs">'+L.map(b).join('')+'</div>':'';
+ return'<div class="horas" role="radiogroup" aria-label="'+_('Franja')+'"><p class="hd">'+esc(mayus(I.fechaLarga(B.dia)))+'</p>'+
+  g(_('Por la mañana'),fr.filter(f=>de(f.id)<840))+g(_('Por la tarde'),fr.filter(f=>de(f.id)>=840))+'</div>'}
 const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
 const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cfg.zonas.dis[d][0]:''};
 
@@ -184,10 +234,11 @@ function revisa(){const E=[],nm=s=>String(s||'').trim().replace(/\s+/g,' ');
 const CAMPO_DE={av:'av',franja:'fr',llena:'fr',nomap:'c_nomap',nombre:'c_nomap',apellidos:'c_nomap',tel:'c_tel',dir:'c_dir',cp:'c_cp',zona:'c_cp'};
 const malEn=k=>B.errs.includes(k)||B.err===k;
 function vPedir(){
- if(SRV&&!H.dias)return'<h1>'+_('Pide cita sin prisa.')+'</h1><p class="lead" id="hEsp" role="status">'+(H.err?_('No he podido mirar los huecos libres. {boton} o llama al {tel}.',{boton:'<button class="txt" type="button" id="hOtra">'+_('Probar otra vez')+'</button>',tel:esc(N.tel)}):_('Mirando los huecos libres…'))+'</p>';
- const dias=SRV?H.dias:K.diasDe(S,cfg,Date.now(),5,false,B.av?{av:B.av,cli:{dis:cfg.zonas.cp[B.cp]||''}}:null);
- if(!dias.length)return'<h1>'+_('Pide cita sin prisa.')+'</h1><p class="lead">'+_('Ahora mismo no quedan huecos en los próximos días. Llama al {tel} y lo miramos.',{tel:esc(N.tel)})+'</p>';
- if(!dias.find(x=>x.dia===B.dia))B.dia=(dias.find(x=>!x.hoy)||dias[0]).dia;
+ if(SRV&&!H.dias)return TIT()+'<p class="lead" id="hEsp" role="status">'+(H.err?_('No he podido mirar los huecos libres. {boton} o llama al {tel}.',{boton:'<button class="txt" type="button" id="hOtra">'+_('Probar otra vez')+'</button>',tel:esc(N.tel)}):_('Mirando los huecos libres…'))+'</p>';
+ /* hoy no se da cita: hoy es para las urgencias (19-11-2026). Los cinco días siguientes con cita */
+ const dias=(SRV?H.dias:K.diasDe(S,cfg,Date.now(),6,false,B.av?{av:B.av,cli:{dis:cfg.zonas.cp[B.cp]||''}}:null)).filter(x=>!x.hoy).slice(0,5),conHueco=x=>x.franjas.some(f=>f.ok);
+ if(!dias.some(conHueco))return TIT()+'<p class="lead">'+_('Ahora mismo no quedan huecos en los próximos días. Llama al {tel} y lo miramos.',{tel:esc(N.tel)})+'</p>';
+ if(!dias.find(x=>x.dia===B.dia&&conHueco(x)))B.dia=dias.find(conHueco).dia;
  const fr=dias.find(x=>x.dia===B.dia).franjas;if(!fr.find(f=>f.id===B.fr&&f.ok))B.fr='';
  if(B.paso==='resumen'&&(!B.fr||revisa().length))B.paso='form';
  if(B.paso==='resumen')return vResumen(dias);
@@ -199,14 +250,12 @@ function vPedir(){
  const ult=mem.get('oficio:'+N.id+':mio'),U=ult&&(SRV?(Oficio.vista(ult)||{}).v:K.vistaCliente(S,cfg,ult));
  const c=(id,lb,v,o,ay)=>{const m=malEn(id)||(id==='cp'&&malEn('zona')),k=id==='cp'&&malEn('zona')?'zona':id;
   return'<div class="campo'+(m?' mal':'')+'"><label for="c_'+id+'">'+lb+'</label>'+(ay?'<p class="ayuda" id="a_'+id+'">'+ay+'</p>':'')+'<input id="c_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(m?' aria-invalid="true"':'')+((m||ay)?' aria-describedby="'+[ay?'a_'+id:'',m?'e_'+id:''].filter(Boolean).join(' ')+'"':'')+'>'+(m?'<p class="err" id="e_'+id+'">'+err(k)+'</p>':'')+'</div>'};
- /* ¿no puede esperar?: en cuánto llegamos ahora de verdad (con lo que hay en marcha) y el suplemento de urgencia */
- const UA=SRV?H.urg:K.urgenciaAhora(S,cfg,null,Date.now(),''),sup=cfg.urge?' '+_('El servicio urgente lleva un suplemento de {s}.',{s:K.eur(cfg.cat[cfg.urge].p10).replace(',00','')}):'';
  const otra=B.av==='otra';
  /* arriba, si hay errores de los campos: cuántos y cuáles, con un enlace a cada uno */
  const resumenMal=B.errs.length?'<div class="revisa" id="revisa" role="alert" tabindex="-1"><p>'+_('{cuantos} antes de seguir:',{cuantos:'<b>'+(B.errs.length===1?_('Revisa 1 dato'):_('Revisa {n} datos',{n:B.errs.length}))+'</b>'})+'</p><ul>'+B.errs.map(k=>'<li><a href="#" data-ir="'+(CAMPO_DE[k]||k)+'">'+err(k)+'</a></li>').join('')+'</ul></div>':'';
  const elegida=B.fijo&&B.av?'<div class="elegida"><img src="'+esc(fotoAv(B.av))+'" alt="" width="52" height="52" onerror="this.style.visibility=\'hidden\'"><p>'+_('Has elegido {av}',{av:'<b>'+esc(nomAv(B.av))+'</b>'})+'</p><button type="button" class="btn peq" id="cambiaAv">'+_('Cambiar')+'</button></div>':'';
- const llama='<a href="./">'+_('Llama o manda una foto')+'</a>';
- return'<h1>'+_('Pide cita sin prisa.')+'</h1><p class="lead" id="urgLead">'+_('Con cita, la tarifa es siempre la normal. ¿No puede esperar?')+' '+(UA?_('{llama}: ahora llegamos en unos {de}–{a} minutos.',{llama,de:UA.de,a:UA.a}):_('{llama}; ahora mismo no podemos decirte en cuánto llegamos: te lo decimos al llamar.',{llama}))+sup+'</p>'+
+ /* ¿no puede esperar?: a la portada, donde se llama o se manda una foto y se ve en cuánto llegamos y el suplemento */
+ return TIT()+'<p class="lead" id="urgLead">'+_('¿No puedes esperar?')+' <a href="./">'+_('Contrata el servicio urgente')+'</a></p>'+
   (U&&U.e!=='cancelado'&&U.e!=='hecho'?'<p class="ult">'+_('Ya tienes un aviso: {id}, {av}.',{id:U.id,av:esc(nomAv(U.av).toLowerCase())})+' <a href="#/aviso/'+U.id+'">'+_('Ver cómo va')+'</a>. '+_('Para cambiarlo, llámanos al {tel}.',{tel:esc(N.tel)})+'</p>':'')+
   resumenMal+
   '<form id="f" novalidate><p class="obl">'+_('Todo es necesario salvo lo que pone «Opcional».')+'</p>'+
@@ -214,12 +263,11 @@ function vPedir(){
    (elegida||'<div class="avs">'+webL().filter(a=>!a.oculto||a.id===B.av).map(a=>'<label class="avc"><img src="'+esc(fotoAv(a.id))+'" alt="" width="52" height="52" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>'+esc(nomAv(a.id))+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>')+
    (malEn('av')?'<p class="fallo">'+err('av')+'</p>':'')+
    (B.av?'<p class="rango"><span class="rk">'+_('Precio orientativo')+'</span><b class="num">'+precioTxt(B.av)+'</b><small>'+_(PRECIO_NOTA)+'</small></p>':'')+
-   '<div class="campo"><label for="c_nota">'+(otra?_('Cuéntanos qué pasa'):_('Cuéntanos algo más'))+' <small class="opc">'+_('Opcional')+'</small></label><textarea id="c_nota" data-b="nota" placeholder="'+esc(_('Qué pasa, desde cuándo y cualquier detalle que nos ayude.'))+'">'+esc(B.nota)+'</textarea>'+(otra?'<p class="ayuda">'+_('Si no sabes explicarlo, manda una foto: con eso nos basta para prepararlo.')+'</p>':'')+'</div>'+
+   '<div class="campo"><label for="c_nota">'+_('Explícanos cuál es el problema')+' <small class="opc">'+_('Opcional')+'</small></label><textarea id="c_nota" data-b="nota" placeholder="'+esc(_('¿Algún detalle importante que debamos saber? Explícanos cuál es la situación.'))+'">'+esc(B.nota)+'</textarea>'+(otra?'<p class="ayuda">'+_('Si no sabes explicarlo, manda una foto: con eso nos basta para prepararlo.')+'</p>':'')+'</div>'+
    '<div class="fotow"><span class="lb">'+_('Una foto')+' <small class="opc">'+_('Opcional · ayuda a preparar la visita')+'</small></span><div class="fotoz">'+(B.foto?'<img src="'+esc(B.foto)+'" alt="'+_('La foto que has añadido')+'">':'')+
     '<label class="btn peq">'+(B.fotoVa?_('Preparando la foto…'):B.foto?_('Cambiar la foto'):_('Añadir una foto'))+'<input class="vh" type="file" accept="image/*" id="c_foto"></label>'+(B.foto?'<button type="button" class="txt" id="fQuita">'+_('Quitar')+'</button>':'')+'</div>'+
     (B.fotoMal?'<p class="err" role="alert">'+esc(_(B.fotoMal))+'</p>':'')+'</div></fieldset>'+
-  '<fieldset id="fr"><legend><b>2</b>'+_('¿Cuándo te va bien?')+'</legend><div class="ops" role="radiogroup" aria-label="'+_('Día')+'">'+dias.map(x=>'<button type="button" class="op" data-dia="'+x.dia+'" role="radio" aria-checked="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div>'+
-   '<div class="ops" role="radiogroup" aria-label="'+_('Franja')+'">'+fr.map(f=>'<button type="button" class="op" data-fr="'+f.id+'" role="radio" aria-checked="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'>'+frTxt(f.id)+'<small>'+(f.libres==null?(f.ok?_('libre'):_('no disponible')):f.ok?(f.libres===1?_('queda 1'):_('quedan {n}',{n:f.libres})):f.libres?_('ya no da tiempo'):_('completa'))+'</small></button>').join('')+'</div>'+
+  '<fieldset id="fr"><legend><b>2</b>'+_('¿Cuándo te va bien?')+'</legend>'+calendario(dias)+horas(fr)+
    (malEn('franja')||malEn('llena')?'<p class="fallo">'+err(malEn('llena')?'llena':'franja')+'</p>':'')+
    (cand.length?'<div class="campo otras"><button type="button" class="txt plega" id="altAbre" aria-expanded="'+(B.altOpen||B.alt.length>0)+'" aria-controls="altL">'+_('¿Te va bien también otra franja?')+' <small>'+_('Opcional')+'</small></button>'+
     (B.altOpen||B.alt.length?'<div id="altL"><p class="ayuda">'+_('Si hay que mover la cita, la pasamos a una de estas sin tener que llamarte.')+'</p><div class="ops" role="group" aria-label="'+_('Otras franjas que te van bien')+'">'+verAlt.map(c=>'<button type="button" class="op" data-alt="'+c.k+'" aria-pressed="'+B.alt.includes(c.k)+'">'+c.txt+'</button>').join('')+'</div>'+

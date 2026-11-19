@@ -43,7 +43,7 @@ async def recorre(br, lang):
     await k.click('button[type=submit]'); await mira(k, 'cita con errores')
     await k.locator('input[name=av][value=otra]').check(force=True); await mira(k, 'cita, otra avería')
     await k.locator('input[name=av][value=fuga]').check(force=True)
-    await k.locator('[data-dia]').nth(1).click(); await k.locator('[data-fr]:not([disabled])').first.click()
+    await k.locator('[data-dia]').nth(0).click(); await k.locator('[data-fr]:not([disabled])').first.click()   # mañana: hoy ya no se ofrece
     await k.click('#altAbre')
     if await k.locator('#altMas').count(): await k.click('#altMas')
     await k.locator('[data-alt]').first.click(); await k.locator('[data-alt]').nth(1).click(); await mira(k, 'cita con franjas')
@@ -150,13 +150,20 @@ async def main():
         es(not restos, f'nada en castellano en catalán ni en inglés ({len(restos)} textos)')
         # 3) lo de cada idioma, mirado a mano: fechas, franjas, el negocio (sus averías), los papeles y el desistimiento
         txt = lambda P, k: ' | '.join(P[k]['t'])
-        es('Demana cita sense pressa.' in txt(Pca, 'cita') and 'Book a visit, no rush.' in txt(Pen, 'cita'), 'la cita, en catalán y en inglés')
+        es('Demana la teva cita aquí.' in txt(Pca, 'cita') and 'Book your appointment here.' in txt(Pen, 'cita'), 'la cita, en catalán y en inglés')
         es('Fuita d’aigua' in txt(Pca, 'cita') and 'Water leak' in txt(Pen, 'cita') and 'Embús' in txt(Pca, 'cita'), 'las averías del negocio, con sus textos (oficio-datos.js)')
         cp = txt(Pca, 'cita confirmada'); ce = txt(Pen, 'cita confirmada')
         es(re.search(r'(dilluns|dimarts|dimecres|dijous|divendres) \d{1,2} (de |d’)\w+, de \d{1,2} a \d{1,2}', cp) is not None, 'en catalán, la fecha y la franja: «dimecres 18 de novembre, de 8 a 11»')
         es(re.search(r'(Monday|Tuesday|Wednesday|Thursday|Friday) \d{1,2} [A-Z][a-z]+, \d{1,2}:\d{2}–\d{1,2}:\d{2}', ce) is not None, 'en inglés: «Wednesday 18 November, 8:00–11:00»')
         cdia = txt(Pca, 'cita con franjas'); edia = txt(Pen, 'cita con franjas')
         es('demà' in cdia and re.search(r'\b(dl|dt|dc|dj|dv)\. \d', cdia) and 'tomorrow' in edia and re.search(r'\b(Mon|Tue|Wed|Thu|Fri) \d', edia), 'los días cortos: «demà», «dj. 19»; «tomorrow», «Thu 19»')
+        # el calendario (19-11-2026): los días de la semana de lunes a viernes, el mes, el día elegido con su fecha larga, las franjas
+        # por la mañana y por la tarde, y la nota de que hoy y los fines de semana son solo para urgencias
+        es(all(x in Pca['cita con franjas']['t'] for x in ('dl.', 'dt.', 'dc.', 'dj.', 'dv.', 'Al matí', 'A la tarda', 'Avui i els caps de setmana, només servei urgent.'))
+           and all(x in Pen['cita con franjas']['t'] for x in ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Morning', 'Afternoon', 'Today and at weekends: emergency service only.'))
+           and re.search(r'(Dilluns|Dimarts|Dimecres|Dijous|Divendres) \d{1,2} (de |d’)\w+', cdia) and re.search(r'(Monday|Tuesday|Wednesday|Thursday|Friday) \d{1,2} [A-Z][a-z]+', edia)
+           and re.search(r'\b(Gener|Febrer|Març|Abril|Maig|Juny|Juliol|Agost|Setembre|Octubre|Novembre|Desembre)\b', cdia) and re.search(r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\b', edia),
+           'el calendario de la cita, en catalán y en inglés: días de la semana, mes, día elegido, mañana y tarde, y la nota de las urgencias')
         pre = [k for k in Pca if k.endswith('/presupuesto') and 'Formulari de desistiment' in txt(Pca, k)]
         es(pre and 'Withdrawal form' in txt(Pen, pre[0]) and 'Termo elèctric de 80 litres, instal·lat' in txt(Pca, pre[0]) and 'Racor especial' in txt(Pen, pre[0]), 'el presupuesto con desistimiento: el formulario traducido, el catálogo del negocio traducido y lo escrito a mano tal cual')
         con = [k for k in Pca if '/contrato/' in k]
@@ -168,14 +175,14 @@ async def main():
         ctx = await br.new_context(viewport={'width': 375, 'height': 812}, timezone_id='Europe/Madrid', locale='es-ES'); await pon_hora(ctx)
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(B + 'cita.html'); await pg.wait_for_selector('#f')
-        es(await pg.evaluate('document.documentElement.lang') == 'es' and 'Pide cita sin prisa.' in await pg.locator('h1').inner_text(), 'sin elegir nada (y un navegador en castellano), en castellano')
+        es(await pg.evaluate('document.documentElement.lang') == 'es' and 'Pide tu cita aquí.' in await pg.locator('h1').inner_text(), 'sin elegir nada (y un navegador en castellano), en castellano')
         bt = pg.locator('#idiomas [data-lang]')
         es(await bt.count() == 3 and await pg.locator('#idiomas [aria-pressed=true]').get_attribute('data-lang') == 'es' and await pg.locator('#idiomas [role=group]').get_attribute('aria-label') == 'Idioma', 'abajo, los tres idiomas en un grupo con su nombre, con el de ahora marcado')
         alto = await pg.evaluate("Math.min(...[...document.querySelectorAll('#idiomas button')].map(b=>b.getBoundingClientRect().height))")
         es(alto >= 44, f'los botones del idioma se pueden tocar (44 px de alto: {alto})')
         es(await pg.locator('#idiomas [data-lang=ca]').get_attribute('lang') == 'ca' and await pg.locator('#idiomas [data-lang=ca]').inner_text() == 'Català', 'cada idioma escrito en el suyo, con su lang')
         await pg.fill('#c_nomap', 'Laia Puig'); await pg.locator('#idiomas [data-lang=ca]').click(); await pg.wait_for_timeout(150)
-        es(await pg.evaluate('document.documentElement.lang') == 'ca' and 'Demana cita sense pressa.' in await pg.locator('h1').inner_text() and await pg.input_value('#c_nomap') == 'Laia Puig', 'al tocar «Català», la cita cambia de idioma sin perder lo escrito')
+        es(await pg.evaluate('document.documentElement.lang') == 'ca' and 'Demana la teva cita aquí.' in await pg.locator('h1').inner_text() and await pg.input_value('#c_nomap') == 'Laia Puig', 'al tocar «Català», la cita cambia de idioma sin perder lo escrito')
         es(await pg.evaluate("document.activeElement&&document.activeElement.dataset.lang") == 'ca' and await pg.locator('#idiomas [aria-pressed=true]').get_attribute('data-lang') == 'ca', 'y el foco se queda en el idioma elegido, ya marcado')
         es(await pg.evaluate("localStorage.getItem('ramirez:lang')") == 'ca' and (await pg.locator('#llama').get_attribute('aria-label')).startswith('Urgent? Truca al'), 'se guarda (en la llave de la web) y cambia también lo de arriba')
         await pg.goto(B + 'cliente.html'); await pg.wait_for_selector('#fE')

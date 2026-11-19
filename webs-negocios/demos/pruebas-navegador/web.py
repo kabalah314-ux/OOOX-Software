@@ -158,6 +158,19 @@ async def main():
         es(cn == ['Atasco', 'Fugas y goteras', 'Sin agua caliente', 'Cisterna que pierde', 'Otra avería'] and 'De 80 € a 150 €' in await wv.locator('.rango .num').inner_text(), f'servicios: la cita, igual: su orden, su nombre, su precio y sin el que se ha quitado ({cn})')
         await wv.goto(B + 'cita.html?servicio=fuga'); await wv.wait_for_selector('#f')
         es('Fugas y goteras' in await wv.locator('.elegida').inner_text(), 'servicios: y «Reservar» desde la web dice «Has elegido Fugas y goteras»')
+        # la cita (19-11-2026, lo pidió Oscar): «Pide tu cita aquí.», debajo solo «¿No puedes esperar? Contrata el servicio urgente»,
+        # la caja «Explícanos cuál es el problema» y un calendario de lunes a viernes sin hoy (hoy es para las urgencias)
+        ct = await wv.evaluate("""(()=>{const hoy=Oficio.K.madrid().date,d=[...document.querySelectorAll('[data-dia]')].map(b=>b.dataset.dia);
+          return {h1:document.querySelector('h1').textContent,lead:document.querySelector('#urgLead').textContent,lb:document.querySelector('label[for=c_nota]').textContent,
+           ph:document.querySelector('#c_nota').placeholder,sem:document.querySelectorAll('.cal-sem span').length,dias:d,hoy,
+           finde:d.filter(f=>[0,6].includes(new Date(f+'T12:00:00Z').getUTCDay())).length,sel:document.querySelectorAll('[data-dia][aria-checked=true]').length,
+           hd:document.querySelector('.hd').textContent,otro:(document.querySelector('[data-dia][aria-checked=false]')||{dataset:{}}).dataset.dia||''}})()""")
+        es(ct['h1'] == 'Pide tu cita aquí.' and ct['lead'] == '¿No puedes esperar? Contrata el servicio urgente' and ct['lb'].startswith('Explícanos cuál es el problema')
+           and ct['ph'] == '¿Algún detalle importante que debamos saber? Explícanos cuál es la situación.', f"la cita: el título, la frase de la urgencia y la caja de la avería, con sus textos ({ct['h1']} · {ct['lead']} · {ct['lb']})")
+        es(ct['sem'] == 5 and ct['hoy'] not in ct['dias'] and ct['finde'] == 0 and len(ct['dias']) >= 2 and ct['sel'] == 1, f"la cita: el calendario va de lunes a viernes, sin hoy, con un día elegido ({ct['dias']})")
+        d1 = ct['otro']; await wv.locator(f'[data-dia="{d1}"]').click(); await wv.wait_for_timeout(150); hd2 = await wv.locator('.hd').text_content()
+        es(await wv.get_attribute(f'[data-dia="{d1}"]', 'aria-checked') == 'true' and hd2 != ct['hd'] and await wv.locator('.hk').count() >= 1 and await wv.locator('[data-fr]').count() >= 1,
+           f'la cita: al tocar otro día, se marca y debajo salen sus franjas, por la mañana y por la tarde ({hd2})')
         await ap.evaluate("Oficio.reiniciar()"); await wv.goto(B + 'index.html'); await wv.wait_for_timeout(600)
         es(await wv.locator('#svs .svc').count() == 6 and 'Fuga de agua' in await wv.locator('.svc[data-av=fuga] h3').inner_text(), 'servicios: al reiniciar la demo, vuelven los de siempre')
         await cw.close()
@@ -302,9 +315,9 @@ async def main():
         hes = await pg.get_attribute('#index a.espera', 'href')
         es(hca == 'cita.html?lang=ca' and hes == 'cita.html?lang=es' and zca and all(z == 'cliente.html?lang=ca' for z in zca), f'idioma: la cita y la zona del cliente se abren con el idioma de la web ({hca}, {hes}, {zca})')
         await pg.goto(B + 'cita.html?lang=ca'); await pg.wait_for_selector('#f')
-        es('Demana cita sense pressa.' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'ca' and await pg.locator('.nota-lang').count() == 0, 'idioma: la cita, en catalán (ya no avisa de que va en castellano)')
+        es('Demana la teva cita aquí.' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'ca' and await pg.locator('.nota-lang').count() == 0, 'idioma: la cita, en catalán (ya no avisa de que va en castellano)')
         await pg.goto(B + 'cita.html?lang=es'); await pg.wait_for_selector('#f')
-        es('Pide cita sin prisa.' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'es', 'idioma: y en castellano')
+        es('Pide tu cita aquí.' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'es', 'idioma: y en castellano')
         await ctx.close()
 
         # ---------- 8. la página de los tres móviles ----------

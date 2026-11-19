@@ -3,7 +3,7 @@
    data-idioma-fijo y aquí no se lee ni se cambia su idioma. Desde el 17-11-2026, lo que la oficina o el técnico le mandan o
    le enseñan a un cliente (sus mensajes, sus papeles, lo que firma) sale en el idioma de su aviso: con «con» y «para».
 
-   El castellano va escrito en las páginas y es la llave: con T, «Pide cita sin prisa.» sale en el idioma que toca, o en
+   El castellano va escrito en las páginas y es la llave: con T, «Pide tu cita aquí.» sale en el idioma que toca, o en
    castellano si falta. Los datos van entre llaves: «Llama al {tel}.», con {tel:N.tel}.
    Lo propio de cada negocio (sus averías, su catálogo, su plan, su furgoneta, su dirección) lo traduce su archivo de datos,
    en «textos»: aquí no se escribe nada de ningún negocio (lo mira restos.mjs).
@@ -40,6 +40,8 @@ function fechaLarga(f){const d=+f.slice(8),m=+f.slice(5,7)-1,w=diaSem(f);
  if(LANG==='en')return DIAS.en[w]+' '+d+' '+MESES.en[m];
  return DIAS.es[w]+' '+d+' de '+MESES.es[m]}
 const diaSemCorto=f=>CORTOS[LANG][diaSem(f)];
+/* el mes de una fecha: «noviembre» · «novembre» · «November» (el calendario de la cita) */
+const mes=f=>MESES[LANG][+f.slice(5,7)-1];
 /* una franja: «de 8 a 11» (y «de 8:30 a 11»); en inglés, con las horas enteras, «8:00–11:00» */
 const hf=m=>m%60?Math.floor(m/60)+':'+String(m%60).padStart(2,'0'):String(m/60);
 const hh=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
@@ -82,15 +84,12 @@ const D={ca:{},en:{}};
 ['lo que hagas aquí se guarda en el servidor de pruebas, no llega a ningún cliente.','el que facis aquí es desa al servidor de proves, no arriba a cap client.','what you do here is saved on the test server and doesn’t reach any customer.'],
 ['lo que hagas aquí se queda en este navegador.','el que facis aquí es queda en aquest navegador.','what you do here stays in this browser.'],
 /* La cita: el formulario */
-['Pide cita sin prisa.','Demana cita sense pressa.','Book a visit, no rush.'],
+['Pide tu cita aquí.','Demana la teva cita aquí.','Book your appointment here.'],
 ['Mirando los huecos libres…','Mirant les franges lliures…','Checking free slots…'],
 ['No he podido mirar los huecos libres. {boton} o llama al {tel}.','No he pogut mirar les franges lliures. {boton} o truca al {tel}.','I couldn’t check the free slots. {boton} or call {tel}.'],
 ['Ahora mismo no quedan huecos en los próximos días. Llama al {tel} y lo miramos.','Ara mateix no queden franges lliures els pròxims dies. Truca al {tel} i ho mirem.','There are no free slots in the next few days. Call {tel} and we’ll sort it out.'],
-['Con cita, la tarifa es siempre la normal. ¿No puede esperar?','Amb cita, la tarifa és sempre la normal. No pot esperar?','Booked visits are always at the standard rate. Can’t wait?'],
-['Llama o manda una foto','Truca o envia una foto','Call or send a photo'],
-['{llama}: ahora llegamos en unos {de}–{a} minutos.','{llama}: ara arribem en uns {de}–{a} minuts.','{llama}: right now we can be there in about {de}–{a} minutes.'],
-['{llama}; ahora mismo no podemos decirte en cuánto llegamos: te lo decimos al llamar.','{llama}; ara mateix no et podem dir quan arribarem: t’ho diem quan truquis.','{llama}; right now we can’t say how soon we’d get there: we’ll tell you when you call.'],
-['El servicio urgente lleva un suplemento de {s}.','El servei urgent porta un suplement de {s}.','The emergency service has a {s} supplement.'],
+['¿No puedes esperar?','No pots esperar?','Can’t wait?'],
+['Contrata el servicio urgente','Contracta el servei urgent','Book the emergency service'],
 ['Ya tienes un aviso: {id}, {av}.','Ja tens un avís: {id}, {av}.','You already have a request: {id}, {av}.'],
 ['Ver cómo va','Veure com va','See how it’s going'],
 ['Para cambiarlo, llámanos al {tel}.','Per canviar-lo, truca’ns al {tel}.','To change it, call us on {tel}.'],
@@ -104,9 +103,8 @@ const D={ca:{},en:{}};
 ['De {a} a {b}','De {a} a {b}','{a} to {b}'],
 ['Desde {a}','Des de {a}','From {a}'],
 ['IVA incluido, en una vivienda. Con cita, tarifa normal. El precio final se cierra y lo firmas antes de empezar.','IVA inclòs, en un habitatge. Amb cita, tarifa normal. El preu final es tanca i el signes abans de començar.','VAT included, for a home. Booked visit, standard rate. The final price is agreed and you sign it before we start.'],
-['Cuéntanos qué pasa','Explica’ns què passa','Tell us what’s wrong'],
-['Cuéntanos algo más','Explica’ns alguna cosa més','Tell us more'],
-['Qué pasa, desde cuándo y cualquier detalle que nos ayude.','Què passa, des de quan i qualsevol detall que ens ajudi.','What’s happening, since when, and any detail that helps us.'],
+['Explícanos cuál es el problema','Explica’ns quin és el problema','Tell us what the problem is'],
+['¿Algún detalle importante que debamos saber? Explícanos cuál es la situación.','Algun detall important que hàgim de saber? Explica’ns quina és la situació.','Anything important we should know? Tell us what’s going on.'],
 ['Si no sabes explicarlo, manda una foto: con eso nos basta para prepararlo.','Si no saps explicar-ho, envia una foto: amb això ja en tenim prou per preparar-ho.','If it’s hard to explain, send a photo: that’s enough for us to prepare.'],
 ['Una foto','Una foto','A photo'],
 ['Opcional · ayuda a preparar la visita','Opcional · ajuda a preparar la visita','Optional · helps us prepare the visit'],
@@ -124,6 +122,11 @@ const D={ca:{},en:{}};
 ['quedan {n}','en queden {n}','{n} left'],
 ['ya no da tiempo','ja no hi ha temps','too late'],
 ['completa','completa','full'],
+['completo','complet','full'],
+['festivo','festiu','holiday'],
+['Hoy y los fines de semana, solo servicio urgente.','Avui i els caps de setmana, només servei urgent.','Today and at weekends: emergency service only.'],
+['Por la mañana','Al matí','Morning'],
+['Por la tarde','A la tarda','Afternoon'],
 ['¿Te va bien también otra franja?','També et va bé una altra franja?','Does another slot also suit you?'],
 ['Si hay que mover la cita, la pasamos a una de estas sin tener que llamarte.','Si cal moure la cita, la passem a una d’aquestes sense haver de trucar-te.','If we need to move your visit, we’ll switch it to one of these without having to call you.'],
 ['Otras franjas que te van bien','Altres franges que et van bé','Other slots that suit you'],
@@ -526,5 +529,5 @@ function pie(el){if(!el)return;
  el.innerHTML='<div role="group" aria-label="'+T('Idioma')+'">'+LANGS.map(l=>'<button type="button" data-lang="'+l+'" lang="'+l+'" aria-pressed="'+(l===LANG)+'">'+NOMBRE[l]+'</button>').join('')+'</div>'}
 ponHtml();
 
-g.OficioIdioma={T,pon,pie,fechaLarga,diaSemCorto,franja,faltan,D,LANGS,NOMBRE,lang:()=>LANG,con,para};
+g.OficioIdioma={T,pon,pie,fechaLarga,diaSemCorto,mes,franja,faltan,D,LANGS,NOMBRE,lang:()=>LANG,con,para};
 })(typeof globalThis!=='undefined'?globalThis:this);
