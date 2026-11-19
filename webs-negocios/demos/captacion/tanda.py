@@ -91,7 +91,7 @@ def enlace(url, n, z, h):
     j = json.dumps({'v': 1, 'n': n, 'z': z, 'h': h.isoformat()}, ensure_ascii=False, separators=(',', ':')).encode()
     return url + '?m=' + base64.urlsafe_b64encode(j).decode().rstrip('=')
 
-def qr_svg(texto, tam=118):
+def qr_svg(texto, tam=136):
     for v in range(1, 41):
         try: q = Q.QRCode(v, Q.QRErrorCorrectLevel.M); q.addData(texto); q.make(); break
         except Exception: continue
