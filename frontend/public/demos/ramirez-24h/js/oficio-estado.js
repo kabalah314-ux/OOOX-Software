@@ -13,7 +13,8 @@
    demo con el nombre de ese negocio dentro («?m=…»), sin guardar nada en ningún servidor. Solo en la demo (sin servidor y
    con la muestra de avisos): pone su nombre, su marca y su zona en lugar de los del negocio de ejemplo y, arriba y siempre a la vista,
    que es una muestra preparada por OOOX y hasta cuándo. Caducada, a más de 90 días o mal hecha, no cambia nada.
-   El enlace: base64url de {"v":1,"n":"Fontanería Serra","z":"Sants","h":"2026-12-20"} (captacion/tanda.py lo hace).
+   El enlace: base64url de {"v":1,"n":"Fontanería Serra","t":"600000000","d":"C/ de Sants 1","z":"Sants","h":"2026-12-20"}
+   (captacion/tanda.py lo hace): su nombre, su teléfono y su dirección, que salen en la demo como los del negocio; lo demás, igual.
    Se queda para toda la pestaña (también en los marcos de la página de los tres móviles) hasta que se cierra. */
 function muestraDe(g,N){
  const MK='ooox:muestra',sto=(()=>{try{return g.sessionStorage}catch(e){return null}})();
@@ -25,15 +26,19 @@ function muestraDe(g,N){
  if(!t)return null;const j=lee(t);
  const hoy=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid'}).format(new Date()),dias=h=>(Date.parse(h+'T12:00:00Z')-Date.parse(hoy+'T12:00:00Z'))/864e5;
  const n=j&&limpia(j.n),z=j&&limpia(j.z),h=j&&typeof j.h==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(j.h)?j.h:'';
+ /* su teléfono (nueve cifras de España) y su dirección, si los lleva: en la demo, como los del negocio */
+ const t9=j&&typeof j.t==='string'&&/^[6789]\d{8}$/.test(j.t)?j.t:'',dd=j?String(j.d==null?'':j.d).normalize('NFC').replace(/[^\p{L}\p{N} &.,'’·ºª()\/\-]/gu,'').replace(/\s+/g,' ').trim().slice(0,80):'';
  if(!j||j.v!==1||n.length<2||!h){try{sto&&sto.removeItem(MK)}catch(e){}return null}
  if(!(dias(h)>=0)||dias(h)>90){try{sto&&sto.removeItem(MK)}catch(e){}return{n,h,caducada:true}}
  try{sto&&sto.setItem(MK,t)}catch(e){}
  /* lo del negocio de ejemplo, cambiado por lo suyo: lo mismo que hace captacion/muestra.py con el archivo de datos */
  const w=n.split(' '),m=w.length<2?[n,'']:[w.slice(0,-1).join(' '),w[w.length-1]],corto=m[1]||m[0],viejo=Array.isArray(N.marca)?N.marca.filter(Boolean).join(' '):'',ant=Array.isArray(N.marca)&&N.marca[0]?String(N.marca[0]):'';
- N.nombre=n;N.marca=m;N.razon=n;N.dir=[z,N.ciudad].filter(Boolean).join(', ');
+ N.nombre=n;N.marca=m;N.razon=n;
+ N.dir=dd?(N.ciudad&&dd.toLowerCase().indexOf(String(N.ciudad).toLowerCase())<0?dd+', '+N.ciudad:dd):[z,N.ciudad].filter(Boolean).join(', ');
+ if(t9)N.tel=t9.replace(/^(\d{3})(\d{2})(\d{2})(\d{2})$/,'$1 $2 $3 $4');
  const cambia=x=>typeof x==='string'&&ant?x.split('el logo de '+ant).join('el logo de '+corto).split('the '+ant+' logo').join('the '+corto+' logo'):Array.isArray(x)?x.map(cambia):x&&typeof x==='object'?(Object.keys(x).forEach(k=>{x[k]=cambia(x[k])}),x):x;
  (N.tecnicos||[]).forEach(T=>{if(T&&typeof T.coche==='string')T.coche=cambia(T.coche)});
- return{n,z,h,viejo}}
+ return{n,z,h,viejo,t:t9,d:dd}}
 /* el aviso de arriba: qué es, para quién y hasta cuándo, y cómo escribir a Oscar. Solo en la página de arriba, no en sus marcos */
 function avisoMuestra(g,M){if(!M||g.top!==g)return;const d=g.document;
  const pon=()=>{if(d.getElementById('muestraOoox'))return;const f=M.h.split('-').reverse().join('-'),e=d.createElement('div');e.id='muestraOoox';e.setAttribute('role','note');

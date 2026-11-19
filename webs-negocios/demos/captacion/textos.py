@@ -126,6 +126,37 @@ def carta(d):
         f"(Al pie, pequeño) Tu dirección la he sacado de tu ficha pública de {f}. Si no quieres que te escriba, dímelo y la borro. "
         f"Cómo trato tus datos: {PRIVACIDAD}"])
 
+# ---------- La carta «al estilo tradicional» (19-11-2026, noche) ----------
+# La idea de Oscar: una carta de verdad, en sobre con su nombre, que «le da la bienvenida al futuro»: un programa hecho para
+# su negocio, ya con su nombre, y la demo GRATIS con el QR. Lo importante, por orden de vista: su nombre, la imagen del
+# móvil con su web, GRATIS junto al QR, y hasta cuándo está. El resto, corto.
+def carta_futuro(d):
+    n = d['negocio']
+    return {
+        'saludo': 'Querido equipo de',
+        'nombre': n + ':',
+        'p': ['Te escribo esta carta al estilo tradicional para darte la bienvenida al futuro.',
+              f'Me he tomado la libertad de diseñar un programa personalizado para {n}: tu web de citas y la app de tu oficina, '
+              'pensadas para que tus clientes noten la máxima profesionalidad desde el primer momento.'],
+        'hecho': 'No es una idea: ya está hecho y lleva tu nombre.',
+        'pie_movil': 'Así lo verán tus clientes',
+        'gratis': 'GRATIS',
+        'escanea': 'Escanea el código con la cámara del móvil.',
+        'sin': f"Sin registrarte y sin compromiso. Tu demo está activa hasta el {d['hasta']}.",
+        'ventajas': ['Tus clientes piden cita solo a horas en las que tienes a alguien libre.',
+                     'Repartes cada aviso con un toque, y tu técnico lo ve en su móvil.',
+                     'El cliente firma el presupuesto en la pantalla y recibe todo por WhatsApp.'],
+        'cierre': ('¿Te encaja? Escríbeme por WhatsApp' + (f" al {d['whatsapp']}" if d.get('whatsapp') else '') + ' y lo ponemos en marcha. '
+                   'Si algo no encaja con cómo trabajáis, lo cambio.'),
+        'firma': FIRMA,
+        'firma_pie': 'OOOX · ooox.es',
+        'sobre_para': 'Para',
+        'sobre_dentro': f'Dentro hay algo hecho solo para {n}.',
+        'legal': (f"Tu dirección la he sacado de tu ficha pública de {d.get('fuente') or 'Google Maps'}. Si no quieres que te escriba, "
+                  f"dímelo y la borro. Cómo trato tus datos: {PRIVACIDAD}"),
+    }
+
+
 # ---------- Correos en frío (17-11-2026, noche) ----------
 # Si Oscar decide escribir sin contacto previo. Siguen siendo publicidad no pedida (LSSI, art. 21): una infracción leve
 # si es uno a uno, grave si es masivo o insistente. Para reducirlo a lo mínimo, y porque es lo que mejor funciona: el
