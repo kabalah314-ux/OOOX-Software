@@ -33,8 +33,8 @@ const rota = (ley, detalle) => { throw new Rota(ley, detalle) };
 const SALTOS = new Set(['asignado>nuevo', 'nuevo>asignado', 'nuevo>cancelado', 'asignado>camino', 'asignado>curso', 'asignado>hecho', 'asignado>cancelado', 'camino>curso', 'camino>ausente', 'camino>hecho', 'curso>hecho', 'ausente>asignado', 'ausente>nuevo', 'ausente>cancelado']);
 const SOLO_CENTRALITA = ['asignar', 'soltar', 'mover', 'cancelar', 'ausencia', 'quitarAusencia', 'facturar', 'cobroContrato', 'renovar', 'bajaContrato', 'descartar', 'escribir', 'garantia', 'corregirPago'], SOLO_SU_TECNICO = ['voy', 'ausente', 'empezar', 'noacepta', 'ampliar', 'pausa', 'terminar', 'posicion', 'sinPosicion'], LOS_DOS = ['completar', 'anotar', 'cobrar', 'enviado', 'falta', 'rebajar', 'idioma'];
 const CON_TIPOS = ['contrato', 'cobroContrato', 'renovar', 'bajaContrato'];
-const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'pos', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo', 'quien'];
-const PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'fac', 'cli', 'con', 'vista', 'enGar', 'rebajas'];   // lo que puede llevar cada aviso del perfil del cliente
+const VISTA = ['id', 'av', 'e', 'urg', 'cita', 't', 'tec', 'eta', 'pos', 'sal', 'ini', 'fin', 'total', 'tipo', 'pago', 'gar', 'sinTrabajo', 'quien', 'enCon', 'quiere'];
+const PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'fac', 'cli', 'con', 'vista', 'enGar', 'rebajas', 'vuelve', 'quiere'];   // lo que puede llevar cada aviso del perfil del cliente
 const FEO = /undefined|NaN|\bnull\b|\[object|Invalid|Infinity/;
 const FEO_MSG = /undefined|NaN|\bnull\b|\[object|Invalid|Infinity|\(\)|(^|[^\d.])0,00 €/;   // en lo que se manda al cliente, tampoco «()» ni «0,00 €»: una forma de pago vacía o un total a cero dichos tal cual (16-11-2026)
 function numerosLimpios(o, donde) {
@@ -74,7 +74,7 @@ function mundo(cfg, N, ini) {
 function paso(W, a, q, t) {
   const { S, cfg } = W, antes = JSON.stringify(S), a0 = JSON.stringify(a), q0 = JSON.stringify(q), v0 = S.v, n0 = S.avisos.length;
   const tipo = a && typeof a === 'object' ? a.tipo : undefined, idA = a && typeof a === 'object' ? a.id : undefined;
-  const A0 = typeof idA === 'string' ? S.avisos.find(x => x.id === idA) : null, e0 = A0 ? A0.e : '', tec0 = A0 ? A0.tec : '';
+  const A0 = typeof idA === 'string' ? S.avisos.find(x => x.id === idA) : null, e0 = A0 ? A0.e : '', tec0 = A0 ? A0.tec : '', A0j = A0 ? JSON.stringify(A0) : '';
   const otros0 = new Map(S.avisos.filter(x => x !== A0).map(x => [x.id, JSON.stringify(x)]));
   const Av0 = tipo === 'contrato' && a && typeof a.aviso === 'string' ? S.avisos.find(x => x.id === a.aviso) : null, Av0j = Av0 ? JSON.stringify(Av0) : '';
   const fz0 = JSON.stringify(S.furgos === undefined ? null : S.furgos);   // la furgoneta de cada técnico, antes (16-11-2026)
@@ -92,7 +92,12 @@ function paso(W, a, q, t) {
   W.acept[tipo] = (W.acept[tipo] || 0) + 1;
   // --- quién puede qué
   const rol = q && q.rol, suyo = rol === 'tecnico' && !!tec0 && tec0 === q.id;
-  if (SOLO_CENTRALITA.includes(tipo) && rol !== 'centralita') rota('cada-uno-lo-suyo', tipo + ' hecho por ' + rol);
+  const zonaCli = rol === 'cliente' && (tipo === 'mover' || tipo === 'cancelar');   // el cliente, desde su zona (19-11-2026)
+  if (SOLO_CENTRALITA.includes(tipo) && rol !== 'centralita' && !zonaCli) rota('cada-uno-lo-suyo', tipo + ' hecho por ' + rol);
+  if (zonaCli) { const P0 = JSON.parse(A0j), A1 = S.avisos.find(x => x.id === idA);
+    if (!K.tel9(q.id) || K.tel9(q.id) !== K.tel9(P0.cli && P0.cli.tel)) rota('cada-uno-lo-suyo', tipo + ' de ' + idA + ' desde la zona de otro teléfono');
+    if (!P0.cita || !['nuevo', 'asignado'].includes(P0.e) || K.faltaCita(cfg, P0, t) < K.CAMBIO_H * 60) rota('zona-hasta-24-horas', tipo + ' de ' + idA + ' a ' + K.faltaCita(cfg, P0, t) + ' minutos de su cita');
+    if (tipo === 'mover' && (!A1.cita || A1.cita.dia <= K.madrid(t).date || A1.cita.ok !== true || A1.urg || (A1.cita.dia === P0.cita.dia && A1.cita.fr === P0.cita.fr))) rota('zona-a-otro-hueco', idA + ': ' + JSON.stringify(A1.cita)) }
   if (SOLO_SU_TECNICO.includes(tipo) && !suyo) rota('cada-uno-lo-suyo', tipo + ' hecho por ' + rol + ' ' + (q && q.id) + ' sobre un aviso de «' + tec0 + '»');
   if (LOS_DOS.includes(tipo) && rol !== 'centralita' && !suyo) rota('cada-uno-lo-suyo', tipo + ' hecho por ' + rol);
   if (tipo === 'ausencia' || tipo === 'quitarAusencia') { if (rol !== 'centralita') rota('cada-uno-lo-suyo', tipo + ' hecho por ' + rol) }
@@ -515,10 +520,12 @@ function generador(G) {
       else if (r() < .55 && mats.length) { a.k = r() < .08 ? pick(cat.concat(RAROS, ['otro'])) : pick(mats); a.q = pick([1, 1, 2, 3, 20, 0, 21, 1.5, '2', -1, undefined, null]) }
       else { a.t = pick(['Latiguillo de 40 cm', '  Racor   de 3/4 ', 'Pieza ' + Math.floor(r() * 15), '', '   ', 'x'.repeat(90), '<b>x</b>', 'Línea\ncortada', 7, null, { a: 1 }]); a.q = pick([1, 2, 5, 20, 21, undefined]) }
       return [a, r() < .1 ? pick([{ rol: 'cliente' }, T(pick(tecs))]) : r() < .5 ? C : suyo] };
-    const mover = () => [{ tipo: 'mover', id: A.id, cita: r() < .75 ? (A.vale && A.vale.length > 1 && r() < .4 ? pick(A.vale) : cita(S, t)) : null, confirmado: r() < .2 ? true : undefined }, C];
+    /* el cliente desde su zona (19-11-2026): con su teléfono casi siempre; a veces, con otro o con nada */
+    const elCli = () => ({ rol: 'cliente', id: r() < .85 ? K.tel9(A.cli && A.cli.tel) || '600000000' : pick(['699000111', '', 'x', 12, undefined]) });
+    const mover = () => [{ tipo: 'mover', id: A.id, cita: r() < .75 ? (A.vale && A.vale.length > 1 && r() < .4 ? pick(A.vale) : cita(S, t)) : null, confirmado: r() < .2 ? true : undefined }, r() < .15 ? elCli() : C];
     const pueden = tecs.filter(x => !K.puedeIr(S, cfg, A, x, t));
     const asignar = () => [{ tipo: 'asignar', id: A.id, tec: r() < .05 ? pick(RAROS) : pueden.length && r() < .7 ? pick(pueden) : pick(tecs) }, C];
-    const cancelar = () => [{ tipo: 'cancelar', id: A.id, motivo: pick(['', 'Ya lo ha arreglado', 'x'.repeat(200)]) }, C];
+    const cancelar = () => [{ tipo: 'cancelar', id: A.id, motivo: pick(['', 'Ya lo ha arreglado', 'x'.repeat(200)]) }, r() < .12 ? elCli() : C];
     const empezar = () => [{ tipo: 'empezar', id: A.id, pres: { lineas: lineas(A, 0), firma: firma(), local: r() < .15, pide: r() < .85 ? true : pick([undefined, false, 'sí', 1]) } }, suyo];
     const noacepta = () => [{ tipo: 'noacepta', id: A.id, modo: modo(), local: r() < .15, pres: r() < .6 ? { lineas: lineas(A, 0) } : r() < .15 ? pick(RAROS) : undefined }, suyo];
     const posicion = () => r() < .2 ? [{ tipo: 'sinPosicion', id: A.id }, r() < .85 ? suyo : pick([C, T(pick(tecs)), { rol: 'cliente' }])]

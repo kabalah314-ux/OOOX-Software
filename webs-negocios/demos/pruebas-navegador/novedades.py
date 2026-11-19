@@ -113,6 +113,7 @@ async def main():
 
         # ---------- 5. la zona del cliente: su factura, y un administrador con sus fincas ----------
         z = oye(await ctx.new_page(), 'cliente'); await z.goto(B + 'cliente.html#/entra/611000001/2468-1357'); await z.wait_for_selector('#salir')
+        await z.goto(B + 'cliente.html#/pagos'); await z.wait_for_timeout(150)   # las facturas, en «Pagos» (19-11-2026)
         es('Factura F-77' in await z.locator('main').inner_text(), 'zona: el cliente ve su factura con su número')
         await c.evaluate("""(()=>{const N=OFICIO_NEGOCIO,C={rol:'centralita',id:'oficina'},cp=Object.keys(N.zonas.cp)[0];
           for(const dir of ['C/ de la Finca 1','C/ de la Finca 1, bajos','Av. de la Otra Finca 9'])Oficio.hacer({tipo:'pedir',av:'atasco',origen:'llamada',cli:{nombre:'Fincas',apellidos:'Puig',tel:'611000009',dir,cp}},C)})()""")

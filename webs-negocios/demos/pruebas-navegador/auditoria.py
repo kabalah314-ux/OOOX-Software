@@ -148,7 +148,8 @@ async def main():
         # ---------- 7. la zona del cliente: el pago, el parte y la factura, cada uno por su lado (UX-08) ----------
         zx = await br.new_context(viewport={'width': 375, 'height': 760}, locale='es-ES', timezone_id='Europe/Madrid'); await pon_hora(zx)
         z = oye(await zx.new_page(), 'zona'); await z.goto(B + 'cliente.html'); await z.wait_for_selector('#v button')
-        await z.click('#v button:has-text("Andreu Soler")'); await z.wait_for_selector('.tj .tres')
+        await z.click('#v button:has-text("Andreu Soler")'); await z.wait_for_selector('#salir')
+        await z.goto(B + 'cliente.html#/trabajos'); await z.wait_for_selector('.tj .tres')   # lo terminado, en «Trabajos» (19-11-2026)
         tres = await z.locator('.tj .tres').first.inner_text()
         es('Pendiente de pago' in tres and 'Parte de trabajo' in tres and 'Factura' in tres and 'aparte' in tres,
            f'un trabajo terminado y sin pagar: «Pendiente de pago», el parte y quién hace la factura, cada uno aparte ({tres!r})')

@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { TODOS as BASE } from '../../oficios-base/servicios.mjs';   // la base de servicios de OOOX: para «base» del catálogo
 
 const ID = /^[a-z][a-z0-9_-]{0,23}$/, FECHA = /^\d{4}-\d{2}-\d{2}$/;
-const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento', 'furgoneta', 'textos', 'pago', 'publico'];
+const CLAVES = ['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'email', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'cancelaTarde', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'cupo', 'catalogo', 'averias', 'horario', 'citas', 'mapa', 'prueba', 'servidor', 'mantenimiento', 'furgoneta', 'textos', 'pago', 'publico'];
 const esTexto = (x, min = 1, max = 200) => typeof x === 'string' && x.trim().length >= min && x.length <= max;
 /* una cuenta IBAN bien escrita: letras del país, dos cifras de control y el resto, y el control (módulo 97) cuadra */
 const ibanOk = x => { if (typeof x !== 'string') return false; const s = x.replace(/\s/g, '').toUpperCase();
@@ -266,6 +266,8 @@ export function valida(N, K, hoy) {
   });
   if (!propio(cat, N.sinTrabajo || '')) E('sinTrabajo: tiene que ser la clave del catálogo que se cobra cuando el cliente no acepta el precio (ejemplo: «desp»).');
   else if (cat[N.sinTrabajo].mat || cat[N.sinTrabajo].un === 'h') E('sinTrabajo: tiene que ser un precio fijo de visita o desplazamiento, no material ni horas.');
+  // lo que se cobra si el cliente cancela con menos de 24 horas (19-11-2026): opcional; si está, un precio fijo del catálogo
+  if (N.cancelaTarde != null && N.cancelaTarde !== '' && (!propio(cat, N.cancelaTarde) || cat[N.cancelaTarde].mat || cat[N.cancelaTarde].un === 'h')) E('cancelaTarde: tiene que ser la clave del catálogo que se cobra si el cliente cancela con menos de 24 horas (un precio fijo, como «desp»), o no ponerlo.');
   const porHoras = claves.filter(k => cat[k] && cat[k].un === 'h');
   if (porHoras.length > 1) A('catalogo: hay ' + porHoras.length + ' conceptos por horas (' + porHoras.join(', ') + '); la pantalla de «más tiempo» usa el primero.');
   if (!porHoras.length) A('catalogo: no hay mano de obra por horas; el técnico no podrá añadir «más tiempo».');

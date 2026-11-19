@@ -327,6 +327,25 @@ async def main():
         es(await pasa(z, "/no van juntos/.test(document.querySelector('#fE').textContent)") and await z.locator('#salir').count() == 0, 'el enlace viejo tampoco entra')
         await z.goto(B + f'cliente.html#/entra/612345678/{C2}')
         es(await pasa(z, "!!document.querySelector('#salir')"), 'con el código nuevo, sí')
+        # ---------- 10 bis b. desde su zona y con el servidor (19-11-2026): cambiar su cita y cancelarla ----------
+        hz = api('functions/v1/oficio', {'que': 'huecos', 'negocio': N['id']}); dl = [d for d in hz.get('dias', []) if not d['hoy'] and any(f['ok'] for f in d['franjas'])]
+        if len(dl) >= 3:
+            mc = aviso(A1)['cli']; d1 = dl[2]; f1 = next(f['id'] for f in d1['franjas'] if f['ok'])
+            pc = api('functions/v1/oficio', {'que': 'pedir', 'negocio': N['id'], 'red': 'red-zona', 'accion': {'tipo': 'pedir', 'av': N['averias'][0]['id'], 'origen': 'cita',
+                'cli': {'nombre': mc['nombre'], 'apellidos': mc['apellidos'], 'tel': '612345678', 'dir': mc['dir'], 'cp': mc['cp']}, 'cita': {'dia': d1['dia'], 'fr': f1}}})
+            PC = pc.get('id', '?'); await z.reload()
+            es(pc.get('ok') and await pasa(z, f"!!document.querySelector('[data-cambia=\"{PC}\"]')&&!!document.querySelector('[data-cancela=\"{PC}\"]')", 9000), f'una cita suya de dentro de unos días ({PC}): en su zona, «Cambiar la cita» y «Cancelar la cita»')
+            await z.click(f'[data-cambia="{PC}"]'); es(await pasa(z, "!!document.querySelector('#fC [type=submit]')&&!!document.querySelector('#fC .dia[data-dia]')", 9000), 'cambiar: el calendario con los huecos del servidor')
+            dia = await z.locator('#fC .dia[data-dia]').nth(1).get_attribute('data-dia'); await z.click(f'#fC .dia[data-dia="{dia}"]')
+            fr = await z.locator('#fC .hora[data-fr]:not([disabled])').first.get_attribute('data-fr'); await z.click(f'#fC .hora[data-fr="{fr}"]')
+            z0 = cuenta().get('zona', 0); await z.click('#fC [type=submit]')
+            es(await pasa(z, f"location.hash.startsWith('#/aviso/{PC}/')&&/{dia[-2:].lstrip('0')}/.test(document.querySelector('#v').textContent)", 9000), 'cambiada: pasa a ver su aviso con la cita nueva')
+            Az = aviso(PC); es(Az and Az['cita']['dia'] == dia and Az['cita']['fr'] == fr and Az['h'][-1]['q'] == 'Cliente' and cuenta()['zona'] == z0 + 1, f'el servidor la guarda ({dia}, {fr}) con una sola llamada, y apunta que la cambió el cliente')
+            es(await pasa(o, f"(()=>{{const a=Oficio.estado().avisos.find(a=>a.id==='{PC}');return !!a&&a.cita&&a.cita.dia==='{dia}'}})()", 9000), 'a la oficina le llega el cambio sin recargar')
+            await z.goto(B + 'cliente.html#/'); await pasa(z, f"!!document.querySelector('[data-cancela=\"{PC}\"]')", 9000); await z.click(f'[data-cancela="{PC}"]')
+            await pasa(z, "!!document.querySelector('dialog[open] #cSi')"); await z.click('dialog[open] #cSi')
+            es(await pasa(z, f"!document.querySelector('dialog[open]')&&!document.querySelector('[data-cancela=\"{PC}\"]')", 9000) and aviso(PC)['e'] == 'cancelado', 'cancela su cita: el servidor la da por cancelada y deja de salir en su zona')
+            es(await pasa(o, tiene(PC, 'cancelado'), 9000), 'y la oficina lo ve')
         # ---------- 10 ter. los contratos con servidor: la oficina los da de alta; los técnicos no los reciben; el cliente los ve ----------
         if await o.evaluate('Object.keys(Oficio.cfg.planes||{}).length>0'):
             await o.goto(B + 'app.html#/contratos'); await o.wait_for_selector('.cab [data-a=conAlta]')

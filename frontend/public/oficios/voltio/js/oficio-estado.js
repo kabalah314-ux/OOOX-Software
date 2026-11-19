@@ -171,6 +171,8 @@ const R=SV?(function(){
  const huecos=q=>juez(Object.assign({que:'huecos',negocio:N.id},q&&typeof q==='object'?{av:typeof q.av==='string'?q.av:'',dis:typeof q.dis==='string'?q.dis:''}:{}),15000);   // con su avería y su barrio, los huecos y el tiempo de llegada son los de ese trabajo
  /* la zona del cliente: entra con su teléfono y el código que le mandó la oficina, y el servidor le da solo lo suyo */
  const perfil=(tel,codigo)=>juez({que:'perfil',negocio:N.id,tel,codigo},20000);
+ /* y desde su zona, cambiar o cancelar su cita (19-11-2026): contesta con su perfil ya al día */
+ const zona=(tel,codigo,accion)=>juez({que:'zona',negocio:N.id,tel,codigo,accion,clave:marcaDe(accion)},20000);
  /* la oficina: el código de la zona de un cliente, el que ya tiene o uno nuevo si se pide cambiarlo */
  const acceso=(tel,cambia)=>ses?juez(con({que:'acceso',tel,cambia:cambia===true}),20000):Promise.resolve({ok:false,err:'sesion'});
  /* el equipo y sus accesos (la oficina o el dueño): quién puede entrar, un código nuevo o quitar el acceso. Si el código
@@ -200,7 +202,7 @@ const R=SV?(function(){
  {const s=leeJ(K_SES);if(s&&typeof s.persona==='string'&&typeof s.codigo==='string'&&(s.rol==='centralita'||(s.rol==='tecnico'&&cfg.tec[s.id]))){abre(s);programa(0);miraReglas()}else if(s)mem.del(K_SES)}
 
  return{estado:()=>E?E.estado():VACIO,hacer:hacerS,crear:(a,q)=>q&&q.rol==='cliente'?pedirWeb(a):crearS(a),
-  sesion:()=>ses?{rol:ses.rol,id:ses.id,persona:ses.persona}:null,ultima:()=>mem.get(K_ULT)||'',entrar,salir,huecos,vista,miraVista,llaveDe,ponLlave,perfil,acceso,equipo,
+  sesion:()=>ses?{rol:ses.rol,id:ses.id,persona:ses.persona}:null,ultima:()=>mem.get(K_ULT)||'',entrar,salir,huecos,vista,miraVista,llaveDe,ponLlave,perfil,zona,acceso,equipo,
   alRechazar:f=>{rech.push(f)},fotoSrc,rechazos,olvidaRechazos:()=>{mem.del(K_REC);avisa()},
   red:()=>({cola:E?E.pendientes():0,sinRed,lleno,motivo,reglas:reglas&&reglas!==K.VERSION?reglas:'',datos:datosMal,rech:rechazos().length,listo:!!E&&!entero})}   /* listo: ya ha leído entero lo del servidor */
 })():null;
@@ -233,8 +235,10 @@ const firmaSvg=d=>'<svg viewBox="0 0 300 110" fill="none" stroke="currentColor" 
 /* Lo que usan las pantallas. «crear» es para lo que tiene número propio (un aviso, una ausencia): devuelve una promesa,
    porque con servidor el número lo pone él. Sin servidor contesta al momento, igual que «hacer». */
 g.Oficio=R?{K,N,cfg,DEMO,SRV:true,estado:R.estado,hacer:R.hacer,crear:R.crear,reiniciar(){},suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
-  sesion:R.sesion,ultima:R.ultima,entrar:R.entrar,salir:R.salir,red:R.red,alRechazar:R.alRechazar,fotoSrc:R.fotoSrc,rechazos:R.rechazos,olvidaRechazos:R.olvidaRechazos,huecos:R.huecos,vista:R.vista,miraVista:R.miraVista,llaveDe:R.llaveDe,ponLlave:R.ponLlave,perfil:R.perfil,acceso:R.acceso,equipo:R.equipo}
+  sesion:R.sesion,ultima:R.ultima,entrar:R.entrar,salir:R.salir,red:R.red,alRechazar:R.alRechazar,fotoSrc:R.fotoSrc,rechazos:R.rechazos,olvidaRechazos:R.olvidaRechazos,huecos:R.huecos,vista:R.vista,miraVista:R.miraVista,llaveDe:R.llaveDe,ponLlave:R.ponLlave,perfil:R.perfil,zona:R.zona,acceso:R.acceso,equipo:R.equipo}
  :{K,N,cfg,DEMO,SRV:false,estado,hacer,crear:(a,q)=>Promise.resolve(hacer(a,q)),reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
+  /* sin servidor (la demo), la zona del cliente cambia su cita aquí mismo, con su teléfono */
+  zona:(tel,codigo,a)=>Promise.resolve(hacer(a,{rol:'cliente',id:K.tel9(tel)})),
   sesion:()=>null,red:()=>null,alRechazar(){},fotoSrc:x=>typeof x==='string'?x:'',rechazos:()=>[],olvidaRechazos(){}};
 /* Una copia de prueba (prueba:true en los datos del negocio) lo dice arriba en todas sus pantallas: así nadie la toma por un
    negocio en marcha. Va con sus colores puestos aquí para no depender de la hoja de estilos de cada página.

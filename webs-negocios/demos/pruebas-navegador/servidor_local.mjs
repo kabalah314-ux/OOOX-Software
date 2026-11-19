@@ -41,7 +41,7 @@ const CODIGOS = { oficina: 'ofic-ina0-prue-ba01' };
 N.tecnicos.forEach((t, i) => { CODIGOS[t.id] = 'tecn-ico' + String(i + 1) + '-prue-ba0' + String(i + 2); });
 A.alta(N.id, DS, K.ESQ); A.persona(N.id, 'oficina', 'centralita', 'oficina', CODIGOS.oficina);
 N.tecnicos.forEach(t => A.persona(N.id, t.id, 'tecnico', t.id, CODIGOS[t.id]));
-const cuenta = { hacer: 0, leer: 0, entrar: 0, pedir: 0, huecos: 0, ver: 0, acceso: 0, perfil: 0, version: 0, oficios_v: 0, oficios_vista: 0, perdidas: 0, cortadas: 0 };
+const cuenta = { hacer: 0, leer: 0, entrar: 0, pedir: 0, huecos: 0, ver: 0, acceso: 0, perfil: 0, zona: 0, version: 0, oficios_v: 0, oficios_vista: 0, perdidas: 0, cortadas: 0 };
 
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.woff2': 'font/woff2', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.ico': 'image/x-icon' };
 const CAB = { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'content-type, apikey, authorization, x-client-info', 'access-control-allow-methods': 'GET, POST, OPTIONS', 'cache-control': 'no-store' };

@@ -16,6 +16,21 @@ const PAPELES = fs.readFileSync(path.join(sitio, 'js/oficio-papeles.js'), 'utf8'
 
 // [qué regla se estropea, texto que hay, texto que se pone]
 const M = [
+  // la zona del cliente (19-11-2026): cambiar o cancelar su cita, «Ha vuelto a fallar» y la revisión desde su zona
+  ['el cliente cambia la cita de otro teléfono', 'tel9(A.cli&&A.cli.tel)===tel9(q.id)', 'true'],
+  ['el cliente cambia su cita a menos de 24 horas', "if(!cambiaCli(cfg,A,t))return R('tarde');", ''],
+  ['el cliente cancela su cita a menos de 24 horas', "if(esCli&&!cambiaCli(cfg,A,t))return R(A.cita&&A.e!=='ausente'?'tarde':'estado');", ''],
+  ['el cliente pasa su cita a hoy', "||a.cita.dia<=madrid(t).date)return R('franja')", "||a.cita.dia<madrid(t).date)return R('franja')"],
+  ['el cliente pone su cita en una franja llena', "if(!fr||!fr.ok)return R('franja');\n   if(a.cita.dia===A.cita.dia", "if(!fr)return R('franja');\n   if(a.cita.dia===A.cita.dia"],
+  ['el cliente cambia una urgencia', "if(!A.cita||A.e==='ausente')return R('estado');if(!cambiaCli", "if(A.e==='ausente')return R('estado');if(!cambiaCli"],
+  ['el cliente «cambia» a la misma cita', "if(a.cita.dia===A.cita.dia&&fr.id===A.cita.fr)return R('estado');", ''],
+  ['la cita cambiada por el cliente se queda con las otras franjas que le iban bien', 'A.vale=[{dia:a.cita.dia,fr:fr.id}];A.urg=false}', 'A.urg=false}'],
+  ['el plazo de 24 horas cuenta mal', 'faltaCita(cfg,A,t)>=CAMBIO_H*60', 'faltaCita(cfg,A,t)>=CAMBIO_H'],
+  ['el cliente cambia una cita que ya va de camino', "['nuevo','asignado'].includes(A.e)&&faltaCita", "['nuevo','asignado','camino'].includes(A.e)&&faltaCita"],
+  ['la revisión se pide sin cita desde la web', '(a.av===REV&&!esC&&!a.cita)', '(a.av===REV&&!esC&&false)'],
+  ['«Ha vuelto a fallar» vale con cualquier trabajo', "typeof a.garDe==='string'&&g0.includes(a.garDe)?a.garDe:''", "typeof a.garDe==='string'?a.garDe:''"],
+  ['el plan se apunta aunque ya tenga contrato', "X.av===REV&&!c0&&typeof a.plan==='string'", "X.av===REV&&typeof a.plan==='string'"],
+  ['al corregir los datos del cliente, sigue diciendo que ha vuelto a fallar', 'if(A.vuelve&&!g0.includes(A.vuelve))delete A.vuelve;', ''],
   ['la urgencia empieza un minuto tarde', 'n.min>=cfg.dia[1]', 'n.min>cfg.dia[1]'],
   ['el perfil mira el teléfono tal cual está escrito', 'tel9(a.cli.tel)===t9', 'a.cli.tel===tel'],
   ['el perfil lleva el diario', "const PERFIL=['enGar','rebajas','id',", "const PERFIL=['h','enGar','rebajas','id',"],

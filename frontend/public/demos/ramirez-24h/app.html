@@ -526,7 +526,7 @@ const ERR={web:'Tiene que quedar al menos un servicio en la web.',webNombre:'El 
  garantia:'Ese trabajo ya no está en garantía.',igual:'Ya consta así.',facturado:'Ya está facturado: para cambiar el precio, haz una factura rectificativa en tu programa de facturas.',nomap:'Escribe el nombre y al menos un apellido del cliente.',nombre:'Escribe el nombre y al menos un apellido del cliente.',apellidos:'Escribe el nombre y al menos un apellido del cliente.',tel:'El teléfono tiene que tener 9 cifras.',telAviso:'El contrato tiene que ser para el teléfono del cliente de este aviso.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ese código postal queda fuera de '+N.ciudad+': ahí no llegamos.',av:'Elige qué le pasa.',tec:'Ese técnico no existe.',foto:'Esa foto pesa demasiado.',vacio:'No hay nada que apuntar.',franja:'Esa franja ya está llena. Elige otra.',
  datos:'Faltan el teléfono y la dirección del cliente.',ocupado:'Ya tienes otro aviso en marcha. Termínalo antes.',pronto:'Todavía no puedes salir: «Voy» se activa media hora antes de la franja.',firma:'Falta la firma del cliente.',lineas:'El presupuesto está vacío.',pide:'Falta que el cliente marque «Quiero que lo hagáis ya».',plan:'Elige un plan.',ya:'Ese cliente ya tiene un contrato en esa dirección.',acepta:'Falta que el cliente diga que sí: que firme o que lo diga por mensaje.',contrato:'No encuentro ese contrato.',fecha:'Aún no toca renovarlo: se renueva el último mes.',motivo:'El motivo tiene que ser un texto.',falta:'Eso no vale como material: elige uno de la lista o escríbelo, de 1 a 20 unidades y hasta 12 cosas por aviso.',furgo:'Eso no vale para la furgoneta: material del catálogo, de 0 a 999 de cada cosa.',num:'Ese número de factura no vale.',modo:'Elige cómo paga.',si:'Falta decir si quiere o no los mensajes de seguimiento.',estado:'El aviso ha cambiado mientras tanto. Míralo otra vez.',permiso:'Este aviso no es tuyo.',fotos:'Ya hay cuatro fotos.',
  horario:'Ese técnico no trabaja a esa hora. Elige a otro.',ausente_tec:'Ese técnico está ausente ese día.',lleno:'Ese técnico ya tiene esa franja ocupada.',
- red:'Sin conexión con el servidor. No se ha creado: mira si aparece antes de repetirlo.',lleno:'El servidor está ocupado. Prueba otra vez en unos segundos.',sesion:'Tu sesión se ha cerrado. Entra otra vez.',espera:'Eso tiene que confirmarlo el servidor.',
+ red:'Sin conexión con el servidor. No se ha creado: mira si aparece antes de repetirlo.',sesion:'Tu sesión se ha cerrado. Entra otra vez.',espera:'Eso tiene que confirmarlo el servidor.',
  fechas:'Revisa las fechas de la ausencia.',mapa:'Este negocio no tiene activado el mapa.',posicion:'Esa posición no vale.',ausencia:'Esa ausencia ya no está apuntada.',aviso:'Ese aviso ya no existe.'};
 /* por qué no puede ir un técnico a un aviso; sale de las reglas (K.puedeIr), aquí solo se dice con palabras */
 /* la oficina puede poner una cita donde el cliente no: en el hueco que se guarda para urgencias y con menos de dos horas */
@@ -543,6 +543,9 @@ const toast=(s,acc)=>{const e=$('#toast');e.textContent=s;e.classList.toggle('co
  if(acc){const b=document.createElement('button');b.type='button';b.className='tacc';b.textContent=acc.t;b.onclick=()=>{clearTimeout(e._t);e.classList.remove('on','conb');acc.fn()};e.append(' ',b)}
  e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on','conb'),acc?7000:3200)};
 const hacer=a=>{const r=Oficio.hacer(a,Q);if(!r.ok)toast(ERR[r.err]||'No se ha podido hacer.');return r};
+/* lo que no se pudo crear en el servidor: «lleno» con duda es que el servidor estaba ocupado; sin duda, lo de las reglas (que ese
+   técnico ya tiene la franja). Antes, en ERR iban las dos con la misma llave y la segunda tapaba a la primera (19-11-2026) */
+const errDe=r=>r&&r.duda&&r.err==='lleno'?'El servidor está ocupado. Prueba otra vez en unos segundos.':ERR[r&&r.err];
 /* lo que va al cliente, en su idioma (el de su aviso, 17-11-2026): sus mensajes, sus papeles y lo que lee y firma en el móvil del
    técnico. La app sigue en castellano (data-idioma-fijo): js/oficio-idioma.js solo traduce esto */
 const IDI=window.OficioIdioma,_c=(s,v,l)=>IDI?IDI.para(l||'es').T(s,v):String(s).replace(/\{(\w+)\}/g,(m,k)=>v&&k in v?v[k]:m);
@@ -666,7 +669,8 @@ function hFoto(A){hoja(hc('Foto del cliente')+'<div class="hb"><img class="fotog
 function bGar(A){const puede=Q.rol==='centralita'&&['nuevo','asignado','camino','ausente'].includes(A.e);
  /* ya va en garantía (16-11-2026): lo ve también el técnico, para no cobrar lo que no toca */
  if(A.enGar){const de=el(A.enGar.de);return'<p class="ojo" id="garB">En garantía del trabajo '+(de?'<a href="#/aviso/'+de.id+'">'+de.id+'</a>':esc(A.enGar.de))+': no se cobra la visita, la mano de obra ni lo que se puso entonces.'+(puede?' <button class="txt" data-a="noGar" data-id="'+A.id+'">Quitar</button>':'')+'</p>'}
- const G=A.gar0&&el(A.gar0);if(!G)return'';return'<p class="ojo" id="garB">Revisar si puede ser garantía: <a href="#/aviso/'+G.id+'">'+G.id+'</a>, '+esc(cfg.av[G.av].n.toLowerCase())+', terminado el '+K.fechaCorta(K.madrid(G.fin).date)+'. Lo decide la oficina al verlo: al cliente no se le promete nada antes.'+(puede?' <button class="btn peq" data-a="esGar" data-id="'+A.id+'">Es garantía</button>':'')+'</p>'}
+ /* el cliente lo ha pedido desde su zona con «Ha vuelto a fallar» (19-11-2026): se dice, pero la oficina decide igual */
+ const G=A.gar0&&el(A.gar0);if(!G)return'';return'<p class="ojo" id="garB">'+(A.vuelve===G.id?'El cliente dice que ha vuelto a fallar ':'Revisar si puede ser garantía: ')+'<a href="#/aviso/'+G.id+'">'+G.id+'</a>, '+esc(cfg.av[G.av].n.toLowerCase())+', terminado el '+K.fechaCorta(K.madrid(G.fin).date)+'. Lo decide la oficina al verlo: al cliente no se le promete nada antes.'+(puede?' <button class="btn peq" data-a="esGar" data-id="'+A.id+'">Es garantía</button>':'')+'</p>'}
 function bReparto(A){const r=K.resumen(S,cfg,Date.now()),rep=['nuevo','asignado','ausente'].includes(A.e);
  /* en una urgencia por repartir: en cuánto llegaría cada uno, y si llegaría tarde a su cita o se saldría de su horario */
  const LL=rep&&!A.cita&&!A.tec?K.llegadas(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):[],ll=id=>LL.find(x=>x.tec===id),pri=LL.find(x=>!x.choca&&!x.fuera);
@@ -993,7 +997,7 @@ function hAusencia(tec,dia){const hoy=K.madrid().date,de=dia&&dia>=hoy?dia:hoy;
   if(!tec)return di('Elige quién falta.');
   const bt=$('button[form=uF]',d);if(bt.disabled)return;bt.disabled=true;
   Oficio.crear({tipo:'ausencia',tec,de:$('#u_de',d).value,a:$('#u_a',d).value,motivo:$('#u_mo',d).value},Q).then(r=>{bt.disabled=false;
-   if(!r.ok)return di(ERR[r.err]||'No se ha podido apuntar.');
+   if(!r.ok)return di(errDe(r)||'No se ha podido apuntar.');
    const n=(r.sueltos||[]).length;d.close();toast('Apuntado.'+(n?(n===1?' 1 aviso vuelve':' '+n+' avisos vuelven')+' a «sin asignar».':''))})}}
 
 /* ===== centralita: cobros ===== */
@@ -1037,6 +1041,9 @@ const incluye=x=>{const P=cfg.planes[x];if(!P)return'';return[(P.revisiones===1?
 function bContrato(A){
  /* la oficina lo ofrece en cualquier aviso abierto; el técnico, en el suyo, en casa del cliente (trabajando o recién acabado) */
  const puede=Q.rol==='centralita'?A.e!=='cancelado':Q.rol==='tecnico'&&A.tec===Q.id&&(A.e==='curso'||(A.e==='hecho'&&A.fin&&K.madrid(A.fin).date===K.madrid().date));
+ /* el cliente ha pedido la revisión desde su zona diciendo que quiere el plan (19-11-2026): darlo de alta antes de la visita */
+ const Pq=!A.con&&A.quiere&&cfg.planes[A.quiere]&&A.e!=='cancelado'&&!K.contratoDe(S,A.cli,K.madrid().date)?cfg.planes[A.quiere]:null;
+ if(Pq)return'<p class="ojo con" id="conQ">El cliente quiere el '+esc(Pq.n.toLowerCase())+' ('+K.eur(Pq.precio)+' al año). Con el contrato dado de alta antes de empezar, esta revisión va incluida.'+(puede&&HAY_CON()&&A.cli.tel&&A.cli.dir?' <button class="btn peq" data-a="conAlta" data-id="'+A.id+'">Dar de alta el contrato</button>':'')+'</p>';
  if(!A.con)return puede&&HAY_CON()&&A.cli.tel&&A.cli.dir&&!K.contratoDe(S,A.cli,K.madrid().date)?'<p class="acts" id="conOf"><button class="txt" data-a="conAlta" data-id="'+A.id+'">Ofrecer el contrato de mantenimiento</button></p>':'';
  return'<p class="ojo con" id="conB">Cliente con contrato de mantenimiento '+(Q.rol==='centralita'?'<a href="#/contratos">'+esc(A.con.id)+'</a>':esc(A.con.id))+': '+(A.con.rev?'la revisión y el desplazamiento van incluidos':A.urg&&A.av!==K.REV&&K.gratisDe(A).length?'en esta urgencia no se cobra '+K.gratisDe(A).map(k=>k===cfg.urge?'el suplemento de urgencia':'el desplazamiento').join(' ni '):'sus avisos van primero')+'.</p>'}
 /* Contratos: arriba, lo que piden (renovar, dar cita a la revisión, cobrar la cuota), una línea cada uno con su botón;
@@ -1088,7 +1095,7 @@ function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;cons
   const pn=K.parteNombre(v('nomap')),a={tipo:'contrato',plan,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:v('tel'),dir:v('dir'),cp:v('cp')},acepta,pide:$('#ca_pide',d).checked};if(Q.rol==='tecnico'&&A)a.aviso=A.id;
   if(acepta==='firma')a.firma=pad.ruta();if(modo!=='pendiente')a.modo=modo;
   const bt=$('button[form=caF]',d);if(bt.disabled)return;bt.disabled=true;
-  Oficio.crear(a,Q).then(r=>{bt.disabled=false;if(!r.ok)return di(ERR[r.err]||'No se ha podido dar de alta.');d.close();
+  Oficio.crear(a,Q).then(r=>{bt.disabled=false;if(!r.ok)return di(errDe(r)||'No se ha podido dar de alta.');d.close();
    /* el técnico con servidor no tiene la lista de contratos: se queda en su aviso; el papel lo tienen la oficina y el cliente en su zona */
    if(Q.rol==='centralita'||contrato(r.id)){toast('Contrato '+r.id+' dado de alta.');location.hash='#/papel/'+r.id+'/contrato'}else{toast('Contrato '+r.id+' dado de alta. El cliente lo tiene en su zona.');pinta()}})}}
 function hConCob(C){let modo='';const u=C.per[C.per.length-1],L=['efectivo','tarjeta','bizum','transferencia'];
@@ -1312,7 +1319,7 @@ addEventListener('appinstalled',()=>{APPI.ev=null});
    y, con permiso, sale una notificación. Con la app abierta o en segundo plano: si se cierra del todo, no avisa (para eso
    haría falta un servidor de notificaciones). Lo enciende cada aparato en «Tu sesión» y queda guardado en él. Lo que hace
    uno mismo no se avisa, ni lo que ya estaba al abrir la app */
-const AV={clave:'oficio:'+N.id+':avisar',vistos:null,ses:null,n:0,ctx:null};
+const AV={clave:'oficio:'+N.id+':avisar',vistos:null,vistosC:null,ses:null,n:0,ctx:null};
 const avisarOn=()=>{try{return localStorage.getItem(AV.clave)==='1'}catch(e){return false}};
 const guardaAvisar=si=>{try{si?localStorage.setItem(AV.clave,'1'):localStorage.removeItem(AV.clave)}catch(e){}};
 function avisosHtml(){const on=avisarOn(),np='Notification' in window?Notification.permission:'';
@@ -1333,14 +1340,21 @@ function cuentaTitulo(){const t=document.title.replace(/^\(\d+\) /,'');document.
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){AV.n=0;cuentaTitulo()}});
 function miraLlegadas(){const se=SRV&&Oficio.sesion();if(!se){AV.ses=null;return}
  /* al entrar, y hasta haber leído entero lo del servidor, lo que hay no es nuevo: se apunta y no suena */
- if(AV.ses!==se.persona){AV.ses=se.persona;AV.vistos=null}
- if(!(Oficio.red()||{}).listo){AV.vistos=null;return}
+ if(AV.ses!==se.persona){AV.ses=se.persona;AV.vistos=null;AV.vistosC=null}
+ if(!(Oficio.red()||{}).listo){AV.vistos=null;AV.vistosC=null;return}
  const S=Oficio.estado(),yo=Q.rol==='tecnico'?(cfg.tec[Q.id]||{}).n:'Centralita';
  const L=Q.rol==='tecnico'?S.avisos.filter(a=>a.tec===Q.id&&(a.e==='asignado'||a.e==='camino')):S.avisos.filter(a=>a.e==='nuevo');
- const ids=new Set(L.map(a=>a.id)),antes=AV.vistos;AV.vistos=ids;
+ /* y a la oficina, lo que cambia el cliente desde su zona (19-11-2026): su cita cambiada o cancelada. Lo último de su historial
+    es del cliente y no es pedirla */
+ const LC=Q.rol==='centralita'?S.avisos.filter(a=>Array.isArray(a.h)&&a.h.length>1&&a.h[a.h.length-1].q==='Cliente'):[],kc=a=>a.id+':'+a.h.length;
+ const ids=new Set(L.map(a=>a.id)),antes=AV.vistos,antesC=AV.vistosC;AV.vistos=ids;AV.vistosC=new Set(LC.map(kc));
  if(!antes)return;
- const nuevos=L.filter(a=>!antes.has(a.id)&&!(Array.isArray(a.h)&&a.h.length&&a.h[a.h.length-1].q===yo));
- if(!nuevos.length||!avisarOn())return;
+ const nuevos=L.filter(a=>!antes.has(a.id)&&!(Array.isArray(a.h)&&a.h.length&&a.h[a.h.length-1].q===yo)),cambios=antesC?LC.filter(a=>!antesC.has(kc(a))):[];
+ if((!nuevos.length&&!cambios.length)||!avisarOn())return;
+ if(cambios.length){const tc=a=>a.e==='cancelado'?'El cliente ha cancelado '+a.id+' · '+((cfg.av[a.av]||{}).n||''):'El cliente ha cambiado su cita: '+a.id+(a.cita?', al '+K.fechaCorta(a.cita.dia):'');
+  document.dispatchEvent(new CustomEvent('oficio:avisa',{detail:{avisos:cambios.map(a=>a.id),cliente:true}}));if(!nuevos.length)pita();
+  if(document.hidden){AV.n+=cambios.length;cuentaTitulo();cambios.forEach(a=>notifica('Cambio de un cliente',tc(a),a.id))}else toast(cambios.length===1?tc(cambios[0]):cambios.length+' cambios de clientes en sus citas');
+  if(!nuevos.length)return}
  document.dispatchEvent(new CustomEvent('oficio:avisa',{detail:{avisos:nuevos.map(a=>a.id)}}));   /* para quien quiera enterarse (las pruebas lo cuentan) */
  pita();try{navigator.vibrate&&navigator.vibrate([120,80,120])}catch(e){}
  const txt=a=>(Q.rol==='tecnico'?'Te han asignado ':'Aviso nuevo: ')+a.id+' · '+((cfg.av[a.av]||{}).n||'')+(a.cita?', cita el '+K.fechaCorta(a.cita.dia):', urgente');
@@ -1632,7 +1646,7 @@ const ACC={
  conRen:(A,b)=>{const C=contrato(b.dataset.c);if(C)hConRen(C)},
  conBaja:(A,b)=>{const C=contrato(b.dataset.c);if(C)hConBaja(C)},
  conFac:(A,b)=>{const C=contrato(b.dataset.c);if(C)copia(K.datosFacturaContrato(S,cfg,C,Date.now()),'Copiado. Pégalo en tu programa de facturas.')},
- conRev:(A,b)=>{const C=contrato(b.dataset.c);if(!C)return;Oficio.crear({tipo:'pedir',av:K.REV,origen:'llamada',cli:C.cli},Q).then(r=>{if(!r.ok)return toast(ERR[r.err]||'No se ha podido crear.');toast('Aviso de la revisión creado: dale cita y asígnalo.');location.hash='#/aviso/'+r.id})},
+ conRev:(A,b)=>{const C=contrato(b.dataset.c);if(!C)return;Oficio.crear({tipo:'pedir',av:K.REV,origen:'llamada',cli:C.cli},Q).then(r=>{if(!r.ok)return toast(errDe(r)||'No se ha podido crear.');toast('Aviso de la revisión creado: dale cita y asígnalo.');location.hash='#/aviso/'+r.id})},
  quitaFalta:(A,b)=>{const k=b.dataset.k,r=hacer(k?{tipo:'falta',id:A.id,k,quitar:true}:{tipo:'falta',id:A.id,t:b.dataset.t,quitar:true});if(r.ok)toast('Quitado de lo que falta.')},
  faltaListo:A=>{if(hacer({tipo:'falta',id:A.id,vaciar:true}).ok)toast('Hecho: ya no falta nada en este aviso.')},
  fSi:(A,b)=>{const tec=b.dataset.tec,r=hacer({tipo:'furgo',tec,llevar:true});if(r.ok){toast('Hecho. Ahora cuenta lo que hay.');hFz(tec,true)}},
@@ -1699,7 +1713,7 @@ document.addEventListener('submit',e=>{if(e.target.id!=='fNuevo')return;e.preven
  if(B.va)return;B.va=true;const bt=$('#fNuevo [type=submit]');if(bt)bt.disabled=true;
  const pn=K.parteNombre(B.nomap);Oficio.crear({tipo:'pedir',av:B.av,origen:B.or,nota:B.nota,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:B.cuando==='cita'?{dia:B.dia,fr:B.fr}:null},Q).then(r=>{B.va=false;
   if(r.ok){Object.assign(B,{av:'',or:'llamada',cuando:'',fr:'',nomap:'',tel:'',dir:'',cp:'',nota:'',err:''});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');S=Oficio.estado();if(location.hash==='#/aviso/'+r.id)pinta();else location.hash='#/aviso/'+r.id}
-  else{B.err=r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;pinta();const i=$('#n_'+(r.err==='zona'?'cp':B.err));if(i)i.focus();else toast(ERR[r.err]||'Revisa los datos.')}})});
+  else{B.err=r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;pinta();const i=$('#n_'+(r.err==='zona'?'cp':B.err));if(i)i.focus();else toast(errDe(r)||'Revisa los datos.')}})});
 pinta();
 })();
 </script>

@@ -13,6 +13,12 @@ const SRV = path.resolve(process.env.OFICIOS_SERVIDOR_ORIGEN || path.join(aqui, 
 
 // [qué protección se quita, texto que hay, texto que se pone]
 const M = [
+  // la zona del cliente (19-11-2026): cambiar o cancelar su cita con su teléfono y su código
+  ['la zona del cliente no mira el código', "const c = await cliente(neg, p); if (!c.ok) return c;\n      const a = p.accion;", "const c = { ok: true, tel: K.tel9(p.tel) };\n      const a = p.accion;"],
+  ['desde la zona del cliente vale cualquier acción', "!ZONA.includes(a.tipo)) return R('permiso');", "typeof a.tipo !== 'string') return R('permiso');"],
+  ['la zona del cliente no tiene freno', "if (!(await almacen.tope(neg.id, 'zona:' + c.tel, TOPES.zona[0], TOPES.zona[1]))) return R('limite');", ''],
+  ['el cliente hace los cambios sin su teléfono', "await aplica(neg, { rol: 'cliente', id: c.tel }, a, p.clave || '');", "await aplica(neg, { rol: 'cliente', id: K.tel9(a.tel) || c.tel }, a, p.clave || '');"],
+  ['la marca del cliente vale para todos', "(q.rol === 'cliente' ? (q.id ? 'cli:' + q.id : 'web') : q.rol + ':' + q.id)", "(q.rol === 'cliente' ? 'web' : q.rol + ':' + q.id)"],
   // los datos del negocio al entrar (16-11-2026)
   ['al entrar, los datos del negocio no van nunca', "if (p.huella !== h && neg.datos && typeof neg.datos === 'object' && !Array.isArray(neg.datos)) r.datos = neg.datos;", ''],
   ['al entrar, los datos del negocio van siempre, aunque la app ya los tenga', "if (p.huella !== h && neg.datos &&", 'if (neg.datos &&'],

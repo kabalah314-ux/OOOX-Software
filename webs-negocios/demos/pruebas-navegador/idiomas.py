@@ -96,11 +96,14 @@ async def recorre(br, lang):
     tels = await app.evaluate("[...new Set(Oficio.estado().avisos.map(a=>OficioNucleo.tel9(a.cli.tel)).filter(Boolean))]")
     for t in tels:
         await z.goto(B + f'cliente.html#/entra/{t}/2468-1357'); await z.wait_for_timeout(200); await mira(z, 'zona ' + t)
-        hs = await z.evaluate("[...document.querySelectorAll('#v a[href^=\"#/\"]')].map(a=>a.getAttribute('href'))")
-        for h in dict.fromkeys(hs):
-            await z.goto(B + 'cliente.html' + h); await mira(z, 'zona ' + t + ' ' + h)
-            for h2 in dict.fromkeys(await z.evaluate("[...document.querySelectorAll('#v a[href^=\"#/aviso\"]')].map(a=>a.getAttribute('href'))")):
-                if h2 not in hs: await z.goto(B + 'cliente.html' + h2); await mira(z, 'zona ' + t + ' ' + h2)
+        # todo lo suyo: las cuatro partes de abajo (19-11-2026) y, desde cada una, lo que enlaza (los papeles de cada trabajo, el contrato)
+        LINKS = "[...document.querySelectorAll('#v a[href^=\"#/\"],#tabs a[href^=\"#/\"]')].map(a=>a.getAttribute('href'))"
+        vistos = {'#/'}; cola = [h for h in dict.fromkeys(await z.evaluate(LINKS)) if h != '#/']
+        while cola:
+            h = cola.pop(0)
+            if h in vistos: continue
+            vistos.add(h); await z.goto(B + 'cliente.html' + h); await mira(z, 'zona ' + t + ' ' + h)
+            cola += [x for x in dict.fromkeys(await z.evaluate(LINKS)) if x not in vistos and x not in cola]
         await z.goto(B + 'cliente.html#/'); await z.click('#salir'); await mira(z, 'zona: salir')
     datos = await app.evaluate("""(()=>{const S=Oficio.estado(),N=Oficio.N,K=Oficio.K,d=new Set(),p=x=>{if(typeof x==='string'&&x.trim())d.add(x.trim())};
      S.avisos.forEach(a=>{const c=a.cli||{};[c.nombre,c.apellidos,K.nomCli(c),c.dir,c.cp,a.nota,a.obs].forEach(p);(a.pres&&a.pres.lineas||[]).concat(a.amp?a.amp.flatMap(m=>m.lineas):[]).forEach(l=>{if(l.k==='otro')p(l.t)})});

@@ -215,7 +215,7 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
 
 // 13. la zona del cliente: la oficina le da un código y el cliente entra con su teléfono y ese código
 { reloj.t += 601000; crudo('ramirez').fallos = []; const v0 = crudo('ramirez').v, d0 = crudo('ramirez').diario.length;
-  const cfg = K.cfgDe(NR), PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'cli', 'vista', 'llave'];
+  const cfg = K.cfgDe(NR), PERFIL_OK = ['id', 'av', 'e', 'urg', 't', 'cita', 'tec', 'ini', 'fin', 'min', 'sinTrabajo', 'pres', 'amp', 'tot', 'pago', 'gar', 'obs', 'conf', 'fotos', 'cli', 'vista', 'llave', 'vuelve', 'quiere'];
   /* el estado tal como lo carga el juez */
   const est = () => { const n = crudo('ramirez'); return Object.assign({ esq: K.ESQ, n: 0, nu: 0, ausencias: [] }, JSON.parse(JSON.stringify(n.cab)), { v: n.v, avisos: [...n.avisos.values()].map(f => JSON.parse(JSON.stringify(f.datos))).sort((a, b) => (a.n || 0) - (b.n || 0)) }); };
   const acceso = (quien, tel, mas) => J.atiende(Object.assign({ que: 'acceso', tel }, quien, mas));
@@ -279,6 +279,40 @@ es(repite('ramirez', NR) && repite('voltio', NV), 'lo que hay guardado de cada n
   const raras = [{ que: 'perfil' }, { que: 'perfil', negocio: 'ramirez', tel: {}, codigo: [] }, { que: 'acceso', negocio: 'ramirez', tel: TM }, Object.assign({ que: 'acceso', tel: null, cambia: 'si' }, OF)], rr = [];
   for (const x of raras) rr.push(await J.atiende(x));
   es(rr.every(x => x && x.ok === false && typeof x.err === 'string'), 'lo que no es una petición de la zona del cliente recibe un «no», sin romper nada');
+  // desde su zona, el cliente cambia o cancela su cita (19-11-2026): con su teléfono y su código, solo lo suyo y hasta 24 horas antes
+  crudo('ramirez').topes.clear(); crudo('ramirez').fallosCli = [];
+  const zona = (tel, codigo, accion, clave, red) => J.atiende({ que: 'zona', negocio: 'ramirez', tel, codigo, accion, clave, red: red || 'red-zona' });
+  const hz = await J.atiende({ que: 'huecos', negocio: 'ramirez' }), dl = hz.dias.filter(d => !d.hoy && d.franjas.some(f => f.ok));
+  const d1 = dl[2], f1 = d1.franjas.find(f => f.ok).id, d2 = dl[3], f2 = d2.franjas.find(f => f.ok).id;
+  const pc = await J.atiende({ que: 'pedir', negocio: 'ramirez', red: 'red-z1', accion: { tipo: 'pedir', av: NR.averias[0].id, origen: 'cita', cli: cliDe(NR), cita: { dia: d1.dia, fr: f1 } } });
+  const pOtro = await J.atiende({ que: 'pedir', negocio: 'ramirez', red: 'red-z2', accion: { tipo: 'pedir', av: NR.averias[0].id, origen: 'cita', cli: Object.assign(cliDe(NR), { nombre: 'Pere', tel: TP }), cita: { dia: d1.dia, fr: f1 } } });
+  const dz = () => crudo('ramirez').avisos.get(pc.id).datos, cod = a4.codigo, mueve = (id, d, f) => ({ tipo: 'mover', id, cita: { dia: d, fr: f } });
+  es(pc.ok && pOtro.ok && dz().cita.dia === d1.dia && K.cambiaCli(cfg, dz(), reloj.t), 'una cita de dentro de unos días, pedida con su teléfono');
+  const zm = [await zona(TM, 'abcd-efgh', mueve(pc.id, d2.dia, f2)), await zona(TM, cod, { tipo: 'asignar', id: pc.id, tec: tecR[0] }), await zona(TM, cod, { tipo: 'pedir', av: NR.averias[0].id, cli: cliDe(NR) }),
+    await zona(TM, cod, mueve(pOtro.id, d2.dia, f2)), await zona(TM, cod, { tipo: 'cancelar', id: pOtro.id }), await zona(TP, a5.codigo, mueve(pc.id, d2.dia, f2)), await zona(TM, cod, null), await zona(TM, cod, [mueve(pc.id, d2.dia, f2)]), await zona(TM, cod, { tipo: 'cancelar', id: pOtro.id, tel: TP, q: { rol: 'cliente', id: TP } })];
+  es(zm[0].err === 'clave' && zm.slice(1, 3).every(x => x.err === 'permiso') && zm.slice(3, 6).every(x => x.err === 'permiso') && zm.slice(6).every(x => x.err === 'permiso') && dz().cita.dia === d1.dia && crudo('ramirez').avisos.get(pOtro.id).datos.e === 'nuevo',
+    'con un código malo no; desde la zona solo se cambia o se cancela, y solo una cita de ese teléfono: la de otro cliente, ni con su propio código');
+  const vz0 = crudo('ramirez').v, z1 = await zona(TM, cod, mueve(pc.id, d2.dia, f2), 'marca-zona-0001');
+  const yo = z1.ok && z1.perfil && z1.perfil.avisos.find(a => a.id === pc.id);
+  es(z1.ok && yo && yo.cita.dia === d2.dia && yo.cita.fr === f2 && yo.llave === pc.llave && dz().cita.dia === d2.dia && crudo('ramirez').v === vz0 + 1 && dz().h[dz().h.length - 1].q === 'Cliente' && /El cliente cambia su cita/.test(dz().h[dz().h.length - 1].txt),
+    'cambia su cita: contesta con su perfil ya al día (con la llave de su aviso) y queda en el historial que lo hizo él');
+  const dg = crudo('ramirez').diario[crudo('ramirez').diario.length - 1];
+  es(dg.q && dg.q.rol === 'cliente' && dg.q.id === TM && dg.clave === 'cli:' + TM + '|marca-zona-0001', 'en el diario va con su teléfono y con su propia marca');
+  const z1b = await zona(TM, cod, mueve(pc.id, d2.dia, f2), 'marca-zona-0001');
+  es(z1b.ok && crudo('ramirez').v === vz0 + 1 && !JSON.stringify([z1, z1b]).includes('Pere') && z1.perfil.avisos.every(a => K.tel9(a.cli.tel) === TM && Object.keys(a).every(k => PERFIL_OK.includes(k))),
+    'si lo manda dos veces, se hace una; y no lleva nada de otro cliente');
+  es((await zona(TM, cod, mueve(pc.id, d2.dia, f2))).err === 'estado' && (await zona(TM, cod, mueve(pc.id, K.madrid(reloj.t).date, f2))).err === 'franja', 'a la misma cita, o a hoy, no');
+  const z2 = await zona(TM, cod, { tipo: 'cancelar', id: pc.id });
+  es(z2.ok && z2.perfil.avisos.find(a => a.id === pc.id).e === 'cancelado' && dz().e === 'cancelado' && /Cancelado por el cliente/.test(dz().h[dz().h.length - 1].txt) && (await zona(TM, cod, mueve(pc.id, d1.dia, f1))).err === 'estado',
+    'cancela su cita; cancelada, ya no se cambia');
+  { const h0 = hz.dias.find(d => !d.hoy), fx = h0 && h0.franjas.find(f => f.ok && K.faltaCita(cfg, { cita: { dia: h0.dia, fr: f.id } }, reloj.t) < K.CAMBIO_H * 60);
+    if (fx) { const pt = await J.atiende({ que: 'pedir', negocio: 'ramirez', red: 'red-z3', accion: { tipo: 'pedir', av: NR.averias[0].id, origen: 'cita', cli: cliDe(NR), cita: { dia: h0.dia, fr: fx.id } } });
+      es(pt.ok && (await zona(TM, cod, mueve(pt.id, d2.dia, f2))).err === 'tarde' && (await zona(TM, cod, { tipo: 'cancelar', id: pt.id })).err === 'tarde' && crudo('ramirez').avisos.get(pt.id).datos.e === 'nuevo', 'a menos de 24 horas, ni cambiarla ni cancelarla: llamando') }
+    else es(true, 'a menos de 24 horas (hoy no queda ninguna franja así)') }
+  crudo('ramirez').topes.clear();
+  { let n = 0, ul; for (let i = 0; i < 30 && !(ul && ul.err === 'limite'); i++) { ul = await zona(TM, cod, { tipo: 'cancelar', id: 'R-9999' }); n++ }
+    es(ul.err === 'limite' && n === 21 && (await zona(TP, a5.codigo, { tipo: 'cancelar', id: 'R-9999' })).err !== 'limite', 'veinte cambios por hora y teléfono: el siguiente espera; a los demás clientes no les afecta') }
+  crudo('ramirez').topes.clear();
   es(new Set(Array.from({ length: 200 }, () => codigoCliente())).size === 200 && Array.from({ length: 50 }, () => codigoCliente()).every(c => limpiaCodigo(c) === c) && limpiaCodigo('ABCD EFGH') === 'abcd-efgh'
     && limpiaCodigo('abcd-efgi') === '' && limpiaCodigo('abc-defg') === '' && limpiaCodigo(12345678) === '', 'los códigos salen distintos y con su forma, y se leen escritos de cualquier manera, pero no con letras que no se usan'); }
 

@@ -17,13 +17,16 @@
 //    vez; se guarda solo su huella) o quitar el acceso. Nadie se queda fuera a sí mismo ni deja el negocio sin quien mande.
 //  - Nunca lanza un error hacia fuera: contesta siempre {ok:true,…} o {ok:false,err}.
 
-export const QUE = ['entrar', 'hacer', 'leer', 'pedir', 'huecos', 'ver', 'acceso', 'perfil', 'equipo', 'foto'];
+export const QUE = ['entrar', 'hacer', 'leer', 'pedir', 'huecos', 'ver', 'acceso', 'perfil', 'equipo', 'foto', 'zona'];
+/** Lo que puede hacer el cliente desde su zona (19-11-2026): cambiar o cancelar su cita. Las reglas miran que el aviso sea suyo y la hora */
+export const ZONA = ['mover', 'cancelar'];
 export const TOPES = {
   accion: 400000,     // letras que puede pesar una acción (cabe una foto reducida)
   intentos: 5,        // veces que vuelve a leer si alguien se le adelanta
   pedirRed: [5, 3600000],     // citas desde la web: 5 por hora desde la misma conexión…
   pedirTodos: [40, 3600000],  // …y 40 por hora entre todas, por negocio
   dias: 5,            // días con huecos que se enseñan a quien pide cita
+  zona: [20, 3600000],       // cambios desde la zona del cliente: 20 por hora y teléfono
 };
 
 /* LA HORA DE UNA ACCIÓN (16-11-2026). Lo hecho sin conexión se apunta con la hora en que se hizo, no con la de cuando llega:
@@ -128,7 +131,7 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
     let accion = accion0, foto = null;
     if (accion && K.esRef && K.esRef(accion.foto)) return { res: R('foto') };   // una referencia solo la pone el juez: desde fuera sería ver la foto de otro
     if (accion && typeof accion.foto === 'string' && K.esFoto(accion.foto)) { foto = { ref: await refDe(accion.foto), datos: accion.foto }; accion = Object.assign({}, accion, { foto: foto.ref }); }
-    const clave = texto(marca, 64) && marca.length >= 12 ? (q.rol === 'cliente' ? 'web' : q.rol + ':' + q.id) + '|' + marca : '';
+    const clave = texto(marca, 64) && marca.length >= 12 ? (q.rol === 'cliente' ? (q.id ? 'cli:' + q.id : 'web') : q.rol + ':' + q.id) + '|' + marca : '';   // el cliente en su zona, con su teléfono (19-11-2026)
     for (let i = 0; i < TOPES.intentos; i++) {
       const neg = i ? await negocio(neg0.id) : neg0; if (!neg) return { res: R('clave') };
       if (clave) { const ya = await almacen.hecha(neg.id, clave); if (ya) return { res: Object.assign({}, ya.res, { repetida: true }), nuevos: ya.nuevos || [] }; }
@@ -274,6 +277,21 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       if (!Pf) return R('nadie');
       for (const a of Pf.avisos) { const f = filas.get(a.id); a.llave = f && f.llave ? f.llave : ''; }   // la de su enlace: para seguirlo en directo
       return { ok: true, perfil: Pf };
+    },
+
+    /* El cliente, en su zona (19-11-2026): con su teléfono y su código, cambiar o cancelar su cita (ZONA). Las reglas miran
+       que el aviso sea de ese teléfono y que falten al menos 24 horas; aquí, el código y el freno. Contesta con su perfil ya
+       al día, el mismo que daría «perfil» */
+    async zona(neg, cfg, p) {
+      const c = await cliente(neg, p); if (!c.ok) return c;
+      const a = p.accion; if (!a || typeof a !== 'object' || Array.isArray(a) || !ZONA.includes(a.tipo)) return R('permiso');
+      if (p.clave != null && !texto(p.clave, 64)) return R('accion');
+      if (!(await almacen.tope(neg.id, 'zona:' + c.tel, TOPES.zona[0], TOPES.zona[1]))) return R('limite');
+      const { res } = await aplica(neg, { rol: 'cliente', id: c.tel }, a, p.clave || '');
+      if (!res.ok) return R(res.err);
+      const n2 = (await negocio(neg.id)) || neg, { S, filas } = await carga(n2), Pf = K.perfilCliente(S, K.cfgDe(n2.datos), c.tel);
+      if (Pf) for (const x of Pf.avisos) { const f = filas.get(x.id); x.llave = f && f.llave ? f.llave : ''; }
+      return { ok: true, perfil: Pf || null };
     },
   };
 

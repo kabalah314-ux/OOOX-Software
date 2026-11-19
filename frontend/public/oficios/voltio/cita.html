@@ -171,20 +171,31 @@ const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
  if(!Oficio.DEMO){document.documentElement.removeAttribute('data-demo');b.addEventListener('click',e=>{e.stopImmediatePropagation();location.href='tel:+34'+K.tel9(N.tel)},true)}}
 const mem={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let S=Oficio.estado();
-const P=new URLSearchParams(location.search),sv=P.get('servicio')||P.get('av'),av0=sv||mem.get(N.id+':av');
+const P=new URLSearchParams(location.search),sv=P.get('servicio')||P.get('av'),avM=mem.get(N.id+':av'),av0=sv||(avM!==K.REV?avM:'');
 /* «servicio» (o «av»): la avería que se eligió en la web. Entonces sale arriba «Has elegido…», con un botón para cambiarla */
 const B={av:cfg.av[av0]?av0:'',fijo:!!(sv&&cfg.av[sv]),nota:'',foto:'',dia:'',fr:'',alt:[],altOpen:false,altMas:false,nomap:'',tel:'',dir:'',cp:'',err:'',errs:[],paso:'form'};
-if(B.fijo)mem.set(N.id+':av',B.av);
-/* desde «Pedir otra cita» de la zona del cliente: sus datos ya puestos, una sola vez */
+if(B.fijo&&B.av!==K.REV)mem.set(N.id+':av',B.av);
+/* desde la zona del cliente (19-11-2026). «garantia»: el trabajo suyo que ha vuelto a fallar; la oficina mira si entra en la
+   garantía al verlo, así que aquí no se promete nada. Con la revisión: «plan», el mantenimiento que quiere (lo da de alta la
+   oficina antes de la visita) y «con», que va en su contrato. Las reglas lo comprueban todo al pedirla */
+const GAR=/^[A-Za-z0-9]{1,4}-\d{1,7}$/.test(P.get('garantia')||'')?P.get('garantia'):'',PLAN=K.planDe(cfg,P.get('plan')||'')?P.get('plan'):'',CON=P.get('con')==='1';
+const extra=()=>B.av===K.REV?{enCon:CON,quiere:CON?'':PLAN}:{vuelve:GAR};
+/* desde «Pedir cita» de la zona del cliente: sus datos ya puestos, una sola vez */
 {const y=mem.get('oficio:'+N.id+':yo');if(y){try{const o=JSON.parse(y);['tel','dir','cp'].forEach(k=>{if(o&&typeof o[k]==='string')B[k]=k==='tel'?K.telBonito(o[k]):o[k]});if(o)B.nomap=[o.nombre,o.apellidos].filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()).join(' ')}catch(e){}try{localStorage.removeItem('oficio:'+N.id+':yo')}catch(e){}}}
 const ERR={av:'Elige qué necesitas arreglar.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nomap:'Escribe tu nombre y al menos un apellido.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en {ciudad}.'};
 /* con servidor: los huecos los da él (días y franjas libres, sin cifras) y el aviso se sigue con la llave del enlace */
 const SRV=Oficio.SRV,H={dias:null,err:'',t:0,va:false};
-Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al {tel}.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al {tel} y te damos cita.',red:'No hay conexión o no podemos recibirla ahora. Tu cita no se ha enviado: prueba otra vez o llámanos al {tel}.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',grande:'Esa foto pesa demasiado. Quítala y prueba otra vez.'});
+Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al {tel}.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al {tel} y te damos cita.',red:'No hay conexión o no podemos recibirla ahora. Tu cita no se ha enviado: prueba otra vez o llámanos al {tel}.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',
+ /* al cambiar la cita desde la zona del cliente */
+ tarde:'Ya faltan menos de 24 horas para tu cita: para cambiarla, llámanos al {tel}.',estado:'Esta cita ya no se puede cambiar desde aquí. Llámanos al {tel}.',
+ sesion:'Tu sesión ha caducado. Vuelve a entrar en tu zona de cliente.',bloqueo:'Demasiados intentos seguidos. Espera diez minutos y prueba otra vez.',
+ muchos:'Has hecho muchos cambios seguidos. Espera un rato o llámanos al {tel}.',redC:'No hay conexión. Tu cita no se ha cambiado: prueba otra vez o llámanos al {tel}.',grande:'Esa foto pesa demasiado. Quítala y prueba otra vez.'});
 const err=k=>_(ERR[k]||ERR.servidor,{ciudad:N.ciudad,tel:N.tel});
 /* «otra»: lo que se busca ha cambiado (la avería). Si ya se estaba preguntando, al llegar esa respuesta se pregunta otra vez:
    la que llega es la de antes del cambio */
-function traeHuecos(otra){if(!SRV)return;if(H.va){if(otra)H.otra=true;return}H.va=true;H.otra=false;Oficio.huecos({av:B.av||'',dis:cfg.zonas.cp[B.cp]||''}).then(r=>{H.va=false;
+/* lo que se pregunta: la avería y el barrio del formulario o, al cambiar una cita, los de ese aviso */
+const qH=()=>{const C=ruta().v==='cambiar'?CMB():null;return C?{av:C.av||'',dis:C.dis||''}:{av:B.av||'',dis:cfg.zonas.cp[B.cp]||''}};
+function traeHuecos(otra){if(!SRV)return;if(H.va){if(otra)H.otra=true;return}H.va=true;H.otra=false;const q=qH();H.q=JSON.stringify(q);Oficio.huecos(q).then(r=>{H.va=false;
  if(H.otra){H.t=0;traeHuecos();return}H.t=Date.now();
  const w=r.ok?(r.web&&typeof r.web==='object'&&!Array.isArray(r.web)?r.web:null):H.web===undefined?null:H.web,webOtra=JSON.stringify(w)!==JSON.stringify(H.web);H.web=w;
  if(r.ok&&Array.isArray(r.dias)){H.err='';H.urg=r.urg&&Number.isInteger(r.urg.de)&&Number.isInteger(r.urg.a)?{de:r.urg.de,a:r.urg.a}:null;H.dias=r.dias.map(d=>({dia:d.dia,hoy:!!d.hoy,franjas:cfg.franjas.map(f=>{const x=(d.franjas||[]).find(y=>y.id===f.id);return{id:f.id,txt:K.franjaTxt(f),ok:!!(x&&x.ok),libres:null}})}))}else H.err=r.err||'red';
@@ -192,6 +203,12 @@ function traeHuecos(otra){if(!SRV)return;if(H.va){if(otra)H.otra=true;return}H.v
 const diaCorto=f=>{const h=K.madrid().date;return f===h?_('hoy'):f===K.masDias(h,1)?_('mañana'):I.diaSemCorto(f)+' '+(+f.slice(8))};
 const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?I.franja(f):''};
 const mayus=s=>s.charAt(0).toUpperCase()+s.slice(1);
+/* cambiar la cita desde la zona del cliente (19-11-2026), «#/cambiar/ID»: el mismo calendario y nada más. Lo de su aviso (la
+   avería, el barrio y la cita de ahora) lo deja su zona en este navegador; el teléfono y el código, los de su sesión */
+const M={dia:'',fr:'',va:false,err:''};
+const CMB=()=>{try{const o=JSON.parse(mem.get('oficio:'+N.id+':cambia')||'null');return o&&typeof o.id==='string'&&o.cita&&typeof o.cita.dia==='string'&&typeof o.cita.fr==='string'?o:null}catch(e){return null}};
+const SES=()=>{try{const x=JSON.parse(mem.get('oficio:'+N.id+':cliente')||'null');return x&&K.tel9(x.tel)&&(!SRV||typeof x.cod==='string')?x:null}catch(e){return null}};
+const SEL=()=>ruta().v==='cambiar'?M:B;
 const TIT=()=>'<h1 class="grande">'+_('Pide tu cita aquí.')+'</h1>';
 /* «¿Cuándo te va bien?» (19-11-2026, lo pidió Oscar): un calendario de lunes a viernes, que son los días con cita, desde
    esta semana hasta la del último día con hueco. Se eligen los días con algún hueco; hoy, los festivos y los días llenos
@@ -199,19 +216,19 @@ const TIT=()=>'<h1 class="grande">'+_('Pide tu cita aquí.')+'</h1>';
 function calendario(dias){const hoy=K.madrid().date,de={};dias.forEach(x=>de[x.dia]=x);
  const sem=f=>new Date(f+'T12:00:00Z').getUTCDay(),lunes=f=>K.masDias(f,1-(sem(f)||7));
  const ini=sem(hoy)>=1&&sem(hoy)<=5?hoy:dias[0].dia,fin=dias[dias.length-1].dia,m1=I.mes(ini),m2=I.mes(fin);
- let cel='';for(let s0=lunes(ini);s0<=fin;s0=K.masDias(s0,7))for(let i=0;i<5;i++){const f=K.masDias(s0,i),x=de[f],n=+f.slice(8);
-  if(x&&x.franjas.some(z=>z.ok))cel+='<button type="button" class="dia" data-dia="'+f+'" role="radio" aria-checked="'+(B.dia===f)+'" aria-label="'+esc(I.fechaLarga(f))+'"><b>'+n+'</b><i></i></button>';
-  else{const k=f===hoy?_('hoy'):cfg.festivos.includes(f)?_('festivo'):x?_('completo'):'';
+ let cel='';const E=SEL();for(let s0=lunes(ini);s0<=fin;s0=K.masDias(s0,7))for(let i=0;i<5;i++){const f=K.masDias(s0,i),x=de[f],n=+f.slice(8);
+  if(x&&x.franjas.some(z=>z.ok))cel+='<button type="button" class="dia" data-dia="'+f+'" role="radio" aria-checked="'+(E.dia===f)+'" aria-label="'+esc(I.fechaLarga(f))+(x.suya?', '+_('tu cita'):'')+'"><b>'+n+'</b>'+(x.suya?'<small>'+_('tu cita')+'</small>':'<i></i>')+'</button>';
+  else{const k=f===hoy?_('hoy'):cfg.festivos.includes(f)?_('festivo'):x&&x.suya?_('tu cita'):x?_('completo'):'';
    cel+='<span class="dia no'+(f===hoy?' hoy':'')+'" aria-hidden="true"><b>'+n+'</b>'+(k?'<small>'+k+'</small>':'')+'</span>'}}
  return'<div class="cal"><p class="cal-mes" aria-hidden="true">'+esc(mayus(m1===m2?m1:m1+' – '+m2))+'</p>'+
   '<div class="cal-sem" aria-hidden="true">'+[0,1,2,3,4].map(i=>'<span>'+esc(I.diaSemCorto(K.masDias(lunes(ini),i)))+'</span>').join('')+'</div>'+
   '<div class="cal-dias" role="radiogroup" aria-label="'+_('Día')+'">'+cel+'</div>'+
   '<p class="cal-nota">'+_('Hoy y los fines de semana, solo servicio urgente.')+'</p></div>'}
-function horas(fr){const de=id=>(cfg.franjas.find(z=>z.id===id)||{de:0}).de;
- const b=f=>'<button type="button" class="op hora" data-fr="'+f.id+'" role="radio" aria-checked="'+(B.fr===f.id)+'"'+(f.ok?'':' disabled')+'><span>'+frTxt(f.id)+
-  '<small>'+(f.libres==null?(f.ok?_('libre'):_('no disponible')):f.ok?(f.libres===1?_('queda 1'):_('quedan {n}',{n:f.libres})):f.libres?_('ya no da tiempo'):_('completa'))+'</small></span></button>';
+function horas(fr){const de=id=>(cfg.franjas.find(z=>z.id===id)||{de:0}).de,E=SEL();
+ const b=f=>'<button type="button" class="op hora" data-fr="'+f.id+'" role="radio" aria-checked="'+(E.fr===f.id)+'"'+(f.ok?'':' disabled')+'><span>'+frTxt(f.id)+
+  '<small>'+(f.suya?_('tu cita ahora'):f.libres==null?(f.ok?_('libre'):_('no disponible')):f.ok?(f.libres===1?_('queda 1'):_('quedan {n}',{n:f.libres})):f.libres?_('ya no da tiempo'):_('completa'))+'</small></span></button>';
  const g=(k,L)=>L.length?'<p class="hk">'+k+'</p><div class="hs">'+L.map(b).join('')+'</div>':'';
- return'<div class="horas" role="radiogroup" aria-label="'+_('Franja')+'"><p class="hd">'+esc(mayus(I.fechaLarga(B.dia)))+'</p>'+
+ return'<div class="horas" role="radiogroup" aria-label="'+_('Franja')+'"><p class="hd">'+esc(mayus(I.fechaLarga(E.dia)))+'</p>'+
   g(_('Por la mañana'),fr.filter(f=>de(f.id)<840))+g(_('Por la tarde'),fr.filter(f=>de(f.id)>=840))+'</div>'}
 const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
 const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cfg.zonas.dis[d][0]:''};
@@ -222,10 +239,19 @@ const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cf
    ver un aviso, para que el nombre y el precio sean los mismos que al pedirlo). Un nombre que ha escrito el negocio no se traduce */
 const webL=()=>K.webDe?K.webDe(SRV?{web:H.web||null}:S,cfg):N.averias.map(a=>({id:a.id,n:a.n,oculto:false}));
 const svDe=id=>webL().find(x=>x.id===id)||null;
-const nomAv=id=>{const x=svDe(id);return x?(x.nPropio?x.n:_(x.n)):_((cfg.av[id]||{n:''}).n)};
-const fotoAv=id=>{const x=svDe(id);return x&&x.foto?(SRV?Oficio.fotoSrc(x.foto,'web'):x.foto):'assets/img/av-'+id+'-s.webp'};
-const precioTxt=av=>{const x=svDe(av),R=x&&K.webPrecios?K.webPrecios(cfg,x):(()=>{const r=K.rango(cfg,av,false);return r&&{a:r.a,b:r.b}})();if(!R)return'';const e=v=>K.eur(v).replace(',00','');return R.b?_('De {a} a {b}',{a:e(R.a),b:e(R.b)}):_('Desde {a}',{a:e(R.a)})};
+/* la revisión, como la ve el cliente: con el nombre de la que lleva el plan en el catálogo, que vale con contrato y sin él */
+const nomRev=()=>{const Pl=Object.values(cfg.planes||{})[0],c=Pl&&cfg.cat[Pl.rev];return _(c?c.t:(cfg.av[K.REV]||{n:''}).n)};
+const nomAv=id=>{if(id===K.REV)return nomRev();const x=svDe(id);return x?(x.nPropio?x.n:_(x.n)):_((cfg.av[id]||{n:''}).n)};
+const fotoAv=id=>{if(id===K.REV)id='otra';   /* la revisión no tiene foto propia: la de «otra avería», la caja de herramientas */
+ const x=svDe(id);return x&&x.foto?(SRV?Oficio.fotoSrc(x.foto,'web'):x.foto):'assets/img/av-'+id+'-s.webp'};
+/* «o»: lo de la revisión (19-11-2026): «enCon», que va en su contrato; «quiere», el plan que quiere, con la revisión dentro */
+const precioTxt=(av,o)=>{o=o||{};const e=v=>K.eur(v).replace(',00','');
+ if(av===K.REV&&o.enCon)return _('Incluida en tu contrato');const Pl=av===K.REV&&o.quiere?K.planDe(cfg,o.quiere):null;if(Pl)return _('{precio} al año',{precio:e(Pl.precio)});
+ const x=svDe(av),R=x&&K.webPrecios?K.webPrecios(cfg,x):(()=>{const r=K.rango(cfg,av,false);return r&&{a:r.a,b:r.b}})();if(!R)return'';return R.b?_('De {a} a {b}',{a:e(R.a),b:e(R.b)}):_('Desde {a}',{a:e(R.a)})};
 const PRECIO_NOTA='IVA incluido, en una vivienda. Con cita, tarifa normal. El precio final se cierra y lo firmas antes de empezar.';
+const nomPlan=Pl=>esc(_(Pl.n).toLowerCase());
+const notaPrecio=(av,o)=>{o=o||{};const Pl=av===K.REV&&!o.enCon&&o.quiere?K.planDe(cfg,o.quiere):null;
+ return av===K.REV&&o.enCon?_('La revisión y el desplazamiento van en tu contrato de mantenimiento.'):Pl?_('Con el {plan}, esta revisión va incluida. IVA incluido. Te escribimos para darlo de alta antes de la visita.',{plan:nomPlan(Pl)}):_(PRECIO_NOTA)};
 /* lo que se puede comprobar antes de enviar (lo mismo que mira el núcleo); así se corrige todo de una vez */
 function revisa(){const E=[],nm=s=>String(s||'').trim().replace(/\s+/g,' ');
  if(!B.av)E.push('av');if(!B.fr)E.push('franja');if(!K.parteNombre(B.nomap).bien)E.push('nomap');
@@ -257,12 +283,13 @@ function vPedir(){
  /* ¿no puede esperar?: a la portada, donde se llama o se manda una foto y se ve en cuánto llegamos y el suplemento */
  return TIT()+'<p class="lead" id="urgLead">'+_('¿No puedes esperar?')+' <a href="./">'+_('Contrata el servicio urgente')+'</a></p>'+
   (U&&U.e!=='cancelado'&&U.e!=='hecho'?'<p class="ult">'+_('Ya tienes un aviso: {id}, {av}.',{id:U.id,av:esc(nomAv(U.av).toLowerCase())})+' <a href="#/aviso/'+U.id+'">'+_('Ver cómo va')+'</a>. '+_('Para cambiarlo, llámanos al {tel}.',{tel:esc(N.tel)})+'</p>':'')+
+  (GAR&&B.av!==K.REV?'<p class="ult" id="garN">'+_('Pides cita porque ha vuelto a fallar el trabajo {id}, que sigue en garantía. Al verlo, te decimos si entra en ella.',{id:esc(GAR)})+'</p>':'')+
   resumenMal+
   '<form id="f" novalidate><p class="obl">'+_('Todo es necesario salvo lo que pone «Opcional».')+'</p>'+
   '<fieldset id="av"><legend><b>1</b>'+_('¿Qué necesitas arreglar?')+'</legend>'+
    (elegida||'<div class="avs">'+webL().filter(a=>!a.oculto||a.id===B.av).map(a=>'<label class="avc"><img src="'+esc(fotoAv(a.id))+'" alt="" width="52" height="52" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>'+esc(nomAv(a.id))+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>')+
    (malEn('av')?'<p class="fallo">'+err('av')+'</p>':'')+
-   (B.av?'<p class="rango"><span class="rk">'+_('Precio orientativo')+'</span><b class="num">'+precioTxt(B.av)+'</b><small>'+_(PRECIO_NOTA)+'</small></p>':'')+
+   (B.av?'<p class="rango"><span class="rk">'+_('Precio orientativo')+'</span><b class="num">'+precioTxt(B.av,extra())+'</b><small>'+notaPrecio(B.av,extra())+'</small></p>':'')+
    '<div class="campo"><label for="c_nota">'+_('Explícanos cuál es el problema')+' <small class="opc">'+_('Opcional')+'</small></label><textarea id="c_nota" data-b="nota" placeholder="'+esc(_('¿Algún detalle importante que debamos saber? Explícanos cuál es la situación.'))+'">'+esc(B.nota)+'</textarea>'+(otra?'<p class="ayuda">'+_('Si no sabes explicarlo, manda una foto: con eso nos basta para prepararlo.')+'</p>':'')+'</div>'+
    '<div class="fotow"><span class="lb">'+_('Una foto')+' <small class="opc">'+_('Opcional · ayuda a preparar la visita')+'</small></span><div class="fotoz">'+(B.foto?'<img src="'+esc(B.foto)+'" alt="'+_('La foto que has añadido')+'">':'')+
     '<label class="btn peq">'+(B.fotoVa?_('Preparando la foto…'):B.foto?_('Cambiar la foto'):_('Añadir una foto'))+'<input class="vh" type="file" accept="image/*" id="c_foto"></label>'+(B.foto?'<button type="button" class="txt" id="fQuita">'+_('Quitar')+'</button>':'')+'</div>'+
@@ -279,6 +306,32 @@ function vPedir(){
   (B.err&&!CAMPO_DE[B.err]?'<p class="fallo" role="alert">'+err(B.err)+'</p>':'')+
   '<button class="btn pri ancho" type="submit">'+_('Revisar la cita')+'</button><p class="ayuda" style="text-align:center;margin-top:8px">'+_('Antes de enviarla, la ves entera.')+'</p></form>'}
 
+/* cambiar la cita: hasta 24 horas antes, a cualquier hueco libre de los próximos días que no sea hoy. La de ahora sale
+   marcada y no se puede elegir */
+function vCambia(id){const C=CMB(),se=SES(),T=t=>'<h1 class="grande" tabindex="-1" id="tit">'+_('Cambia tu cita.')+'</h1>'+t;
+ if(M.id!==id){M.id=id;M.dia='';M.fr='';M.err=''}
+ if(!C||C.id!==id||!se)return T('<p class="lead">'+_('Para cambiarla, entra en {zona}.',{zona:'<a href="cliente.html">'+_('tu zona de cliente')+'</a>'})+'</p>');
+ if(!K.cambiaCli(cfg,{cita:C.cita,e:C.e||'nuevo'},Date.now()))return T('<p class="lead">'+err('tarde')+'</p><div class="tras"><a class="btn ancho" href="cliente.html">'+_('Volver a tu zona')+'</a></div>');
+ if(SRV&&!H.dias)return T('<p class="lead" role="status">'+(H.err?_('No he podido mirar los huecos libres. {boton} o llama al {tel}.',{boton:'<button class="txt" type="button" id="hOtra">'+_('Probar otra vez')+'</button>',tel:esc(N.tel)}):_('Mirando los huecos libres…'))+'</p>');
+ const X={av:C.av||'',cli:{dis:C.dis||''}},suya=x=>x.dia!==C.cita.dia?x:Object.assign({},x,{suya:true,franjas:x.franjas.map(f=>f.id===C.cita.fr?Object.assign({},f,{ok:false,suya:true}):f)});
+ const dias=(SRV?H.dias:K.diasDe(S,cfg,Date.now(),6,false,X)).filter(x=>!x.hoy).slice(0,5).map(suya),conHueco=x=>x.franjas.some(f=>f.ok);
+ if(!dias.some(conHueco))return T('<p class="lead">'+_('Ahora mismo no quedan otros huecos en los próximos días. Llama al {tel} y lo miramos.',{tel:esc(N.tel)})+'</p>');
+ if(!dias.find(x=>x.dia===M.dia&&conHueco(x)))M.dia=dias.find(conHueco).dia;
+ const fr=dias.find(x=>x.dia===M.dia).franjas;if(!fr.find(f=>f.id===M.fr&&f.ok))M.fr='';
+ return T('<p class="lead">'+_('Ahora la tienes el {cuando}. Elige otro día y otra hora.',{cuando:esc(I.fechaLarga(C.cita.dia)+', '+frTxt(C.cita.fr))})+'</p>'+
+  '<form id="fC" novalidate><fieldset id="fr"><legend>'+_('¿Cuándo te va mejor?')+'</legend>'+calendario(dias)+horas(fr)+
+  (M.err?'<p class="fallo" role="alert">'+err(M.err)+'</p>':'')+'</fieldset>'+
+  '<div class="tras"><button class="btn pri ancho" type="submit"'+(M.va?' disabled':'')+'>'+(M.va?_('Cambiando…'):_('Cambiar la cita'))+'</button><a class="btn ancho" href="cliente.html">'+_('Dejarla como está')+'</a></div></form>')}
+async function cambia(){const C=CMB(),se=SES();if(M.va||!C||!se)return;
+ if(!M.fr){M.err='franja';pinta();const x=$('.fallo');if(x)x.scrollIntoView({block:'center'});return}
+ M.va=true;M.err='';pinta();
+ const r=await Oficio.zona(se.tel,se.cod||'',{tipo:'mover',id:C.id,cita:{dia:M.dia,fr:M.fr}});M.va=false;
+ if(!r||!r.ok){const e=r&&r.err||'red';if(e==='franja'&&SRV){H.t=0;traeHuecos(true)}
+  M.err=e==='franja'?'llena':e==='tarde'||e==='estado'||e==='bloqueo'?e:e==='clave'||e==='permiso'?'sesion':e==='limite'?'muchos':e==='red'?'redC':'servidor';
+  pinta();const x=$('.fallo');if(x)x.scrollIntoView({block:'center'});return}
+ const cuando=I.fechaLarga(M.dia)+', '+frTxt(M.fr);try{localStorage.removeItem('oficio:'+N.id+':cambia')}catch(e){}M.id='';VT=0;
+ location.hash='#/aviso/'+C.id+(SRV&&C.llave?'/'+C.llave:'');toast(_('Cita cambiada: {cuando}.',{cuando}))}
+
 /* el resumen antes de confirmar: todo lo elegido, con un «Cambiar» a cada parte; y aquí se envía */
 function vResumen(dias){const cp=String(B.cp).replace(/\D/g,'');
  const fila=(k,v,ir)=>'<div class="rf"><dt>'+k+'</dt><dd>'+v+'</dd>'+(ir?'<dd class="rc"><a href="#" data-cambia="'+ir+'">'+_('Cambiar')+'<span class="vh"> '+k.toLowerCase()+'</span></a></dd>':'')+'</div>';
@@ -288,7 +341,8 @@ function vResumen(dias){const cp=String(B.cp).replace(/\D/g,'');
    fila(_('Qué arreglar'),esc(nomAv(B.av)),'av')+
    fila(_('Cuándo'),esc(I.fechaLarga(B.dia))+', '+esc(frTxt(B.fr))+(alt.length?'<br><small>'+_('También te va bien: {cuando}',{cuando:esc(alt.join(' · '))})+'</small>':''),'fr')+
    fila(_('Tarifa'),_('Normal, con cita'),null)+
-   fila(_('Precio orientativo'),precioTxt(B.av)+'<br><small>'+_('IVA incluido. El precio final se cierra y lo firmas antes de empezar.')+'</small>',null)+
+   fila(_('Precio orientativo'),precioTxt(B.av,extra())+'<br><small>'+(B.av===K.REV&&(CON||PLAN)?notaPrecio(B.av,extra()):_('IVA incluido. El precio final se cierra y lo firmas antes de empezar.'))+'</small>',null)+
+   (GAR&&B.av!==K.REV?fila(_('Garantía'),_('Ha vuelto a fallar el trabajo {id}',{id:esc(GAR)}),null):'')+
    fila(_('Dirección'),esc(B.dir.trim())+', '+esc(cp)+' '+esc(zonaDe(cp)),'tu')+
    fila(_('A nombre de'),esc(String(B.nomap).trim().replace(/\s+/g,' '))+'<br><small>'+_('{tel} · por WhatsApp',{tel:esc(K.telBonito(K.tel9(B.tel)))})+'</small>','tu')+
    (B.nota.trim()||B.foto?fila(_('Lo que nos cuentas'),(B.nota.trim()?esc(B.nota.trim()):'')+(B.foto?(B.nota.trim()?'<br>':'')+'<img class="rfoto" src="'+esc(B.foto)+'" alt="'+_('La foto que mandas')+'">':''),'av'):'')+
@@ -321,13 +375,15 @@ function bAntes(v,T){if(!['nuevo','asignado'].includes(v.e))return'';
  const tel=Oficio.DEMO?esc(N.tel):'<a href="tel:+34'+K.tel9(N.tel)+'">'+esc(N.tel)+'</a>';
  return'<section class="conf" aria-label="'+_('Lo que tienes que saber')+'">'+
   '<p class="numero"><span>'+_('Tu número de aviso')+'</span> <b class="num">'+esc(v.id)+'</b> <button type="button" class="txt" id="copiaId" data-id="'+esc(v.id)+'">'+_('Copiar')+'</button></p>'+
-  (v.cita?'<p class="cprecio">'+_('Con cita, tarifa normal. Precio orientativo: {precio}, IVA incluido. El precio final se cierra y lo firmas antes de empezar.',{precio:'<b>'+precioTxt(v.av)+'</b>'})+'</p>':'')+
+  (v.cita?'<p class="cprecio">'+(v.av===K.REV&&v.enCon?_('La revisión y el desplazamiento van en tu contrato de mantenimiento: no se pagan.'):v.av===K.REV&&K.planDe(cfg,v.quiere||'')?_('Con el {plan} ({precio} al año), esta revisión va incluida. Te escribimos para darlo de alta antes de la visita.',{plan:nomPlan(K.planDe(cfg,v.quiere)),precio:'<b>'+K.eur(K.planDe(cfg,v.quiere).precio).replace(',00','')+'</b>'})
+   :_('Con cita, tarifa normal. Precio orientativo: {precio}, IVA incluido. El precio final se cierra y lo firmas antes de empezar.',{precio:'<b>'+precioTxt(v.av)+'</b>'}))+'</p>':'')+
   '<h2>'+_('Qué pasa ahora')+'</h2><ol class="pasos">'+
    (v.e==='nuevo'?'<li>'+_('Te confirmamos por WhatsApp quién irá.')+'</li>':'<li>'+(v.cita?_('Irá {quien}, en la franja que has elegido.',{quien:esc(T)}):_('Irá {quien}.',{quien:esc(T)}))+'</li>')+
    (v.cita?'<li>'+_('El día de la cita te escribimos cuando salga hacia tu casa.')+'</li>':'<li>'+_('Te escribimos cuando salga hacia tu casa.')+'</li>')+
    '<li>'+_('Antes de empezar te da el precio cerrado, y lo firmas.')+'</li></ol>'+
   (mientras(v.av)?'<h2>'+_('Mientras tanto')+'</h2><p>'+esc(_(mientras(v.av)))+'</p>':'')+
-  '<p class="cambia">'+_('¿Tienes que cambiarla o anularla? Llámanos al {tel} y la movemos sin perder nada.',{tel})+'</p></section>'}
+  /* con zona de cliente, la cita se cambia o se cancela allí hasta 24 horas antes (19-11-2026) */
+  '<p class="cambia">'+(v.cita&&(Oficio.DEMO||SRV)?_('¿Tienes que cambiarla o anularla? Hazlo en {zona} hasta 24 horas antes, o llámanos al {tel}.',{zona:'<a href="cliente.html">'+_('tu zona de cliente')+'</a>',tel}):_('¿Tienes que cambiarla o anularla? Llámanos al {tel} y la movemos sin perder nada.',{tel}))+'</p></section>'}
 function vAviso(id){if(SRV&&H.web===undefined)traeHuecos();   /* el nombre y el precio del servicio, como en la web */
  const X=SRV?Oficio.vista(id):null,v=SRV?(X&&X.v):K.vistaCliente(S,cfg,id);
  if(SRV&&!v&&(!X||X.err==='red'))return'<h1>'+_('Tu aviso {id}',{id:esc(id)})+'</h1><p class="lead" role="status">'+(X?_('No hay conexión. Lo vuelvo a intentar solo en unos segundos.'):_('Buscando tu aviso…'))+'</p>';
@@ -345,7 +401,7 @@ function vAviso(id){if(SRV&&H.web===undefined)traeHuecos();   /* el nombre y el 
  return'<article class="papel doc"><div class="dh"><span class="wm">'+MARCA+'</span><p>'+_('Aviso {id}',{id:v.id})+'<br>'+esc(nomAv(v.av))+'</p></div><h1 tabindex="-1" id="tit">'+tit+'</h1><p class="frase">'+frase+'</p>'+
   (v.e==='cancelado'?'':'<ol class="pista" aria-label="'+_('Cómo va tu aviso')+'">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>')+bQuien(v)+bMapa(v,T)+bAntes(v,T)+
   '<p class="pie">'+(v.e==='hecho'?(Oficio.DEMO||SRV?_('El parte y la garantía los tienes en {zona}. ¿Algo no cuadra? Llama al {tel}.',{zona:'<a href="cliente.html">'+_('tu zona de cliente')+'</a>',tel:esc(N.tel)}):_('El parte y la garantía te los mandamos por WhatsApp. ¿Algo no cuadra? Llama al {tel}.',{tel:esc(N.tel)})):['nuevo','asignado'].includes(v.e)?_('Esta página se actualiza sola: guárdala para ver cómo va.'):_('Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga. ¿Algo no cuadra? Llama al {tel}.',{tel:N.tel}))+'</p></article>'+
-  '<div class="tras">'+(Oficio.DEMO?'<a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">'+_('Ver cómo le llega a {n}',{n:esc(N.marca[0])})+'</a>':'')+'<a class="txt" href="#/">'+_('Pedir otra cita')+'</a></div>'}
+  '<div class="tras">'+(Oficio.DEMO?'<a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">'+_('Ver cómo le llega a {n}',{n:esc(N.marca[0])})+'</a>':'')+'<a class="txt" href="#/">'+_('Pedir cita')+'</a></div>'}
 
 function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeURIComponent);return{v:h[0]||'',a:h[1]||'',b:h[2]||''}}
 /* con servidor: se pregunta por el aviso al abrirlo y cada pocos segundos mientras se mira; los huecos, al abrir y cada minuto */
@@ -354,10 +410,10 @@ function alDia(){if(!SRV)return;const r=ruta();
  if(r.v==='aviso'&&r.a&&r.b)Oficio.ponLlave(r.a,r.b);
  if(document.hidden)return;   /* con la página en segundo plano no se pregunta nada */
  if(r.v==='aviso'&&r.a){if(Date.now()-VT>4000){VT=Date.now();Oficio.miraVista(r.a)}}
- else{if((!H.dias&&!H.err)||Date.now()-H.t>60000)traeHuecos();const u=mem.get('oficio:'+N.id+':mio');if(u&&!Oficio.vista(u))Oficio.miraVista(u)}}
-function pinta(){S=Oficio.estado();alDia();const r=ruta();$('#v').innerHTML=r.v==='aviso'?vAviso(r.a):vPedir();document.title=(r.v==='aviso'?_('Tu aviso {id}',{id:r.a}):_('Pide cita'))+' · '+N.nombre}
+ else{const otro=ruta().v==='cambiar'&&!!H.q&&H.q!==JSON.stringify(qH());if((!H.dias&&!H.err)||Date.now()-H.t>60000||otro)traeHuecos(otro);const u=mem.get('oficio:'+N.id+':mio');if(u&&!Oficio.vista(u))Oficio.miraVista(u)}}
+function pinta(){S=Oficio.estado();alDia();const r=ruta();$('#v').innerHTML=r.v==='aviso'?vAviso(r.a):r.v==='cambiar'?vCambia(r.a):vPedir();document.title=(r.v==='aviso'?_('Tu aviso {id}',{id:r.a}):r.v==='cambiar'?_('Cambia tu cita'):_('Pide cita'))+' · '+N.nombre}
 addEventListener('hashchange',()=>{pinta();scrollTo(0,0);const t=$('#tit')||$('#v');t.focus({preventScroll:true})});
-Oficio.suscribir(()=>{const a=document.activeElement;if(ruta().v!=='aviso'&&a&&a.closest&&a.closest('#f'))return;pinta()});
+Oficio.suscribir(()=>{const a=document.activeElement;if(ruta().v!=='aviso'&&a&&a.closest&&a.closest('#f'))return;if(M.va)return;pinta()});
 setInterval(()=>{if(ruta().v==='aviso')pinta()},60000);
 if(SRV){setInterval(alDia,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){VT=0;alDia()}});
  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#hOtra')){H.err='';pinta();traeHuecos()}})}
@@ -378,7 +434,7 @@ document.addEventListener('change',e=>{const i=e.target;
 /* ir a un campo desde el aviso de errores, o volver del resumen a la parte que se quiere cambiar */
 const irA=id=>{const t=document.getElementById(id);if(!t)return;t.scrollIntoView({block:'center'});const x=t.matches('input,textarea,button')?t:t.querySelector('input:checked,input,button:not([disabled])');if(x)x.focus({preventScroll:true})};
 async function envia(){if(B.va)return;B.va=true;B.err='';pinta();
- const pn=K.parteNombre(B.nomap),r=await Oficio.crear({tipo:'pedir',av:B.av,origen:'cita',idioma:I.lang(),nota:B.nota,foto:B.foto,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},{rol:'cliente'});
+ const pn=K.parteNombre(B.nomap),r=await Oficio.crear(Object.assign({tipo:'pedir',av:B.av,origen:'cita',idioma:I.lang(),nota:B.nota,foto:B.foto,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},GAR&&B.av!==K.REV?{garDe:GAR}:{},B.av===K.REV&&PLAN&&!CON?{plan:PLAN}:{}),{rol:'cliente'});
  B.va=false;
  if(!r.ok){if(SRV&&r.err==='franja'){H.t=0;traeHuecos(true)}const k=r.err==='franja'?'llena':r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;B.err=k;
   /* si es de un dato (la franja se ha llenado, el teléfono…), se vuelve al formulario con ese dato marcado */
@@ -401,10 +457,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dia],[data
  if(b.dataset.alt){const k=b.dataset.alt,i=B.alt.indexOf(k);if(i>=0)B.alt.splice(i,1);else if(B.alt.length>=4)return toast(_('Con cuatro nos basta.'));else B.alt.push(k);pinta();const n=$('[data-alt="'+k+'"]');if(n)n.focus();return}
  if(b.id==='llama'){const d=document.createElement('dialog');d.className='hoja';d.innerHTML='<div class="hc"><h2>'+_('Llamada directa')+'</h2><button class="x" data-x aria-label="'+_('Cerrar')+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="hb"><p style="font:800 2.6rem/1 var(--fd)">'+N.tel+'</p><p style="color:var(--suave)">'+_('En la web real, este botón llama con un toque. En la demo no llamamos a nadie.')+'</p></div><div class="hp"><button class="btn ancho" data-x>'+_('Cerrar')+'</button></div>';
   document.body.appendChild(d);d.addEventListener('close',()=>d.remove());d.addEventListener('click',x=>{if(x.target===d||x.target.closest('[data-x]'))d.close()});d.showModal();return}
- if(b.dataset.dia){B.dia=b.dataset.dia;B.fr=''}else B.fr=b.dataset.fr;
- B.errs=B.errs.filter(x=>x!=='franja');if(B.err==='franja'||B.err==='llena')B.err='';pinta();const n=$(b.dataset.dia?'[data-dia="'+B.dia+'"]':'[data-fr="'+B.fr+'"]');if(n)n.focus()});
+ const E=SEL();if(b.dataset.dia){E.dia=b.dataset.dia;E.fr=''}else E.fr=b.dataset.fr;if(E===M)M.err='';
+ B.errs=B.errs.filter(x=>x!=='franja');if(B.err==='franja'||B.err==='llena')B.err='';pinta();const n=$(b.dataset.dia?'[data-dia="'+E.dia+'"]':'[data-fr="'+E.fr+'"]');if(n)n.focus()});
 /* «Revisar la cita»: si falta algo, se dice todo junto arriba; si no, el resumen */
-document.addEventListener('submit',e=>{if(e.target.id!=='f')return;e.preventDefault();
+document.addEventListener('submit',e=>{if(e.target.id==='fC'){e.preventDefault();cambia();return}if(e.target.id!=='f')return;e.preventDefault();
  const E=revisa();B.err='';
  if(E.length){B.errs=E;pinta();const r=$('#revisa');if(r){r.scrollIntoView({block:'start'});r.focus({preventScroll:true})}return}
  B.errs=[];B.paso='resumen';pinta();scrollTo(0,0);const t=$('#tit');if(t)t.focus({preventScroll:true})});

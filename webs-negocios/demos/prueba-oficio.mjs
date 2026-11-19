@@ -217,8 +217,8 @@ es(ap({ tipo: 'cosa-rara', id: r.id }, C).err === 'accion', 'una acción que no 
 
 // 18. la muestra de la demo sale bien a cualquier hora de cualquier día
 let fallos = 0;
-for (let i = 0; i < 7 * 48; i++) { try { const X = globalThis.OFICIO_MUESTRA(K, cfg, MAR + i * 30 * M); if (X.avisos.length !== 9 || !X.avisos.some(a => a.gar0) || !X.avisos.some(a => a.noPres) || !X.avisos.some(a => a.prox)) fallos++ } catch (e) { fallos++; if (fallos === 1) console.log('   ', e.message) } }
-es(fallos === 0, 'la muestra se genera en las 336 medias horas de una semana, con su aviso en garantía, su presupuesto no aceptado y su revisión con aviso');
+for (let i = 0; i < 7 * 48; i++) { try { const ti = MAR + i * 30 * M, X = globalThis.OFICIO_MUESTRA(K, cfg, ti); if (X.avisos.length !== 10 || !X.avisos.some(a => a.gar0) || !X.avisos.some(a => a.vuelve) || !X.avisos.some(a => a.noPres) || !X.avisos.some(a => a.prox) || !X.avisos.some(a => K.cambiaCli(cfg, a, ti))) fallos++ } catch (e) { fallos++; if (fallos === 1) console.log('   ', e.message) } }
+es(fallos === 0, 'la muestra se genera en las 336 medias horas de una semana, con su aviso en garantía (y el que dice que ha vuelto a fallar), su presupuesto no aceptado, su revisión con aviso y una cita que el cliente aún puede cambiar');
 
 
 // 19. festivos y cambio de hora (13-11-2026: se añadió el 6-12-2027, que faltaba)
@@ -1617,6 +1617,62 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   const po = K.webPrecios(cfg, { id: 'fuga', desde: 80, hasta: 150 }), p2 = K.webPrecios(cfg, { id: 'fuga', desde: 79.5, hasta: 70 });
   es(po.a === 8000 && po.b === 15000 && po.u === 8000 + sup && po.un === Math.round(80 * (1 + cfg.recargo)) * 100 + sup && po.propio && p2.a === 7950 && p2.b === null && p2.un === 11100 + sup && K.webPrecios(cfg, { id: 'nada' }) === null,
     'con su precio: el de noche lleva el recargo en euros redondos, como en la web; un «hasta» menor no cuenta'); }
+
+// ---------- 53. la zona del cliente (19-11-2026): cambiar o cancelar su cita él mismo hasta 24 horas antes, «Ha vuelto a
+//      fallar» sobre un trabajo en garantía y la revisión pedida desde su zona, con el plan o con su contrato ----------
+{ empieza(); const Z = { rol: 'cliente', id: '611223344' }, cli = { nombre: 'Ana', apellidos: 'Prueba Uno', tel: '611 22 33 44', dir: 'C/ de Balmes 100, 1.º', cp: '08008' };
+  const otro = n => Object.assign({}, cli, { nombre: 'Otro', tel: '6990001' + String(n).padStart(2, '0'), dir: 'C/ de Muntaner ' + (10 + n) });
+  const dias = K.diasDe(S, cfg, t, 6).filter(d => !d.hoy && d.franjas.some(f => f.ok)), fOk = d => d.franjas.find(f => f.ok).id;
+  const [d3, d4, d5] = [dias[2], dias[3], dias[4]], f3 = fOk(d3), f5 = fOk(d5), hoy = K.madrid(t).date;
+  const id = ap({ tipo: 'pedir', av: 'fuga', cli, cita: { dia: d3.dia, fr: f3 } }, CLI).id;
+  const hueco = () => { for (const d of K.diasDe(S, cfg, t, 6)) { const f = !d.hoy && d.franjas.find(x => x.ok); if (f) return { dia: d.dia, fr: f.id } } return null };
+  es(K.CAMBIO_H === 24 && K.faltaCita(cfg, A(id), t) > 24 * 60 && K.cambiaCli(cfg, A(id), t) && K.faltaCita(cfg, { cita: null }, t) === -1 && !K.cambiaCli(cfg, null, t) && !K.cambiaCli(cfg, { cita: A(id).cita, e: 'camino' }, t),
+    'cuánto falta para la cita, y si el cliente aún la puede cambiar él (solo pedida o con técnico)');
+  // quién: solo el cliente de ese teléfono, que el servidor pone tras comprobar su código
+  const mueve = (d, f) => ({ tipo: 'mover', id, cita: { dia: d, fr: f } });
+  es(ap(mueve(d5.dia, f5), { rol: 'cliente', id: '699000111' }).err === 'permiso' && ap(mueve(d5.dia, f5), CLI).err === 'permiso' && ap({ tipo: 'cancelar', id }, { rol: 'cliente', id: '699000111' }).err === 'permiso'
+    && ap(mueve(d5.dia, f5), T('omar')).err === 'permiso' && A(id).cita.dia === d3.dia && A(id).e === 'nuevo', 'ni otro teléfono, ni sin teléfono, ni un técnico');
+  // adónde: un hueco que podría pedir él, de mañana en adelante
+  es(ap(mueve(hoy, 'f4'), Z).err === 'franja' && ap({ tipo: 'mover', id, cita: null }, Z).err === 'franja' && ap(mueve(d3.dia, f3), Z).err === 'estado' && ap(mueve('mañana', f5), Z).err === 'franja' && ap(mueve(d5.dia, 'nada'), Z).err === 'franja',
+    'ni a hoy, ni a urgente, ni a la misma, ni a un día o una franja que no existen');
+  { const fl = fOk(d4); for (let i = 0; i < 12 && K.franjasDe(S, cfg, d4.dia, t).find(f => f.id === fl).ok; i++) ap({ tipo: 'pedir', av: 'grifo', cli: otro(i), cita: { dia: d4.dia, fr: fl } }, CLI);
+    es(!K.franjasDe(S, cfg, d4.dia, t).find(f => f.id === fl).ok && ap(mueve(d4.dia, fl), Z).err === 'franja' && A(id).cita.dia === d3.dia, 'a una franja llena, tampoco') }
+  ap({ tipo: 'asignar', id, tec: 'omar' }, C); const r1 = ap(mueve(d5.dia, f5), Z), u = A(id).h[A(id).h.length - 1];
+  es(r1.ok && A(id).cita.dia === d5.dia && A(id).cita.fr === f5 && A(id).cita.ok === true && A(id).vale.length === 1 && A(id).vale[0].dia === d5.dia && A(id).urg === false && u.q === 'Cliente' && u.txt.startsWith('El cliente cambia su cita al ' + K.fechaLarga(d5.dia)),
+    'a un hueco libre, sí: la cita es esa y queda en el historial que la cambió él');
+  es(!A(id).tec || (K.puedeIr(S, cfg, A(id), A(id).tec, t) === '' && A(id).e === 'asignado' && A(id).msgs.some(m => m.k === 'cita' && !m.env)), 'si el técnico puede ir a la nueva, la sigue llevando y el cliente recibe la confirmación; si no, vuelve a la bandeja');
+  // cancelar
+  const r2 = ap({ tipo: 'cancelar', id }, Z);
+  es(r2.ok && A(id).e === 'cancelado' && A(id).h[A(id).h.length - 1].txt === 'Cancelado por el cliente desde su zona' && ap(mueve(d3.dia, f3), Z).err === 'estado' && ap({ tipo: 'cancelar', id }, Z).err === 'estado', 'cancela su cita; cancelada, ni se cambia ni se cancela otra vez');
+  // a menos de 24 horas, ni cambiarla ni cancelarla: llamando. La oficina sí puede
+  { const d1 = K.diasDe(S, cfg, t, 3).find(d => !d.hoy), fx = d1.franjas.find(f => f.ok && K.faltaCita(cfg, { cita: { dia: d1.dia, fr: f.id } }, t) < 24 * 60);
+    if (fx) { const it = ap({ tipo: 'pedir', av: 'grifo', cli, cita: { dia: d1.dia, fr: fx.id } }, CLI).id;
+      es(ap({ tipo: 'mover', id: it, cita: { dia: d5.dia, fr: f5 } }, Z).err === 'tarde' && ap({ tipo: 'cancelar', id: it }, Z).err === 'tarde' && A(it).e === 'nuevo' && ap({ tipo: 'cancelar', id: it }, C).ok, 'a menos de 24 horas, llamando; la oficina sí puede') }
+    else es(true, 'a menos de 24 horas (ninguna franja de mañana queda tan cerca)') }
+  { const iu = ap({ tipo: 'pedir', av: 'fuga', cli }, CLI).id;   // una urgencia no tiene cita que cambiar
+    es(ap({ tipo: 'mover', id: iu, cita: { dia: d5.dia, fr: f5 } }, Z).err === 'estado' && ap({ tipo: 'cancelar', id: iu }, Z).err === 'estado' && A(iu).e === 'nuevo', 'una urgencia se cambia llamando') }
+  // «Ha vuelto a fallar»: pide cita sobre un trabajo suyo que sigue en garantía; la oficina decide al verlo
+  const g = ap({ tipo: 'pedir', av: 'cisterna', cli, origen: 'llamada' }, C).id; ap({ tipo: 'asignar', id: g, tec: 'jordi' }, C); ap({ tipo: 'voy', id: g }, T('jordi'));
+  ap({ tipo: 'empezar', id: g, pres: { lineas: [{ k: 'cisterna' }], firma: F } }, T('jordi')); ap({ tipo: 'terminar', id: g, modo: 'tarjeta', firma: F }, T('jordi'));
+  const go = ap({ tipo: 'pedir', av: 'grifo', cli: otro(50), origen: 'llamada' }, C).id;
+  es(A(g).e === 'hecho' && A(g).gar && K.garantiaDe(S, cfg, A(g).cli, t).includes(g), 'un trabajo suyo, terminado y en garantía');
+  const v1 = ap({ tipo: 'pedir', av: 'cisterna', cli, cita: hueco(), garDe: g }, CLI).id;
+  es(A(v1).vuelve === g && A(v1).gar0 === g && !A(v1).enGar && A(v1).h[0].txt.includes('El cliente dice que ha vuelto a fallar el trabajo ' + g), 'sale que dice que ha vuelto a fallar ese trabajo, y la oficina decide si es garantía');
+  const v2 = ap({ tipo: 'pedir', av: 'cisterna', cli: otro(51), cita: hueco(), garDe: g }, CLI).id, v3 = ap({ tipo: 'pedir', av: 'grifo', cli, cita: hueco(), garDe: go }, CLI).id, v4 = ap({ tipo: 'pedir', av: 'grifo', cli, cita: hueco(), garDe: 7 }, CLI).id;
+  es(!A(v2).vuelve && !A(v2).gar0 && !A(v3).vuelve && A(v3).gar0 === g && !A(v4).vuelve, 'el trabajo de otro cliente, uno que no está en garantía o algo que no es un trabajo: no cuenta');
+  es(ap({ tipo: 'completar', id: v1, cli: { tel: '699 00 01 52', dir: 'C/ de Muntaner 99' } }, C).ok && !A(v1).vuelve && !A(v1).gar0, 'si la oficina corrige el teléfono y la dirección, deja de ser sobre ese trabajo');
+  es(K.perfilCliente(S, cfg, cli.tel).avisos.some(a => a.id === v1 ? false : a.vuelve === g) === false && K.perfilCliente(S, cfg, '699000152').avisos.length === 1, 'su zona lo enseña con los datos de ahora');
+  // la revisión desde su zona: siempre con cita; sin contrato, suelta o con el plan que quiere
+  const PL = Object.values(cfg.planes)[0];
+  es(ap({ tipo: 'pedir', av: K.REV, cli }, CLI).err === 'av' && ap({ tipo: 'pedir', av: K.REV, cli }, Z).err === 'av', 'la revisión no se pide sin cita');
+  const rv = ap({ tipo: 'pedir', av: K.REV, cli, cita: hueco() }, CLI).id, rq = ap({ tipo: 'pedir', av: K.REV, cli: otro(60), cita: hueco(), plan: PL.id }, CLI).id, rn = ap({ tipo: 'pedir', av: K.REV, cli: otro(61), cita: hueco(), plan: 'nada' }, CLI).id;
+  es(rv && !A(rv).con && !A(rv).quiere && A(rq).quiere === PL.id && A(rq).h[0].txt.endsWith('Quiere el ' + PL.n.toLowerCase()) && !A(rn).quiere && K.vistaCliente(S, cfg, rq).quiere === PL.id && K.vistaCliente(S, cfg, rv).quiere === '' && !K.vistaCliente(S, cfg, rv).enCon,
+    'suelta, o diciendo que quiere el plan (uno que existe)');
+  es(K.precio(cfg, cfg.av[K.REV].ini, {}).total > 0 && K.rango(cfg, K.REV, false).a === K.precio(cfg, cfg.av[K.REV].ini, {}).total, 'suelta, se paga: el desplazamiento y la revisión');
+  const ct = ap({ tipo: 'contrato', plan: PL.id, cli: otro(60), acepta: 'mensaje' }, C);
+  es(ct.ok && A(rq).con && A(rq).con.rev === PL.rev && K.vistaCliente(S, cfg, rq).enCon === true && K.perfilCliente(S, cfg, otro(60).tel).avisos.find(a => a.id === rq).quiere === PL.id, 'al darle de alta el plan, su revisión pedida va incluida');
+  const rc = ap({ tipo: 'pedir', av: K.REV, cli: otro(60), cita: hueco(), plan: PL.id }, CLI).id;
+  es(A(rc).con && !A(rc).quiere, 'con el contrato ya hecho, no se apunta que quiere el plan'); }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);
