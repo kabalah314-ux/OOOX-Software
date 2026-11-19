@@ -5,8 +5,8 @@
 // Para llevar al servidor un cambio de las reglas o del juez: cambiar ese número en las dos líneas y volver a desplegar.
 // No pide la llave de Supabase a quien llama (verify_jwt = false): cada persona entra con su código, y eso lo mira el juez.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-import "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/150c8e47d03a449fc71aac719a6524ff64d41cca/frontend/public/demos/ramirez-24h/js/oficio-nucleo.js";   // las reglas: quedan en globalThis.OficioNucleo
-import { crea } from "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/150c8e47d03a449fc71aac719a6524ff64d41cca/webs-negocios/oficios-servidor/juez.mjs";
+import "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/ae20bc221c6ad7f3daa7bffd14bddd6b3eab0d22/frontend/public/demos/ramirez-24h/js/oficio-nucleo.js";   // las reglas: quedan en globalThis.OficioNucleo
+import { crea } from "https://raw.githubusercontent.com/kabalah314-ux/OOOX-Software/ae20bc221c6ad7f3daa7bffd14bddd6b3eab0d22/webs-negocios/oficios-servidor/juez.mjs";
 
 // deno-lint-ignore no-explicit-any
 const K = (globalThis as any).OficioNucleo;

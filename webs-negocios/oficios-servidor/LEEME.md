@@ -313,6 +313,11 @@ juez no lee (un 11 % menos en cada acción, medido con los 436 avisos de la copi
 «vc» (en `oficios-mantenimiento/esquema.sql`). Los dos, probados en un Postgres local: `pruebas-almacen.sql` 37 de 37 y
 `pruebas.sql` 28 de 28. La función no cambia: el juez de ahora funciona con el `vivos` de antes y con el nuevo.
 
+El 19-11-2026, desde el panel de Supabase (el navegador de la app de Claude, con la cuenta del proyecto abierta), la
+función con las reglas `2026.11.18a` del commit `ae20bc2`: los servicios de la web (la acción «web», la cabecera con
+`web`, los huecos que la dan a la cita y la foto de un servicio sin código). Comprobado: dice esas reglas, los huecos de
+Voltio traen `web` y una foto que no está puesta en la web contesta «nadie». La base de datos no cambia.
+
 ## Lo que falta
 
 1. **Que Oscar lo pruebe con dos aparatos** (su ordenador y su iPhone) con los códigos de Voltio.
