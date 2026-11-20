@@ -302,7 +302,7 @@ async def main():
             if await pg.locator('#salir').count(): await pg.click('#salir'); await pg.wait_for_selector('#fE')
             # desde la oficina: «Su zona» en el aviso, con el mensaje, el enlace y el código; el enlace entra solo
             o = await ctx.new_page(); o.on('pageerror', lambda e: errs.append(str(e)))
-            await o.goto(B + 'app.html#/aviso/' + hecho['id']); await o.wait_for_selector('[data-a=zona]'); await o.click('[data-a=zona]'); await o.wait_for_selector('#zAbre')
+            await o.goto(B + 'app.html#/aviso/' + hecho['id'] + '/cliente'); await o.wait_for_selector('[data-a=zona]'); await o.click('[data-a=zona]'); await o.wait_for_selector('#zAbre')   # «Su zona», en «Cliente» (20-11-2026)
             txt = await o.locator('dialog[open] .wa').inner_text(); url = await o.get_attribute('#zAbre', 'href')
             es(f'cliente.html#/entra/{TEL}/{COD}' in url and COD in txt and 'cliente.html#/entra/' in txt, 'oficina: «Su zona» prepara el mensaje con su enlace y su código')
             await o.close()

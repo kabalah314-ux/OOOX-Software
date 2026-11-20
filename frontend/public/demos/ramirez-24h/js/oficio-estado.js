@@ -261,18 +261,20 @@ function foto(archivo){return new Promise((si,no)=>{if(!archivo||!/^image\//.tes
  im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('imagen'))};im.src=u})}
 
 /* la firma con el dedo: devuelve el trazo como ruta, en una caja de 300 × 110 */
-function firma(lienzo,alCambiar){const cx=lienzo.getContext('2d');let trazos=[],act=null,largo=0;
- const medir=()=>{const r=lienzo.getBoundingClientRect(),k=g.devicePixelRatio||1;lienzo.width=Math.round(r.width*k);lienzo.height=Math.round(r.height*k);cx.setTransform(k,0,0,k,0,0);pinta()};
+function firma(lienzo,alCambiar){const cx=lienzo.getContext('2d');let trazos=[],act=null,largo=0,W=0,H=0;
+ /* el tamaño con el que se firmó: en una hoja paso a paso, al guardar el lienzo puede estar escondido (sin tamaño) */
+ const tam=()=>{const r=lienzo.getBoundingClientRect();if(r.width&&r.height){W=r.width;H=r.height}return[W,H]};
+ const medir=()=>{const r=lienzo.getBoundingClientRect(),k=g.devicePixelRatio||1;if(!r.width||!r.height)return;lienzo.width=Math.round(r.width*k);lienzo.height=Math.round(r.height*k);cx.setTransform(k,0,0,k,0,0);tam();pinta()};
  const pinta=()=>{const r=lienzo.getBoundingClientRect();cx.clearRect(0,0,r.width,r.height);cx.lineWidth=2.4;cx.lineCap='round';cx.lineJoin='round';cx.strokeStyle='#17191b';
   trazos.forEach(t=>{cx.beginPath();t.forEach((p,i)=>i?cx.lineTo(p[0],p[1]):cx.moveTo(p[0],p[1]));if(t.length===1)cx.lineTo(t[0][0]+.1,t[0][1]);cx.stroke()})};
  const pt=e=>{const r=lienzo.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
- lienzo.addEventListener('pointerdown',e=>{e.preventDefault();try{lienzo.setPointerCapture(e.pointerId)}catch(x){}act=[pt(e)];trazos.push(act);pinta()});
+ lienzo.addEventListener('pointerdown',e=>{e.preventDefault();try{lienzo.setPointerCapture(e.pointerId)}catch(x){}tam();act=[pt(e)];trazos.push(act);pinta()});
  lienzo.addEventListener('pointermove',e=>{if(!act)return;const p=pt(e),u=act[act.length-1],d=Math.hypot(p[0]-u[0],p[1]-u[1]);if(d<2)return;largo+=d;act.push(p);pinta()});
  const suelta=()=>{if(act){act=null;alCambiar&&alCambiar()}};
  lienzo.addEventListener('pointerup',suelta);lienzo.addEventListener('pointercancel',suelta);
  lienzo.style.touchAction='none';medir();
  return{vacia:()=>largo<60,borrar(){trazos=[];largo=0;pinta();alCambiar&&alCambiar()},medir,
-  ruta(){const r=lienzo.getBoundingClientRect(),kx=300/r.width,ky=110/r.height;
+  ruta(){const[w,h]=tam();if(!w||!h)return'';const kx=300/w,ky=110/h;
    return trazos.map(t=>t.filter((p,i)=>i%2===0||i===t.length-1).map((p,i)=>(i?'L':'M')+Math.round(p[0]*kx)+' '+Math.round(p[1]*ky)).join('')).join('')}}}
 /* la firma dibujada; en la zona del cliente, su nombre en el idioma del cliente (js/oficio-idioma.js) */
 const _=s=>g.OficioIdioma?g.OficioIdioma.T(s):s;

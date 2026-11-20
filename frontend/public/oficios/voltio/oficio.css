@@ -201,3 +201,31 @@ dialog.hoja.llena{max-height:100svh;height:100svh;border-radius:0}
 .idiomas button{min-height:44px;padding:0 .35em;font:500 .9375rem/1 var(--fb);color:var(--suave)}
 .idiomas button[aria-pressed="true"]{color:var(--texto);text-decoration:underline 2px var(--senal);text-underline-offset:6px}
 @media print{.idiomas{display:none!important}}
+
+/* paso a paso (20-11-2026, lo pidió Oscar: «uno a uno, una pantalla simple que vas avanzando»): una pregunta por pantalla.
+   Arriba, «atrás», la barra de los pasos y en cuál vas; abajo, «Continuar». En la cita, en «Nuevo aviso» y en las hojas de
+   la app que piden más de una cosa (presupuesto, terminado, contrato, ausencia, material, rebaja) */
+.prog{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:14px;margin-bottom:22px}
+.prog .atras{display:grid;place-items:center;width:44px;height:44px;margin:0;padding:0;border-radius:50%;border:2px solid var(--control);color:var(--texto);font-size:0;text-decoration:none}
+.prog .atras svg{width:20px;height:20px}
+.prog .atras.no{visibility:hidden}
+@media (hover:hover){.prog .atras:hover{border-color:var(--suave)}}
+.prog .atras:focus-visible{outline:3px solid var(--senal);outline-offset:2px}
+.prog ol{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px}
+.prog li{height:6px;border-radius:3px;background:var(--control);transition:background-color .3s var(--ease-out)}
+.prog li.ok,.prog li.ya{background:var(--senal)}
+.prog .pn{font-size:.875rem;font-weight:600;color:var(--suave);white-space:nowrap}
+.lleva{margin-top:10px;color:var(--suave)}
+.sigue{position:sticky;bottom:0;z-index:5;margin:26px -18px 0;padding:14px 18px calc(14px + var(--sb));background:linear-gradient(to top,var(--asfalto) 72%,rgba(20,23,26,0))}
+.sigue .btn{min-height:56px;font-size:1.125rem}
+/* en las hojas: la barra debajo del título y, en cada paso, su pregunta */
+.hoja .prog{margin:0;padding:0 20px 8px}
+.hoja .hq{font:800 1.75rem/1.05 var(--fd)}
+.hoja .hq+.dn,.hoja .hq+.ln{margin-top:-8px}
+.hpaso{display:grid;gap:16px;align-content:start}
+.hoja.papel .prog .atras{border-color:#aeb4ba;color:var(--tinta)}
+.hoja.papel .prog li{background:var(--papel-2)}
+.hoja.papel .prog li.ok,.hoja.papel .prog li.ya{background:var(--tinta)}
+.hoja.papel .prog .pn{color:var(--tinta-2)}
+@keyframes entraPaso{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){.hpaso.entra{animation:entraPaso .3s var(--ease-out) both}}

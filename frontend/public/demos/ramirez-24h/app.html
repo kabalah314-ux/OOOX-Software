@@ -45,7 +45,11 @@ main.dos.det>.lst,main.dos:not(.det)>.sin{display:none}
 main.det.tecnico:not(.papelv){display:flex;flex-direction:column;min-height:calc(100svh - 56px)}
 main.det.tecnico:not(.papelv)>.accion{margin-top:auto}
 main>*:has(+ .accion){margin-bottom:18px}
-/* la barra de la ficha de la oficina (auditoría UX-17): el estado y lo principal, pegados abajo */
+/* la barra de la ficha de la oficina (auditoría UX-17): el estado y lo principal, pegados abajo. Con las pestañas
+   (20-11-2026), la ficha es una columna de la altura de la pantalla: con una pestaña corta, la barra sigue abajo */
+main.dos.det>.col:last-child{display:flex;flex-direction:column;min-height:calc(100svh - 56px)}
+main.dos.det>.col:last-child>.accion.of{margin-top:auto}
+main.dos.det>.col:last-child>*:has(+ .accion){margin-bottom:18px}
 .accion.of{gap:6px;justify-items:stretch;margin:18px -16px -26px;padding-top:6px;padding-bottom:calc(10px + var(--sb))}
 .accion.of .est{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
 .accion.of .ln{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -376,6 +380,39 @@ main.papelv{max-width:760px}
 .pet a.txt{display:inline-flex;align-items:center;margin-top:4px}
 .mpie{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-top:10px;font-size:.9375rem;color:var(--suave)}
 
+/* el marco de cada sección (20-11-2026): las pestañas se quedan fijas debajo de la barra de arriba al bajar; en el
+   ordenador (barra al lado) y en las dos columnas, arriba del todo de su columna. --px: el relleno de cada sitio */
+main{--px:16px;--arriba:56px}
+main.dos>.col{--px:16px}
+.fija{position:sticky;top:var(--arriba);z-index:12;margin:16px calc(-1*var(--px)) 0;padding:0 var(--px);background:var(--asfalto);border-bottom:1px solid var(--linea)}
+.pestas{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1*var(--px));padding:0 calc(var(--px) - 8px)}
+.pestas::-webkit-scrollbar{display:none}
+.pestas a{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:48px;padding:0 8px;font-size:.9375rem;border-bottom:3px solid transparent;font-weight:600;color:var(--suave);text-decoration:none;white-space:nowrap}
+@media (hover:hover){.pestas a:hover{color:var(--texto)}}
+.pestas a[aria-current]{color:var(--texto);border-bottom-color:var(--senal)}
+.pestas a:focus-visible{outline:3px solid var(--senal);outline-offset:-3px;border-radius:6px}
+.pestas .n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--asfalto-3);color:var(--texto);font-size:.8125rem;font-weight:700}
+.pestas a[aria-current] .n{background:var(--senal);color:var(--negro)}
+.fija .dias{margin:4px 0 10px}
+.pcuerpo{padding-top:4px}
+.pcuerpo>.sec:first-child,.pcuerpo>.blq:first-child{margin-top:16px}
+.cifra{margin-top:16px;color:var(--suave)}
+.cifra b{display:block;font:700 2.25rem/1 var(--fd);color:var(--texto)}
+@media (min-width:960px){main{--px:36px;--arriba:0px}main.dos>.col{--px:28px}}
+/* paso a paso en «Nuevo aviso» (20-11-2026): la barra y «Continuar» son comunes (oficio.css) */
+#fNuevo{margin-top:6px}
+.npq{font:800 2rem/1.02 var(--fd);margin-top:4px}
+.npq:focus{outline:0}
+.npq+.lleva{margin-top:6px}
+main .sigue{margin:10px -16px 0;padding-left:16px;padding-right:16px}
+.opc{font-weight:400;color:var(--suave);font-size:.875rem}
+.npres{display:grid;border-top:1px solid var(--linea)}
+.npres li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--linea)}
+.npres li>span{display:grid;gap:2px;min-width:0;overflow-wrap:anywhere}
+.npres small{font-size:.8125rem;color:var(--suave)}
+.npres .txt{flex:none;display:inline-flex;align-items:center}
+#fNuevo .ops .op{min-height:52px}
+@media (min-width:960px){.npq{font-size:2.25rem}main .sigue{margin:14px -36px 0;padding-left:36px;padding-right:36px}}
 @media (min-width:960px){
  body{padding-bottom:0}
  .marco{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100svh}
@@ -561,8 +598,33 @@ function hoja(html,o){o=o||{};const d=document.createElement('dialog');d.classNa
  d.addEventListener('click',e=>{if(e.target.closest('[data-x]')||(e.target===d&&!o.fijo))d.close()});
  d.showModal();return d}
 const hc=t=>'<div class="hc"><h2>'+t+'</h2><button class="x" data-x aria-label="Cerrar">'+I.x+'</button></div>';
+/* hojas paso a paso (20-11-2026, como la cita: «uno a uno, una pantalla simple que vas avanzando»). La hoja trae sus pasos
+   como <section class="hpaso" data-t="La pregunta">; aquí se enseña uno cada vez, con la barra, «atrás» y «Continuar».
+   P.ok[i](): '' si se puede seguir, o qué falta (sale encima de «Continuar»). P.al[i](): al entrar en el paso (medir la
+   firma, poner el foco). Los botones de la hoja, los de acabar, salen en el último paso (o desde el que diga su data-desde,
+   como «No acepta el precio»); antes, solo «Continuar». Intro en un paso que no es el último es «Continuar», no acabar */
+function pasosHoja(d,P){P=P||{};const S=$$('.hpaso',d),n=S.length;let i=0;if(n<2)return{ve(){},paso:()=>0,n};
+ const hp=$('.hp',d),fin=[...hp.children],hb=$('.hb',d);
+ $('.hc',d).insertAdjacentHTML('afterend','<nav class="prog" aria-label="Pasos"><button type="button" class="atras" data-hpa aria-label="Atrás">'+I.atras+'</button><ol>'+S.map(x=>'<li><span class="vh">'+x.dataset.t+'</span></li>').join('')+'</ol><span class="pn"></span></nav>');
+ S.forEach(x=>x.insertAdjacentHTML('afterbegin','<h3 class="hq" tabindex="-1">'+x.dataset.t+'</h3>'));
+ hp.insertAdjacentHTML('afterbegin','<p class="err hpe" role="alert" style="color:var(--mal)" hidden></p><button type="button" class="btn pri ancho" data-hps>'+(P.sigue||'Continuar')+'</button>');
+ const E=$('.hpe',hp),B=$('[data-hps]',hp),A=$('[data-hpa]',d),L=$$('.prog li',d),pn=$('.prog .pn',d);
+ const ve=(k,foco)=>{i=Math.max(0,Math.min(n-1,k));S.forEach((x,j)=>{x.hidden=j!==i;x.classList.toggle('entra',j===i)});
+  L.forEach((l,j)=>{l.className=j<i?'ok':j===i?'ya':'';if(j===i)l.setAttribute('aria-current','step');else l.removeAttribute('aria-current')});
+  pn.textContent='Paso '+(i+1)+' de '+n;A.classList.toggle('no',i===0);A.tabIndex=i?0:-1;
+  fin.forEach(x=>{x.hidden=i<(x.dataset.desde!=null?+x.dataset.desde:n-1)});B.hidden=i===n-1;E.hidden=true;hb.scrollTop=0;
+  if(P.al&&P.al[i])P.al[i]();if(foco){const h=$('.hq',S[i]);if(h)h.focus({preventScroll:true})}};
+ const sigue=()=>{const m=P.ok&&P.ok[i]?P.ok[i]():'';if(m){E.textContent=m;E.hidden=false;return}ve(i+1,true)};
+ d.addEventListener('click',e=>{if(e.target.closest('[data-hpa]')){if(i>0)ve(i-1,true)}else if(e.target.closest('[data-hps]'))sigue()});
+ d.addEventListener('submit',e=>{if(i<n-1){e.preventDefault();e.stopPropagation();sigue()}},true);
+ ve(0,false);return{ve,paso:()=>i,n,falla:m=>{E.textContent=m;E.hidden=false}}}
 const waHtml=(txt,a)=>'<div class="wa"><div class="wa-hd"><i>'+esc((a||'C')[0])+'</i><span>'+esc(a||'Cliente')+'<small>WhatsApp</small></span></div><div class="wa-chat"><div class="wa-b">'+esc(txt)+'<time>'+K.hora(Date.now())+'</time></div></div></div>';
 
+/* ===== el marco de cada sección (20-11-2026, lo pidió Oscar: «estructurar la gestión, que quede más fijo») =====
+   Arriba, el título; debajo, las pestañas, que se quedan fijas al bajar; en medio, solo lo de la pestaña elegida; y en las
+   fichas, la acción principal fija abajo. Cada pestaña tiene su dirección (#/bandeja/marcha, #/aviso/R-0001/cliente…), así
+   que el «atrás» vuelve a la de antes. «o.mas»: lo que va también en la parte fija (los días de la agenda) */
+const pestas=(L,act,lb,o)=>{o=o||{};return'<div class="fija"><nav class="pestas" aria-label="'+lb+'">'+L.map(x=>'<a href="'+x.h+'" data-pesta="'+x.k+'"'+(o.grupo?' data-grupo="'+o.grupo+'"':'')+(x.k===act?' aria-current="page"':'')+'>'+x.t+(x.n?'<span class="n">'+x.n+'</span>':'')+'</a>').join('')+'</nav>'+(o.mas||'')+'</div>'};
 /* ===== piezas ===== */
 /* «Voy», con cita, desde media hora antes de su franja (la regla está en el núcleo y, con servidor, la decide él con su
    reloj). Antes, el botón sale apagado y dice a qué hora se enciende; a esa hora la pantalla se vuelve a pintar sola */
@@ -620,24 +682,33 @@ function busca(q){q=String(q||'');const t=normB(q).trim(),dig=q.replace(/\D/g,''
  return S.avisos.filter(a=>{const c=a.cli||{};return soloDig?(K.tel9(c.tel)||'').includes(dig)||a.id.replace(/\D/g,'').includes(dig):normB([K.nomCli(c),c.dir,a.id,barrio(a),cfg.av[a.av]?cfg.av[a.av].n:''].join(' ')).includes(t)}).sort((a,b)=>b.t-a.t).slice(0,30)}
 const resB=(R,sel)=>!R?'':'<section class="sec"><h2>Encontrados <span class="n">'+R.length+'</span></h2>'+(R.length?'<ul class="lista">'+R.map(a=>fila(a,sel)).join('')+'</ul>':'<p class="hueco">Ningún aviso con «'+esc(BQ.trim())+'». Prueba con el teléfono, la calle o el número del aviso.</p>')+'</section>';
 function pintaBusca(){const d=$('#bRes'),resto=$('#bResto');if(!d)return;const r=ruta(),R=busca(BQ);d.innerHTML=resB(R,r.v==='aviso'?r.a:'');if(resto)resto.hidden=!!R}
-function vBandeja(sel){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),hoy=K.madrid().date,p=proxLab(),H=sel?'p class="h1"':'h1',Hc=sel?'p':'h1';
+/* la bandeja con su marco (20-11-2026): arriba, buscar; debajo, cuatro pestañas fijas con su número: «Por repartir» (lo
+   urgente, con su botón para dárselo a quien antes llega; las citas sin técnico de hoy y del próximo día de trabajo; y el
+   equipo ahora), «En marcha» (y lo hecho hoy) y «Por hacer» (mensajes, material, contratos…). Con un aviso abierto al lado
+   (en el ordenador), cambiar de pestaña no lo cierra: se recuerda en BT */
+let BT='repartir';const BTS=['repartir','marcha','hacer'];
+function vBandeja(sel){const ahora=Date.now(),hoy=K.madrid().date,p=proxLab(),H=sel?'p class="h1"':'h1',Hc=sel?'p':'h1';
  const pri=a=>a.con&&a.con.pri?1:0,pend=S.avisos.filter(a=>a.e==='nuevo'||a.e==='ausente'),fi=a=>{const i=cfg.franjas.findIndex(f=>f.id===a.cita.fr);return i<0?99:i};
  const urg=pend.filter(a=>!a.cita).sort((a,b)=>(pri(b)-pri(a))||(a.t-b.t));
  const citas=pend.filter(a=>a.cita&&a.cita.dia<=p).sort((a,b)=>(a.cita.dia<b.cita.dia?-1:a.cita.dia>b.cita.dia?1:0)||fi(a)-fi(b)||(pri(b)-pri(a))||(a.t-b.t));
  const luego=pend.filter(a=>a.cita&&a.cita.dia>p),d1=luego.map(a=>a.cita.dia).sort()[0];
  const marcha=S.avisos.filter(a=>['asignado','camino','curso'].includes(a.e)).sort((a,b)=>({curso:0,camino:1,asignado:2}[a.e]-{curso:0,camino:1,asignado:2}[b.e])||(a.t-b.t));
  const hechos=S.avisos.filter(a=>a.e==='hecho'&&K.madrid(a.fin).date===hoy).sort((a,b)=>b.fin-a.fin);
- const n=x=>x===1?'1 cita':x+' citas',R=busca(BQ);
+ const n=x=>x===1?'1 cita':x+' citas',R=busca(BQ),AL=alertas(0);
+ {const r0=ruta();if(r0.v==='bandeja')BT=r0.a==='hechos'?'marcha':BTS.includes(r0.a)?r0.a:'repartir'}const t=BT;
  const sub=urg.length?(urg.length===1?'1 urgencia sin repartir, ':urg.length+' urgencias sin repartir, la primera ')+hace(urg[0].t)+'.':citas.length?n(citas.length)+' sin técnico entre hoy y '+diaCorto(p)+'.':'Nada urgente ni por repartir.';
- return'<div class="cab"><div><'+H+'>Bandeja</'+Hc+'><p class="sub">'+sub+'</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+
-  '<form class="busca" id="fBusca" role="search"><label class="vh" for="busca">Buscar un aviso</label>'+I.lupa+'<input id="busca" type="search" value="'+esc(BQ)+'" placeholder="Nombre, teléfono, calle o nº de aviso" autocomplete="off" enterkeyhint="search"></form>'+
-  '<div id="bRes">'+resB(R,sel)+'</div><div id="bResto"'+(R?' hidden':'')+'>'+bResumen(urg,citas,luego,p,r)+
-  (urg.length?sec('Urgente',urg,sel,'',{dar:1,sinPill:1,id:'sUrg'}):'')+
-  '<section class="sec"><h2>Por hacer</h2>'+(bAlertas()||'<p class="hueco">Todo al día.</p>')+'</section>'+
-  '<section class="sec"><h2>El equipo ahora</h2>'+tira()+'</section>'+
+ let c='';
+ if(t==='repartir')c=(urg.length?sec('Urgente',urg,sel,'',{dar:1,sinPill:1,id:'sUrg'}):'')+
   sec('Sin técnico · hoy y '+diaCorto(p),citas,sel,'Las citas de hoy y de '+diaCorto(p)+' ya tienen técnico.',{sinPill:1,id:'sSinTec'})+
   (luego.length?'<a class="mas" href="#/agenda/'+d1+'"><span>Más adelante: '+n(luego.length)+' sin técnico</span><span aria-hidden="true">›</span></a>':'')+
-  sec('En marcha',marcha,sel,'Ahora no hay ningún aviso en marcha.')+sec('Hechos hoy',hechos,sel,'Hoy todavía no se ha terminado ninguno.')+'</div>'}
+  '<section class="sec"><h2>El equipo ahora</h2>'+tira()+'</section>';
+ else if(t==='marcha')c=sec('En marcha',marcha,sel,'Ahora no hay ningún aviso en marcha.')+sec('Hechos hoy',hechos,sel,'Hoy todavía no se ha terminado ninguno.');
+ else c='<section class="sec"><h2>Por hacer</h2>'+(bAlertas()||'<p class="hueco">Todo al día.</p>')+'</section>';
+ return'<div class="cab"><div><'+H+'>Bandeja</'+Hc+'><p class="sub">'+sub+'</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+
+  '<form class="busca" id="fBusca" role="search"><label class="vh" for="busca">Buscar un aviso</label>'+I.lupa+'<input id="busca" type="search" value="'+esc(BQ)+'" placeholder="Nombre, teléfono, calle o nº de aviso" autocomplete="off" enterkeyhint="search"></form>'+
+  '<div id="bRes">'+resB(R,sel)+'</div>'+
+  pestas([{k:'repartir',h:'#/bandeja',t:'Por repartir',n:urg.length+citas.length},{k:'marcha',h:'#/bandeja/marcha',t:'En marcha',n:marcha.length},{k:'hacer',h:'#/bandeja/hacer',t:'Por hacer',n:AL.L.length+AL.D.length}],t,'Qué ver de la bandeja',{grupo:'b'})+
+  '<div id="bResto" class="pcuerpo"'+(R?' hidden':'')+'>'+c+'</div>'}
 /* Lo primero de la bandeja: cuatro cifras que contestan a «¿qué hago ahora?», cada una con su acceso directo.
    Rayas amarillas, la urgencia; azul, lo que es de citas; el resto, neutro. A cero quedan apagadas y no llevan a nada. */
 function bResumen(urg,citas,luego,p,r){const ahora=Date.now(),M=porMandar(ahora),Mo=M.filter(x=>!esSeg(x)),Ms=M.filter(esSeg),d1=luego.map(a=>a.cita.dia).sort()[0];
@@ -663,6 +734,9 @@ function bCliente(A,esT){const c=A.cli;let h='<section class="blq"><h2>Cliente</
  if(A.foto)h+=bFoto(A);
  h+='<div class="acts"><button class="btn peq" data-a="llamar" data-id="'+A.id+'">'+I.tel+K.telBonito(c.tel)+'</button><a class="btn peq" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.dir.split(',')[0]+', '+c.cp+' '+N.ciudad)+'">'+I.mapa+'Mapa</a>'+(esT?'':'<button class="btn peq" data-a="zona" data-id="'+A.id+'">Su zona</button>')+'</div>';
  return h+'</section>'}
+/* el cliente en el «Resumen» de lo que está por repartir (20-11-2026): quién es, dónde, lo que cuenta y su foto, que es lo
+   que hace falta para decidir quién va y qué lleva. Todo lo suyo (llamar, el mapa, su zona, su idioma), en «Cliente» */
+const bCuenta=A=>'<section class="blq" id="cuenta"><h2>El cliente</h2><p class="gr">'+esc(K.nomCli(A.cli)||'Aún sin nombre')+'</p><p class="ln">'+esc(A.cli.dir)+(barrio(A)?' · '+esc(barrio(A)):'')+'</p>'+(A.nota?'<p class="dice">'+esc(A.nota)+'</p>':'')+(A.foto?bFoto(A):'')+'</section>';
 /* la foto que manda el cliente al pedir cita: la ven la oficina y el técnico que lo lleva (a los demás no les llega el
    aviso), en pequeño y, al tocarla, entera */
 const bFoto=A=>'<button type="button" class="fotob" data-a="verFoto" data-id="'+A.id+'" aria-label="Ampliar la foto que ha mandado el cliente"><img class="fotoc" src="'+esc(Oficio.fotoSrc(A.foto))+'" alt=""><span><b>1 foto del cliente</b><small>Toca para verla entera</small></span></button>';
@@ -698,7 +772,7 @@ function bCita(A){const c=A.cita,hoy=K.madrid().date,otras=c&&A.vale?A.vale.filt
 const porMandar=ahora=>K.porMandar(S,ahora),esSeg=x=>K.SEGUIR.includes(x.m.k);
 /* por qué toca cada mensaje de seguimiento, en pocas palabras */
 const porQue=x=>{const A=x.a,m=x.m,av=cfg.av[A.av],qu=av?av.n.toLowerCase()+', ':'';return m.k==='presupuesto'?qu+'no aceptó '+(A.noPres?K.eur(A.noPres.total):'el presupuesto')+' '+hace(A.fin):m.k==='proxima'&&A.prox?'toca el '+K.fechaCorta(A.prox.dia):qu+'terminado '+hace(A.fin)};
-function bAlertas(ag){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),rea=S.avisos.filter(a=>a.reasignar&&a.e==='nuevo'),conf=S.avisos.filter(a=>a.cita&&a.cita.ok===false&&abiertos.includes(a.e));
+function alertas(ag){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),rea=S.avisos.filter(a=>a.reasignar&&a.e==='nuevo'),conf=S.avisos.filter(a=>a.cita&&a.cita.ok===false&&abiertos.includes(a.e));
  const it=(b,sm,href,atn,da)=>'<li'+(atn?' class="atn"':'')+'>'+(da?'<button type="button" data-a="'+da+'">':'<a href="'+href+'">')+'<b>'+b+'</b>'+(sm?'<small>'+sm+'</small>':'')+(da?'</button>':'</a>')+'</li>';
  /* «Ahora» (auditoría UX-15): lo que bloquea el reparto o deja al cliente sin respuesta. «Después» (D): lo que puede esperar a un rato tranquilo */
  const L=r.sobran.map(x=>it(x.sobran===1?'Sobra 1 cita':'Sobran '+x.sobran+' citas',diaTxt(x.dia)+', '+frTxt(x.fr)+': no hay técnicos para todas','#/equipo/'+x.dia,1)),D=[];
@@ -722,7 +796,9 @@ function bAlertas(ag){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),rea=S.avis
  /* el seguimiento: lo último, porque puede esperar a un rato tranquilo */
  if(Ms.length){const c=k=>Ms.filter(x=>k.includes(x.m.k)).length,tr=c(['resena','seguimiento']),pr=c(['presupuesto']),vu=c(['proxima']);
   D.push(it(Ms.length===1?'1 cliente para el seguimiento':Ms.length+' clientes para el seguimiento',[tr?(tr===1?'1 trabajo terminado':tr+' trabajos terminados'):'',pr?(pr===1?'1 presupuesto sin respuesta':pr+' presupuestos sin respuesta'):'',vu?(vu===1?'1 al que le toca volver':vu+' a los que les toca volver'):''].filter(Boolean).join(', '),'',0,'seguir'))}
- if(!L.length&&!D.length)return'';const ul=(X,lb)=>'<ul class="alertas" aria-label="'+lb+'">'+X.join('')+'</ul>',H=ag?'h2':'h3';   /* en la agenda y el equipo van justo debajo del título */
+ return{L,D}}
+function bAlertas(ag,solo){const{L,D}=alertas(ag);if(solo)return L.length?'<ul class="alertas" id="alAg" aria-label="Lo que hay que hacer ahora">'+L.join('')+'</ul>':'';
+ if(!L.length&&!D.length)return'';const ul=(X,lb)=>'<ul class="alertas" aria-label="'+lb+'">'+X.join('')+'</ul>',H=ag?'h2':'h3';
  return'<'+H+' class="ph">Ahora</'+H+'>'+(L.length?ul(L,'Lo que hay que hacer ahora'):'<p class="phn">Nada que corra prisa.</p>')+(D.length?'<'+H+' class="ph">Después</'+H+'>'+ul(D,'Lo que puede esperar'):'')}
 /* todos los mensajes por mandar, para mandarlos uno detrás de otro */
 function hMensajes(seg){const T=porMandar(Date.now()),M=T.filter(x=>esSeg(x)===!!seg);
@@ -735,13 +811,15 @@ function bDinero(A){if(!A.tot)return'';const T=A.tot,p=A.pago;
  h+='<ul class="lins">'+T.lineas.map(l=>'<li><span>'+esc(l.t)+(lq(l)?', '+lq(l):'')+(l.con?', en su contrato':l.gar?', en garantía':'')+'</span><span class="num">'+(l.con||l.gar?'Incluido':K.eur(l.imp))+'</span></li>').join('')+'</ul>';
  if(A.rebajas&&A.rebajas.length)h+='<p class="ln" id="rebs">'+A.rebajas.map(x=>'Rebajado el '+K.fechaCorta(K.madrid(x.t).date)+' de '+K.eur(x.antes)+' a '+K.eur(x.ahora)+': '+esc(x.motivo)+(x.devolver?'. Hay que devolverle '+K.eur(x.devolver)+'.':'')).join('<br>')+'</p>';
  /* desde su zona, el cliente dice que ya lo ha pagado (19-11-2026): se mira en el banco y se apunta el cobro */
- if(p&&!p.cobrado&&p.dice)h+='<p class="ojo" id="dice">El cliente dice que lo ha pagado por '+PAGO[p.dice.modo].toLowerCase()+' '+hace(p.dice.t)+'. Míralo en el banco y apunta el cobro.</p>';
- if(p&&!p.cobrado)h+='<div class="acts"><button class="btn pri" data-a="cobrar" data-id="'+A.id+'">Apuntar cobro</button></div>';
+ h+=bDice(A);
+ /* en la ficha de la oficina, «Apuntar cobro» y la factura ya van en la barra de abajo (20-11-2026): aquí no se repiten */
+ const bar=Q.rol==='centralita'&&A.e==='hecho';
+ if(p&&!p.cobrado&&!bar)h+='<div class="acts"><button class="btn pri" data-a="cobrar" data-id="'+A.id+'">Apuntar cobro</button></div>';
  /* corregir (16-11-2026): la oficina, la forma de pago de lo cobrado; la oficina o su técnico mientras trabaja, rebajar el precio */
  {const pu=[];if(Q.rol==='centralita'&&A.e==='hecho'&&T.total>0&&p&&p.cobrado)pu.push('<button class="btn peq" data-a="corrPago" data-id="'+A.id+'">Corregir la forma de pago</button>');
   if(!A.fac&&T.total>0&&((Q.rol==='centralita'&&(A.e==='curso'||A.e==='hecho'))||(Q.rol==='tecnico'&&A.tec===Q.id&&A.e==='curso')))pu.push('<button class="btn peq" data-a="rebajar" data-id="'+A.id+'">Rebajar el precio</button>');
   if(pu.length)h+='<div class="acts" id="corr">'+pu.join('')+'</div>'}
- if(Q.rol==='centralita'&&A.e==='hecho'&&T.total>0)h+='<div class="acts" id="fac">'+(A.fac?'<span class="ln">Facturado'+(A.fac.num?': n.º '+esc(A.fac.num):'')+'.</span> <button class="txt" data-a="desfacturar" data-id="'+A.id+'">Quitar</button>':'<button class="btn peq" data-a="copiaFac" data-id="'+A.id+'">Copiar los datos de la factura</button><button class="btn peq pri" data-a="facturar" data-id="'+A.id+'">Marcar como facturada</button>')+'</div>';
+ if(bar&&T.total>0&&(A.fac||!(p&&p.cobrado)))h+='<div class="acts" id="fac">'+(A.fac?'<span class="ln">Facturado'+(A.fac.num?': n.º '+esc(A.fac.num):'')+'.</span> <button class="txt" data-a="desfacturar" data-id="'+A.id+'">Quitar</button>':'<button class="btn peq" data-a="copiaFac" data-id="'+A.id+'">Copiar los datos de la factura</button><button class="btn peq pri" data-a="facturar" data-id="'+A.id+'">Marcar como facturada</button>')+'</div>';
  h+='<div class="docs">'+(A.pres?'<a class="btn peq" href="#/papel/'+A.id+'/presupuesto">Presupuesto</a>':'')+(A.e==='hecho'?'<a class="btn peq" href="#/papel/'+A.id+'/parte">Parte</a>':'')+(A.gar?'<a class="btn peq" href="#/papel/'+A.id+'/garantia">Garantía</a>':'')+'</div>';
  return h+'</section>'}
 function bMensajes(A){const L=A.msgs.filter(m=>pro()||m.k!=='resena');if(!L.length)return'';const ahora=Date.now();
@@ -758,10 +836,12 @@ function bFalta(A){const L=A.falta||[],puede=!['hecho','cancelado'].includes(A.e
   :'<p class="ln">Nada apuntado. Lo que se apunte sale en la lista del día.</p>')+
   (puede?'<div class="acts"><button class="btn peq" data-a="falta" data-id="'+A.id+'">'+I.mas+'Apuntar material</button>'+(L.length?'<button class="btn peq" data-a="faltaListo" data-id="'+A.id+'">Ya está todo</button>':'')+'</div>':'')+'</section>'}
 function hFalta(A){const mats=Object.keys(cfg.cat).filter(x=>cfg.cat[x].mat);let k='',q=1;
- const d=hoja(hc('Apuntar material')+'<form class="hb" id="faF" novalidate>'+(mats.length?'<div class="campo"><span class="lb" id="fa_l">¿Qué falta?</span><div class="ops" role="radiogroup" aria-labelledby="fa_l">'+mats.map(x=>'<button type="button" class="op" data-fk="'+x+'" role="radio" aria-checked="false">'+esc(cfg.cat[x].t)+'</button>').join('')+'</div></div>':'')+
-  '<div class="campo"><label for="fa_t">'+(mats.length?'O escríbelo':'¿Qué falta?')+'</label><input id="fa_t" maxlength="60" placeholder="Por ejemplo, un latiguillo de 40 cm" autocomplete="off"></div>'+
-  '<div class="campo"><span class="lb" id="fa_ql">Cuántos</span><div class="mq"><span class="st" role="group" aria-labelledby="fa_ql"><button type="button" data-fq="-1" aria-label="Uno menos">−</button><button type="button" data-fq="1" aria-label="Uno más">+</button></span><b class="num" id="fa_q">1</b></div></div>'+
+ /* dos pasos (20-11-2026): qué falta y cuántos */
+ const d=hoja(hc('Apuntar material')+'<form class="hb" id="faF" novalidate><section class="hpaso" data-t="¿Qué falta?">'+(mats.length?'<div class="ops" role="radiogroup" aria-label="Material">'+mats.map(x=>'<button type="button" class="op" data-fk="'+x+'" role="radio" aria-checked="false">'+esc(cfg.cat[x].t)+'</button>').join('')+'</div>':'')+
+  '<div class="campo"><label for="fa_t">'+(mats.length?'O escríbelo':'Escribe qué es')+'</label><input id="fa_t" maxlength="60" placeholder="Por ejemplo, un latiguillo de 40 cm" autocomplete="off"></div></section>'+
+  '<section class="hpaso" data-t="¿Cuántos?"><p class="ln" id="fa_que"></p><div class="mq"><span class="st" role="group" aria-label="Cuántos"><button type="button" data-fq="-1" aria-label="Uno menos">−</button><button type="button" data-fq="1" aria-label="Uno más">+</button></span><b class="num" id="fa_q">1</b></div></section>'+
   '<p class="err" id="fa_err" style="color:var(--mal)" hidden></p></form><div class="hp"><button class="btn pri ancho" form="faF">Apuntar</button></div>');
+ pasosHoja(d,{ok:[()=>k||$('#fa_t',d).value.trim()?'':'Elige qué falta o escríbelo.'],al:[null,()=>{$('#fa_que',d).textContent=k?cfg.cat[k].t:$('#fa_t',d).value.trim()}]});
  const marca=()=>$$('[data-fk]',d).forEach(x=>x.setAttribute('aria-checked',String(x.dataset.fk===k)));
  d.addEventListener('click',e=>{const b=e.target.closest('[data-fk]');if(b){k=k===b.dataset.fk?'':b.dataset.fk;marca();if(k)$('#fa_t',d).value='';$('#fa_err',d).hidden=true;return}
   const m=e.target.closest('[data-fq]');if(m){q=Math.max(1,Math.min(20,q+ +m.dataset.fq));$('#fa_q',d).textContent=q}});
@@ -801,21 +881,26 @@ function vFurgo(tec){const esT=Q.rol==='tecnico';if(esT)tec=Q.id;const T=cfg.tec
  if(!T)return'<a class="atras" href="#/equipo">'+I.atras+'Equipo</a><div class="cab"><div><h1>Furgoneta</h1><p class="sub">No encuentro a ese técnico.</p></div></div>';
  const F=FG(tec),F0=S.furgos&&Object.prototype.hasOwnProperty.call(S.furgos,tec)?S.furgos[tec]:null,ahora=Date.now(),hoy=K.madrid().date;
  let h=(esT?'':'<a class="atras" href="#/equipo">'+I.atras+'Equipo</a>')+'<div class="cab"><div><h1>'+(esT?'Tu furgoneta':'Furgoneta de '+esc(T.n))+'</h1><p class="sub">'+
-  (F?(F.cnt?'Contada '+hace(F.cnt)+'.':'Aún sin contar.')+' Lo que se usa en cada trabajo se descuenta al terminarlo.':esT?'Si quieres, la app lleva la cuenta de lo que llevas.':esc(T.n)+' no lleva la cuenta de su furgoneta.')+'</p></div></div>';
+  (F?(F.cnt?'Contada '+hace(F.cnt)+'.':'Aún sin contar.')+' Lo que se usa en cada trabajo se descuenta al terminarlo.':esT?'Si quieres, la app lleva la cuenta de lo que llevas.':esc(T.n)+' no lleva la cuenta de su furgoneta.')+'</p></div>'+
+  /* lo principal, arriba como en las demás secciones: lo normal es ver «Para reponer», cargar y apuntarlo */
+  (F?'<button class="btn pri peq" id="fgCarga" data-a="fCargar" data-tec="'+tec+'">He cargado</button>':'')+'</div>';
  if(!F){const ya=F0&&F0.st&&Object.keys(F0.st).length;
   return h+'<section class="blq" id="fgNo"><h2>Llevar la cuenta</h2><p class="ln">'+(esT?'Cuentas una vez lo que llevas y apuntas lo que cargas. Lo que uses en cada trabajo se descuenta solo al terminarlo. Así sabes qué te falta para mañana y qué toca reponer.':'Se cuenta una vez lo que lleva, se apunta lo que se carga y lo usado se descuenta solo al terminar cada trabajo. Lo puede empezar '+esc(T.n)+' o la oficina.')+'</p>'+
    (ya?'<p class="mnota" style="margin-top:8px">Se queda guardado lo último que había'+(F0.cnt?', contado '+hace(F0.cnt):'')+'.</p>':'')+'<div class="acts"><button class="btn pri" data-a="fSi" data-tec="'+tec+'">Llevar la cuenta</button></div></section>'}
  const sig=S.avisos.filter(a=>a.tec===tec&&a.e==='asignado'&&a.cita&&a.cita.dia>hoy).map(a=>a.cita.dia).sort()[0];
  const C=[hoy].concat(sig?[sig]:[]).map(d=>K.cargaDe(S,cfg,tec,d,ahora)).filter(c=>!vacia(c)),rp=K.reponerDe(S,cfg,tec),kit=K.kitDe(cfg,tec);
- if(C.length)h+='<section class="sec" id="fgDia"><h2>Para los trabajos</h2>'+C.map(c=>bCarga(c,{of:!esT})).join('')+'</section>';
- if(rp.length)h+='<section class="sec" id="fgRep"><h2>Para reponer <span class="n">'+rp.length+'</span></h2><ul class="mfal">'+rp.map(x=>'<li><span><b class="num">'+x.q+' ×</b> '+esc(x.t)+' <small>hay '+x.hay+', mínimo '+x.min+'</small></span></li>').join('')+'</ul></section>';
+ /* con su marco (20-11-2026): «Para los trabajos», «Para reponer» y lo que lleva */
+ const r0=ruta(),k=['reponer','lleva'].includes(r0.b)?r0.b:'trabajos';
+ h+=pestas([{k:'trabajos',h:'#/furgo/'+tec+'/trabajos',t:'Para los trabajos'},{k:'reponer',h:'#/furgo/'+tec+'/reponer',t:'Para reponer',n:rp.length},{k:'lleva',h:'#/furgo/'+tec+'/lleva',t:esT?'Lo que llevas':'Lo que lleva'}],k,'Qué ver de la furgoneta')+'<div class="pcuerpo">';
+ if(k==='trabajos')return h+'<section class="sec" id="fgDia"><h2>Para los trabajos</h2>'+(C.length?C.map(c=>bCarga(c,{of:!esT})).join(''):'<p class="hueco">Para los trabajos de hoy y del próximo día no hace falta nada.</p>')+'</section></div>';
+ if(k==='reponer')return h+'<section class="sec" id="fgRep"><h2>Para reponer <span class="n">'+rp.length+'</span></h2>'+(rp.length?'<ul class="mfal">'+rp.map(x=>'<li><span><b class="num">'+x.q+' ×</b> '+esc(x.t)+' <small>hay '+x.hay+', mínimo '+x.min+'</small></span></li>').join('')+'</ul>':'<p class="hueco">Nada por reponer: todo está por encima del mínimo.</p>')+'</section></div>';
  const ks=MATS.filter(k=>nHay(F,k)||Object.prototype.hasOwnProperty.call(kit,k));
  h+='<section class="sec" id="fgSt"><h2>'+(esT?'Lo que llevas':'Lo que lleva')+'</h2>'+(ks.length?'<ul class="lins fst">'+ks.map(k=>{const n=nHay(F,k),m=Object.prototype.hasOwnProperty.call(kit,k)?kit[k]:null;
    return'<li'+(m&&n<m[0]?' class="bajo"':'')+'><span>'+esc(cfg.cat[k].t)+(m?' <small>(de '+m[0]+' a '+m[1]+')</small>':'')+'</span><span class="num">'+n+'</span></li>'}).join('')+'</ul>':'<p class="hueco">Aún no hay nada apuntado. Cuenta lo que '+(esT?'llevas':'lleva')+'.</p>')+
-  '<div class="acts" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"><button class="btn pri" data-a="fCargar" data-tec="'+tec+'">He cargado</button><button class="btn" data-a="fContar" data-tec="'+tec+'">Contar</button></div></section>';
+  '<div class="acts" style="margin-top:12px"><button class="btn" data-a="fContar" data-tec="'+tec+'">Contar lo que hay</button></div></section>';
  const H=(F.h||[]).slice(-20).reverse();
  if(H.length)h+='<details class="hist" id="fgMov"><summary>Movimientos</summary><ol>'+H.map(x=>'<li><time>'+cuandoT(x.t)+'</time><span>'+esc(x.txt)+' ('+esc(x.q)+')</span></li>').join('')+'</ol></details>';
- return h+'<p class="fin"><button class="txt" data-a="fNo" data-tec="'+tec+'">Dejar de llevar la cuenta</button></p>'}
+ return h+'<p class="fin"><button class="txt" data-a="fNo" data-tec="'+tec+'">Dejar de llevar la cuenta</button></p></div>'}
 /* «He cargado» (se suma) y «Contar» (queda tal cual): todo el material del catálogo, con cuántos */
 function hFz(tec,cuenta,dia){S=Oficio.estado();const F=FG(tec);if(!F)return toast('Esa furgoneta no lleva la cuenta.');const T=cfg.tec[tec],esT=Q.rol==='tecnico',v={};
  if(cuenta)MATS.forEach(k=>{v[k]=nHay(F,k)});
@@ -834,47 +919,71 @@ function hFzNo(tec){const T=cfg.tec[tec],esT=Q.rol==='tecnico';
  const d=hoja(hc('¿Dejar de llevar la cuenta?')+'<div class="hb"><p>'+(esT?'La app dejará de contar lo que llevas.':'La app dejará de contar lo que lleva '+esc(T.n)+'.')+' Lo apuntado se queda guardado: si se vuelve a empezar, sale lo último que había.</p></div><div class="hp"><button class="btn ancho" id="fzNo">Dejar de llevar la cuenta</button><button class="btn ancho" data-x>Volver</button></div>');
  $('#fzNo',d).onclick=()=>{const r=hacer({tipo:'furgo',tec,llevar:false});d.close();if(r.ok)toast('Hecho: ya no se lleva la cuenta.')}}
 const bHist=A=>'<details class="hist"><summary>Historial</summary><ol>'+A.h.map(x=>'<li><time>'+cuandoT(x.t)+'</time><span>'+esc(x.txt)+' ('+esc(x.q)+')</span></li>').join('')+'</ol></details>';
+/* el aviso con su marco (20-11-2026): el título, su recorrido y, fijas al bajar, las pestañas. La oficina: «Resumen» (lo
+   que toca ahora: quién va y cuándo, o cómo va), «Cliente», «Trabajo» (el dinero y el material) y «Mensajes» (con el
+   historial). El técnico: «Cliente», «Trabajo» y «Mensajes»; trabajando, se abre en «Trabajo». La acción principal, abajo */
 function vAviso(id){const A=el(id),esT=Q.rol==='tecnico';
  if(!A)return'<div class="cab"><div><h1>Aviso</h1><p class="sub">No encuentro el aviso '+esc(id)+'.'+(Oficio.DEMO?' Puede que la demo se haya reiniciado.':'')+'</p></div></div><p class="fin"><a class="txt" href="#/">Volver al inicio</a></p>';
  const av=cfg.av[A.av],mio=esT&&A.tec===Q.id,abierto=['nuevo','asignado','ausente'].includes(A.e),t=cfg.tec[A.tec];
+ const r0=ruta(),pide=r0.v==='aviso'&&r0.a===A.id?r0.b:'',M=A.msgs.filter(m=>!m.env&&m.t<=Date.now()&&(pro()||m.k!=='resena'));
  let h='<a class="atras" href="#/'+(esT?'hoy':'bandeja')+'">'+I.atras+(esT?'Hoy':'Bandeja')+'</a>';
- h+='<div class="cab"><div><h1>'+esc(av.n)+'</h1><p class="sub">'+A.id+(barrio(A)?' · '+esc(barrio(A)):'')+' · '+(A.cita?'cita '+diaTxt(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente')+'</p></div><span class="pill '+A.e+'">'+EST[A.e]+'</span></div>'+pista(A)+bGar(A)+bZona(A);
- if(esT){h+=bCliente(A,true)+bContrato(A);
-  if(mio&&A.e==='curso')h+=bTrabajo(A);
-  h+=bFalta(A);
-  if(mio)h+=bGeo(A);
-  if(pro())h+=bDinero(A);
-  if(mio)h+=bMensajes(A);
-  if(!mio)h+='<p class="hueco" style="margin-top:12px">'+(t?'Este aviso lo lleva '+esc(t.n)+'.':'Este aviso todavía no tiene técnico.')+'</p>';
-  else if(A.e==='asignado')h+='<div class="accion">'+bVoy(A,'btn pri ancho')+'</div>';
-  else if(A.e==='camino')h+='<div class="accion"><button class="btn pri ancho" data-a="empezar" data-id="'+A.id+'">Empezar</button><button class="txt" data-a="ausente" data-id="'+A.id+'">No había nadie</button></div>';
-  else if(A.e==='curso')h+='<div class="accion"><button class="btn pri ancho" data-a="terminar" data-id="'+A.id+'">Terminado</button></div>';
- }else{const M=A.msgs.filter(m=>!m.env&&m.t<=Date.now()&&(pro()||m.k!=='resena'));
-  if(M.length)h+='<p class="ojo" id="msgPend"><span>Falta mandar «'+K.MSG[M[0].k]+'»'+(M.length>1?' y '+(M.length-1)+' más':'')+'.</span><button class="btn peq" data-a="msg" data-id="'+A.id+'" data-k="'+M[0].k+'">Mandar</button></p>';
-  /* lo principal según el estado: sin técnico, quién va y cuándo; con él en marcha o hecho, la ficha del cliente primero */
+ h+='<div class="cab"><div><h1>'+esc(av.n)+'</h1><p class="sub">'+A.id+(barrio(A)?' · '+esc(barrio(A)):'')+' · '+(A.cita?'cita '+diaTxt(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente')+'</p></div><span class="pill '+A.e+'">'+EST[A.e]+'</span></div>'+pista(A);
+ const TT=(esT?[['cliente','Cliente'],['trabajo','Trabajo']].concat(mio?[['mensajes','Mensajes']]:[]):[['resumen','Resumen'],['cliente','Cliente'],['trabajo','Trabajo'],['mensajes','Mensajes']]).map(x=>({k:x[0],t:x[1],h:'#/aviso/'+A.id+'/'+x[0],n:x[0]==='mensajes'&&!esT?M.length:0}));
+ const k=TT.some(x=>x.k===pide)?pide:esT?(mio&&A.e==='curso'?'trabajo':'cliente'):'resumen';
+ h+=pestas(TT,k,'Qué ver del aviso');let c='';
+ if(esT){
+  if(k==='cliente')c=bGar(A)+bZona(A)+bCliente(A,true)+bContrato(A)+(mio?bGeo(A):'')+(!mio?'<p class="hueco" style="margin-top:12px">'+(t?'Este aviso lo lleva '+esc(t.n)+'.':'Este aviso todavía no tiene técnico.')+'</p>':'');
+  else if(k==='trabajo'){c=bGar(A)+(mio&&A.e==='curso'?bTrabajo(A):'')+bFalta(A)+(pro()?bDinero(A):'');if(!c)c='<p class="hueco" style="margin-top:12px">Aún no hay nada del trabajo. Al llegar, «Empezar»: el cliente firma el precio y empieza.</p>'}
+  else c=bMensajes(A)||'<p class="hueco" style="margin-top:12px">No hay mensajes para este cliente.</p>';
+  h+='<div class="pcuerpo">'+c+'</div>';
+  if(mio&&A.e==='asignado')h+='<div class="accion">'+bVoy(A,'btn pri ancho')+'</div>';
+  else if(mio&&A.e==='camino')h+='<div class="accion"><button class="btn pri ancho" data-a="empezar" data-id="'+A.id+'">Empezar</button><button class="txt" data-a="ausente" data-id="'+A.id+'">No había nadie</button></div>';
+  else if(mio&&A.e==='curso')h+='<div class="accion"><button class="btn pri ancho" data-a="terminar" data-id="'+A.id+'">Terminado</button></div>';
+  return h}
+ if(k==='resumen'){
+  if(M.length)c+='<p class="ojo" id="msgPend"><span>Falta mandar «'+K.MSG[M[0].k]+'»'+(M.length>1?' y '+(M.length-1)+' más':'')+'.</span><button class="btn peq" data-a="msg" data-id="'+A.id+'" data-k="'+M[0].k+'">Mandar</button></p>';
   if(A.e==='asignado'&&A.cita&&t){const ahora=Date.now(),f=cfg.franjas.find(x=>x.id===A.cita.fr);
-   if(!K.voyYa(cfg,A,ahora))h+='<p class="mnota" id="salida" style="margin-top:12px">Asignado a '+esc(t.n)+' · aún no puede salir: «Voy» se le enciende '+cuandoVoy(K.voyDesde(cfg,A))+'.</p>';
-   else if(f&&K.voyTarde(cfg,A,ahora))h+='<p class="ojo" id="salida">'+esc(t.n)+' va tarde: su franja empezó a las '+hm(f.de)+' y todavía no ha dicho «Voy».</p>'}
-  if(abierto&&A.cli.tel)h+=bReparto(A)+bCita(A);
-  h+=bCliente(A,false)+bContrato(A);
-  if(A.e==='camino'&&A.pos&&t)h+='<p class="mnota" id="posOf" style="margin-top:12px">'+esc(t.n)+' compartió su posición '+hace(A.pos.t)+'. El cliente la ve en su página.</p>';
-  h+=bDinero(A)+bFalta(A);
-  h+=bMensajes(A)+bHist(A);
-  h+=bAccOf(A)}
- return h}
+   if(!K.voyYa(cfg,A,ahora))c+='<p class="mnota" id="salida" style="margin-top:12px">Asignado a '+esc(t.n)+' · aún no puede salir: «Voy» se le enciende '+cuandoVoy(K.voyDesde(cfg,A))+'.</p>';
+   else if(f&&K.voyTarde(cfg,A,ahora))c+='<p class="ojo" id="salida">'+esc(t.n)+' va tarde: su franja empezó a las '+hm(f.de)+' y todavía no ha dicho «Voy».</p>'}
+  /* si tiene contrato (o lo quiere), arriba: cambia lo que se cobra y quién va primero. Ofrecerlo, en «Cliente» */
+  c+=bGar(A)+bZona(A)+bContrato(A,true);
+  /* lo principal según el estado: por repartir, quién va y cuándo; si no, cómo va */
+  c+=abierto&&A.cli.tel?bCuenta(A)+bReparto(A)+bCita(A):abierto?bCliente(A,false):bDice(A)+bEstado(A);
+  if(A.e==='camino'&&A.pos&&t)c+='<p class="mnota" id="posOf" style="margin-top:12px">'+esc(t.n)+' compartió su posición '+hace(A.pos.t)+'. El cliente la ve en su página.</p>';
+  c+=bHist(A)}
+ else if(k==='cliente')c=bCliente(A,false)+bContrato(A);
+ else if(k==='trabajo')c=bDinero(A)+bFalta(A)||'<p class="hueco" style="margin-top:12px">Aún no hay nada del trabajo. Cuando el técnico empiece, aquí sale el presupuesto firmado.</p>';
+ else c=bMensajes(A)||'<p class="hueco" style="margin-top:12px">No hay mensajes para este cliente.</p>';
+ return h+'<div class="pcuerpo">'+c+'</div>'+bAccOf(A)}
+/* desde su zona, el cliente dice que ya lo ha pagado (19-11-2026): se mira en el banco y se apunta el cobro. Sale en el
+   «Resumen» y en «Trabajo», junto a «Apuntar cobro» */
+const bDice=A=>{const p=A.pago;return p&&!p.cobrado&&p.dice?'<p class="ojo" id="dice">El cliente dice que lo ha pagado por '+PAGO[p.dice.modo].toLowerCase()+' '+hace(p.dice.t)+'. Míralo en el banco y apunta el cobro.</p>':''};
+/* «Resumen» de un aviso que ya no está por repartir: quién lo lleva y cómo va; el dinero, si lo hay */
+function bEstado(A){const t=cfg.tec[A.tec],L=[],p=A.pago;
+ if(t)L.push('<p class="gr">'+esc(t.n)+' '+esc(t.ap)+'</p><p class="ln">'+(A.e==='camino'?'De camino: llega sobre las '+K.hora(A.eta)+'.':A.e==='curso'?'Trabajando: lleva '+dur(K.minutos(A,Date.now()))+'.':A.e==='hecho'?'Terminado '+hace(A.fin)+'.':A.e==='cancelado'?'Cancelado.':'')+'</p>');
+ else L.push('<p class="ln">'+(A.e==='cancelado'?'Cancelado.':'Sin técnico.')+'</p>');
+ if(A.tot)L.push('<p class="ln">'+(A.e==='hecho'?'Total':'Presupuesto firmado')+': <b class="num">'+K.eur(A.tot.total)+'</b>'+(p?(p.cobrado?' · cobrado':' · pendiente de pago'):'')+(A.fac?' · facturado':'')+'</p>');
+ L.push('<p class="ln">'+esc(K.nomCli(A.cli)||'Aún sin nombre')+(A.cli.dir?' · '+esc(A.cli.dir):'')+'</p>');
+ return'<section class="blq" id="estado"><h2>Cómo va</h2>'+L.join('')+'</section>'}
 /* la ficha de la oficina: el estado y lo principal del aviso, siempre a mano abajo, también en una ficha larga y a 320 px
    (auditoría UX-17). Primero lo que toca: completar los datos, asignar (en una urgencia, a quien antes llega) o mandar el mensaje */
-function bAccOf(A){if(!['nuevo','asignado','ausente'].includes(A.e))return'';
+function bAccOf(A){if(A.e==='hecho')return bAccHecho(A);if(!['nuevo','asignado','ausente'].includes(A.e))return'';
  const t=cfg.tec[A.tec],datos=A.cli.tel&&A.cli.dir&&A.cli.dis,M=A.msgs.filter(m=>!m.env&&m.t<=Date.now()&&(pro()||m.k!=='resena')),sin=!A.tec||A.e==='ausente';
  const ua=sin&&datos&&!A.cita&&A.e==='nuevo'?K.urgenciaAhora(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):null,B=[];
  if(!datos)B.push('<button class="btn pri peq" data-a="completar" data-id="'+A.id+'">Completar los datos</button>');
- else if(sin)B.push(ua?'<button class="btn pri peq" data-a="asignar" data-id="'+A.id+'" data-tec="'+ua.tec+'">Asignar a '+esc(cfg.tec[ua.tec].n)+'</button>':'<button class="btn pri peq" data-a="irSec" data-sec="reparto">Elegir técnico</button>');
+ else if(sin)B.push(ua?'<button class="btn pri peq" data-a="asignar" data-id="'+A.id+'" data-tec="'+ua.tec+'">Asignar a '+esc(cfg.tec[ua.tec].n)+'</button>':'<button class="btn pri peq" data-a="irSec" data-sec="reparto" data-ir="#/aviso/'+A.id+'">Elegir técnico</button>');
  if(M.length)B.push('<button class="btn peq'+(B.length?'':' pri')+'" data-a="msg" data-id="'+A.id+'" data-k="'+M[0].k+'" aria-label="Mandar «'+K.MSG[M[0].k]+'»">Mandar mensaje</button>');
- if(datos&&!sin)B.push('<button class="btn peq" data-a="irSec" data-sec="reparto">Cambiar técnico</button>');
+ if(datos&&!sin)B.push('<button class="btn peq" data-a="irSec" data-sec="reparto" data-ir="#/aviso/'+A.id+'">Cambiar técnico</button>');
  B.push('<button class="btn peq" data-a="cita" data-id="'+A.id+'">'+(A.cita?'Cambiar la hora':'Dar cita')+'</button>');
  const est=(A.e==='ausente'?'No había nadie':t?'Asignado a '+esc(t.n):'Sin técnico')+' · '+(A.cita?diaCorto(A.cita.dia)+', '+frTxt(A.cita.fr):'urgente');
  return'<div class="accion of" role="region" aria-label="Lo principal del aviso"><div class="est"><p class="ln">'+est+'</p><button class="txt mal" data-a="cancelar" data-id="'+A.id+'" aria-label="Cancelar el aviso">Cancelar</button></div><div class="acs">'+B.join('')+'</div></div>'}
 
+/* terminado (20-11-2026): lo que queda, abajo y a mano: apuntar el cobro y, cobrado, marcar la factura */
+function bAccHecho(A){const T=A.tot,p=A.pago;if(!T||!T.total||!p)return'';const B=[];
+ if(!p.cobrado)B.push('<button class="btn pri peq" data-a="cobrar" data-id="'+A.id+'">Apuntar cobro</button>');
+ else if(!A.fac)B.push('<button class="btn peq" data-a="copiaFac" data-id="'+A.id+'">Copiar los datos</button><button class="btn pri peq" data-a="facturar" data-id="'+A.id+'">Marcar como facturada</button>');
+ if(!B.length)return'';
+ return'<div class="accion of" role="region" aria-label="Lo que queda del aviso"><div class="est"><p class="ln">Terminado · '+K.eur(T.total)+' · '+(p.cobrado?'cobrado, falta la factura':'pendiente de pago')+'</p></div><div class="acs">'+B.join('')+'</div></div>'}
 /* ===== técnico: su posición, solo si el negocio tiene el mapa activado y solo desde «Voy» hasta llegar =====
    El móvil la da mientras la app está en pantalla. Se manda como mucho cada 20 segundos, o antes si se ha movido unos 40 metros.
    Solo se guarda la última; al llegar, al no encontrar a nadie o al pulsar «Dejar de compartir», se borra. */
@@ -906,27 +1015,31 @@ function vHoy(){const hoy=K.madrid().date,M=S.avisos.filter(a=>a.tec===Q.id&&['a
  const dia=M.filter(a=>!a.cita||a.cita.dia<=hoy||a.e!=='asignado').sort((a,b)=>peso(a)-peso(b)||a.t-b.t),lue=M.filter(a=>!dia.includes(a)).sort((a,b)=>a.cita.dia<b.cita.dia?-1:1);
  const p=dia[0],t=cfg.tec[Q.id];
  let h='<div class="cab"><div><h1>Hoy</h1><p class="sub">'+(p?(dia.length===1?'1 aviso. ':dia.length+' avisos. ')+(p.e==='curso'?'Estás con '+cfg.av[p.av].n.toLowerCase()+' en '+barrio(p)+'.':p.e==='camino'?'Vas de camino a '+barrio(p)+'.':'El siguiente, '+cfg.av[p.av].n.toLowerCase()+' en '+barrio(p)+'.'):'No tienes avisos ahora, '+esc(t.n)+'.')+'</p></div></div>';
+ /* con su marco (20-11-2026): «Hoy», «Próximos días» y «Material» */
+ const ahora=Date.now(),ds=[...new Set([hoy].concat(lue.length?[lue[0].cita.dia]:[],M.filter(a=>a.falta&&a.falta.length).map(a=>a.e==='asignado'&&a.cita&&a.cita.dia>hoy?a.cita.dia:hoy)))].sort();
+ const hb=ds.map(d=>bCarga(K.cargaDe(S,cfg,Q.id,d,ahora))).join(''),rp=K.reponerDe(S,cfg,Q.id);
+ const r0=ruta(),k=['proximos','material'].includes(r0.a)?r0.a:'hoy';
+ h+=pestas([{k:'hoy',h:'#/hoy',t:'Hoy',n:dia.length},{k:'proximos',h:'#/hoy/proximos',t:'Próximos días',n:lue.length},{k:'material',h:'#/hoy/material',t:'Material',n:rp.length}],k,'Qué ver de tus avisos')+'<div class="pcuerpo">';
+ if(k==='proximos')return h+(lue.length?sec('Próximos días',lue,'','',{tec:1}):'<p class="hueco" style="margin-top:16px">No tienes citas para los próximos días.</p>')+'</div>';
+ if(k==='material'){const pie=!FG(Q.id)?'¿Quieres que la app lleve la cuenta de tu furgoneta? <a class="txt" href="#/furgo">Mírala aquí</a>.':rp.length?(rp.length===1?'Hay 1 cosa por reponer':'Hay '+rp.length+' cosas por reponer')+' en tu furgoneta. <a class="txt" href="#/furgo">Mírala</a>.':'';
+  return h+'<section class="sec" id="mHoy"><h2>Material</h2>'+(hb||'<p class="hueco">No hace falta nada especial para tus trabajos.</p>')+(pie?'<p class="mnota" style="margin-top:10px">'+pie+'</p>':'')+'</section></div>'}
  if(p){const av=cfg.av[p.av];
   h+='<section class="sig'+(p.urg?' urg':'')+'"><p class="k"><span>'+p.id+' · '+(p.cita?'cita '+frTxt(p.cita.fr):'urgente, '+hace(p.t))+'</span><span class="pill '+p.e+'">'+EST[p.e]+'</span></p><h2>'+esc(av.n)+'</h2><p class="dir">'+esc(p.cli.dir)+'</p><p class="ln" style="color:var(--suave)">'+esc(barrio(p))+' · '+esc(K.nomCli(p.cli))+'</p>'+(p.nota?'<p class="dice" style="margin-top:0">'+esc(p.nota)+'</p>':'')+(p.foto?bFoto(p):'')+
    (p.e==='asignado'?bVoy(p,'btn pri ancho')+'<a class="txt" style="justify-self:center;display:inline-flex;align-items:center" href="#/aviso/'+p.id+'">Ver el aviso</a>':'<a class="btn pri ancho" href="#/aviso/'+p.id+'">'+(p.e==='camino'?'Abrir: he llegado':'Seguir con el trabajo')+'</a>')+'</section>'}
  else h+='<p class="hueco" style="margin-top:16px">Cuando la centralita te pase un aviso, aparece aquí al momento.</p>';
  {const ll={};K.agendaDe(S,cfg,Q.id,hoy,Date.now()).forEach(x=>{ll[x.id]=x.llega});
-  if(dia.length>1)h+=sec('Después',dia.slice(1),'','',{tec:1,llega:ll});
-  if(lue.length)h+=sec('Próximos días',lue,'','',{tec:1})}
- /* el material: hoy, el próximo día con citas y cualquier otro con algo apuntado que falta */
- {const ahora=Date.now(),ds=[...new Set([hoy].concat(lue.length?[lue[0].cita.dia]:[],M.filter(a=>a.falta&&a.falta.length).map(a=>a.e==='asignado'&&a.cita&&a.cita.dia>hoy?a.cita.dia:hoy)))].sort();
-  const hb=ds.map(d=>bCarga(K.cargaDe(S,cfg,Q.id,d,ahora))).join('');
-  const rp=K.reponerDe(S,cfg,Q.id),pie=!FG(Q.id)?'¿Quieres que la app lleve la cuenta de tu furgoneta? <a class="txt" href="#/furgo">Mírala aquí</a>.':rp.length?(rp.length===1?'Hay 1 cosa por reponer':'Hay '+rp.length+' cosas por reponer')+' en tu furgoneta. <a class="txt" href="#/furgo">Mírala</a>.':'';
-  if(hb||rp.length)h+='<section class="sec" id="mHoy"><h2>Material</h2>'+hb+(pie?'<p class="mnota" style="margin-top:10px">'+pie+'</p>':'')+'</section>'}
- return h}
-function vHechos(){const hoy=K.madrid().date,L=S.avisos.filter(a=>a.tec===Q.id&&a.e==='hecho').sort((a,b)=>b.fin-a.fin),h=L.filter(a=>K.madrid(a.fin).date===hoy),o=L.filter(a=>!h.includes(a)).slice(0,10);
- return'<div class="cab"><div><h1>Hechos</h1><p class="sub">'+(h.length?(h.length===1?'1 trabajo terminado hoy.':h.length+' trabajos terminados hoy.'):'Hoy todavía no has terminado ninguno.')+'</p></div></div>'+sec('Hoy',h,'','Aquí salen los trabajos que termines hoy.')+(o.length?sec('Antes',o,'',''):'')}
+  if(dia.length>1)h+=sec('Después',dia.slice(1),'','',{tec:1,llega:ll})}
+ return h+'</div>'}
+function vHechos(){const hoy=K.madrid().date,L=S.avisos.filter(a=>a.tec===Q.id&&a.e==='hecho').sort((a,b)=>b.fin-a.fin),h=L.filter(a=>K.madrid(a.fin).date===hoy),o=L.filter(a=>!h.includes(a)).slice(0,10),k=ruta().a==='antes'?'antes':'hoy';
+ return'<div class="cab"><div><h1>Hechos</h1><p class="sub">'+(h.length?(h.length===1?'1 trabajo terminado hoy.':h.length+' trabajos terminados hoy.'):'Hoy todavía no has terminado ninguno.')+'</p></div></div>'+
+  pestas([{k:'hoy',h:'#/hechos',t:'Hoy',n:h.length},{k:'antes',h:'#/hechos/antes',t:'Antes',n:o.length}],k,'Qué trabajos ver')+'<div class="pcuerpo">'+(k==='hoy'?sec('Hoy',h,'','Aquí salen los trabajos que termines hoy.'):sec('Antes',o,'','Aquí salen los trabajos de otros días.'))+'</div>'}
 
 /* ===== centralita: agenda ===== */
 /* los días de la agenda: los próximos laborables, y hoy aunque ya no queden huecos */
 function diasAg(ahora){const hoy=K.madrid().date,dias=K.diasDe(S,cfg,ahora,6).map(x=>x.dia);if(!dias.includes(hoy)&&K.laborable(cfg,hoy))dias.unshift(hoy);return dias}
-const segAg=(v,d)=>'<nav class="seg segv" aria-label="Qué ver de la agenda"><a href="#/agenda/'+d+'"'+(v==='agenda'?' aria-current="page"':'')+'>Citas</a><a href="#/equipo/'+d+'"'+(v==='equipo'?' aria-current="page"':'')+'>Equipo</a></nav>';
-const navDias=(v,dias,d,cuenta)=>{const hoy=K.madrid().date;return'<nav class="dias" aria-label="Días">'+dias.map(x=>'<a href="#/'+v+'/'+x+'"'+(x===d?' aria-current="true"':'')+'>'+(x===hoy?'hoy':D3[new Date(x+'T12:00:00Z').getUTCDay()])+'<b class="num">'+(+x.slice(8))+'</b><small>'+cuenta(x)+'</small></a>').join('')+'</nav><h2 class="dlargo">'+diaLargo(d)+'</h2>'};
+/* la agenda con su marco (20-11-2026): «Citas» y «Equipo» son sus dos pestañas y, con ellas, los días; todo fijo al bajar */
+const segAg=(v,d,mas)=>pestas([{k:'agenda',h:'#/agenda/'+d,t:'Citas'},{k:'equipo',h:'#/equipo/'+d,t:'Equipo'}],v,'Qué ver de la agenda',{mas:mas||''});
+const navDias=(v,dias,d,cuenta)=>{const hoy=K.madrid().date;return'<nav class="dias" aria-label="Días">'+dias.map(x=>'<a href="#/'+v+'/'+x+'"'+(x===d?' aria-current="true"':'')+'>'+(x===hoy?'hoy':D3[new Date(x+'T12:00:00Z').getUTCDay()])+'<b class="num">'+(+x.slice(8))+'</b><small>'+cuenta(x)+'</small></a>').join('')+'</nav>'};
 /* los huecos de una franja, como los ve la oficina: los del cliente y los que solo puede usar ella */
 /* en una línea, y con una barra: azul lo ocupado, en blanco lo libre y con rayas lo que solo puede dar la oficina */
 const huecoAg=(f,oc)=>{const of=f.okOf?f.libresOf-(f.ok?f.libres:0):0,li=f.ok?f.libres:0,pasa=!f.ok&&!f.okOf&&f.libresOf>0,tot=Math.max(f.tope||0,oc+li+Math.max(of,0)),resto=tot-oc-li-Math.max(of,0);
@@ -938,12 +1051,13 @@ function vAgenda(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
  const L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),fr=K.franjasDe(S,cfg,d,ahora);
  const todas=S.avisos.filter(a=>a.cita&&a.e!=='cancelado'&&a.e!=='hecho'&&a.cita.dia>=hoy),prox=todas.filter(a=>a.cita.dia>d).sort((a,b)=>a.cita.dia<b.cita.dia?-1:1)[0];
  if(ANCHO.matches){const n=todas.filter(a=>dias.includes(a.cita.dia)).length;
-  return'<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(n?(n===1?'1 cita':n+' citas')+' en los próximos días.':'Sin citas en los próximos días.')+' '+CABEN()+'; con cita, tarifa normal.</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+segAg('agenda',d)+bAlertas(1)+
+  return'<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(n?(n===1?'1 cita':n+' citas')+' en los próximos días.':'Sin citas en los próximos días.')+' '+CABEN()+'; con cita, tarifa normal.</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+segAg('agenda',d)+bAlertas(1,true)+
    '<div class="sem" role="table" aria-label="Citas de los próximos días"><div class="semc" role="row"><span role="columnheader">Día</span>'+cfg.franjas.map(f=>'<span role="columnheader">'+K.franjaTxt(f).replace(/^d/,'D')+'</span>').join('')+'</div>'+
    dias.map(x=>'<div class="semf" role="row"><span class="semd" role="rowheader">'+D3[new Date(x+'T12:00:00Z').getUTCDay()]+'<b class="num">'+(+x.slice(8))+'</b>'+MES3[+x.slice(5,7)-1]+(x===hoy?'<i>hoy</i>':'')+'</span>'+K.franjasDe(S,cfg,x,ahora).map(f=>{const C=todas.filter(a=>a.cita.dia===x&&a.cita.fr===f.id);
     return'<div role="cell">'+C.map(a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].n)+' · '+esc(barrio(a))+'</b><small>'+esc(K.nomCli(a.cli))+' · '+(a.tec?esc(cfg.tec[a.tec].n):'sin asignar')+'</small></a>').join('')+huecoAg(f,C.length)+'</div>'}).join('')+'</div>').join('')+'</div>'}
- let h='<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(L.length?(L.length===1?'1 cita ':L.length+' citas ')+diaTxt(d)+'.':'Sin citas '+diaTxt(d)+'.'+(prox?' La próxima, '+diaTxt(prox.cita.dia)+'.':''))+' '+CABEN()+'.</p></div></div>'+segAg('agenda',d)+bAlertas(1);
- h+=navDias('agenda',dias,d,x=>(n=>n?(n===1?'1 cita':n+' citas'):'libre')(todas.filter(a=>a.cita.dia===x).length))+'<div class="tabla">';
+ let h='<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(L.length?(L.length===1?'1 cita ':L.length+' citas ')+diaTxt(d)+'.':'Sin citas '+diaTxt(d)+'.'+(prox?' La próxima, '+diaTxt(prox.cita.dia)+'.':''))+' '+CABEN()+'.</p></div></div>'+
+  segAg('agenda',d,navDias('agenda',dias,d,x=>(n=>n?(n===1?'1 cita':n+' citas'):'libre')(todas.filter(a=>a.cita.dia===x).length)))+bAlertas(1,true);
+ h+='<h2 class="dlargo">'+diaLargo(d)+'</h2><div class="tabla">';
  fr.forEach(f=>{const C=L.filter(a=>a.cita.fr===f.id);h+='<section class="fr"><h3 class="num">'+K.franjaTxt(f).replace(/^d/,'D')+' <small>'+C.length+' de '+f.tope+'</small></h3>'+(C.length?'<ul class="lista" style="margin-bottom:8px">'+C.map(a=>fila(a,'')).join('')+'</ul>':'')+huecoAg(f,C.length)+'</section>'});
  return h+'</div>'}
 
@@ -982,8 +1096,9 @@ function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
  const fr=K.franjasDe(S,cfg,d,ahora),L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),sin=L.filter(a=>!a.tec),ds=new Date(d+'T12:00:00Z').getUTCDay();
  const chip=a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].n)+(barrio(a)?' · '+esc(barrio(a)):'')+'</b><small>'+esc(K.nomCli(a.cli)||'Aún sin nombre')+(a.cita.ok===false?' · por confirmar':'')+'</small></a>';
  const aus=(S.ausencias||[]).filter(u=>u.a>=hoy).sort((a,b)=>a.de<b.de?-1:a.de>b.de?1:0),MAT=K.material(S,cfg,d);
- let h='<div class="cab"><div><h1>Equipo</h1><p class="sub">Quién trabaja '+diaTxt(d)+' y qué lleva cada uno.</p></div><button class="btn pri peq" data-a="ausencia" data-dia="'+d+'">'+I.mas+'Ausencia</button></div>'+segAg('equipo',d)+bAlertas(1);
- h+=navDias('equipo',dias,d,x=>{const n=N.tecnicos.filter(t=>K.ausente(S,t.id,x)).length;return n?(n===1?'falta 1':'faltan '+n):'todos'})+bTablero(d)+'<div class="tecds">';
+ let h='<div class="cab"><div><h1>Agenda</h1><p class="sub">Quién trabaja '+diaTxt(d)+' y qué lleva cada uno.</p></div><button class="btn pri peq" data-a="ausencia" data-dia="'+d+'">'+I.mas+'Ausencia</button></div>'+
+  segAg('equipo',d,navDias('equipo',dias,d,x=>{const n=N.tecnicos.filter(t=>K.ausente(S,t.id,x)).length;return n?(n===1?'falta 1':'faltan '+n):'todos'}))+bAlertas(1,true);
+ h+='<h2 class="dlargo">'+diaLargo(d)+'</h2>'+bTablero(d)+'<div class="tecds">';
  if(sin.length)h+='<section class="tecd"><h2>Sin asignar</h2><p class="ln">'+(sin.length===1?'1 cita espera técnico.':sin.length+' citas esperan técnico.')+'</p><ul class="tfr">'+fr.filter(f=>sin.some(a=>a.cita.fr===f.id)).map(f=>'<li><span class="num">'+K.franjaTxt(f).replace(/^d/,'D')+'</span><div>'+sin.filter(a=>a.cita.fr===f.id).map(chip).join('')+'</div></li>').join('')+'</ul>'+bMat(MAT.find(g=>!g.tec),d)+'</section>';
  N.tecnicos.forEach(t=>{const u=(S.ausencias||[]).find(x=>x.tec===t.id&&x.de<=d&&x.a>=d),hor=t.horario||N.horario||null,tr=hor?(hor[ds]||[]):null;
   const linea=u?'Ausente'+(u.motivo?': '+esc(u.motivo.toLowerCase()):'')+(u.a>d?'. Hasta '+diaTxt(u.a):'')+'.':!tr?'Sin horario puesto: cuenta para todas las franjas.':tr.length?tr.map(x=>K.franjaTxt({de:x[0],a:x[1]})).join(' y ').replace(/^d/,'D')+'.':'No trabaja este día.';
@@ -995,11 +1110,12 @@ function vEquipo(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
  return h}
 function hAusencia(tec,dia){const hoy=K.madrid().date,de=dia&&dia>=hoy?dia:hoy;
  const d=hoja(hc('Apuntar una ausencia')+'<form class="hb" id="uF" novalidate>'+
-  '<div class="campo"><span class="lb" id="u_lq">¿Quién falta?</span><div class="ops" role="radiogroup" aria-labelledby="u_lq">'+N.tecnicos.map(t=>'<button type="button" class="op" data-ut="'+t.id+'" role="radio" aria-checked="'+(t.id===tec)+'">'+esc(t.n)+'</button>').join('')+'</div></div>'+
-  '<div class="duo" style="grid-template-columns:1fr 1fr"><div class="campo"><label for="u_de">Desde</label><input type="date" id="u_de" min="'+hoy+'" value="'+de+'"></div><div class="campo"><label for="u_a">Hasta</label><input type="date" id="u_a" min="'+hoy+'" value="'+de+'"></div></div>'+
-  '<div class="campo"><label for="u_mo">Motivo (opcional)</label><input id="u_mo" maxlength="60" placeholder="Baja, vacaciones, un curso" autocomplete="off"></div>'+
-  '<p class="dn">Lo que tuviera asignado esos días vuelve solo a «sin asignar», para que lo repartas.</p><p class="err" id="u_err" style="color:var(--mal)" hidden></p></form>'+
+  '<section class="hpaso" data-t="¿Quién falta?"><div class="ops" role="radiogroup" aria-label="Quién falta">'+N.tecnicos.map(t=>'<button type="button" class="op" data-ut="'+t.id+'" role="radio" aria-checked="'+(t.id===tec)+'">'+esc(t.n)+'</button>').join('')+'</div></section>'+
+  '<section class="hpaso" data-t="¿Qué días?"><p class="ln" id="u_q"></p><div class="duo" style="grid-template-columns:1fr 1fr"><div class="campo"><label for="u_de">Desde</label><input type="date" id="u_de" min="'+hoy+'" value="'+de+'"></div><div class="campo"><label for="u_a">Hasta</label><input type="date" id="u_a" min="'+hoy+'" value="'+de+'"></div></div>'+
+  '<div class="campo"><label for="u_mo">Motivo <small class="opc">Opcional</small></label><input id="u_mo" maxlength="60" placeholder="Baja, vacaciones, un curso" autocomplete="off"></div>'+
+  '<p class="dn">Lo que tuviera asignado esos días vuelve solo a «sin asignar», para que lo repartas.</p></section><p class="err" id="u_err" style="color:var(--mal)" hidden></p></form>'+
   '<div class="hp"><button class="btn pri ancho" form="uF">Apuntar la ausencia</button></div>');
+ const pg=pasosHoja(d,{ok:[()=>tec?'':'Elige quién falta.'],al:[null,()=>{const t=cfg.tec[tec];$('#u_q',d).textContent=t?t.n+' '+t.ap:''}]});if(tec)pg.ve(1,false);
  d.addEventListener('click',e=>{const b=e.target.closest('[data-ut]');if(!b)return;tec=b.dataset.ut;$$('[data-ut]',d).forEach(x=>x.setAttribute('aria-checked',String(x.dataset.ut===tec)));$('#u_err',d).hidden=true});
  $('#u_de',d).addEventListener('change',e=>{const x=$('#u_a',d);if(x.value<e.target.value)x.value=e.target.value});
  $('#uF',d).onsubmit=e=>{e.preventDefault();const m=$('#u_err',d),di=k=>{m.textContent=k;m.hidden=false};
@@ -1015,31 +1131,64 @@ function hAusencia(tec,dia){const hoy=K.madrid().date,de=dia&&dia>=hoy?dia:hoy;
 function vCobros(pe){const r=K.resumen(S,cfg,Date.now()),L=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&!a.pago.cobrado).sort((a,b)=>a.fin-b.fin);
  const PF=K.porFacturar(S,Date.now()).map(x=>el(x.id)).filter(Boolean);if(pe!=='facturar'&&pe!=='caja')pe='';
  let h='<div class="cab"><div><h1>Cobros</h1><p class="sub">'+(r.pend.n?(r.pend.n===1?'1 trabajo por cobrar: ':r.pend.n+' trabajos por cobrar: ')+K.eur(r.pend.total)+'.':'No hay nada por cobrar.')+'</p></div></div>';
- const T=(id,href,n,lb,sm)=>'<li><a class="rs" href="'+href+'"'+(pe===id?' aria-current="page"':'')+'><b class="num">'+n+'</b><span>'+lb+'</span><small>'+sm+'</small></a></li>';
- h+='<nav aria-label="Qué ver de los cobros"><ul class="resumen r3 pest">'+T('','#/cobros',K.eur(r.pend.total),'Por cobrar',r.pend.n===1?'1 trabajo':r.pend.n+' trabajos')+T('facturar','#/cobros/facturar',PF.length,'Por facturar',PF.length===1?'trabajo':'trabajos')+T('caja','#/cobros/caja',K.eur(r.caja.total),'Cobrado hoy','la caja y el mes')+'</ul></nav>';
- if(pe==='facturar')return h+sec('Por facturar',PF,'','Todo lo terminado está facturado.')+(PF.length?'<p class="mnota" style="margin:-4px 0 14px">Ábrelo, copia los datos, haz la factura con tu programa y toca «Marcar como facturada».</p>':'');
+ h+=pestas([{k:'',h:'#/cobros',t:'Por cobrar',n:r.pend.n},{k:'facturar',h:'#/cobros/facturar',t:'Por facturar',n:PF.length},{k:'caja',h:'#/cobros/caja',t:'Caja'}],pe,'Qué ver de los cobros');
+ if(pe==='facturar')return h+'<div class="pcuerpo"><p class="cifra"><b class="num">'+PF.length+'</b>'+(PF.length===1?'trabajo cobrado sin factura':'trabajos cobrados sin factura')+'</p>'+sec('Por facturar',PF,'','Todo lo terminado está facturado.')+(PF.length?'<p class="mnota" style="margin:-4px 0 14px">Ábrelo, copia los datos, haz la factura con tu programa y toca «Marcar como facturada».</p>':'')+'</div>';
  if(pe==='caja'){const U=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&a.pago.cobrado).sort((a,b)=>b.pago.t-a.pago.t).slice(0,5);
-  return h+'<section class="sec"><h2>Caja de hoy</h2><dl class="cifras">'+['efectivo','tarjeta','bizum','transferencia'].map(k=>'<div><dt>'+PAGO[k]+'</dt><dd class="num">'+K.eur(r.caja[k])+'</dd></div>').join('')+'</dl><p class="mnota" style="margin-top:8px">Total cobrado hoy: '+K.eur(r.caja.total)+'. Las facturas las emite el programa de facturas del negocio, no esta app.</p></section>'+(U.length?sec('Últimos cobros',U,'',''):'')+bMes()+bUrgMes()+bDeja()}
- return h+sec('Por cobrar',L,'','Todo lo terminado está cobrado.',{cobro:1})}
+  return h+'<div class="pcuerpo"><p class="cifra"><b class="num">'+K.eur(r.caja.total)+'</b>cobrado hoy</p><section class="sec"><h2>Caja de hoy</h2><dl class="cifras">'+['efectivo','tarjeta','bizum','transferencia'].map(k=>'<div><dt>'+PAGO[k]+'</dt><dd class="num">'+K.eur(r.caja[k])+'</dd></div>').join('')+'</dl><p class="mnota" style="margin-top:8px">Total cobrado hoy: '+K.eur(r.caja.total)+'. Las facturas las emite el programa de facturas del negocio, no esta app.</p></section>'+(U.length?sec('Últimos cobros',U,'',''):'')+bMes()+bUrgMes()+bDeja()+'</div>'}
+ return h+'<div class="pcuerpo"><p class="cifra"><b class="num">'+K.eur(r.pend.total)+'</b>'+(r.pend.n===1?'por cobrar, de 1 trabajo':'por cobrar, de '+r.pend.n+' trabajos')+'</p>'+sec('Por cobrar',L,'','Todo lo terminado está cobrado.',{cobro:1})+'</div>'}
 /* las urgencias con suplemento cobradas este mes, y lo que es de OOOX por ellas */
 function bUrgMes(){if(!cfg.urge)return'';const u=K.urgenciasMes(S,cfg,K.madrid().date.slice(0,7)),pc=Math.round(u.pct*100);
  return'<section class="sec" id="urgMes"><h2>Urgencias de este mes</h2><p>'+(u.n?(u.n===1?'1 urgencia cobrada':u.n+' urgencias cobradas')+' con suplemento: '+K.eur(u.base)+' sin IVA. La parte de OOOX ('+pc+' %): <b class="num">'+K.eur(u.oox)+'</b>.':'Este mes todavía no se ha cobrado ninguna urgencia con suplemento.')+'</p><p class="mnota">El suplemento lo cobra el negocio; OOOX lo factura a final de mes. Las urgencias de clientes con contrato van sin suplemento y no cuentan.</p></section>'}
 
-/* ===== centralita: aviso nuevo, de una llamada ===== */
-const B={av:'',or:'llamada',cuando:'',dia:'',fr:'',nomap:'',tel:'',dir:'',cp:'',nota:'',err:''};
+/* ===== centralita: aviso nuevo, de una llamada =====
+   Paso a paso (20-11-2026, como la cita: «uno a uno, una pantalla simple que vas avanzando»): 1 qué le pasa, 2 cuándo
+   (urgente, o con cita: día y franja), 3 quién es (el teléfono primero: si ya es cliente, se rellena lo demás), 4 dónde es
+   y, al final, el resumen con por dónde ha entrado y lo que cuenta. Cada paso tiene su dirección (#/nuevo/cu…): el
+   «atrás» del navegador vuelve al anterior, y no se salta a un paso sin lo de antes. Visto el resumen, «Continuar» vuelve
+   a él en cuanto está todo */
+const B={av:'',or:'llamada',cuando:'',dia:'',fr:'',nomap:'',tel:'',dir:'',cp:'',nota:'',err:'',visto:false};
+const NP=['av','cu','qui','don'],NPT={av:'¿Qué le pasa?',cu:'¿Cuándo?',qui:'¿Quién es?',don:'¿Dónde es?'},
+ NP_DE={av:'av',cuando:'cu',franja:'cu',lleno:'cu',nomap:'qui',nombre:'qui',apellidos:'qui',tel:'qui',dir:'don',cp:'don',zona:'don'};
+/* lo que falta en un paso: la llave de su error, o '' */
+function npMal(p){const nm=x=>String(x||'').trim().replace(/\s+/g,' ');
+ if(p==='av')return B.av&&cfg.av[B.av]?'':'av';
+ if(p==='cu')return B.cuando!=='urg'&&B.cuando!=='cita'?'cuando':B.cuando==='cita'&&!B.fr?'franja':'';
+ if(p==='qui')return!K.tel9(B.tel)?'tel':!K.parteNombre(B.nomap).bien?'nomap':'';
+ if(p==='don'){if(nm(B.dir).length<5)return'dir';const z=String(B.cp).replace(/\D/g,'');return cfg.zonas.cp[z]?'':z.length===5?'zona':'cp'}
+ return''}
+const npHash=p=>p==='av'?'#/nuevo':'#/nuevo/'+p;
+function npVe(p){if(location.hash===npHash(p)){pinta();scrollTo(0,0);const t=$('#npTit');if(t)t.focus({preventScroll:true})}else location.hash=npHash(p)}
+const NERR={av:'Elige qué le pasa.',cuando:'Elige si es urgente o con cita.'};
 function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true,B.av?{av:B.av,cli:{dis:cfg.zonas.cp[B.cp]||''}}:null);if(!dias.find(x=>x.dia===B.dia))B.dia=dias.length?dias[0].dia:'';const fr=(dias.find(x=>x.dia===B.dia)||{franjas:[]}).franjas;if(!fr.find(f=>f.id===B.fr&&f.okOf))B.fr='';
  const fS=fr.find(f=>f.id===B.fr);
+ /* el paso: el de la dirección, si ya está lo de antes; si no, el primero que falta */
+ const r=ruta();let p=NP.includes(r.a)||r.a==='fin'?r.a:'av';
+ {const tope=p==='fin'?NP.length:NP.indexOf(p);for(let j=0;j<tope;j++)if(npMal(NP[j])){p=NP[j];break}}
+ if((r.a||'av')!==p)try{history.replaceState(null,'',location.pathname+location.search+npHash(p))}catch(e){}
+ B.paso=p;if(p==='fin')B.visto=true;const i=p==='fin'?NP.length:NP.indexOf(p);
  const c=(id,lb,v,o)=>'<div class="campo'+(B.err===id?' mal':'')+'"><label for="n_'+id+'">'+lb+'</label><input id="n_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(B.err===id?' aria-invalid="true" aria-describedby="e_'+id+'"':'')+'>'+(B.err===id?'<p class="err" id="e_'+id+'">'+ERR[id]+'</p>':'')+'</div>';
  const con=B.tel&&K.tel9(B.tel)?S.avisos.filter(a=>K.tel9(a.cli.tel)===K.tel9(B.tel)):[];
- return'<a class="atras" href="#/bandeja">'+I.atras+'Bandeja</a><div class="cab"><div><h1>Nuevo aviso</h1><p class="sub">Para lo que entra por teléfono, por WhatsApp o en persona. Lo que escribas aquí ya no se vuelve a escribir.</p></div></div><form class="form" id="fNuevo" novalidate>'+
-  '<div class="campo'+(B.err==='av'?' mal':'')+'"><span class="lb" id="l_av">¿Qué le pasa?</span><div class="ops" role="radiogroup" aria-labelledby="l_av"'+(B.err==='av'?' aria-invalid="true" aria-describedby="e_av"':'')+'>'+N.averias.map(a=>'<button type="button" class="op" data-b-av="'+a.id+'" role="radio" aria-checked="'+(B.av===a.id)+'">'+esc(a.n)+'</button>').join('')+'</div>'+(B.err==='av'?'<p class="err" id="e_av">Elige qué le pasa.</p>':'')+'</div>'+
-  '<div class="campo"><span class="lb" id="l_or">¿Por dónde ha entrado?</span><div><div class="seg tres" role="radiogroup" aria-labelledby="l_or">'+[['llamada','Llamada'],['whatsapp','WhatsApp'],['persona','En persona']].map(o=>'<button type="button" data-b-or="'+o[0]+'" role="radio" aria-checked="'+(B.or===o[0])+'">'+o[1]+'</button>').join('')+'</div></div></div>'+
-  '<div class="campo'+(B.err==='cuando'?' mal':'')+'"><span class="lb" id="l_cu">¿Cuándo?</span><div><div class="seg" role="radiogroup" aria-labelledby="l_cu"'+(B.err==='cuando'?' aria-invalid="true" aria-describedby="e_cu"':'')+'><button type="button" data-b-cu="urg" role="radio" aria-checked="'+(B.cuando==='urg')+'">Urgente</button><button type="button" data-b-cu="cita" role="radio" aria-checked="'+(B.cuando==='cita')+'">Con cita</button></div></div>'+(B.err==='cuando'?'<p class="err" id="e_cu">Elige si es urgente o con cita.</p>':'')+'</div>'+
-  (B.cuando==='cita'?'<div class="campo'+(B.err==='franja'?' mal':'')+'"><span class="lb" id="l_dia">Día y franja</span><div class="ops" role="radiogroup" aria-label="Día">'+dias.map(x=>'<button type="button" class="op" data-b-dia="'+x.dia+'" role="radio" aria-checked="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div><div class="ops" role="radiogroup" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-b-fr="'+f.id+'" role="radio" aria-checked="'+(B.fr===f.id)+'"'+(f.okOf?'':' disabled')+'>'+f.txt+'<small>'+frOf(f)+'</small></button>').join('')+'</div>'+(fS&&fS.por?'<p class="ayuda" id="n_por">'+PORL[fS.por]+'</p>':'')+(B.err==='franja'?'<p class="err">'+(B.fr?ERR.franja:'Elige una franja.')+'</p>':'')+'</div>':'')+
-  c('tel','Teléfono',B.tel,'type="tel" inputmode="tel" autocomplete="off"')+(con.length?'<p class="mnota" style="margin-top:-8px">Cliente conocido: '+(con.length===1?'1 aviso anterior':con.length+' avisos anteriores')+'. He rellenado sus datos.</p>':'')+
-  c('nomap','Nombre y apellidos',B.nomap,'autocomplete="off" maxlength="140"')+'<div class="duo">'+c('dir','Calle, número y piso',B.dir,'autocomplete="off"')+c('cp','Código postal',B.cp,'inputmode="numeric" maxlength="5" autocomplete="off"')+'</div>'+(B.err==='zona'?'<p class="err" style="color:var(--mal);margin-top:-8px">'+ERR.zona+'</p>':'')+
-  '<div class="campo"><label for="n_nota">Qué cuenta el cliente</label><textarea id="n_nota" data-b="nota" placeholder="Opcional">'+esc(B.nota)+'</textarea></div>'+
-  '<button class="btn pri ancho" type="submit">Crear el aviso</button></form>'}
+ const cuTxt=()=>B.cuando==='urg'?'Urgente':B.fr?diaCorto(B.dia).replace(/^./,x=>x.toUpperCase())+', '+frTxt(B.fr):'Con cita';
+ /* arriba: la barra de los pasos, con «atrás»; la pregunta, y lo que ya está elegido en una línea */
+ const prog='<nav class="prog" aria-label="Pasos">'+(i>0?'<button type="button" class="atras" data-np="'+(p==='fin'?'don':NP[i-1])+'" aria-label="Atrás">':'<button type="button" class="atras no" tabindex="-1" aria-hidden="true">')+I.atras+'</button><ol>'+
+  NP.map((x,j)=>'<li class="'+(j<i?'ok':j===i?'ya':'')+'"'+(j===i?' aria-current="step"':'')+'><span class="vh">'+NPT[x]+'</span></li>').join('')+'</ol><span class="pn">'+(p==='fin'?'Último paso':'Paso '+(i+1)+' de '+NP.length)+'</span></nav>';
+ const lleva=[i>0&&B.av?esc(cfg.av[B.av].n):'',i>1?cuTxt():'',i>3?esc(B.nomap):''].filter(Boolean).join(' · ');
+ const cab='<a class="atras" href="#/bandeja">'+I.atras+'Bandeja</a><div class="cab"><div><h1>Nuevo aviso</h1>'+(p==='av'?'<p class="sub">Para lo que entra por teléfono, por WhatsApp o en persona. Lo que escribas aquí ya no se vuelve a escribir.</p>':'')+'</div></div>'+
+  prog+'<h2 class="npq" id="npTit" tabindex="-1">'+(p==='fin'?'Revisa y crea el aviso':NPT[p])+'</h2>'+(lleva&&p!=='fin'?'<p class="lleva">'+lleva+'</p>':'');
+ const malP=k=>B.err===k?'<p class="err" id="e_'+k+'">'+(NERR[k]||ERR[k])+'</p>':'';
+ let h='';
+ if(p==='av')h='<div class="campo'+(B.err==='av'?' mal':'')+'"><div class="ops" role="radiogroup" aria-label="Qué le pasa"'+(B.err==='av'?' aria-invalid="true" aria-describedby="e_av"':'')+'>'+N.averias.map(a=>'<button type="button" class="op" data-b-av="'+a.id+'" role="radio" aria-checked="'+(B.av===a.id)+'">'+esc(a.n)+'</button>').join('')+'</div>'+malP('av')+'</div>';
+ else if(p==='cu')h='<div class="campo'+(B.err==='cuando'?' mal':'')+'"><div class="ops" role="radiogroup" aria-label="Cuándo"'+(B.err==='cuando'?' aria-invalid="true" aria-describedby="e_cuando"':'')+'>'+
+   '<button type="button" class="op" data-b-cu="urg" role="radio" aria-checked="'+(B.cuando==='urg')+'">Urgente<small>Va quien llegue antes</small></button><button type="button" class="op" data-b-cu="cita" role="radio" aria-checked="'+(B.cuando==='cita')+'">Con cita<small>Eliges día y franja</small></button></div>'+malP('cuando')+'</div>'+
+  (B.cuando==='cita'?'<div class="campo'+(B.err==='franja'?' mal':'')+'"><span class="lb" id="l_dia">Día y franja</span><div class="ops" role="radiogroup" aria-label="Día">'+dias.map(x=>'<button type="button" class="op" data-b-dia="'+x.dia+'" role="radio" aria-checked="'+(B.dia===x.dia)+'">'+diaCorto(x.dia)+'</button>').join('')+'</div><div class="ops" role="radiogroup" aria-label="Franja">'+fr.map(f=>'<button type="button" class="op" data-b-fr="'+f.id+'" role="radio" aria-checked="'+(B.fr===f.id)+'"'+(f.okOf?'':' disabled')+'>'+f.txt+'<small>'+frOf(f)+'</small></button>').join('')+'</div>'+(fS&&fS.por?'<p class="ayuda" id="n_por">'+PORL[fS.por]+'</p>':'')+(B.err==='franja'?'<p class="err">'+(B.fr?ERR.franja:'Elige una franja.')+'</p>':'')+'</div>':'');
+ else if(p==='qui')h=c('tel','Teléfono',B.tel,'type="tel" inputmode="tel" autocomplete="off"')+(con.length?'<p class="mnota" style="margin-top:-8px">Cliente conocido: '+(con.length===1?'1 aviso anterior':con.length+' avisos anteriores')+'. He rellenado sus datos.</p>':'')+c('nomap','Nombre y apellidos',B.nomap,'autocomplete="off" maxlength="140"');
+ else if(p==='don')h='<div class="duo">'+c('dir','Calle, número y piso',B.dir,'autocomplete="off"')+c('cp','Código postal',B.cp,'inputmode="numeric" maxlength="5" autocomplete="off"')+'</div>'+(B.err==='zona'?'<p class="err" style="color:var(--mal);margin-top:-8px">'+ERR.zona+'</p>':'');
+ else{const fila=(t,v,k)=>'<li><span><small>'+t+'</small>'+v+'</span><a class="txt" href="'+npHash(k)+'">Cambiar</a></li>';
+  h='<ul class="npres">'+fila('Qué le pasa',esc(cfg.av[B.av].n),'av')+fila('Cuándo',esc(cuTxt()),'cu')+fila('Quién',esc(B.nomap)+' · '+K.telBonito(K.tel9(B.tel)),'qui')+fila('Dónde',esc(B.dir)+', '+esc(String(B.cp).replace(/\D/g,'')),'don')+'</ul>'+
+   '<div class="campo"><span class="lb" id="l_or">¿Por dónde ha entrado?</span><div><div class="seg tres" role="radiogroup" aria-labelledby="l_or">'+[['llamada','Llamada'],['whatsapp','WhatsApp'],['persona','En persona']].map(o=>'<button type="button" data-b-or="'+o[0]+'" role="radio" aria-checked="'+(B.or===o[0])+'">'+o[1]+'</button>').join('')+'</div></div></div>'+
+   '<div class="campo"><label for="n_nota">Qué cuenta el cliente <small class="opc">Opcional</small></label><textarea id="n_nota" data-b="nota" placeholder="Lo que le pasa, con sus palabras">'+esc(B.nota)+'</textarea></div>'+
+   (B.err&&!NP_DE[B.err]?'<p class="err" style="color:var(--mal)" role="alert">'+(ERR[B.err]||'No se ha podido crear el aviso.')+'</p>':'')}
+ return cab+'<form class="form" id="fNuevo" data-paso="'+p+'" novalidate>'+h+'<div class="sigue"><button class="btn pri ancho" type="submit">'+(p==='fin'?'Crear el aviso':'Continuar')+'</button></div></form>'}
 
 /* ===== los papeles ===== */
 /* ===== centralita: los contratos de mantenimiento =====
@@ -1047,13 +1196,13 @@ function vNuevo(){const dias=K.diasDe(S,cfg,Date.now(),5,true,B.av?{av:B.av,cli:
    renueva si el cliente dice que sí y apunta la baja. Los avisos del cliente lo saben solos. */
 const PLANES=Object.keys(cfg.planes||{}),HAY_CON=()=>pro()&&PLANES.length>0,contrato=id=>(S.contratos||[]).find(c=>c.id===id);
 const incluye=x=>{const P=cfg.planes[x];if(!P)return'';return[(P.revisiones===1?'Una revisión':P.revisiones+' revisiones')+' al año, con el desplazamiento',P.desp||cfg.urge?'en las urgencias sin '+[P.desp?'desplazamiento':'',cfg.urge?'suplemento de urgencia':''].filter(Boolean).join(' ni '):'',P.prioridad?'y sus avisos van primero':''].filter(Boolean).join(', ')+'. IVA del '+P.iva+' % incluido.'};
-function bContrato(A){
+function bContrato(A,sinOferta){
  /* la oficina lo ofrece en cualquier aviso abierto; el técnico, en el suyo, en casa del cliente (trabajando o recién acabado) */
  const puede=Q.rol==='centralita'?A.e!=='cancelado':Q.rol==='tecnico'&&A.tec===Q.id&&(A.e==='curso'||(A.e==='hecho'&&A.fin&&K.madrid(A.fin).date===K.madrid().date));
  /* el cliente ha pedido la revisión desde su zona diciendo que quiere el plan (19-11-2026): darlo de alta antes de la visita */
  const Pq=!A.con&&A.quiere&&cfg.planes[A.quiere]&&A.e!=='cancelado'&&!K.contratoDe(S,A.cli,K.madrid().date)?cfg.planes[A.quiere]:null;
  if(Pq)return'<p class="ojo con" id="conQ">El cliente quiere el '+esc(Pq.n.toLowerCase())+' ('+K.eur(Pq.precio)+' al año). Con el contrato dado de alta antes de empezar, esta revisión va incluida.'+(puede&&HAY_CON()&&A.cli.tel&&A.cli.dir?' <button class="btn peq" data-a="conAlta" data-id="'+A.id+'">Dar de alta el contrato</button>':'')+'</p>';
- if(!A.con)return puede&&HAY_CON()&&A.cli.tel&&A.cli.dir&&!K.contratoDe(S,A.cli,K.madrid().date)?'<p class="acts" id="conOf"><button class="txt" data-a="conAlta" data-id="'+A.id+'">Ofrecer el contrato de mantenimiento</button></p>':'';
+ if(!A.con)return!sinOferta&&puede&&HAY_CON()&&A.cli.tel&&A.cli.dir&&!K.contratoDe(S,A.cli,K.madrid().date)?'<p class="acts" id="conOf"><button class="txt" data-a="conAlta" data-id="'+A.id+'">Ofrecer el contrato de mantenimiento</button></p>':'';
  return'<p class="ojo con" id="conB">Cliente con contrato de mantenimiento '+(Q.rol==='centralita'?'<a href="#/contratos">'+esc(A.con.id)+'</a>':esc(A.con.id))+': '+(A.con.rev?'la revisión y el desplazamiento van incluidos':A.urg&&A.av!==K.REV&&K.gratisDe(A).length?'en esta urgencia no se cobra '+K.gratisDe(A).map(k=>k===cfg.urge?'el suplemento de urgencia':'el desplazamiento').join(' ni '):'sus avisos van primero')+'.</p>'}
 /* Contratos: arriba, lo que piden (renovar, dar cita a la revisión, cobrar la cuota), una línea cada uno con su botón;
    debajo, una fila por contrato. Lo que se hace con un contrato (ver el papel, copiar la factura, cobrar, renovar y dar de
@@ -1067,12 +1216,14 @@ function vContratos(){const ahora=Date.now(),hoy=K.madrid().date,Pd=K.pendientes
   .concat(Pd.cobrar.map(x=>{const C=contrato(x.id),u=C&&C.per[C.per.length-1],di=u&&u.pago&&u.pago.dice;
    return li(di?'atn':'','Cuota por cobrar · '+nom(x.id),esc(x.id)+' · '+K.eur(x.precio)+(di?' · el cliente dice que la ha pagado por '+PAGO[di.modo].toLowerCase():''),'<button class="btn peq" data-a="conCob" data-c="'+x.id+'">Apuntar cobro</button>')}));
  let h='<div class="cab"><div><h1>Contratos</h1><p class="sub">'+(act?(act===1?'1 contrato de mantenimiento en marcha.':act+' contratos de mantenimiento en marcha.'):'Todavía no hay ningún contrato de mantenimiento.')+'</p></div><button class="btn pri peq" data-a="conAlta">'+I.mas+'Nuevo contrato</button></div>';
- h+='<div class="dosc">';
- if(al.length)h+='<section class="sec tareas"><h2>Por hacer <span class="n">'+al.length+'</span></h2><ul class="porhacer" id="conAl" aria-label="Lo que piden los contratos">'+al.join('')+'</ul></section>';
+ /* con su marco (20-11-2026): «Por hacer» (lo que piden: renovar, la revisión, la cuota), «Contratos» y «Planes» */
+ const r0=ruta(),k=['hacer','lista','planes'].includes(r0.a)?r0.a:al.length?'hacer':'lista';
+ h+=pestas([{k:'hacer',h:'#/contratos/hacer',t:'Por hacer',n:al.length},{k:'lista',h:'#/contratos/lista',t:'Contratos',n:L.length},{k:'planes',h:'#/contratos/planes',t:'Planes'}],k,'Qué ver de los contratos')+'<div class="pcuerpo">';
+ if(k==='hacer')return h+'<section class="sec tareas"><h2>Por hacer <span class="n">'+al.length+'</span></h2>'+(al.length?'<ul class="porhacer" id="conAl" aria-label="Lo que piden los contratos">'+al.join('')+'</ul>':'<p class="hueco">Nada pendiente: ni renovaciones, ni revisiones sin cita, ni cuotas por cobrar.</p>')+'</section></div>';
+ if(k==='planes')return h+'<section class="sec"><h2>Planes</h2><p class="mnota">'+PLANES.map(x=>'<b>'+esc(cfg.planes[x].n)+'</b>, '+K.eur(cfg.planes[x].precio)+' al año: '+incluye(x)).join('<br>')+' No se renueva solo, y el cliente se da de baja cuando quiera.</p></section></div>';
  h+='<section class="sec todos"><h2>Los contratos <span class="n">'+L.length+'</span></h2>'+(L.length?'<ul class="lista">'+L.map(C=>{const u=C.per[C.per.length-1],vig=K.vigente(C,hoy),bz=barrio({cli:C.cli});
    const est=C.e!=='activo'?'<span class="pill">De baja</span>':!vig?'<span class="pill ausente">Vencido</span>':!u.pago.cobrado?'<span class="pill cobro">Por cobrar</span>':'';
    return'<li><button type="button" class="fila cont'+(C.e!=='activo'?' baja':'')+'" data-a="conVer" data-c="'+C.id+'"><span class="f1">'+esc(K.nomCli(C.cli))+'</span><span class="f2">'+esc(C.id)+' · hasta el '+K.fechaCorta(u.a)+(bz?' · '+esc(bz):'')+'</span>'+(est?'<span class="fd">'+est+'</span>':'')+'</button></li>'}).join('')+'</ul>':'<p class="hueco">Cuando un cliente diga que sí, se da de alta aquí o desde su aviso.</p>')+'</section>';
- h+='<p class="mnota" style="margin-top:14px">'+PLANES.map(x=>'<b>'+esc(cfg.planes[x].n)+'</b>, '+K.eur(cfg.planes[x].precio)+' al año: '+incluye(x)).join('<br>')+' No se renueva solo, y el cliente se da de baja cuando quiera.</p>';
  return h+'</div>'}
 /* un contrato, con todo lo que se puede hacer con él */
 function hConVer(C){const P=cfg.planes[C.plan],u=C.per[C.per.length-1],hoy=K.madrid().date,vig=K.vigente(C,hoy),ren=K.pendientesContratos(S,cfg,Date.now()).renovar.some(x=>x.id===C.id);
@@ -1085,17 +1236,22 @@ function hConVer(C){const P=cfg.planes[C.plan],u=C.per[C.per.length-1],hoy=K.mad
 
 function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;const c=A?A.cli:{},l=A&&A.idioma||'';   /* lo que firma el cliente, en su idioma */
  const pl=x=>esc(cfg.planes[x].n)+' · '+K.eur(cfg.planes[x].precio)+' al año',cp=(id,lb,v,o)=>'<div class="campo"><label for="ca_'+id+'">'+lb+'</label><input id="ca_'+id+'" value="'+esc(v||'')+'" '+(o||'')+' autocomplete="off"></div>';
+ /* paso a paso (20-11-2026): el plan, los datos del cliente, cómo dice que sí (con lo de los 14 días delante y, si firma,
+    su firma) y si lo paga ya. Si al dar de alta falla un dato, se vuelve a su paso */
  const d=hoja(hc('Contrato de mantenimiento')+'<form class="hb" id="caF" novalidate>'+
-  (PLANES.length>1?'<div class="campo"><span class="lb" id="ca_pl">Plan</span><div class="ops" role="radiogroup" aria-labelledby="ca_pl">'+PLANES.map(x=>'<button type="button" class="op" data-cp="'+x+'" role="radio" aria-checked="'+(x===plan)+'">'+pl(x)+'</button>').join('')+'</div></div>':'<p><b>'+pl(plan)+'</b></p>')+
-  '<p class="dn" id="ca_inc">'+incluye(plan)+'</p>'+
-  cp('nomap','Nombre y apellidos',K.nomCli(c),'maxlength="140"')+cp('tel','Teléfono',c.tel?K.telBonito(c.tel):'','inputmode="tel" maxlength="20"')+
-  '<div class="duo">'+cp('dir','Dirección (calle, número, piso)',c.dir,'maxlength="120"')+cp('cp','Código postal',c.cp,'inputmode="numeric" maxlength="5"')+'</div>'+
-  '<div class="campo"><span class="lb" id="ca_al">Cómo dice que sí</span><div class="ops" role="radiogroup" aria-labelledby="ca_al"><button type="button" class="op" data-ca="firma" role="radio" aria-checked="true">Firma aquí</button><button type="button" class="op" data-ca="mensaje" role="radio" aria-checked="false">Lo ha dicho por mensaje</button></div></div>'+
-  '<div class="firma" id="ca_fz"><div class="fh"><span class="lb"'+(l?' lang="'+l+'"':'')+'>'+esc(_c('Firma del cliente',null,l))+'</span><button class="txt" id="caB" type="button">Borrar</button></div><canvas id="caFi" aria-label="Zona para firmar con el dedo"></canvas></div>'+
+  '<section class="hpaso" data-t="'+(PLANES.length>1?'¿Qué plan?':'El plan')+'">'+(PLANES.length>1?'<div class="ops" role="radiogroup" aria-label="Plan">'+PLANES.map(x=>'<button type="button" class="op" data-cp="'+x+'" role="radio" aria-checked="'+(x===plan)+'">'+pl(x)+'</button>').join('')+'</div>':'<p><b>'+pl(plan)+'</b></p>')+
+  '<p class="dn" id="ca_inc">'+incluye(plan)+'</p></section>'+
+  '<section class="hpaso" data-t="Datos del cliente">'+cp('nomap','Nombre y apellidos',K.nomCli(c),'maxlength="140"')+cp('tel','Teléfono',c.tel?K.telBonito(c.tel):'','inputmode="tel" maxlength="20"')+
+  '<div class="duo">'+cp('dir','Dirección (calle, número, piso)',c.dir,'maxlength="120"')+cp('cp','Código postal',c.cp,'inputmode="numeric" maxlength="5"')+'</div></section>'+
+  '<section class="hpaso" data-t="¿Cómo dice que sí?"><div class="ops" role="radiogroup" aria-label="Cómo dice que sí"><button type="button" class="op" data-ca="firma" role="radio" aria-checked="true">Firma aquí</button><button type="button" class="op" data-ca="mensaje" role="radio" aria-checked="false">Lo ha dicho por mensaje</button></div>'+
   '<div class="des"><p>Tiene 14 días para desistir. Si quiere la revisión antes, márcalo: si desiste después de la revisión, paga la parte proporcional.</p><label class="chk"><input type="checkbox" id="ca_pide"> Quiere la revisión antes de esos 14 días</label></div>'+
-  '<div class="campo"><span class="lb">¿Lo paga ya?</span><div id="caM">'+modos(['efectivo','tarjeta','bizum','transferencia','pendiente'],modo)+'</div></div>'+
+  '<div class="firma" id="ca_fz"><div class="fh"><span class="lb"'+(l?' lang="'+l+'"':'')+'>'+esc(_c('Firma del cliente',null,l))+'</span><button class="txt" id="caB" type="button">Borrar</button></div><canvas id="caFi" aria-label="Zona para firmar con el dedo"></canvas></div></section>'+
+  '<section class="hpaso" data-t="¿Lo paga ya?"><div id="caM">'+modos(['efectivo','tarjeta','bizum','transferencia','pendiente'],modo)+'</div></section>'+
   '<p class="err" id="ca_err" style="color:var(--mal)" hidden></p></form><div class="hp"><button class="btn pri ancho" form="caF">Dar de alta el contrato</button></div>',{llena:1});
  pad=Oficio.firma($('#caFi',d));$('#caB',d).onclick=()=>pad.borrar();
+ const vC=k=>$('#ca_'+k,d).value,malC=()=>{if(!K.parteNombre(vC('nomap')).bien)return ERR.nomap||'Escribe su nombre y apellidos.';if(!K.tel9(vC('tel')))return ERR.tel||'Escribe un teléfono que funcione.';
+  if(vC('dir').trim().replace(/\s+/g,' ').length<5)return ERR.dir||'Escribe la calle, el número y el piso.';const z=String(vC('cp')).replace(/\D/g,'');return cfg.zonas.cp[z]?'':(z.length===5?ERR.zona:ERR.cp)||'Revisa el código postal.'};
+ const pg=pasosHoja(d,{ok:[null,malC,()=>acepta==='firma'&&pad.vacia()?'Falta la firma del cliente.':''],al:[null,null,()=>pad.medir()]});
  d.addEventListener('click',e=>{const b=e.target.closest('[data-cp],[data-ca],[data-modo]');if(!b)return;
   if(b.dataset.cp){plan=b.dataset.cp;$$('[data-cp]',d).forEach(x=>x.setAttribute('aria-checked',String(x.dataset.cp===plan)));$('#ca_inc',d).textContent=incluye(plan)}
   else if(b.dataset.ca){acepta=b.dataset.ca;$$('[data-ca]',d).forEach(x=>x.setAttribute('aria-checked',String(x.dataset.ca===acepta)));$('#ca_fz',d).hidden=acepta!=='firma'}
@@ -1105,7 +1261,7 @@ function hConAlta(A){let plan=PLANES[0],acepta='firma',modo='pendiente',pad;cons
   const pn=K.parteNombre(v('nomap')),a={tipo:'contrato',plan,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:v('tel'),dir:v('dir'),cp:v('cp')},acepta,pide:$('#ca_pide',d).checked};if(Q.rol==='tecnico'&&A)a.aviso=A.id;
   if(acepta==='firma')a.firma=pad.ruta();if(modo!=='pendiente')a.modo=modo;
   const bt=$('button[form=caF]',d);if(bt.disabled)return;bt.disabled=true;
-  Oficio.crear(a,Q).then(r=>{bt.disabled=false;if(!r.ok)return di(errDe(r)||'No se ha podido dar de alta.');d.close();
+  Oficio.crear(a,Q).then(r=>{bt.disabled=false;if(!r.ok){const m0=errDe(r)||'No se ha podido dar de alta.';if(['nombre','apellidos','tel','dir','cp','zona'].includes(r.err)){pg.ve(1,true);pg.falla(m0);return}return di(m0)}d.close();
    /* el técnico con servidor no tiene la lista de contratos: se queda en su aviso; el papel lo tienen la oficina y el cliente en su zona */
    if(Q.rol==='centralita'||contrato(r.id)){toast('Contrato '+r.id+' dado de alta.');location.hash='#/papel/'+r.id+'/contrato'}else{toast('Contrato '+r.id+' dado de alta. El cliente lo tiene en su zona.');pinta()}})}}
 function hConCob(C){const u=C.per[C.per.length-1],L=['efectivo','tarjeta','bizum','transferencia'];let modo=u.pago&&u.pago.dice?u.pago.dice.modo:'';
@@ -1130,25 +1286,27 @@ function vPapel(id,tipo){if(tipo==='contrato')return vPapelContrato(id);const A=
   '<div class="dacts noimp"><button class="btn pri" data-a="imprimir">Imprimir o guardar en PDF</button>'+(A.e==='hecho'?'<button class="btn" data-a="msg" data-id="'+A.id+'" data-k="hecho">Enviar al cliente</button>':'')+'</div>'}
 
 /* ===== mejoras: lo que la oficina le pide a OOOX y lo que OOOX contesta ===== */
-const SOP=Oficio.soporte,M={tipo:'',texto:'',quien:'',err:'',env:false,cambia:false,codErr:'',carga:false,sinRed:false,nov:[],pet:[]};
+const SOP=Oficio.soporte,M={paso:0,tipo:'',texto:'',quien:'',err:'',env:false,cambia:false,codErr:'',carga:false,sinRed:false,nov:[],pet:[]};
 let mP=null,MLH='';const RASTRO=[],PANT=['bandeja','agenda','equipo','furgo','cobros','contratos','nuevo','aviso','papel'];   /* RASTRO: las tres últimas pantallas (solo el nombre) antes de entrar aquí; viajan con la petición */
 const MERR={tipo:'Elige qué es: un fallo, una mejora o una duda.',texto:'Cuéntalo con algo más de detalle: al menos 10 letras.',largo:'Es demasiado largo: como mucho 2.000 letras.',clave:'Ese código de soporte no vale. Revísalo.',corto:'Escribe el código de soporte que te dio OOOX.',bloqueo:'Demasiados intentos con un código que no vale. Espera diez minutos.',limite:'Has mandado muchas peticiones seguidas. Prueba dentro de un rato.',red:'No hay conexión con OOOX. Prueba dentro de un rato.',servidor:'No se ha podido enviar. Prueba otra vez.'};
 const MPILL={mirando:'camino',aceptada:'curso',en_curso:'curso',hecha:'hecho',descartada:'ausente'},MNOV={novedad:'Novedad',oferta:'Oferta',aviso:'Aviso'};
 const mHace=x=>{const t=Date.parse(x);return isNaN(t)?'':hace(t)};
-function mListas(){const c=SOP.cache(),T=OficioSoporte.TIPOS,E=OficioSoporte.ESTADOS,enCola=c.peticiones.filter(p=>p.estado==='en_cola').length;
- let h='<section class="sec" id="mPet"><h2>Tus peticiones <span class="n">'+c.peticiones.length+'</span></h2>'+
+const mTab=()=>{const r=ruta();return r.v==='mejoras'&&['peticiones','novedades'].includes(r.a)?r.a:'pedir'};
+function mListas(){const c=SOP.cache(),T=OficioSoporte.TIPOS,E=OficioSoporte.ESTADOS,enCola=c.peticiones.filter(p=>p.estado==='en_cola').length,tab=mTab();
+ let h=tab!=='peticiones'?'':'<section class="sec" id="mPet"><h2>Tus peticiones <span class="n">'+c.peticiones.length+'</span></h2>'+
   (c.peticiones.length?'<ul class="pets">'+c.peticiones.map(p=>{const nv=M.pet.includes(p.id);
    return'<li class="pet'+(nv?' nueva':'')+'"><div class="pc"><span class="pt">'+esc(T[p.tipo]||'Petición')+'</span><span class="pill '+(MPILL[p.estado]||'')+'">'+esc(E[p.estado]||'Recibida')+'</span></div><p class="px">'+esc(p.texto)+'</p>'+
     '<p class="pm">'+(nv?'Sin leer · ':'')+(p.quien?esc(p.quien)+' · ':'')+mHace(p.creada)+'</p>'+(p.respuesta?'<div class="pr"><span class="lb">OOOX responde</span><p>'+esc(p.respuesta)+'</p></div>':'')+'</li>'}).join('')+'</ul>'
    :'<p class="hueco">'+(M.carga&&!c.t?'Buscando tus peticiones…':'Aún no has pedido nada. Lo que mandes aparecerá aquí, con su respuesta.')+'</p>')+
   (enCola?'<p class="mpie">'+(enCola===1?'Hay 1 petición sin enviar: saldrá sola cuando haya conexión.':'Hay '+enCola+' peticiones sin enviar: saldrán solas cuando haya conexión.')+' <button class="txt" type="button" data-a="mReintenta">Probar ahora</button></p>':'')+
   (M.sinRed&&!enCola?'<p class="mpie">Sin conexión con OOOX: ves lo último que se guardó en este aparato.</p>':'')+'</section>';
- h+='<section class="sec" id="mNov"><h2>Novedades de OOOX <span class="n">'+c.novedades.length+'</span></h2>'+
+ if(tab==='novedades')h+='<section class="sec" id="mNov"><h2>Novedades de OOOX <span class="n">'+c.novedades.length+'</span></h2>'+
   (c.novedades.length?'<ul class="pets">'+c.novedades.map(n=>{const nv=M.nov.includes(n.id),ok=typeof n.enlace==='string'&&/^https:\/\/[^\s"'<>]+$/.test(n.enlace);
    return'<li class="pet'+(nv?' nueva':'')+'"><div class="pc"><span class="pt">'+esc(n.titulo)+'</span><span class="pill">'+(MNOV[n.tipo]||'Novedad')+'</span></div><p class="px">'+esc(n.texto)+'</p>'+
     (ok?'<a class="txt" href="'+esc(n.enlace)+'" target="_blank" rel="noopener noreferrer">Ver más</a>':'')+'<p class="pm">'+(nv?'Sin leer · ':'')+mHace(n.desde)+'</p></li>'}).join('')+'</ul>'
    :'<p class="hueco">Cuando haya algo nuevo en la app, te lo contamos aquí.</p>')+
   '<p class="mpie">'+(c.sin_ofertas?'No recibes ofertas de OOOX. <button class="txt" type="button" data-a="mOfertas" data-q="1">Volver a recibirlas</button>':'Aquí también pueden llegarte ofertas de OOOX. <button class="txt" type="button" data-a="mOfertas" data-q="0">No quiero ofertas</button>')+'</p></section>';
+ if(tab==='pedir')return'';
  if(!Oficio.DEMO)h+='<p class="mpie"><button class="txt" type="button" data-a="mCambia">Cambiar el código de soporte</button></p>';
  return h}
 function vMejoras(){let h='<div class="cab"><div><h1>Mejoras</h1><p class="sub">Dinos qué falla o qué echas de menos. Lo lee OOOX y te contesta aquí mismo.</p></div></div>';
@@ -1156,17 +1314,26 @@ function vMejoras(){let h='<div class="cab"><div><h1>Mejoras</h1><p class="sub">
  if(!SOP.codigo()||M.cambia)return h+'<form class="form" id="fCodigo" novalidate><div class="campo'+(M.codErr?' mal':'')+'"><label for="m_cod">Código de soporte</label><input id="m_cod" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80"'+(M.codErr?' aria-invalid="true" aria-describedby="e_mcod"':' aria-describedby="a_mcod"')+'>'+
    (M.codErr?'<p class="err" id="e_mcod">'+MERR[M.codErr]+'</p>':'')+'<p class="ayuda" id="a_mcod">Te lo dio OOOX al dar de alta el negocio. Se guarda solo en este aparato.</p></div>'+
    '<button class="btn pri ancho" id="mCodOk">Guardar el código</button>'+(SOP.codigo()?'<button class="btn ancho" type="button" data-a="mCancela">Dejarlo como está</button>':'')+'</form>';
+ /* con su marco (20-11-2026): «Pedir» (el formulario, en dos pasos), «Tus peticiones» y «Novedades» */
+ {const c=SOP.cache(),tab=mTab();h+=pestas([{k:'pedir',h:'#/mejoras',t:'Pedir'},{k:'peticiones',h:'#/mejoras/peticiones',t:'Tus peticiones',n:c.peticiones.length},{k:'novedades',h:'#/mejoras/novedades',t:'Novedades',n:c.novedades.length}],tab,'Qué ver de las mejoras');
+  if(tab!=='pedir')return h+'<div class="pcuerpo" id="mLista">'+(MLH=mListas())+'</div>'}
  const T=OficioSoporte.TIPOS,eT=M.err==='tipo',eX=M.err==='texto'||M.err==='largo';
- return h+'<form class="form" id="fMejora" novalidate>'+
-  '<div class="campo'+(eT?' mal':'')+'"><span class="lb" id="l_mt">¿Qué es?</span><div><div class="seg tres" role="radiogroup" aria-labelledby="l_mt">'+Object.keys(T).map(k=>'<button type="button" data-m-tipo="'+k+'" role="radio" aria-checked="'+(M.tipo===k)+'">'+T[k]+'</button>').join('')+'</div></div><p class="err" id="e_mtipo"'+(eT?'':' hidden')+'>'+MERR.tipo+'</p></div>'+
-  '<div class="campo'+(eX?' mal':'')+'"><label for="m_texto">Cuéntalo</label><textarea id="m_texto" data-m="texto" rows="4" maxlength="2000"'+(eX?' aria-invalid="true" aria-describedby="e_mtexto"':' aria-describedby="a_mtexto"')+'>'+esc(M.texto)+'</textarea>'+
-   (eX?'<p class="err" id="e_mtexto">'+MERR[M.err]+'</p>':'<p class="ayuda" id="a_mtexto">Qué estabas haciendo, qué pasó y qué esperabas. Sin datos de tus clientes.</p>')+'</div>'+
-  '<div class="campo"><label for="m_quien">Tu nombre (opcional)</label><input id="m_quien" data-m="quien" value="'+esc(M.quien)+'" maxlength="60" autocomplete="off"></div>'+
-  '<p class="mnota">Con la petición viajan el nombre de las últimas pantallas por las que has pasado, el tamaño de la pantalla, la versión de la app y el tipo de aparato. Nada de tus avisos ni de tus clientes.</p>'+
-  '<button class="btn pri ancho" id="mOk"'+(M.env?' disabled':'')+'>'+(M.env?'Enviando…':'Enviar a OOOX')+'</button></form><div id="mLista">'+(MLH=mListas())+'</div>'}
+ /* en dos pasos (20-11-2026): qué es y, luego, cuéntalo */
+ if(eT)M.paso=0;const pq=M.paso===1&&M.tipo?1:0;
+ const prog='<nav class="prog" aria-label="Pasos">'+(pq?'<button type="button" class="atras" data-m-atras aria-label="Atrás">':'<button type="button" class="atras no" tabindex="-1" aria-hidden="true">')+I.atras+'</button><ol><li class="'+(pq?'ok':'ya')+'"'+(pq?'':' aria-current="step"')+'><span class="vh">¿Qué es?</span></li><li class="'+(pq?'ya':'')+'"'+(pq?' aria-current="step"':'')+'><span class="vh">Cuéntalo</span></li></ol><span class="pn">Paso '+(pq+1)+' de 2</span></nav>';
+ return h+'<form class="form pcuerpo" id="fMejora" data-paso="'+pq+'" novalidate>'+prog+'<h2 class="npq" id="mTit" tabindex="-1">'+(pq?'Cuéntalo':'¿Qué es?')+'</h2>'+
+  (pq?'<p class="lleva">'+T[M.tipo]+'</p>'+
+   '<div class="campo'+(eX?' mal':'')+'"><label class="vh" for="m_texto">Cuéntalo</label><textarea id="m_texto" data-m="texto" rows="5" maxlength="2000"'+(eX?' aria-invalid="true" aria-describedby="e_mtexto"':' aria-describedby="a_mtexto"')+'>'+esc(M.texto)+'</textarea>'+
+    (eX?'<p class="err" id="e_mtexto">'+MERR[M.err]+'</p>':'<p class="ayuda" id="a_mtexto">Qué estabas haciendo, qué pasó y qué esperabas. Sin datos de tus clientes.</p>')+'</div>'+
+   '<div class="campo"><label for="m_quien">Tu nombre <small class="opc">Opcional</small></label><input id="m_quien" data-m="quien" value="'+esc(M.quien)+'" maxlength="60" autocomplete="off"></div>'+
+   '<p class="mnota">Con la petición viajan el nombre de las últimas pantallas por las que has pasado, el tamaño de la pantalla, la versión de la app y el tipo de aparato. Nada de tus avisos ni de tus clientes.</p>'+
+   '<button class="btn pri ancho" id="mOk"'+(M.env?' disabled':'')+'>'+(M.env?'Enviando…':'Enviar a OOOX')+'</button>'
+  :'<div class="campo'+(eT?' mal':'')+'"><div class="ops" role="radiogroup" aria-labelledby="mTit">'+Object.keys(T).map(k=>'<button type="button" class="op" data-m-tipo="'+k+'" role="radio" aria-checked="'+(M.tipo===k)+'">'+T[k]+'</button>').join('')+'</div><p class="err" id="e_mtipo"'+(eT?'':' hidden')+'>'+MERR.tipo+'</p></div>'+
+   '<button class="btn pri ancho" id="mSig">Continuar</button>')+'</form>'}
 function mPonListas(){const x=$('#mLista'),h=mListas();if(x&&h!==MLH){x.innerHTML=h;MLH=h}}
 /* Lo que estaba sin leer al entrar se queda marcado mientras se mira; el número del menú baja a cero. */
-function mVisto(){const s=SOP.sinVer();s.nov.forEach(x=>{if(!M.nov.includes(x))M.nov.push(x)});s.pet.forEach(x=>{if(!M.pet.includes(x))M.pet.push(x)});if(s.nov.length||s.pet.length)SOP.marcaVisto()}
+/* Con pestañas (20-11-2026), solo lo de la que se está mirando: lo que no se ha visto no se da por visto */
+function mVisto(){const t=mTab();if(t==='pedir')return;const k=t==='peticiones'?'pet':'nov',s=SOP.sinVer()[k];s.forEach(x=>{if(!M[k].includes(x))M[k].push(x)});if(s.length)SOP.marcaVisto(k)}
 function mTrae(fuerza){if(!SOP||!SOP.codigo())return Promise.resolve(null);
  if(mP)return fuerza?mP.then(()=>mTrae(true)):mP;
  if(!fuerza&&!SOP.toca(60000))return Promise.resolve(null);
@@ -1176,13 +1343,14 @@ function mTrae(fuerza){if(!SOP||!SOP.codigo())return Promise.resolve(null);
   pNav();return r})}
 function mEnvia(){if(M.env)return;const p={tipo:M.tipo,texto:M.texto,quien:M.quien,pantalla:(RASTRO.join(' > ')||'bandeja')+' · '+innerWidth+'×'+innerHeight};
  const e=String(M.texto).trim().length>2000?'largo':SOP.valida(p);
- if(e){M.err=e;pinta();const i=e==='tipo'?$('#fMejora [data-m-tipo]'):$('#m_texto');if(i){i.focus({preventScroll:true});i.closest('.campo').scrollIntoView({block:'center'})}return}
+ if(e){M.err=e;if(e==='tipo')M.paso=0;pinta();const i=e==='tipo'?$('#fMejora [data-m-tipo]'):$('#m_texto');if(i){i.focus({preventScroll:true});i.closest('.campo').scrollIntoView({block:'center'})}return}
  M.env=true;M.err='';const b=$('#mOk');if(b){b.disabled=true;b.textContent='Enviando…'}
  SOP.enviar(p).then(r=>{M.env=false;
-  if(r.ok){M.tipo='';M.texto='';toast(r.enCola?'Sin conexión: queda guardada y saldrá sola.':'Enviada. Te contestamos aquí.')}
+  if(r.ok){M.tipo='';M.texto='';M.paso=0;toast(r.enCola?'Sin conexión: queda guardada y saldrá sola.':'Enviada. Te contestamos aquí.')}
   else if(r.err==='clave'&&!Oficio.DEMO){SOP.olvidaCodigo();M.cambia=true;M.codErr='clave';toast(MERR.clave)}
   else toast(MERR[r.err]||MERR.servidor);
-  const fin=()=>{if(ruta().v==='mejoras'){pinta();if(r.ok){const i=$('#fMejora [data-m-tipo]');if(i)i.focus({preventScroll:true})}}};
+  /* enviada (o guardada sin conexión), se enseña en «Tus peticiones», con su estado */
+  const fin=()=>{if(ruta().v==='mejoras'){if(r.ok&&location.hash!=='#/mejoras/peticiones')location.hash='#/mejoras/peticiones';else pinta()}};
   if(r.ok&&!r.enCola)mTrae(true).then(fin,fin);else fin()})}
 function mCodigo(){const i=$('#m_cod');if(!SOP.ponCodigo(i?i.value:'')){M.codErr='corto';pinta();const j=$('#m_cod');if(j)j.focus();return}
  M.cambia=false;M.codErr='';const b=$('#mCodOk');if(b){b.disabled=true;b.textContent='Comprobando…'}
@@ -1200,7 +1368,8 @@ function pNav(){const esT=Q.rol==='tecnico',res=K.resumen(S,cfg,Date.now()),mios
 function pinta(){S=Oficio.estado();pRed();if(!quienEntra())return pEntra();
  const r=ruta(),esT=Q.rol==='tecnico';let h,dos=false,det=false,papel=false;
  const mej=!esT&&SOP&&r.v==='mejoras';
- if(mej){if(CUR!=='mejoras'){M.nov=[];M.pet=[];mVisto();mTrae(false)}}
+ /* al entrar con algo sin leer, se abre donde está: la respuesta de OOOX o la novedad (20-11-2026) */
+ if(mej){if(CUR!=='mejoras'){M.nov=[];M.pet=[];if(!r.a){const s=SOP.sinVer(),k=s.pet.length?'peticiones':s.nov.length?'novedades':'';if(k)try{history.replaceState(null,'','#/mejoras/'+k)}catch(e){}}mTrae(false)}mVisto()}
  else if(!esT){const x=PANT.includes(r.v)?r.v:'bandeja';if(RASTRO[RASTRO.length-1]!==x){RASTRO.push(x);if(RASTRO.length>3)RASTRO.shift()}}
  if(r.v==='aviso'){det=true;if(esT)h=vAviso(r.a);else{dos=true;h='<div class="col lst">'+vBandeja(r.a)+'</div><div class="col">'+vAviso(r.a)+'</div>'}}
  else if(r.v==='papel'){det=true;papel=true;h=vPapel(r.a,r.b)}
@@ -1551,13 +1720,16 @@ function hPrecio(A,ampliar){const av=cfg.av[A.av],urg=ampliar?A.tot.urg:K.tarifa
  let lin=ampliar?[]:K.iniDe(cfg,A).map(l=>({k:l.k,q:l.q||cfg.cat[l.k].min})),local=ampliar?A.local:false,pad,otro=false,pide=false;
  const base=ampliar?A.lin.map(l=>Object.assign({},l)):[],hayMo=base.some(l=>cfg.cat[l.k]&&cfg.cat[l.k].un==='h'),PASO=HIT?HIT.paso:.25,minMo=ampliar&&hayMo?PASO:(HIT?HIT.min:1);
  const junto=()=>{const J=base.map(l=>Object.assign({},l));lin.forEach(l=>{const ya=l.k!=='otro'&&J.find(x=>x.k===l.k);if(ya)ya.q+=l.q;else J.push(Object.assign({},l))});return J};
- const d=hoja(hc(ampliar?'Añadir al trabajo':'Presupuesto')+'<div class="hb"><p class="dn">'+A.id+' · '+esc(av.n)+' · '+esc(A.cli.dir)+'</p>'+
+ /* paso a paso (20-11-2026): lo que se hace, el precio y, al final, lo que lee y firma el cliente. «No acepta el precio»
+    sale desde el precio */
+ const d=hoja(hc(ampliar?'Añadir al trabajo':'Presupuesto')+'<div class="hb"><section class="hpaso" data-t="'+(ampliar?'¿Qué añades?':'¿Qué se hace?')+'"><p class="dn">'+A.id+' · '+esc(av.n)+' · '+esc(A.cli.dir)+'</p>'+
   (ampliar?'<p class="tar">Presupuesto firmado: '+K.eur(A.tot.total)+'. Lo que añadas aquí se firma aparte.</p>':'<p class="tar">'+(urg?'Tarifa de urgencia: un '+PCT+' % más en todo menos el material. El aviso entró '+cuandoT(A.t)+'.':'Tarifa normal.')+'</p>')+
-  '<ul class="plin" id="pL"></ul><div class="campo"><span class="lb">Añadir</span><div class="ops" id="pC"></div><div id="pO"></div></div>'+
-  (ampliar?'':'<label class="chk"><input type="checkbox" id="pLoc"> Es un local o una vivienda de menos de dos años</label>')+'<div id="pT" style="display:grid;gap:14px"></div>'+
+  '<ul class="plin" id="pL"></ul><div class="campo"><span class="lb">Añadir</span><div class="ops" id="pC"></div><div id="pO"></div></div></section>'+
+  '<section class="hpaso" data-t="'+(ampliar?'El precio nuevo':'El precio')+'">'+(ampliar?'':'<label class="chk"><input type="checkbox" id="pLoc"> Es un local o una vivienda de menos de dos años</label>')+'<div id="pT" style="display:grid;gap:14px"></div></section>'+
+  '<section class="hpaso" data-t="Que lo firme el cliente"><div id="pT2"></div><div id="pD"></div>'+
   '<div class="firma"><div class="fh"><span class="lb"'+(A.idioma?' lang="'+A.idioma+'"':'')+'>'+esc(_c('Firma del cliente',null,A.idioma))+'</span><button class="txt" id="pB" type="button">Borrar</button></div><canvas id="pF" aria-label="Zona para firmar con el dedo"></canvas></div>'+
-  '<p class="dn"'+(ampliar||!A.idioma?'':' lang="'+A.idioma+'"')+'>'+(ampliar?'Solo se hace si el cliente lo firma antes.':esc(_c('Precio cerrado. Si hace falta algo más, te lo decimos antes y lo firmas.',null,A.idioma)))+'</p></div>'+
-  '<div class="hp"><button class="btn pri ancho" id="pOk" disabled>'+(ampliar?'Firmado: añadir':'Firmado: empezar')+'</button>'+(ampliar?'':'<button class="txt mal" id="pNo" type="button" style="justify-self:center">No acepta el precio</button>')+'</div>',{papel:1,llena:1,fijo:1});
+  '<p class="dn"'+(ampliar||!A.idioma?'':' lang="'+A.idioma+'"')+'>'+(ampliar?'Solo se hace si el cliente lo firma antes.':esc(_c('Precio cerrado. Si hace falta algo más, te lo decimos antes y lo firmas.',null,A.idioma)))+'</p></section></div>'+
+  '<div class="hp"><button class="btn pri ancho" id="pOk" disabled>'+(ampliar?'Firmado: añadir':'Firmado: empezar')+'</button>'+(ampliar?'':'<button class="txt mal" id="pNo" type="button" style="justify-self:center" data-desde="1">No acepta el precio</button>')+'</div>',{papel:1,llena:1,fijo:1});
  const listo=()=>{$('#pOk',d).disabled=!pad||pad.vacia()||!lin.length||(K.pideYa(K.desiste(cfg,A,lin))&&!pide)};
  /* lo que lee el cliente antes de firmar, en su idioma (17-11-2026) */
  const bDes=()=>{const c=K.desiste(cfg,A,lin),l=A.idioma;return K.pideYa(c)?'<div class="des" id="pDes"'+(l?' lang="'+l+'"':'')+'><p>'+esc(_c(DES[c],null,l))+'</p><label class="chk"><input type="checkbox" id="pPide"'+(pide?' checked':'')+'> '+esc(_c('Quiero que lo hagáis ya',null,l))+'</label></div>':ampliar?'':'<p class="dn"'+(l?' lang="'+l+'"':'')+'>'+esc(_c(DES.urgente,null,l))+'</p>'};
@@ -1569,11 +1741,13 @@ function hPrecio(A,ampliar){const av=cfg.av[A.av],urg=ampliar?A.tot.urg:K.tarifa
   const ya=new Set(lin.map(l=>l.k)),C=(ampliar&&HK?[HK]:[]).concat(av.chips).filter(k=>!ya.has(k));
   $('#pC',d).innerHTML=C.map(k=>'<button type="button" class="op" data-add="'+k+'">'+esc(k===HK?'Más tiempo':cfg.cat[k].t)+'<small>'+(k!==HK&&(GR.includes(k)||GA.includes(k))?'incluido':K.eur(k===HK?porPaso(HIT,T.tipo,urg)*(hayMo?1:Math.round(HIT.min/HIT.paso)):precioDe(k,T.tipo)))+'</small></button>').join('')+'<button type="button" class="op" data-otro>Otro material</button>';
   $('#pO',d).innerHTML=otro?'<div class="otro" style="margin-top:10px"><div class="campo"><label for="oT">Qué es</label><input id="oT" maxlength="60"></div><div class="campo"><label for="oP">Precio, €</label><input id="oP" inputmode="decimal"></div><button type="button" class="btn peq" id="oOk">Añadir</button></div>':'';
-  $('#pT',d).innerHTML='<div class="ptot"><span>'+(ampliar?'Total nuevo':'Total')+'</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">'+(ampliar&&lin.length?K.eur(T.total-A.tot.total)+' más. ':'')+'IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+'</p>'+
-   (T.motivo==='material'?'<p class="sube">El material pasa del 40 % del trabajo: Hacienda pide el IVA del 21 % en todo el trabajo.</p>':'')+bDes();
+  const tot='<div class="ptot"><span>'+(ampliar?'Total nuevo':'Total')+'</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">'+(ampliar&&lin.length?K.eur(T.total-A.tot.total)+' más. ':'')+'IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+'</p>';
+  $('#pT',d).innerHTML=tot+(T.motivo==='material'?'<p class="sube">El material pasa del 40 % del trabajo: Hacienda pide el IVA del 21 % en todo el trabajo.</p>':'');
+  $('#pT2',d).innerHTML=tot;$('#pD',d).innerHTML=bDes();
   if(cambia&&pad&&!pad.vacia()){pad.borrar();toast('Ha cambiado el precio: hay que firmar otra vez.')}listo()};
  const precioDe=(k,tipo)=>{const it=cfg.cat[k];return tipo===21?it.p21:it.p10},porPaso=(it,tipo,u)=>Math.round((tipo===21?it.p21:it.p10)*it.paso*(u&&it.u?1+cfg.recargo:1));
  p(false);pad=Oficio.firma($('#pF',d),listo);
+ pasosHoja(d,{ok:[()=>lin.length?'':'Añade lo que se hace.'],al:[null,null,()=>pad.medir()]});
  d.addEventListener('change',e=>{if(e.target&&e.target.id==='pPide'){pide=e.target.checked;listo()}});
  $('#pB',d).onclick=()=>pad.borrar();
  const loc=$('#pLoc',d);if(loc)loc.onchange=()=>{local=loc.checked;p(true)};
@@ -1594,13 +1768,16 @@ function hNoAcepta(A,local,lin){let modo='';const pres=Array.isArray(lin)&&lin.l
   else if(hacer(Object.assign({tipo:'noacepta',id:A.id,modo,local},pres)).ok){d.close();toast('Aviso cerrado: solo el desplazamiento.')}})}
 const mesesTxt=n=>n%12?n+' meses':n===12?'un año':(n/12)+' años';
 function hCierre(A){let modo='',pad;const T=A.tot,vuelve=A.av!==K.REV&&!A.con&&(A.lin||[]).map(l=>cfg.cat[l.k]).find(x=>x&&x.cada)||null;   // con contrato, sus revisiones ya las lleva el contrato
- const d=hoja(hc('Trabajo terminado')+'<div class="hb"><p class="dn">'+A.id+' · '+esc(cfg.av[A.av].n)+' · '+dur(K.minutos(A,Date.now()))+' de trabajo</p><ul class="plin">'+T.lineas.map(l=>'<li><span class="lt">'+esc(l.t)+(lq(l)?'<small>'+lq(l)+'</small>':'')+'</span><span></span><b class="num">'+(l.con||l.gar?'Incluido':K.eur(l.imp))+'</b></li>').join('')+'</ul>'+
+ /* paso a paso (20-11-2026): cómo paga (con lo hecho y el total delante), si quiere que le avisemos cuando toque volver y,
+    al final, que firme que está conforme (opcional) */
+ const d=hoja(hc('Trabajo terminado')+'<div class="hb"><section class="hpaso" data-t="'+(T.total?'¿Cómo paga?':'Lo que se ha hecho')+'"><p class="dn">'+A.id+' · '+esc(cfg.av[A.av].n)+' · '+dur(K.minutos(A,Date.now()))+' de trabajo</p><ul class="plin">'+T.lineas.map(l=>'<li><span class="lt">'+esc(l.t)+(lq(l)?'<small>'+lq(l)+'</small>':'')+'</span><span></span><b class="num">'+(l.con||l.gar?'Incluido':K.eur(l.imp))+'</b></li>').join('')+'</ul>'+
   '<div class="ptot"><span>Total</span><span class="num">'+K.eur(T.total)+'</span></div><p class="iva">IVA del '+T.tipo+' % incluido: base '+K.eur(T.base)+' + IVA '+K.eur(T.iva)+'</p>'+
-  (T.total?'<div class="campo"><span class="lb">¿Cómo paga?</span><div id="tM">'+modos(['efectivo','tarjeta','bizum','pendiente'],'')+'</div></div>':'<p class="dn">'+(A.enGar?'Va en la garantía':'Va en su contrato de mantenimiento')+': no hay nada que cobrar.</p>')+
-  (vuelve?'<label class="chk avi" id="tAv"><input type="checkbox" id="tAvi"> <span>Avisarle cuando toque volver: '+esc(vuelve.t.toLowerCase())+', dentro de '+mesesTxt(vuelve.cada)+'<small>Pregúntaselo. Solo si dice que sí.</small></span></label>':'')+
-  '<div class="firma"><div class="fh"><span class="lb"'+(A.idioma?' lang="'+A.idioma+'"':'')+'>'+esc(_c('Conforme con el trabajo (opcional)',null,A.idioma))+'</span><button class="txt" id="tB" type="button">Borrar</button></div><canvas id="tF" aria-label="Zona para firmar con el dedo"></canvas></div></div>'+
+  (T.total?'<div id="tM">'+modos(['efectivo','tarjeta','bizum','pendiente'],'')+'</div>':'<p class="dn">'+(A.enGar?'Va en la garantía':'Va en su contrato de mantenimiento')+': no hay nada que cobrar.</p>')+'</section>'+
+  (vuelve?'<section class="hpaso" data-t="¿Le avisamos cuando toque volver?"><label class="chk avi" id="tAv"><input type="checkbox" id="tAvi"> <span>Avisarle cuando toque volver: '+esc(vuelve.t.toLowerCase())+', dentro de '+mesesTxt(vuelve.cada)+'<small>Pregúntaselo. Solo si dice que sí.</small></span></label></section>':'')+
+  '<section class="hpaso" data-t="¿Firma que está conforme?"><p class="dn">Es opcional. Si no quiere firmar, cierra el trabajo igual.</p><div class="firma"><div class="fh"><span class="lb"'+(A.idioma?' lang="'+A.idioma+'"':'')+'>'+esc(_c('Conforme con el trabajo (opcional)',null,A.idioma))+'</span><button class="txt" id="tB" type="button">Borrar</button></div><canvas id="tF" aria-label="Zona para firmar con el dedo"></canvas></div></section></div>'+
   '<div class="hp"><button class="btn pri ancho" id="tOk"'+(T.total?' disabled':'')+'>Cerrar el trabajo</button></div>',{papel:1,llena:1,fijo:1});
  pad=Oficio.firma($('#tF',d));$('#tB',d).onclick=()=>pad.borrar();
+ {const n=vuelve?3:2,al=[];al[n-1]=()=>pad.medir();pasosHoja(d,{ok:[()=>T.total&&!modo?'Elige cómo paga.':''],al})}
  d.addEventListener('click',e=>{const b=e.target.closest('[data-modo],#tOk');if(!b)return;if(b.dataset.modo){modo=b.dataset.modo;$('#tM',d).innerHTML=modos(['efectivo','tarjeta','bizum','pendiente'],modo);$('#tOk',d).disabled=false}
   else if(hacer(Object.assign({tipo:'terminar',id:A.id,firma:pad.vacia()?'':pad.ruta()},T.total?{modo}:{},vuelve&&$('#tAvi',d).checked?{avisar:true}:{})).ok){d.close();toast(!T.total?(A.enGar?'Terminado. Va en garantía: no se cobra nada.':'Terminado. Va en su contrato: no se cobra nada.'):modo==='pendiente'?'Terminado. Queda por cobrar.':'Terminado y cobrado. Garantía de '+mesesTxt(cfg.meses)+'.');location.hash='#/papel/'+A.id+'/parte'}})}
 
@@ -1612,8 +1789,10 @@ function hCorrPago(A){let modo='';const L=['efectivo','tarjeta','bizum','transfe
 /* rebajar el precio (16-11-2026): se quita lo que al final no se hace o no se pone; solo hacia abajo y con su motivo */
 function hRebajar(A){const L0=A.lin.map(l=>Object.assign({},l)),L=L0.map(l=>Object.assign({},l)),o={urg:A.tot.urg,local:A.local,gratis:K.gratisDe(A),garan:K.garanDe(A)};
  const paso=l=>{const it=cfg.cat[l.k];return it&&it.un==='h'?it.paso:1},vivos=()=>L.filter(l=>l.q>0),cobrado=A.e==='hecho'&&A.pago&&A.pago.cobrado;
- const d=hoja(hc('Rebajar el precio')+'<div class="hb"><p class="dn">'+A.id+' · '+esc(cfg.av[A.av].n)+' · ahora '+K.eur(A.tot.total)+'</p><p class="ln">Quita lo que al final no se hace o no se pone. Solo se puede bajar; '+(cobrado?'como ya ha pagado, queda apuntado lo que hay que devolverle.':'el cliente no tiene que volver a firmar.')+'</p>'+
-  '<ul class="plin" id="rL"></ul><div class="ptot"><span>Nuevo total</span><span class="num" id="rT"></span></div><div class="campo"><label for="rM">Motivo <small>(lo verá el cliente en su parte)</small></label><textarea id="rM" maxlength="120" placeholder="Por ejemplo: al final no hizo falta cambiar el sifón"></textarea></div></div><div class="hp"><button class="btn pri ancho" id="rOk" disabled>Rebajar</button></div>');
+ /* dos pasos (20-11-2026): qué se quita y por qué */
+ const d=hoja(hc('Rebajar el precio')+'<div class="hb"><section class="hpaso" data-t="¿Qué se quita?"><p class="dn">'+A.id+' · '+esc(cfg.av[A.av].n)+' · ahora '+K.eur(A.tot.total)+'</p><p class="ln">Quita lo que al final no se hace o no se pone. Solo se puede bajar; '+(cobrado?'como ya ha pagado, queda apuntado lo que hay que devolverle.':'el cliente no tiene que volver a firmar.')+'</p>'+
+  '<ul class="plin" id="rL"></ul><div class="ptot"><span>Nuevo total</span><span class="num" id="rT"></span></div></section>'+
+  '<section class="hpaso" data-t="¿Por qué?"><p class="ln" id="rQ"></p><div class="campo"><label for="rM">Motivo <small>(lo verá el cliente en su parte)</small></label><textarea id="rM" maxlength="120" placeholder="Por ejemplo: al final no hizo falta cambiar el sifón"></textarea></div></section></div><div class="hp"><button class="btn pri ancho" id="rOk" disabled>Rebajar</button></div>');
  const pinta=()=>{const T=K.precio(cfg,vivos(),o),mot=$('#rM',d).value.trim().length>=3;
   $('#rL',d).innerHTML=L.map((l,i)=>{const it=cfg.cat[l.k],nom=l.k==='otro'?l.t:it?it.t:l.k;
    return'<li><span class="lt">'+esc(nom)+'<small>'+(l.q>0?(it&&it.un==='h'?OficioPapeles.dur(Math.round(l.q*60)):l.q===1?'1 unidad':l.q+' unidades'):'quitado')+'</small></span><span class="st"><button type="button" data-r="'+i+'" data-m="-1" aria-label="Menos: '+esc(nom)+'"'+(l.q<=0?' disabled':'')+'>−</button><button type="button" data-r="'+i+'" data-m="1" aria-label="Más: '+esc(nom)+'"'+(l.q>=L0[i].q?' disabled':'')+'>+</button></span><b></b></li>'}).join('');
@@ -1621,7 +1800,9 @@ function hRebajar(A){const L0=A.lin.map(l=>Object.assign({},l)),L=L0.map(l=>Obje
  d.addEventListener('click',e=>{const b=e.target.closest('[data-r],#rOk');if(!b)return;
   if(b.dataset.r){const i=+b.dataset.r,l=L[i],m=+b.dataset.m;l.q=Math.max(0,Math.min(L0[i].q,Math.round((l.q+m*paso(l))*100)/100));pinta();const n=$('[data-r="'+i+'"][data-m="'+m+'"]',d);if(n&&!n.disabled)n.focus();return}
   if(hacer({tipo:'rebajar',id:A.id,lineas:vivos(),motivo:$('#rM',d).value}).ok){d.close();toast('Precio rebajado.')}});
- $('#rM',d).addEventListener('input',pinta);pinta()}
+ $('#rM',d).addEventListener('input',pinta);pinta();
+ pasosHoja(d,{ok:[()=>{const T=K.precio(cfg,vivos(),o);return!vivos().length?'Tiene que quedar algo.':T.total<A.tot.total?'':'Quita algo: el precio solo puede bajar.'}],
+  al:[null,()=>{const T=K.precio(cfg,vivos(),o);$('#rQ',d).textContent='De '+K.eur(A.tot.total)+' a '+K.eur(T.total)+(cobrado?'. Hay que devolverle '+K.eur(A.tot.total-T.total)+'.':'.')}]})}
 
 /* ===== los toques ===== */
 const ACC={
@@ -1636,7 +1817,7 @@ const ACC={
  zona:A=>hZona(A),
  msg:(A,b)=>hMsg(A,b.dataset.k),
  mensajes:()=>hMensajes(),
- irSec:(A,b)=>{const s=document.getElementById(b.dataset.sec);if(!s)return;s.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});s.focus({preventScroll:true})},
+ irSec:(A,b)=>{const s=document.getElementById(b.dataset.sec);if(!s){if(b.dataset.ir&&location.hash!==b.dataset.ir){location.hash=b.dataset.ir;setTimeout(()=>ACC.irSec(A,b),80)}return}s.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});s.focus({preventScroll:true})},
  seguir:()=>hMensajes(true),
  escribirSi:A=>{if(hacer({tipo:'escribir',tel:A.cli.tel,si:true}).ok)toast('Vuelve a recibir los mensajes de seguimiento.')},
  idioma:(A,b)=>{const l=b.dataset.l;if((A.idioma||'es')===l)return;if(hacer({tipo:'idioma',id:A.id,idioma:l}).ok)toast('Idioma del cliente: '+({es:'castellano',ca:'catalán',en:'inglés'})[l]+'. Sus mensajes y sus papeles salen en él.')},
@@ -1686,16 +1867,22 @@ const ACC={
  mOfertas:(A,b)=>{const q=b.dataset.q==='1';b.disabled=true;SOP.ofertas(q).then(r=>{toast(r.ok?(r.sin_ofertas?'Hecho: no verás más ofertas de OOOX.':'Hecho: volverás a ver las ofertas.'):MERR.red);b.disabled=false;mPonListas();const n=$('#mLista [data-a="mOfertas"]');if(n)n.focus({preventScroll:true})})}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b){e.preventDefault();S=Oficio.estado();const A=b.dataset.id?el(b.dataset.id):null;if(b.dataset.id&&!A)return toast(ERR.estado);ACC[b.dataset.a](A,b);return}
+ const np=e.target.closest('#v [data-np]');if(np){B.err='';npVe(np.dataset.np);return}
+ /* en el ordenador, con un aviso abierto al lado: las pestañas de la bandeja cambian la lista sin cerrar el aviso */
+ const pb=e.target.closest('[data-grupo="b"][data-pesta]');if(pb&&ruta().v==='aviso'){e.preventDefault();BT=pb.dataset.pesta;pinta();return}
  const o=e.target.closest('#fNuevo [data-b-av],#fNuevo [data-b-or],#fNuevo [data-b-cu],#fNuevo [data-b-dia],#fNuevo [data-b-fr]');if(o){const x=o.dataset;if(x.bAv)B.av=x.bAv;if(x.bOr)B.or=x.bOr;if(x.bCu)B.cuando=x.bCu;if(x.bDia){B.dia=x.bDia;B.fr=''}if(x.bFr)B.fr=x.bFr;B.err='';pinta()}});
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.b){B[i.dataset.b]=i.value;
  if(i.dataset.b==='tel'){const t9=K.tel9(i.value),c=t9&&S.avisos.slice().reverse().find(a=>K.tel9(a.cli.tel)===t9);if(c&&!B.nomap&&!B.dir){B.nomap=K.nomCli(c.cli);B.dir=c.cli.dir;B.cp=c.cli.cp;pinta();const n=$('#n_tel');n.focus();n.setSelectionRange(n.value.length,n.value.length)}}}});
 document.addEventListener('change',e=>{const i=e.target;
  if(i.dataset&&i.dataset.obs)Oficio.hacer({tipo:'anotar',id:i.dataset.obs,obs:i.value},Q);
  if(i.dataset&&i.dataset.foto&&i.files[0])Oficio.foto(i.files[0]).then(f=>{if(hacer({tipo:'anotar',id:i.dataset.foto,foto:f}).ok)toast('Foto guardada en el parte.')}).catch(()=>toast('No he podido leer esa foto.'))});
-document.addEventListener('click',e=>{const t=e.target.closest('#fMejora [data-m-tipo]');if(!t)return;M.tipo=t.dataset.mTipo;if(M.err==='tipo')M.err='';
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#fMejora [data-m-atras]')){M.paso=0;M.err='';pinta();const t=$('#mTit');if(t)t.focus({preventScroll:true});return}
+ const t=e.target.closest('#fMejora [data-m-tipo]');if(!t)return;M.tipo=t.dataset.mTipo;if(M.err==='tipo')M.err='';
  $$('#fMejora [data-m-tipo]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.mTipo===M.tipo)));const x=$('#e_mtipo');if(x){x.hidden=true;x.closest('.campo').classList.remove('mal')}});
 document.addEventListener('input',e=>{const i=e.target;if(i.dataset&&i.dataset.m&&Object.prototype.hasOwnProperty.call(M,i.dataset.m))M[i.dataset.m]=i.value});
-document.addEventListener('submit',e=>{const f=e.target.id;if(f==='fMejora'){e.preventDefault();mEnvia()}else if(f==='fCodigo'){e.preventDefault();mCodigo()}else if(f==='fEntra'){e.preventDefault();entra()}});
+document.addEventListener('submit',e=>{const f=e.target.id;if(f==='fMejora'){e.preventDefault();
+  if(e.target.dataset.paso!=='1'){if(!M.tipo){M.err='tipo';pinta();const i=$('#fMejora [data-m-tipo]');if(i)i.focus();return}M.err='';M.paso=1;pinta();const t=$('#mTit');if(t)t.focus({preventScroll:true});return}
+  mEnvia()}else if(f==='fCodigo'){e.preventDefault();mCodigo()}else if(f==='fEntra'){e.preventDefault();entra()}});
 document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#eVer'))return;EN.ver=!EN.ver;pEntra();$('#e_cod').focus()});
 document.addEventListener('input',e=>{if(e.target.id==='e_cod')EN.cod=e.target.value});
 document.addEventListener('change',e=>{if(e.target.id==='e_quien')EN.quien=e.target.value});
@@ -1717,13 +1904,14 @@ document.addEventListener('keydown',e=>{const r=e.target.closest&&e.target.close
  const a=[...x.attributes].find(z=>z.name.startsWith('data-')),sel=a?'['+a.name+'="'+CSS.escape(a.value)+'"]':null,raiz=x.closest('dialog')||document;
  if(x.getAttribute('aria-checked')!=='true')x.click();requestAnimationFrame(()=>{const y=sel&&raiz.querySelector(sel)||x;if(y.isConnected)y.focus()})});
 document.addEventListener('submit',e=>{if(e.target.id!=='fNuevo')return;e.preventDefault();
- if(!B.av||!cfg.av[B.av]){B.err='av';pinta();const x=$('#fNuevo [data-b-av]');if(x)x.focus();return}
- if(B.cuando!=='urg'&&B.cuando!=='cita'){B.err='cuando';pinta();const x=$('#fNuevo [data-b-cu]');if(x)x.focus();return}
- if(B.cuando==='cita'&&!B.fr){B.err='franja';pinta();return}
+ const p=e.target.dataset.paso,foco=()=>{const i=$('#fNuevo [aria-invalid=true]')||$('#n_'+(B.err==='zona'?'cp':B.err))||$('#fNuevo [role=radio]:not([disabled])');if(i)i.focus()};
+ if(p!=='fin'){const m=npMal(p);if(m){B.err=m;pinta();foco();return}B.err='';
+  const i=NP.indexOf(p);npVe(B.visto&&NP.every(x=>!npMal(x))||i===NP.length-1?'fin':NP[i+1]);return}
+ for(const x of NP){const m=npMal(x);if(m){B.err=m;npVe(x);return}}
  if(B.va)return;B.va=true;const bt=$('#fNuevo [type=submit]');if(bt)bt.disabled=true;
  const pn=K.parteNombre(B.nomap);Oficio.crear({tipo:'pedir',av:B.av,origen:B.or,nota:B.nota,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:B.cuando==='cita'?{dia:B.dia,fr:B.fr}:null},Q).then(r=>{B.va=false;
-  if(r.ok){Object.assign(B,{av:'',or:'llamada',cuando:'',fr:'',nomap:'',tel:'',dir:'',cp:'',nota:'',err:''});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');S=Oficio.estado();if(location.hash==='#/aviso/'+r.id)pinta();else location.hash='#/aviso/'+r.id}
-  else{B.err=r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;pinta();const i=$('#n_'+(r.err==='zona'?'cp':B.err));if(i)i.focus();else toast(errDe(r)||'Revisa los datos.')}})});
+  if(r.ok){Object.assign(B,{av:'',or:'llamada',cuando:'',fr:'',nomap:'',tel:'',dir:'',cp:'',nota:'',err:'',visto:false});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');S=Oficio.estado();if(location.hash==='#/aviso/'+r.id)pinta();else location.hash='#/aviso/'+r.id}
+  else{B.err=r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;const x=NP_DE[B.err];if(x&&x!==p){npVe(x);return}pinta();if(bt)bt.disabled=false;const i=$('#n_'+(r.err==='zona'?'cp':B.err));if(i)i.focus();else toast(errDe(r)||'Revisa los datos.')}})});
 pinta();
 })();
 </script>

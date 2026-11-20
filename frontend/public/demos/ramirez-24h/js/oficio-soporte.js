@@ -80,12 +80,14 @@ function crea(o){
    return llama('oficios_buzon',Object.assign(base(),{p_version:o.version||null,p_remitente:remitente(),p_vistas:nov.length?nov:null}))})
    .then(r=>{if(!r.ok)return{ok:false,err:'red'};const d=r.datos||{};if(!d.ok)return{ok:false,err:typeof d.err==='string'?d.err:'servidor'};
     G('buzon',{peticiones:Array.isArray(d.peticiones)?d.peticiones:[],novedades:Array.isArray(d.novedades)?d.novedades:[],sin_ofertas:!!d.sin_ofertas,t:ahora()});return{ok:true}})}
- /* Cuántas cosas hay que la oficina aún no ha visto: novedades nuevas y peticiones que OOOX ha movido o contestado. */
+ /* Cuántas cosas hay que la oficina aún no ha visto: novedades nuevas y peticiones que OOOX ha movido o contestado.
+    «marcaVisto» marca como vistas las dos cosas o, con 'nov' o 'pet', solo esas: las que se están viendo (20-11-2026) */
  function sinVer(){const c=cache(),v=vistas();
   return{nov:c.novedades.filter(n=>!v.nov.includes(n.id)).map(n=>n.id),pet:c.peticiones.filter(p=>p.estado!=='en_cola'&&p.estado!=='recibida'&&v.pet[p.id]!==firma(p)).map(p=>p.id)}}
  const sinLeer=()=>{const s=sinVer();return s.nov.length+s.pet.length};
- function marcaVisto(){const c=cache(),v=vistas(),pet={};c.peticiones.forEach(p=>{if(p.estado!=='en_cola')pet[p.id]=firma(p)});
-  G('vistas',{nov:v.nov.concat(c.novedades.map(n=>n.id).filter(x=>!v.nov.includes(x))).slice(-200),pet})}
+ function marcaVisto(que){const c=cache(),v=vistas();let pet=v.pet;
+  if(que!=='nov'){pet={};c.peticiones.forEach(p=>{if(p.estado!=='en_cola')pet[p.id]=firma(p)})}
+  G('vistas',{nov:que==='pet'?v.nov:v.nov.concat(c.novedades.map(n=>n.id).filter(x=>!v.nov.includes(x))).slice(-200),pet})}
  function ofertas(quiere){return llama('oficios_ofertas',Object.assign(base(),{p_quiere:!!quiere})).then(r=>{if(!r.ok)return{ok:false,err:'red'};const d=r.datos||{};if(!d.ok)return{ok:false,err:typeof d.err==='string'?d.err:'servidor'};
   if(o.demo){G('ofertas_no',!quiere);return{ok:true,sin_ofertas:!quiere}}
   const b=L('buzon',null);if(b&&typeof b==='object'&&!Array.isArray(b)){b.sin_ofertas=!!d.sin_ofertas;G('buzon',b)}return{ok:true,sin_ofertas:!!d.sin_ofertas}})}

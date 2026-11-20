@@ -26,3 +26,33 @@ async def hasta(pg, meta='tu', espera=10000):
         if sig == 'resumen': await pg.wait_for_selector('#rConfirma, #revisa, .fallo', timeout=espera)
         else: await pg.wait_for_function("(p)=>{const f=document.querySelector('#f');return f&&f.dataset.paso!==p}", arg=p, timeout=espera)
     raise AssertionError('no llega al paso ' + meta + ' (está en ' + str(await paso(pg)) + ')')
+
+# «Nuevo aviso» de la oficina, también paso a paso (20-11-2026): qué le pasa → cuándo → quién → dónde → resumen («Crear el aviso»).
+async def sigue_nuevo(pg, siguiente, espera=10000):
+    await pg.click('#fNuevo [type=submit]')
+    await pg.wait_for_selector(f'#fNuevo[data-paso={siguiente}]', timeout=espera)
+
+async def nuevo_aviso(pg, av='atasco', urg=True, tel='', nomap='', dir='', cp='', nota='', origen='', dia=None, fr=None, crear=True):
+    """Rellena «Nuevo aviso» paso a paso. Con urg=False, cita: el día (dia) y la franja (fr) dados o la primera libre."""
+    await pg.wait_for_selector('#fNuevo[data-paso=av]')
+    await pg.locator(f'#fNuevo [data-b-av={av}]').click(); await sigue_nuevo(pg, 'cu')
+    if urg: await pg.locator('#fNuevo [data-b-cu=urg]').click()
+    else:
+        await pg.locator('#fNuevo [data-b-cu=cita]').click()
+        if dia: await pg.locator(f'#fNuevo [data-b-dia="{dia}"]').click()
+        await (pg.locator(f'#fNuevo [data-b-fr="{fr}"]') if fr else pg.locator('#fNuevo [data-b-fr]:not([disabled])').first).click()
+    await sigue_nuevo(pg, 'qui')
+    await pg.fill('#n_tel', tel); await pg.fill('#n_nomap', nomap); await sigue_nuevo(pg, 'don')
+    await pg.fill('#n_dir', dir); await pg.fill('#n_cp', cp); await sigue_nuevo(pg, 'fin')
+    if origen: await pg.locator(f'#fNuevo [data-b-or={origen}]').click()
+    if nota: await pg.fill('#n_nota', nota)
+    if crear: await pg.click('#fNuevo [type=submit]')
+
+# Hojas de la app paso a paso (20-11-2026): se pulsa «Continuar» hasta que se ve lo que se busca (el botón de acabar, la firma…).
+async def hoja_hasta(pg, sel, max_pasos=5, espera=4000):
+    for _ in range(max_pasos):
+        if await pg.locator(sel).first.is_visible(): return
+        b = pg.locator('dialog[open] [data-hps]')
+        if not await b.is_visible(): break
+        await b.click(); await pg.wait_for_timeout(200)
+    await pg.locator(sel).first.wait_for(state='visible', timeout=espera)

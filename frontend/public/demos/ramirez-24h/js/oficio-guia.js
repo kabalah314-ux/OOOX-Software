@@ -54,14 +54,18 @@ const fila=(k,id)=>{const a=q(k,'a.fila[href="#/aviso/'+id+'"]');return a?(a.clo
 function libres(){const ocup=new Set(avs().filter(a=>a.e==='camino'||a.e==='curso').map(a=>a.tec));return(N().tecnicos||[]).map(t=>t.id).filter(t=>!ocup.has(t))}
 function asignaCita(){if(clic('cen','button.tec[data-a=asignar][data-id="'+G.C+'"]'))return;const W=winDe('cen');if(!W)return;
  for(const t of (N().tecnicos||[]).map(x=>x.id))if(W.Oficio.hacer({tipo:'asignar',id:G.C,tec:t},{rol:'centralita',id:'marta'}).ok)return}
-/* «Rellenar por mí» en «Nuevo aviso»: lo que contaría Toni por teléfono, como lo apuntaría la oficina */
-function apunta(){const x=docDe('cen'),W=winDe('cen');if(!x||!W)return;cierraHojas('cen');
- const pulsa=s=>{const b=docDe('cen')&&docDe('cen').querySelector(s);if(b&&b.getAttribute('aria-checked')!=='true')b.click()};
- pulsa('#fNuevo [data-b-av=atasco]');pulsa('#fNuevo [data-b-or=llamada]');pulsa('#fNuevo [data-b-cu=urg]');
- setTimeout(()=>{const y=docDe('cen');if(!y)return;
-  [['n_tel','600 123 789'],['n_nomap','Toni Serra Puig'],['n_dir','C/ de Verdi 80, 1.º 2.ª'],['n_cp','08012'],['n_nota','El váter no traga y está a punto de salirse el agua.']].forEach(([id,v])=>{
-   const i=y.getElementById(id);if(!i)return;i.value=v;i.dispatchEvent(new W.Event('input',{bubbles:true}))});
-  setTimeout(()=>{const f=docDe('cen')&&docDe('cen').getElementById('fNuevo');if(f)f.requestSubmit()},80)},120)}
+/* «Rellenar por mí» en «Nuevo aviso»: lo que contaría Toni por teléfono, como lo apuntaría la oficina. «Nuevo aviso» va paso a
+   paso (20-11-2026): se rellena cada paso y se pulsa «Continuar», uno detrás de otro, hasta «Crear el aviso» */
+function apunta(){const W=winDe('cen');if(!W)return;cierraHojas('cen');
+ const D=()=>docDe('cen'),f=()=>D()&&D().getElementById('fNuevo');
+ const pulsa=s=>{const b=D()&&D().querySelector(s);if(b&&b.getAttribute('aria-checked')!=='true')b.click()};
+ const pon=(id,v)=>{const i=D()&&D().getElementById(id);if(!i)return;i.value=v;i.dispatchEvent(new W.Event('input',{bubbles:true}))};
+ const P={av:()=>pulsa('#fNuevo [data-b-av=atasco]'),cu:()=>pulsa('#fNuevo [data-b-cu=urg]'),qui:()=>{pon('n_tel','600 123 789');pon('n_nomap','Toni Serra Puig')},
+  don:()=>{pon('n_dir','C/ de Verdi 80, 1.º 2.ª');pon('n_cp','08012')},fin:()=>{pulsa('#fNuevo [data-b-or=llamada]');pon('n_nota','El váter no traga y está a punto de salirse el agua.')}};
+ let ult='',n=0;const paso=()=>{if(++n>40)return;const x=f();if(!x){setTimeout(paso,150);return}const p=x.dataset.paso;
+  if(p===ult){setTimeout(paso,150);return}ult=p;if(P[p])P[p]();
+  setTimeout(()=>{const y=f();if(y)y.requestSubmit();if(p!=='fin')setTimeout(paso,200)},180)};
+ if(hashDe('cen')!=='#/nuevo')ponHash('cen','#/nuevo');setTimeout(paso,150)}
 function cobra(){const A=av(G.P);if(!A)return;cierraHojas('cen');const W=winDe('cen');if(W)W.Oficio.hacer({tipo:'cobrar',id:A.id,modo:'transferencia'},{rol:'centralita',id:'marta'})}
 function asigna(){if(clic('cen','button.dar[data-id="'+G.U+'"]')||clic('cen','.btn[data-a=asignar][data-id="'+G.U+'"]'))return;
  const W=winDe('cen');if(!W)return;for(const t of libres())if(W.Oficio.hacer({tipo:'asignar',id:G.U,tec:t},{rol:'centralita',id:'marta'}).ok)return}
@@ -110,22 +114,22 @@ const PASOS=[
  {cap:2,k:'cli',t:'Y el cliente lo ve en su móvil',x:()=>{const A=av(G.U),n=A&&A.cli&&A.cli.nombre;return(n||'El cliente')+' sabe quién va, en qué furgoneta y a qué hora llega, sin llamar para preguntar.'},
   prep:()=>ponHash('cli','#/aviso/'+G.U),el:()=>[q('cli','#tit'),q('cli','.quien')||q('cli','.frase')],sig:true},
  {cap:2,k:'tec',t:'Precio cerrado, firmado con el dedo',
-  x:()=>abierta('tec')?'El cliente ve el precio, con el IVA. Firma en el recuadro con el dedo (o con el ratón) y toca «Firmado: empezar».':'Toca «Empezar»: eliges lo que se hace y el cliente firma el precio antes de empezar.',
-  el:()=>abierta('tec')?(q('tec','dialog[open] .firma')||abierta('tec')):q('tec','[data-a=empezar][data-id="'+G.U+'"]'),
+  x:()=>abierta('tec')?'Paso a paso: lo que se hace, el precio con el IVA y la firma del cliente con el dedo (o con el ratón). Toca «Continuar» y, al final, «Firmado: empezar».':'Toca «Empezar»: eliges lo que se hace y el cliente firma el precio antes de empezar.',
+  el:()=>abierta('tec')?(q('tec','dialog[open] .hpaso:not([hidden])')||abierta('tec')):q('tec','[data-a=empezar][data-id="'+G.U+'"]'),
   prep:()=>ponHash('tec','#/aviso/'+G.U),hecho:()=>en(G.U,['curso','hecho']),bot:[['Hazlo por mí',empiezaTrabajo]]},
  {cap:2,k:'tec',t:'Terminado',
-  x:()=>abierta('tec')?'Elige cómo ha pagado y toca «Cerrar el trabajo». Que firme que está conforme es opcional.':'Trabajo hecho: toca «Terminado» para cobrar y cerrar el aviso.',
-  el:()=>abierta('tec')?(q('tec','dialog[open] #tM')||abierta('tec')):q('tec','[data-a=terminar][data-id="'+G.U+'"]'),
+  x:()=>abierta('tec')?'Elige cómo ha pagado y toca «Continuar». Que firme que está conforme es opcional; al final, «Cerrar el trabajo».':'Trabajo hecho: toca «Terminado» para cobrar y cerrar el aviso.',
+  el:()=>abierta('tec')?(q('tec','dialog[open] .hpaso:not([hidden])')||abierta('tec')):q('tec','[data-a=terminar][data-id="'+G.U+'"]'),
   hecho:()=>en(G.U,['hecho']),bot:[['Hazlo por mí',termina]]},
  {cap:3,k:'hoja',t:'Los papeles salen solos',x:'El parte y la garantía, con la firma del cliente y sin escribir nada. Se los mandas por WhatsApp con un toque: el mensaje ya va escrito.',
   prep:hoja,el:()=>$('.hojap'),sig:true},
  {cap:3,k:'cen',t:'Te pagan por transferencia: apúntalo',
   x:()=>{const A=av(G.P),n=A&&A.cli&&A.cli.nombre;return(n||'Un cliente')+' te ha pagado lo de ayer por transferencia. Ábrelo en «Por cobrar», toca «Apuntar cobro», elige «Transferencia» y confírmalo.'},
   prep:()=>{const A=pendiente();G.P=A?A.id:'';ponHash('cen','#/cobros')},
-  el:()=>abierta('cen')?(q('cen','dialog[open] #oM')||abierta('cen')):hashDe('cen')==='#/aviso/'+G.P?(q('cen','.btn[data-a=cobrar][data-id="'+G.P+'"]')||q('cen','main')):(q('cen','main a[href="#/aviso/'+G.P+'"]')||q('cen','main')),
+  el:()=>abierta('cen')?(q('cen','dialog[open] #oM')||abierta('cen')):hashDe('cen').indexOf('#/aviso/'+G.P)===0?(q('cen','.btn[data-a=cobrar][data-id="'+G.P+'"]')||q('cen','main')):(q('cen','main a[href="#/aviso/'+G.P+'"]')||q('cen','main')),
   hecho:()=>{const A=av(G.P);return!A||!!(A.pago&&A.pago.cobrado)},bot:[['Hazlo por mí',cobra]]},
  {cap:3,k:'cen',t:'Y la oficina lo tiene todo',x:'Lo cobrado hoy, lo que falta por cobrar y el mes listo para tu gestoría.',
-  prep:()=>ponHash('cen','#/cobros'),el:()=>q('cen','.resumen.pest')||q('cen','main'),sig:true},
+  prep:()=>ponHash('cen','#/cobros'),el:()=>q('cen','.fija')||q('cen','main'),sig:true},
  {modal:'fin'}];
 
 /* ---------- lo que se ve: el velo, el hueco, la flecha y la burbuja ---------- */

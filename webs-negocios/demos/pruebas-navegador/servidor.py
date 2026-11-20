@@ -2,6 +2,7 @@
 # servidor local de pruebas (servidor_local.mjs), que lleva el mismo juez que el de verdad. Nada sale a internet.
 # No lleva ningún nombre ni precio escrito: lee el negocio del propio servidor de pruebas y vale para cualquier copia.
 # Uso: python3 servidor.py [puerto]     (NAVEGADOR=chromium|firefox|webkit)   Antes: node servidor_local.mjs <carpeta> <puerto>
+from cita_pasos import sigue_nuevo, hoja_hasta   # «Nuevo aviso» y las hojas van paso a paso (20-11-2026)
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')
 import asyncio, re, sys, json, time, base64, tempfile, urllib.request, urllib.parse
@@ -133,13 +134,16 @@ async def main():
 
         # ---------- 2. la oficina crea un aviso: el número lo pone el servidor ----------
         await o.goto(B + 'app.html#/nuevo'); await o.wait_for_selector('#fNuevo')
-        await o.click('#fNuevo [data-b-av]'); await o.click('[data-b-cu="urg"]')
-        await o.fill('#n_nomap', 'Marta Prueba'); await o.fill('#n_tel', '612345678'); await o.fill('#n_dir', 'Calle de la Prueba 1'); await o.fill('#n_cp', CP)
+        # «Nuevo aviso» va paso a paso (20-11-2026): qué le pasa → cuándo → quién → dónde → revisar y crear
+        await o.click('#fNuevo [data-b-av]'); await sigue_nuevo(o, 'cu'); await o.click('[data-b-cu="urg"]'); await sigue_nuevo(o, 'qui')
+        await o.fill('#n_nomap', 'Marta Prueba'); await o.fill('#n_tel', '612345678'); await sigue_nuevo(o, 'don')
+        await o.fill('#n_dir', 'Calle de la Prueba 1'); await o.fill('#n_cp', CP); await sigue_nuevo(o, 'fin')
         await o.click('#fNuevo [type=submit]'); await pasa(o, "location.hash.startsWith('#/aviso/')")
         A1 = (await o.evaluate('location.hash')).split('/')[-1]
         es(A1 == SER + '-0001' and aviso(A1) is not None and aviso(A1)['cli']['nombre'] == 'Marta' and aviso(A1)['cli']['apellidos'] == 'Prueba', f'la oficina crea un aviso y el servidor le pone el número ({A1})')
         es(await o.evaluate(tiene(A1, 'nuevo')) and await o.locator('.tec[data-tec]').count() == len(N['tecnicos']), 'el aviso se abre recién creado, listo para asignar')
-        await o.goto(B + 'app.html#/nuevo'); await o.wait_for_selector('#fNuevo'); await o.click('#fNuevo [data-b-av]'); await o.click('[data-b-cu="urg"]'); await o.fill('#n_nomap', 'Sin Teléfono'); await o.fill('#n_tel', '12'); await o.fill('#n_dir', 'Calle 2'); await o.fill('#n_cp', CP)
+        await o.goto(B + 'app.html#/nuevo'); await o.wait_for_selector('#fNuevo'); await o.click('#fNuevo [data-b-av]'); await sigue_nuevo(o, 'cu'); await o.click('[data-b-cu="urg"]'); await sigue_nuevo(o, 'qui')
+        await o.fill('#n_nomap', 'Sin Teléfono'); await o.fill('#n_tel', '12')
         h0 = cuenta()['hacer']; await o.click('#fNuevo [type=submit]'); await pasa(o, "!!document.querySelector('#e_tel')")
         es(await o.locator('#e_tel').count() == 1 and cuenta()['hacer'] == h0 and len(estado()['avisos']) == 1, 'un aviso mal rellenado se corrige en la pantalla: no llega al servidor')
 
@@ -196,7 +200,7 @@ async def main():
 
         # ---------- 7. el servidor no contesta: se sigue trabajando y sale cuando vuelve ----------
         corte(600); api('__prueba/red', {'modo': 'cae'})
-        await t2.click('[data-a=empezar]'); await t2.wait_for_selector('#pF'); await t2.wait_for_timeout(250); await firma(t2, '#pF')
+        await t2.click('[data-a=empezar]'); await t2.wait_for_selector('dialog[open] #pL'); await hoja_hasta(t2, '#pF'); await t2.wait_for_timeout(250); await firma(t2, '#pF')
         if await t2.locator('#pPide').count(): await t2.click('#pPide')   # con cita, el cliente marca que quiere que se haga ya
         await t2.click('#pOk')
         es(await pasa(t2, tiene(A1, 'curso')) and aviso(A1)['e'] == 'camino', 'con el servidor caído, el técnico firma el presupuesto y empieza: en su móvil ya está «trabajando»')
@@ -256,7 +260,7 @@ async def main():
         await o.reload(); await o.wait_for_selector('#nav a')
         es(await pasa(o, FOTO_VISTA), 'la foto no se guarda en el aparato, pero al recargar vuelve del servidor')
         # el idioma del cliente (17-11-2026): la oficina lo cambia en el aviso, el servidor lo guarda y la app lo dice
-        await o.locator(f'[data-a=idioma][data-id="{A2}"][data-l=ca]').click()
+        await o.click('.pestas [data-pesta=cliente]'); await o.locator(f'[data-a=idioma][data-id="{A2}"][data-l=ca]').click()   # su idioma, en «Cliente» (20-11-2026)
         for _ in range(60):
             if (aviso(A2) or {}).get('idioma') == 'ca': break
             await asyncio.sleep(.1)
@@ -264,7 +268,7 @@ async def main():
            'la oficina pone el catalán como idioma del cliente: llega al servidor y queda en el historial')
         fo = await o.evaluate(f"(JSON.parse(localStorage.getItem('oficio:{N['id']}:srv')).B.avisos.find(a=>a.id==='{A2}')||{{}}).foto")
         es(bool(re.fullmatch(r'f:[0-9a-f]{16}', fo or '')) and estado()['fotos'] >= 1, f'en el aparato queda solo la referencia de la foto; la foto está en el servidor ({fo})')
-        await o.click(f'.tec[data-tec={T1}]')
+        await o.click('.pestas [data-pesta=resumen]'); await o.click(f'.tec[data-tec={T1}]')
         es(await pasa(k, "/Cita confirmada/.test(document.querySelector('#v').textContent)", 12000) and N['tecnicos'][0]['n'] in await k.inner_text('#v'), 'la oficina la asigna y la página del cliente se pone al día sola, con el nombre de quien irá')
         es(await pasa(t1, tiene(A2, 'asignado')), 'y al técnico le llega')
         es(await pasa(t1, DICE('Te han asignado ' + A2)), 'y, con los avisos encendidos, le suena y lo dice')
@@ -282,7 +286,7 @@ async def main():
         await cy.close(); await cx.close()
 
         # ---------- 10 bis. la zona del cliente: la oficina le da su código y el cliente entra con él ----------
-        await o.goto(B + f'app.html#/aviso/{A1}'); await o.wait_for_selector('[data-a=zona]'); a0 = cuenta()['acceso']; await o.click('[data-a=zona]')
+        await o.goto(B + f'app.html#/aviso/{A1}/cliente'); await o.wait_for_selector('[data-a=zona]'); a0 = cuenta()['acceso']; await o.click('[data-a=zona]')   # «Su zona», en «Cliente»
         es(await pasa(o, "!!document.querySelector('#zWa')") and cuenta()['acceso'] == a0 + 1, 'oficina: «Su zona» pide el código al servidor y prepara el mensaje')
         C1 = (api('__prueba/clientes').get('612345678') or {}).get('codigo', ''); ZONA = f'cliente.html#/entra/612345678/{C1}'
         txt = await o.inner_text('dialog[open] .wa'); wa = await o.get_attribute('#zWa', 'href')
@@ -355,10 +359,10 @@ async def main():
         # ---------- 10 ter. los contratos con servidor: la oficina los da de alta; los técnicos no los reciben; el cliente los ve ----------
         if await o.evaluate('Object.keys(Oficio.cfg.planes||{}).length>0'):
             await o.goto(B + 'app.html#/contratos'); await o.wait_for_selector('.cab [data-a=conAlta]')
-            await o.click('.cab [data-a=conAlta]'); await o.wait_for_selector('#caF')
+            await o.click('.cab [data-a=conAlta]'); await o.wait_for_selector('#caF'); await hoja_hasta(o, '#ca_nomap')   # paso a paso (20-11-2026)
             for cam, val in (('nomap', 'Marta Prueba'), ('tel', '612345678'), ('dir', 'C/ del Contrato 1'), ('cp', list(N['zonas']['cp'].keys())[0])):
                 await o.fill('#ca_' + cam, val)
-            await o.click('[data-ca=mensaje]'); await o.click('#caM [data-modo=tarjeta]'); await o.click('button[form=caF]')
+            await hoja_hasta(o, '[data-ca=mensaje]'); await o.click('[data-ca=mensaje]'); await hoja_hasta(o, '#caM'); await o.click('#caM [data-modo=tarjeta]'); await o.click('button[form=caF]')
             es(await pasa(o, "!!document.querySelector('.papel.doc')&&/Contrato de mantenimiento/.test(document.querySelector('.papel.doc').textContent)", 9000), 'la oficina da de alta un contrato por el servidor y ve su papel')
             st = estado(); cs = st['cab'].get('contratos') or []
             es(len(cs) == 1 and cs[0]['cli']['tel'] == '612345678' and cs[0]['per'][0]['pago']['cobrado'] and st['cab'].get('vc') == st['v'], 'el servidor lo guarda con lo de la oficina')
@@ -378,8 +382,8 @@ async def main():
                 await asyncio.sleep(0.25)
             es(ok_srv, 'el servidor la guarda, con lo que contó')
             es(await pasa(o, f"(()=>{{const F=(Oficio.estado().furgos||{{}})['{T1}'];return !!F&&F.st['{mat}']===5}})()", 9000), 'a la oficina le llega sola')
-            await o.goto(B + f'app.html#/furgo/{T1}'); await o.wait_for_selector('#fgSt')
-            es('5' in await o.inner_text('#fgSt') and await o.locator('#fgSt [data-a=fCargar]').count() == 1, 'la oficina abre su furgoneta y puede apuntar lo que carga')
+            await o.goto(B + f'app.html#/furgo/{T1}/lleva'); await o.wait_for_selector('#fgSt')
+            es('5' in await o.inner_text('#fgSt') and await o.locator('#fgCarga').count() == 1, 'la oficina abre su furgoneta y puede apuntar lo que carga')
             await t2.wait_for_timeout(900)
             es(await t2.evaluate(f"!(Oficio.estado().furgos||{{}})['{T1}']"), 'al otro técnico no le llega la furgoneta de su compañero')
         # un técnico no da códigos

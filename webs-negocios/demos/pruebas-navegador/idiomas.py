@@ -8,7 +8,7 @@
 # Y además: el pie para cambiar de idioma, que el idioma elegido se queda (y es el mismo que el de la web), el ?lang= del
 # enlace, las fechas y las franjas en cada idioma, y lo propio del negocio (sus averías, su catálogo) traducido.
 # Uso: python3 idiomas.py [puerto]
-from cita_pasos import hasta
+from cita_pasos import hasta, hoja_hasta   # la cita y las hojas de la app van paso a paso
 import os, sys, re, asyncio, json
 NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 from reloj import pon_hora   # la hora de las pruebas es fija: ver reloj.py
@@ -38,7 +38,7 @@ async def recorre(br, lang):
         r = await app.evaluate(f"Oficio.hacer({accion},{quien})")
         if not r or not r.get('ok'): raise SystemExit(f'{lang}: falla {accion} → {json.dumps(r)}')
         return r
-    app = await ctx.new_page(); await app.goto(B + 'app.html#/bandeja'); await app.wait_for_selector('.alertas')
+    app = await ctx.new_page(); await app.goto(B + 'app.html#/bandeja/hacer'); await app.wait_for_selector('.alertas')
     k = await ctx.new_page(); k.on('pageerror', lambda e: errs.append(str(e)))
     await k.goto(B + 'cita.html'); await k.wait_for_selector('#f'); await mira(k, 'cita')
     await k.click('#sigue'); await mira(k, 'cita con errores')
@@ -218,19 +218,19 @@ async def main():
         await pg.fill('#c_nomap', 'Laia Puig Soler'); await pg.fill('#c_tel', '611 22 33 99'); await pg.fill('#c_dir', 'C/ de la Prova 12, 3r'); await pg.fill('#c_cp', CP)
         await pg.click('#f button[type=submit]'); await pg.wait_for_selector('#rConfirma'); await pg.click('#rConfirma'); await pg.wait_for_function("location.hash.startsWith('#/aviso/')")
         ID = (await pg.evaluate('location.hash')).split('/')[2]
-        await pg.goto(B + 'app.html#/aviso/' + ID); await pg.wait_for_selector('[data-a=idioma]')
+        await pg.goto(B + 'app.html#/aviso/' + ID + '/cliente'); await pg.wait_for_selector('[data-a=idioma]')   # su idioma, en «Cliente» (20-11-2026)
         es(await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{ID}').idioma") == 'ca' and await pg.locator('[data-a=idioma][aria-checked=true]').get_attribute('data-l') == 'ca',
            f'la cita pedida en catalán: el aviso ({ID}) lo apunta y la oficina lo ve marcado')
         es(await pg.evaluate('document.documentElement.lang') == 'es' and await pg.evaluate("localStorage.getItem('ramirez:lang')") == 'ca' and 'Idioma del cliente' in await pg.inner_text('main'),
            'la app de la oficina sigue en castellano (aunque el navegador tenga el catalán elegido para la web)')
         WA = "(()=>{const b=document.querySelector('dialog[open] .wa-b');return b?b.firstChild.textContent:''})()"
-        await pg.click(f'#msgPend [data-a=msg][data-id="{ID}"]'); await pg.wait_for_selector('dialog[open] .wa-b'); m = await pg.evaluate(WA)
+        await pg.click('.pestas [data-pesta=resumen]'); await pg.click(f'#msgPend [data-a=msg][data-id="{ID}"]'); await pg.wait_for_selector('dialog[open] .wa-b'); m = await pg.evaluate(WA)
         es(m.startswith('Hola, Laia. Hem rebut el teu avís ' + ID) and f'cita.html?lang=ca#/aviso/{ID}' in m and 'Segueix el teu avís aquí: ' in m, f'el mensaje, en catalán, con el enlace en catalán ({m[:90]}…)')
-        await pg.keyboard.press('Escape'); await pg.locator('[data-a=idioma][data-l=en]').click(); await pg.wait_for_timeout(150)
+        await pg.keyboard.press('Escape'); await pg.click('.pestas [data-pesta=cliente]'); await pg.locator('[data-a=idioma][data-l=en]').click(); await pg.wait_for_timeout(150)
         es(await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{ID}').idioma") == 'en' and await pg.locator('[data-a=idioma][aria-checked=true]').get_attribute('data-l') == 'en', 'la oficina lo cambia a inglés con un toque')
-        await pg.click(f'#msgPend [data-a=msg][data-id="{ID}"]'); await pg.wait_for_selector('dialog[open] .wa-b'); m = await pg.evaluate(WA)
+        await pg.click('.pestas [data-pesta=resumen]'); await pg.click(f'#msgPend [data-a=msg][data-id="{ID}"]'); await pg.wait_for_selector('dialog[open] .wa-b'); m = await pg.evaluate(WA)
         es(m.startswith('Hi, Laia. We’ve received your request ' + ID) and f'cita.html?lang=en#/aviso/{ID}' in m, f'y el mensaje sale en inglés ({m[:70]}…)')
-        await pg.keyboard.press('Escape'); await pg.click(f'[data-a=zona][data-id="{ID}"]'); await pg.wait_for_selector('dialog[open] .wa-b'); m = await pg.evaluate(WA)
+        await pg.keyboard.press('Escape'); await pg.click('.pestas [data-pesta=cliente]'); await pg.click(f'[data-a=zona][data-id="{ID}"]'); await pg.wait_for_selector('dialog[open] .wa-b'); m = await pg.evaluate(WA)
         es(m.startswith('Hi, Laia. In your ') and 'cliente.html?lang=en#/entra/' in m, f'el mensaje de su zona, también ({m[:70]}…)')
         await pg.keyboard.press('Escape')
         # el mismo cliente llama otra vez: el aviso nuevo de la oficina hereda su idioma. Y lo que lee y firma en el móvil del técnico
@@ -240,10 +240,11 @@ async def main():
           const a1=Oficio.hacer({tipo:'asignar',id:r.id,tec},C),a2=a1.ok?Oficio.hacer({tipo:'voy',id:r.id},{rol:'tecnico',id:tec}):a1;
           return{id:r.id,tec,idioma:Oficio.estado().avisos.find(a=>a.id===r.id).idioma,ok:a1.ok&&a2.ok,err:a2.err||''}})()""")
         es(X.get('ok') and X.get('idioma') == 'en', f'el mismo cliente llama otra vez: el aviso que hace la oficina hereda su idioma ({X})')
-        await pg.goto(B + f"app.html?papel=tecnico&tec={X['tec']}#/aviso/{X['id']}"); await pg.wait_for_selector('[data-a=empezar]'); await pg.click('[data-a=empezar]'); await pg.wait_for_selector('#pF')
+        await pg.goto(B + f"app.html?papel=tecnico&tec={X['tec']}#/aviso/{X['id']}"); await pg.wait_for_selector('[data-a=empezar]'); await pg.click('[data-a=empezar]'); await pg.wait_for_selector('dialog[open] #pL')
+        h1 = await pg.inner_text('dialog[open]'); await hoja_hasta(pg, '#pF')   # paso a paso (20-11-2026): lo del técnico primero; lo que firma el cliente, al final
         h = await pg.inner_text('dialog[open]')
         es(('You have 14 days to change your mind' in h or 'Emergency repair you asked for: no right of withdrawal.' in h or 'The emergency repair you asked for has no right of withdrawal.' in h)
-           and 'Customer’s signature' in h and 'Fixed price. If anything else is needed' in h and 'Presupuesto' in h and 'Tarifa' in h, 'lo que lee y firma el cliente, en su idioma; lo del técnico, en castellano')
+           and 'Customer’s signature' in h and 'Fixed price. If anything else is needed' in h and 'Presupuesto' in h and 'Que lo firme el cliente' in h and 'Tarifa' in h1, 'lo que lee y firma el cliente, en su idioma; lo del técnico, en castellano')
         await pg.keyboard.press('Escape')
         H = await pg.evaluate("(()=>{const a=Oficio.estado().avisos.find(a=>a.e==='hecho'&&a.tot&&!a.sinTrabajo);return a?a.id:''})()")
         await pg.evaluate(f"Oficio.hacer({{tipo:'idioma',id:'{H}',idioma:'en'}},{C})"); await pg.goto(B + f'app.html#/papel/{H}/parte'); await pg.wait_for_selector('article.papel')
@@ -252,8 +253,8 @@ async def main():
         ti = await pg.title()
         es(ti.startswith('Job sheet ' + H + ' '), f'y el nombre del papel (el del PDF que se le manda), también: «{ti}»')
         # el contrato de mantenimiento: al ofrecerlo en su aviso, la firma en su idioma (lo demás es de la oficina, en castellano)
-        await pg.goto(B + f"app.html#/aviso/{X['id']}"); await pg.wait_for_selector('[data-a=conAlta]')
-        await pg.click('[data-a=conAlta]'); await pg.wait_for_selector('#ca_fz')
+        await pg.goto(B + f"app.html#/aviso/{X['id']}/cliente"); await pg.wait_for_selector('[data-a=conAlta]')   # ofrecerlo, en «Cliente»
+        await pg.click('[data-a=conAlta]'); await pg.wait_for_selector('#caF'); await hoja_hasta(pg, '#ca_fz')
         es(await pg.locator('#ca_fz .lb').inner_text() == 'Customer’s signature' and await pg.locator('#ca_fz .lb').get_attribute('lang') == 'en'
            and 'Contrato de mantenimiento' in await pg.inner_text('dialog[open]'), 'al ofrecerle el contrato: la firma, en su idioma; lo demás, en castellano')
         await pg.keyboard.press('Escape')

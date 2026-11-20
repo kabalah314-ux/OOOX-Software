@@ -40,7 +40,7 @@ async def main():
     async with async_playwright() as p:
         br = await getattr(p, NAV).launch()
         ctx = await br.new_context(viewport={'width': 1280, 'height': 900}, locale='es-ES', timezone_id='Europe/Madrid'); await pon_hora(ctx)
-        c = oye(await ctx.new_page(), 'oficina'); await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('.alertas')
+        c = oye(await ctx.new_page(), 'oficina'); await c.goto(B + 'app.html#/bandeja/hacer'); await c.wait_for_selector('.alertas')
 
         # ---------- 1. «Por hacer», en «Ahora» y «Después» (UX-15) ----------
         ph = await c.locator('#bResto .ph').all_inner_texts(); L = c.locator('#bResto .alertas')
@@ -51,7 +51,7 @@ async def main():
         # un aviso que entra por el WhatsApp de la web, solo con el teléfono: no se puede asignar y va a «Ahora»
         r = await c.evaluate("Oficio.hacer({tipo:'pedir',av:'fuga',origen:'web',cli:{tel:'611222333'}},{rol:'cliente'})")
         es(r.get('ok'), f'entra un aviso por el WhatsApp de la web, solo con el teléfono ({r})'); sd = r.get('id')
-        await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('.alertas')
+        await c.goto(B + 'app.html#/bandeja/hacer'); await c.wait_for_selector('.alertas')
         li = c.locator('#bResto .alertas').nth(0).locator('li', has_text='sin los datos del cliente')
         es(await li.count() == 1 and await li.locator('a').get_attribute('href') == f'#/aviso/{sd}' and 'no se puede asignar' in await li.inner_text(),
            'en «Ahora»: «1 aviso sin los datos del cliente», que lleva a ese aviso')
@@ -119,14 +119,14 @@ async def main():
         es(vis, 'tablero: al menos un «No trabaja» se lee (los tramos muy cortos lo esconden y quedan las rayas)')
 
         # ---------- 5. el mensaje: para quién, por qué, cuándo caduca y lo último que se le mandó (UX-21) ----------
-        await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('.alertas [data-a="mensajes"]')
+        await c.goto(B + 'app.html#/bandeja/hacer'); await c.wait_for_selector('.alertas [data-a="mensajes"]')
         await c.click('.alertas [data-a="mensajes"]'); await c.wait_for_selector('dialog .msgs [data-a=msg]')
         await c.locator('dialog .msgs [data-a=msg]').first.click(); await c.wait_for_selector('dialog .mdat')
         md = await c.locator('dialog .mdat').last.inner_text()
         es(all(x in md for x in ('Para', 'Por qué', 'Último mensaje')) and re.search(r'\d{3} \d{2} \d{2} \d{2}', md), f'antes de mandarlo: para quién (nombre y teléfono), por qué y lo último que se le mandó ({md[:140]!r})')
         es(await c.locator('dialog .wa-b').count() >= 1 and await c.locator('dialog #mNo').count() == 1, 'y el texto que sale, con «No hace falta mandarlo»')
         await c.keyboard.press('Escape'); await c.wait_for_timeout(200)
-        await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('.alertas [data-a="seguir"]')
+        await c.goto(B + 'app.html#/bandeja/hacer'); await c.wait_for_selector('.alertas [data-a="seguir"]')
         await c.click('.alertas [data-a="seguir"]'); await c.wait_for_selector('dialog .msgs li')
         filas = await c.locator('dialog .msgs li').all_inner_texts()
         es(filas and all('caduca el' in f for f in filas), f'seguimiento: cada uno dice cuándo caduca ({filas[0][:90]!r})')
@@ -141,7 +141,7 @@ async def main():
             await c.goto(B + f'app.html#/papel/{hid}/{tipo}'); await c.wait_for_selector('.doc')
             t = await c.title()
             es(re.match(rf'^{nombre} {hid} \d{{2}}-\d{{2}}-\d{{4}} · ', t) is not None, f'el título del papel es su nombre: «{t}»')
-        await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('.alertas')
+        await c.goto(B + 'app.html#/bandeja/hacer'); await c.wait_for_selector('.alertas')
         es('por dentro' in await c.title(), 'al salir del papel, el título vuelve a ser el de la app')
         await ctx.close()
 

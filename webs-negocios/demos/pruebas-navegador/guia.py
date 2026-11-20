@@ -2,6 +2,7 @@
 # como lo haría quien la prueba y en el móvil con «Hazlo por mí»; que cada paso señala algo que se ve, en el móvil que toca,
 # sin que la burbuja lo tape ni se salga; salir, volver a empezar, Esc, movimiento reducido y sin errores de consola.
 # Uso: python3 guia.py [puerto]
+from cita_pasos import nuevo_aviso, hoja_hasta
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, sys
@@ -115,9 +116,7 @@ async def main():
         r = await espera_paso(pg, 6)
         C2 = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{cita['id']}')")
         es(C2['e'] == 'asignado' and 'teléfono' in r['t'] and await cen.evaluate('location.hash') == '#/nuevo', f'repartida la cita, suena el teléfono: «Nuevo aviso» ({r["t"]})')
-        await cen.locator('#fNuevo [data-b-av=atasco]').click(); await cen.locator('#fNuevo [data-b-cu=urg]').click()
-        for k, v in (('tel', '600 123 789'), ('nomap', 'Toni Serra Puig'), ('dir', 'C/ de Verdi 80, 1.º 2.ª'), ('cp', '08012')): await cen.locator('#n_' + k).fill(v)
-        await cen.locator('#fNuevo [type=submit]').click()
+        await nuevo_aviso(cen, 'atasco', True, '600 123 789', 'Toni Serra Puig', 'C/ de Verdi 80, 1.º 2.ª', '08012')
         r = await espera_paso(pg, 7)
         U = await pg.evaluate('OficioGuia.aviso()')
         A = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{U}')")
@@ -138,7 +137,8 @@ async def main():
         es('Precio' in r['t'] and r['h'], f'paso del precio firmado ({r["t"]})')
         await tec.locator(f'[data-a=empezar][data-id="{U}"]').click(); await pg.wait_for_timeout(900)
         r = await pg.evaluate(MIRA)
-        es('Firma en el recuadro' in r['x'] and r['h'], f'al abrirse la hoja, la guía cambia el texto y señala la firma ({r["x"][:40]})')
+        es('firma del cliente' in r['x'] and r['h'], f'al abrirse la hoja, la guía cambia el texto y señala el paso que toca ({r["x"][:40]})')
+        await hoja_hasta(tec, 'canvas#pF'); await tec.wait_for_timeout(300)
         cv = await tec.locator('canvas#pF').bounding_box()
         await pg.mouse.move(cv['x'] + 30, cv['y'] + cv['height'] * .6); await pg.mouse.down()
         for i in range(1, 12): await pg.mouse.move(cv['x'] + 30 + i * 18, cv['y'] + cv['height'] * (.6 - .25 * ((-1) ** i)))
@@ -147,7 +147,7 @@ async def main():
         r = await espera_paso(pg, 11)
         es('Terminado' in r['t'], f'firmar y empezar pasa a «Terminado» ({r["t"]})')
         await tec.locator(f'[data-a=terminar][data-id="{U}"]').click(); await pg.wait_for_timeout(700)
-        await tec.locator('[data-modo=tarjeta]').click(); await tec.locator('#tOk').click()
+        await tec.locator('[data-modo=tarjeta]').click(); await hoja_hasta(tec, '#tOk'); await tec.locator('#tOk').click()
         r = await espera_paso(pg, 12)
         hs = await pg.locator('.hojap iframe').get_attribute('src')
         es('papeles' in r['t'] and U in (hs or '') and r['h'], f'al cerrar, el parte de ese trabajo, señalado ({hs})')

@@ -2,6 +2,7 @@
 # leyendo todo del archivo de datos, y comprueba que no queda en pantalla ni rastro del negocio de muestra.
 # No lleva ningún nombre, precio ni teléfono escrito: vale para cualquier copia.
 # Uso: python3 negocio.py <datos-del-negocio.js> [puerto]     (NAVEGADOR=chromium|firefox|webkit)
+from cita_pasos import sigue_nuevo, hoja_hasta   # «Nuevo aviso» y las hojas van paso a paso (20-11-2026)
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')
 import asyncio, sys, re, json
@@ -97,8 +98,12 @@ async def main():
         # un aviso que entra por WhatsApp y se apunta a mano
         await c.goto(B + 'app.html#/nuevo'); await c.wait_for_selector('#fNuevo')
         es(await c.locator('[data-b-av][role=radio]').count() == len(N['averias']) and await c.locator('[data-b-av][aria-checked=true]').count() == 0, 'nuevo aviso: salen las averías del negocio y ninguna viene elegida')
-        await c.click('[data-b-av]'); await c.click('[data-b-cu="urg"]'); await c.click('[data-b-or=whatsapp]'); await c.fill('#n_tel', '622 33 44 55'); await c.fill('#n_nomap', 'Wences Canal'); await c.fill('#n_dir', 'Av. de la Prueba 3, bajo'); await c.fill('#n_cp', cp)
-        await guarda(c, 'nuevo aviso'); await c.click('#fNuevo button[type=submit]'); await c.wait_for_timeout(400)
+        # paso a paso (20-11-2026); cada paso se guarda para buscar en él restos del negocio de muestra
+        await guarda(c, 'nuevo aviso: qué le pasa'); await c.click('[data-b-av]'); await sigue_nuevo(c, 'cu')
+        await c.click('[data-b-cu="cita"]'); await guarda(c, 'nuevo aviso: cuándo'); await c.click('[data-b-cu="urg"]'); await sigue_nuevo(c, 'qui')
+        await c.fill('#n_tel', '622 33 44 55'); await c.fill('#n_nomap', 'Wences Canal'); await guarda(c, 'nuevo aviso: quién'); await sigue_nuevo(c, 'don')
+        await c.fill('#n_dir', 'Av. de la Prueba 3, bajo'); await c.fill('#n_cp', cp); await guarda(c, 'nuevo aviso: dónde'); await sigue_nuevo(c, 'fin')
+        await c.click('[data-b-or=whatsapp]'); await guarda(c, 'nuevo aviso: revisar'); await c.click('#fNuevo button[type=submit]'); await c.wait_for_timeout(400)
         S = await c.evaluate(f"JSON.parse(localStorage.getItem('{clave}'))"); W = next((a for a in S['avisos'] if a['cli']['nombre'] == 'Wences' and a['cli']['apellidos'] == 'Canal'), None)
         es(W and W['origen'] == 'whatsapp' and W['urg'], 'nuevo aviso: queda apuntado que entró por WhatsApp')
         await c.goto(B + 'app.html'); await c.wait_for_selector('.fila'); t = await guarda(c, 'bandeja con dos')
@@ -129,13 +134,15 @@ async def main():
         await tl.reload(); await tl.wait_for_selector('[data-a=voy]')
         es(not await tl.locator('.accion button[disabled]').count(), f'técnico: a las {m // 60}:{m % 60:02d} del día de la cita, «Voy» ya se puede pulsar')
         await tl.click('[data-a=voy]'); await tl.wait_for_selector('[data-a=empezar]'); await guarda(tl, 'de camino')
-        await tl.click('[data-a=empezar]'); await tl.wait_for_selector('#pF'); await tl.wait_for_timeout(250)
-        t = await guarda(tl, 'presupuesto')
+        await tl.click('[data-a=empezar]'); await tl.wait_for_selector('dialog[open] #pL'); await tl.wait_for_timeout(250)
+        t = await guarda(tl, 'presupuesto')   # paso a paso (20-11-2026): lo que se hace; luego el precio y la firma
         av = next(a for a in N['averias'] if a['id'] == A['av'])
         esperado = await tl.evaluate(f"(()=>{{const K={K},c=Oficio.cfg;return K.eur(K.precio(c,{json.dumps(av['ini'])},{{}}).total)}})()")
         es(esperado in await tl.locator('#pT').inner_text(), f'presupuesto: el total sale del catálogo del negocio ({esperado})')
         es(all(N['catalogo'][l['k']]['t'] in t for l in av['ini']), 'presupuesto: las líneas llevan los nombres del catálogo')
         es('Tarifa normal' in t, 'presupuesto: con cita, tarifa normal')
+        await hoja_hasta(tl, '#pT'); await guarda(tl, 'presupuesto: el precio')
+        await hoja_hasta(tl, '#pF'); await tl.wait_for_timeout(200); await guarda(tl, 'presupuesto: la firma')
         await firma(tl, '#pF')
         es(await tl.locator('#pOk').is_disabled() and '14 días' in await tl.locator('#pDes').inner_text(), 'presupuesto con cita: el cliente ve sus 14 días y, sin marcar la casilla, no se empieza')
         await tl.click('#pPide'); await tl.click('#pOk'); await tl.wait_for_timeout(400)
@@ -144,11 +151,11 @@ async def main():
         if horas and any(l['k'] == horas for l in av['ini']):
             antes = (await tl.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}').tot.total"))
             await tl.click('[data-a=ampliar]'); await tl.wait_for_selector('#pC'); await tl.click(f'#pC [data-add={horas}]'); await tl.wait_for_timeout(150)
-            await firma(tl, '#pF'); await tl.click('#pPide'); await tl.click('#pOk'); await tl.wait_for_timeout(400)
+            await hoja_hasta(tl, '#pF'); await tl.wait_for_timeout(200); await firma(tl, '#pF'); await tl.click('#pPide'); await tl.click('#pOk'); await tl.wait_for_timeout(400)
             paso = await tl.evaluate(f"(()=>{{const c=Oficio.cfg,it=c.cat[c.horas];return Math.round(it.p10*it.paso)}})()")
             ahora = (await tl.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}').tot.total"))
             es(ahora - antes == paso, f'ampliar: «más tiempo» suma un paso de mano de obra ({antes} → {ahora}, paso {paso})')
-        await tl.click('[data-a=terminar]'); await tl.wait_for_selector('#tM'); await tl.click('#tM [data-modo=efectivo]'); await guarda(tl, 'cierre'); await tl.click('#tOk'); await tl.wait_for_timeout(500)
+        await tl.click('[data-a=terminar]'); await tl.wait_for_selector('#tM'); await tl.click('#tM [data-modo=efectivo]'); await guarda(tl, 'cierre'); await hoja_hasta(tl, '#tOk'); await guarda(tl, 'cierre: la firma'); await tl.click('#tOk'); await tl.wait_for_timeout(500)
         F = await tl.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}')")
         es(F['e'] == 'hecho' and F['pago']['cobrado'] and F['gar'], 'los tres toques cierran el aviso, con cobro y garantía')
         for doc in ('presupuesto', 'parte', 'garantia'):
@@ -175,7 +182,7 @@ async def main():
         await tl.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{u}',tec:'{tu}'}},{{rol:'centralita'}})")
         tec = tu
         await tl.goto(B + f'app.html?papel=tecnico&tec={tec}#/aviso/{u}'); await tl.wait_for_selector('[data-a=voy]'); await tl.click('[data-a=voy]'); await tl.wait_for_selector('[data-a=empezar]')
-        await tl.click('[data-a=empezar]'); await tl.wait_for_selector('#pF'); t = await guarda(tl, 'presupuesto urgente')
+        await tl.click('[data-a=empezar]'); await tl.wait_for_selector('dialog[open] #pL'); t = await guarda(tl, 'presupuesto urgente')
         pct = round(N['tarifa']['recargo'] * 100)
         es(f'un {pct} % más' in t and (pct == 40 or '40 %' not in t.replace('del 40 % del trabajo', '')), f'urgencia: se lee el recargo del negocio ({pct} %)')
 

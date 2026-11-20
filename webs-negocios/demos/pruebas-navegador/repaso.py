@@ -3,6 +3,7 @@
 # corregir la forma de pago, el enlace del aviso en los mensajes, los consejos de «mientras tanto» de cada negocio y el
 # plazo de la garantía en los papeles.
 # Uso: python3 repaso.py [puerto]   (por defecto 8765) · NAVEGADOR=chromium|firefox|webkit
+from cita_pasos import hoja_hasta   # las hojas de la app van paso a paso (20-11-2026)
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')
 import asyncio, sys, json
@@ -65,18 +66,19 @@ async def main():
           const x=Object.keys(cfg.tec).find(x=>!K.puedeIr(S,cfg,A,x,t)&&!S.avisos.some(y=>y.tec===x&&(y.e==='camino'||y.e==='curso')));return x&&Oficio.hacer({{tipo:'asignar',id:'{gid}',tec:x}},{{rol:'centralita',id:'oficina'}}).ok?x:null}})()""")
         t = oye(await ctx.new_page(), 'técnico'); await t.goto(B + f'app.html?papel=tecnico&tec={tg}#/aviso/{gid}'); await t.wait_for_selector('#garB')
         es('En garantía del trabajo' in await texto(t, '#garB') and await t.locator('#garB [data-a=noGar]').count() == 0, 'el técnico lo ve en su aviso, y no puede quitarlo')
-        await t.click('[data-a=voy]'); await t.wait_for_selector('[data-a=empezar]'); await t.click('[data-a=empezar]'); await t.wait_for_selector('#pF'); await t.wait_for_timeout(250)
+        await t.click('[data-a=voy]'); await t.wait_for_selector('[data-a=empezar]'); await t.click('[data-a=empezar]'); await t.wait_for_selector('dialog[open] #pL'); await t.wait_for_timeout(250)
         pl = await texto(t, '#pL')
         es('va en la garantía' in pl, f'en el presupuesto, lo de entonces dice que va en la garantía ({pl[:120]})')
+        await hoja_hasta(t, '#pF'); await t.wait_for_timeout(200)   # paso a paso (20-11-2026): la firma, al final
         await firma(t, '#pF')
         if await t.locator('#pPide').count(): await t.click('#pPide')
         await t.click('#pOk'); await t.wait_for_timeout(350)
         A = await c.evaluate(AV + f"('{gid}')")
         es(A and A['e'] == 'curso' and A['tot']['total'] == 0 and all(l.get('gar') for l in A['tot']['lineas']), 'empieza con total cero: todo lo de partida va en la garantía')
-        await t.click('[data-a=terminar]'); await t.wait_for_selector('#tOk')
+        await t.click('[data-a=terminar]'); await t.wait_for_selector('dialog[open] .hpaso')
         ct = await texto(t, 'dialog[open]')
         es('Va en la garantía: no hay nada que cobrar' in ct and 'Incluido' in ct and '¿Cómo paga?' not in ct, 'al cerrar: «Va en la garantía», lo de entonces «Incluido» y sin preguntar cómo paga')
-        await t.click('#tOk')
+        await hoja_hasta(t, '#tOk'); await t.click('#tOk')
         es(await toast(t, 'Terminado. Va en garantía: no se cobra nada.'), 'y se cierra sin cobrar')
         await t.goto(B + f'app.html?papel=tecnico&tec={tg}#/papel/{gid}/parte'); await t.wait_for_selector('.papel'); pp = await texto(t, '.papel')
         es('No hay nada que pagar: va en la garantía.' in pp and 'va en la garantía' in pp, 'el parte dice que va en la garantía')
@@ -85,10 +87,12 @@ async def main():
         R = await c.evaluate(PIDE + "('611000202','C/ de la Rebaja 2, 3.º',true,'curso')"); rid, rtec = R.get('id'), R.get('tec'); es(rid and rtec, f'un trabajo en marcha ({R})')
         await t.goto(B + f'app.html?papel=tecnico&tec={rtec}#/aviso/{rid}'); await t.wait_for_selector('[data-a=rebajar]')
         tot0 = (await c.evaluate(AV + f"('{rid}')"))['tot']['total']
-        await t.click('[data-a=rebajar]'); await t.wait_for_selector('#rOk')
-        es(await t.locator('#rOk').is_disabled() and 'lo verá el cliente' in await texto(t, 'dialog[open]'), 'la hoja de rebajar: sin cambiar nada no deja; avisa de que el motivo lo verá el cliente')
-        await t.click('#rL [data-m="-1"]:not([disabled]) >> nth=-1'); await t.wait_for_timeout(150)
-        es(await t.locator('#rOk').is_disabled(), 'quitar algo sin motivo tampoco deja')
+        # la hoja va paso a paso (20-11-2026): qué se quita y, después, por qué
+        await t.click('[data-a=rebajar]'); await t.wait_for_selector('dialog[open] #rL')
+        await t.click('dialog[open] [data-hps]'); await t.wait_for_timeout(150)
+        es(await t.locator('#rOk').is_disabled() and 'el precio solo puede bajar' in await texto(t, 'dialog[open] .hpe') and await t.locator('#rL').is_visible(), 'la hoja de rebajar: sin quitar nada no pasa del primer paso, y lo dice')
+        await t.click('#rL [data-m="-1"]:not([disabled]) >> nth=-1'); await t.wait_for_timeout(150); await hoja_hasta(t, '#rM')
+        es(await t.locator('#rOk').is_disabled() and 'lo verá el cliente' in await texto(t, 'dialog[open]'), 'quitar algo sin motivo tampoco deja; avisa de que el motivo lo verá el cliente')
         await t.fill('#rM', 'Al final no hizo falta el sifón'); await t.wait_for_timeout(150)
         bt = await texto(t, '#rOk')
         es(not await t.locator('#rOk').is_disabled() and bt.startswith('Rebajar a '), f'con algo quitado y el motivo, el botón dice el precio nuevo ({bt})')
@@ -96,11 +100,11 @@ async def main():
         A = await c.evaluate(AV + f"('{rid}')")
         es(await toast(t, 'Precio rebajado') and A['tot']['total'] < tot0 and len(A.get('rebajas', [])) == 1 and A['rebajas'][0]['motivo'] == 'Al final no hizo falta el sifón', 'el técnico lo rebaja: queda el precio nuevo y el motivo')
         es(await hasta(t, "/Rebajado el .+: Al final no hizo falta el sifón/.test((document.querySelector('#rebs')||{}).textContent||'')"), 'y en el aviso se ve la rebaja')
-        await t.click('[data-a=terminar]'); await t.wait_for_selector('#tOk'); await t.click('#tM [data-modo=tarjeta]'); await t.click('#tOk'); await toast(t, 'Terminado')
-        await c.goto(B + f'app.html#/aviso/{rid}'); await c.wait_for_selector('[data-a=corrPago]')
+        await t.click('[data-a=terminar]'); await t.wait_for_selector('#tM'); await t.click('#tM [data-modo=tarjeta]'); await hoja_hasta(t, '#tOk'); await t.click('#tOk'); await toast(t, 'Terminado')
+        await c.goto(B + f'app.html#/aviso/{rid}/trabajo'); await c.wait_for_selector('[data-a=corrPago]')   # lo del dinero, en «Trabajo»
         es(await c.locator('[data-a=rebajar]').count() == 1, 'terminado y cobrado, la oficina puede rebajar y corregir la forma de pago')
-        await c.click('[data-a=rebajar]'); await c.wait_for_selector('#rOk')
-        await c.click('#rL [data-m="-1"]:not([disabled]) >> nth=-1'); await c.fill('#rM', 'Descuento por la espera'); await c.wait_for_timeout(150); await c.click('#rOk')
+        await c.click('[data-a=rebajar]'); await c.wait_for_selector('dialog[open] #rL')
+        await c.click('#rL [data-m="-1"]:not([disabled]) >> nth=-1'); await hoja_hasta(c, '#rM'); await c.fill('#rM', 'Descuento por la espera'); await c.wait_for_timeout(150); await c.click('#rOk')
         es(await toast(c, 'Precio rebajado') and await hasta(c, "/Hay que devolverle/.test((document.querySelector('#rebs')||{}).textContent||'')"), 'ya cobrado: dice cuánto hay que devolverle')
 
         # ---------- 3. corregir la forma de pago ----------

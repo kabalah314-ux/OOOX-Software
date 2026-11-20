@@ -75,9 +75,9 @@ async def main():
         es(len(hh) >= 1 and all(x in gr for x in hh), f'U35: y lo ya hecho hoy, en gris ({len(hh)})')
         # U36: cobros: lo pendiente y la caja de hoy, como en los datos, y las urgencias del mes
         R = await c.evaluate(f"(()=>{{const R={K}.resumen(Oficio.estado(),{CFG},Date.now());return{{pend:{K}.eur(R.pend.total),caja:{K}.eur(R.caja.total),n:R.pend.n}}}})()")
-        await c.goto(B + 'app.html#/cobros'); await c.wait_for_timeout(500); t = await c.locator('main').inner_text()
-        es(R['pend'] in t and R['caja'] in t, f"U36: cobros enseña lo pendiente ({R['pend']}) y la caja de hoy ({R['caja']})")
-        await c.goto(B + 'app.html#/cobros/caja'); await c.wait_for_selector('#urgMes'); t = await c.locator('main').inner_text()
+        await c.goto(B + 'app.html#/cobros'); await c.wait_for_timeout(500); t0 = await c.locator('main').inner_text()   # «Por cobrar»
+        await c.goto(B + 'app.html#/cobros/caja'); await c.wait_for_selector('#urgMes'); t = await c.locator('main').inner_text()   # «Caja», su pestaña (20-11-2026)
+        es(R['pend'] in t0 and R['caja'] in t, f"U36: cobros enseña lo pendiente ({R['pend']}) y, en «Caja», lo cobrado hoy ({R['caja']})")
         es('urgencia' in t.lower() and 'Caja de hoy' in t, 'U36: y, en su pestaña, la caja de hoy y las urgencias del mes')
         # U37: contratos: los de renovar, los de revisión y las cuotas
         P = await c.evaluate(f"{K}.pendientesContratos(Oficio.estado(),{CFG},Date.now())")
@@ -176,7 +176,7 @@ async def main():
                 await c.keyboard.press('Escape')
         # U65–U67: el seguimiento (mensajes de después del trabajo): su línea en «Por hacer», su hoja, dejarlo sin mandar y
         # el cliente que no quiere estos mensajes (15-11-2026, noche)
-        await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('#bResto')
+        await c.goto(B + 'app.html#/bandeja/hacer'); await c.wait_for_selector('#bResto')   # «Por hacer», su pestaña (20-11-2026)
         ns = await c.evaluate(f"{K}.porMandar(Oficio.estado(),Date.now()).filter(x=>{K}.SEGUIR.includes(x.m.k)).length")
         lin = c.locator('.alertas [data-a="seguir"]')
         es(ns >= 2 and await lin.count() == 1 and (f'{ns} clientes para el seguimiento' in await lin.inner_text()), f'U65: en «Por hacer» sale «{ns} clientes para el seguimiento»')
@@ -193,31 +193,31 @@ async def main():
             dej = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idm}').msgs.find(m=>m.k==='{km}')")
             ns2 = await c.evaluate(f"{K}.porMandar(Oficio.estado(),Date.now()).filter(x=>{K}.SEGUIR.includes(x.m.k)).length")
             es(dej.get('no') == 1 and dej.get('env') and ns2 == ns - 1, f'U66: «No hace falta mandarlo» lo deja apuntado y ya no sale ({ns} → {ns2})')
-            await c.goto(B + 'app.html#/bandeja'); await c.wait_for_selector('.alertas [data-a="seguir"]'); await c.click('.alertas [data-a="seguir"]'); await c.wait_for_selector('dialog.hoja .msgs')
+            await c.goto(B + 'app.html#/bandeja/hacer'); await c.wait_for_selector('.alertas [data-a="seguir"]'); await c.click('.alertas [data-a="seguir"]'); await c.wait_for_selector('dialog.hoja .msgs')
             await c.locator('dialog.hoja .msgs [data-a="msg"]').first.click(); await c.wait_for_selector('#mBaja')
             tel = await c.evaluate(f"{K}.porMandar(Oficio.estado(),Date.now()).filter(x=>{K}.SEGUIR.includes(x.m.k))[0].a.cli.tel")
             await c.click('#mBaja'); await c.wait_for_timeout(300)
             st = await c.evaluate(f"(()=>{{const S=Oficio.estado(),L=S.avisos.filter(a=>a.cli.tel==='{tel}');return{{n:L.length,no:L.every(a=>a.noMsg),pm:{K}.porMandar(S,Date.now()).some(x=>x.a.cli.tel==='{tel}'&&{K}.SEGUIR.includes(x.m.k)),id:L[0].id}}}})()")
             es(st['n'] >= 1 and st['no'] and not st['pm'], f'U67: «No quiere estos mensajes» se apunta en sus {st["n"]} avisos y ya no le sale ninguno de seguimiento')
-            await c.goto(B + f"app.html#/aviso/{st['id']}"); await c.wait_for_selector('.nomsg')
+            await c.goto(B + f"app.html#/aviso/{st['id']}/cliente"); await c.wait_for_selector('.nomsg')
             await c.click('.nomsg [data-a="escribirSi"]'); await c.wait_for_timeout(300)
             vuelve = await c.evaluate(f"Oficio.estado().avisos.filter(a=>a.cli.tel==='{tel}').every(a=>!a.noMsg)")
             es(vuelve and await c.locator('.nomsg').count() == 0, 'U67: en la ficha del cliente se ve, y «Volver a escribirle» lo quita')
         # U71–U72: la furgoneta (16-11-2026): Omar lleva la cuenta desde hace semanas; Laia, no. Omar ve lo que lleva, lo usado en
         # sus trabajos y lo que le falta; la oficina lo ve en «Equipo» y en su furgoneta
-        await c.goto(B + 'app.html?papel=tecnico&tec=omar#/furgo'); await c.wait_for_selector('#fgSt')
+        await c.goto(B + 'app.html?papel=tecnico&tec=omar#/furgo/omar/lleva'); await c.wait_for_selector('#fgSt')   # «Lo que llevas», su pestaña (20-11-2026)
         fo = await c.evaluate(f"(()=>{{const S=Oficio.estado(),F={K}.furgoDe(S,'omar');return F?{{n:Object.keys(F.st).length,h:F.h.length,rp:{K}.reponerDe(S,{CFG},'omar').length}}:null}})()")
         await c.click('#fgMov summary'); mov = await c.locator('#fgMov').inner_text()
         es(fo and fo['n'] >= 5 and 'Tu furgoneta' in await c.locator('main h1').inner_text() and await c.locator('#fgSt li').count() >= 5 and ('Recuento' in mov or 'Cargado' in mov) and '× ' in mov
-           and (await c.locator('#fgRep').count() == 1) == (fo['rp'] > 0), f'U71: Omar ve lo que lleva en su furgoneta, sus movimientos y lo que toca reponer ({fo})')
+           and (await c.locator('.pestas [data-pesta=reponer] .n').count() == 1) == (fo['rp'] > 0), f'U71: Omar ve lo que lleva en su furgoneta, sus movimientos y lo que toca reponer ({fo})')
         await c.goto(B + 'app.html?papel=tecnico&tec=laia#/furgo'); await c.wait_for_selector('main h1')
         es(await c.locator('#fgNo [data-a="fSi"]').count() == 1, 'U71: Laia no lleva la cuenta: puede empezar cuando quiera')
         de = await c.evaluate(f"(()=>{{const S=Oficio.estado();let d={K}.madrid(Date.now()).date;for(let i=0;i<10;i++){{if({K}.laborable({CFG},d)&&!{K}.ausente(S,'omar',d))return d;d={K}.masDias(d,1)}}return d}})()")
         await c.goto(B + f'app.html#/equipo/{de}'); await c.wait_for_selector('.tecds')
         eq = await c.locator('.tecd[data-tec="omar"] .fgq').inner_text() if await c.locator('.tecd[data-tec="omar"] .fgq').count() else ''
         es('Furgoneta:' in eq and await c.locator('.tecd[data-tec="laia"] .fgq').count() == 0, f'U72: en «Equipo», la oficina ve la furgoneta de Omar y no la de quien no lleva la cuenta ({eq!r})')
-        await c.goto(B + 'app.html#/furgo/omar'); await c.wait_for_selector('#fgSt')
-        es('Furgoneta de Omar' in await c.locator('main h1').inner_text() and await c.locator('#fgSt [data-a="fCargar"]').count() == 1, 'U72: la oficina abre la furgoneta de Omar y puede apuntar lo que carga')
+        await c.goto(B + 'app.html#/furgo/omar/lleva'); await c.wait_for_selector('#fgSt')
+        es('Furgoneta de Omar' in await c.locator('main h1').inner_text() and await c.locator('#fgCarga').count() == 1, 'U72: la oficina abre la furgoneta de Omar y puede apuntar lo que carga')
         # U57: de noche, quien no hace guardias sale «fuera de horario»; los que las hacen, libres para una urgencia
         ctx2 = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=1, timezone_id='Europe/Madrid')
         await pon_hora(ctx2, '2026-11-18T22:00:00+01:00')

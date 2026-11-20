@@ -88,28 +88,15 @@ h1.grande{font-size:2.5rem;line-height:.95}
 .legal{margin-top:18px;font-size:.9375rem;color:var(--suave)}
 form>.btn{margin-top:16px}
 .fallo{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--mal-f);color:var(--mal);font-weight:600}
-/* paso a paso: atrás, la barra de los cuatro pasos, la pregunta y «Continuar» siempre a mano, abajo */
-.prog{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:14px;margin-bottom:22px}
-.atras{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:2px solid var(--control);color:var(--texto)}
-.atras svg{width:20px;height:20px}
-@media (hover:hover){.atras:hover{border-color:var(--suave)}}
-.atras:focus-visible{outline:3px solid var(--senal);outline-offset:2px}
-.prog ol{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.prog li{height:6px;border-radius:3px;background:var(--control);transition:background-color .3s var(--ease-out)}
-.prog li.ok,.prog li.ya{background:var(--senal)}
-.pn{font-size:.875rem;font-weight:600;color:var(--suave);white-space:nowrap}
+/* paso a paso: la barra, «atrás» y «Continuar» son comunes (oficio.css); aquí, lo propio de la cita */
 .prog+h1{font:800 2.25rem/1 var(--fd)}
 @media (min-width:560px){.prog+h1{font-size:2.75rem}}
-.lleva{margin-top:10px;color:var(--suave)}
 #f fieldset{margin-top:22px}
 #f .avc{min-height:76px;font-size:1.0625rem}
 #f .avc img{width:60px;height:60px}
 #f .avs{grid-template-columns:repeat(2,minmax(0,1fr))}
 #f .avc{grid-template-columns:60px minmax(0,1fr)}
-.sigue{position:sticky;bottom:0;z-index:5;margin:26px -18px 0;padding:14px 18px calc(14px + var(--sb));background:linear-gradient(to top,var(--asfalto) 72%,rgba(20,23,26,0))}
-.sigue .btn{min-height:56px;font-size:1.125rem}
 @media (prefers-reduced-motion:no-preference){#v.entra{animation:entraPaso .32s var(--ease-out) both}}
-@keyframes entraPaso{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 /* el resguardo del cliente: papel */
 .doc h1{font:800 1.75rem/1 var(--fd)}
 .doc .frase{margin-top:10px;font-size:1.125rem}

@@ -6,6 +6,7 @@
 #  - Los avisos de arriba: sobran citas, por reasignar y pendientes de confirmar.
 # Cada cosa que sale en pantalla se compara con lo que dicen las reglas (js/oficio-nucleo.js), no con números escritos aquí.
 # Uso: python3 horarios.py [puerto]     (NAVEGADOR=chromium|firefox|webkit)
+from cita_pasos import sigue_nuevo   # «Nuevo aviso» va paso a paso (20-11-2026)
 import os
 NAV = os.environ.get('NAVEGADOR', 'chromium')
 import asyncio, sys, json, re
@@ -47,15 +48,19 @@ def chico(f):
     if f['okOf']: return 'menos de 2 h' if f['por'] == 'margen' else 'hueco de urgencias'
     return 'nadie trabaja' if not f['tope'] else 'llena' if not f['libresOf'] else 'ya ha pasado'
 
+async def nuevo_cita(c, av=None):
+    """«Nuevo aviso» va paso a paso (20-11-2026): la avería (no viene elegida), «Continuar» y, en «¿Cuándo?», «Con cita»."""
+    await ir(c, '#/nuevo', '#fNuevo'); await c.click(f'[data-b-av="{av or "fuga"}"]'); await sigue_nuevo(c, 'cu'); await c.click('[data-b-cu="cita"]')
+
 async def nuevo_con_cita(c, dia, fr, n, av=None):
-    """La oficina crea un aviso con cita desde su formulario. Devuelve el id, o '' si el botón de esa franja no deja."""
-    await ir(c, '#/nuevo', '#fNuevo'); await c.click('[data-b-cu="cita"]'); await c.click(f'[data-b-dia="{dia}"]')
-    await c.click(f'[data-b-av="{av or "fuga"}"]')   # la avería no viene elegida de antemano
+    """La oficina crea un aviso con cita desde «Nuevo aviso». Devuelve el id, o '' si el botón de esa franja no deja."""
+    await nuevo_cita(c, av); await c.click(f'[data-b-dia="{dia}"]')
     b = c.locator(f'[data-b-fr="{fr}"]')
     if await b.is_disabled(): return ''
-    await b.click()
-    await c.fill('#n_tel', f'6112244{n:02d}'); await c.fill('#n_nomap', f'Prueba Horarios {n}'); await c.fill('#n_dir', f'C/ de la Prueba {n}, 1.º'); await c.fill('#n_cp', CP)
-    await c.click('#fNuevo button[type=submit], #fNuevo .btn.pri'); await c.wait_for_function("location.hash.startsWith('#/aviso/')"); await c.wait_for_selector('[data-a=cita]')
+    await b.click(); await sigue_nuevo(c, 'qui')
+    await c.fill('#n_tel', f'6112244{n:02d}'); await c.fill('#n_nomap', f'Prueba Horarios {n}'); await sigue_nuevo(c, 'don')
+    await c.fill('#n_dir', f'C/ de la Prueba {n}, 1.º'); await c.fill('#n_cp', CP); await sigue_nuevo(c, 'fin')
+    await c.click('#fNuevo button[type=submit]'); await c.wait_for_function("location.hash.startsWith('#/aviso/')"); await c.wait_for_selector('[data-a=cita]')
     return (await c.evaluate("location.hash")).split('/')[-1]
 
 async def main():
@@ -103,7 +108,7 @@ async def main():
         es(sorted(v['cita'].keys()) == ['dia', 'fr', 'ok'], 'cliente: de su cita ve el día y la franja, nada de las notas de la oficina')
 
         # ---------- 2. la oficina: lo que el cliente no puede ----------
-        await ir(c, '#/nuevo', '#fNuevo'); await c.click('[data-b-cu="cita"]')
+        await nuevo_cita(c)
         # hoy: con la hora de las pruebas hay franjas a menos de dos horas, o ya en marcha
         fh = await c.evaluate(FR + f"('{hoy}')"); margen = [f for f in fh if f['por'] == 'margen']
         if hoy in dias and margen:
@@ -125,7 +130,7 @@ async def main():
         es(r['ok'] is False and r['err'] == 'franja', 'reglas: con la franja llena para el cliente, otro cliente ya no entra')
         await k.goto(B + CAL); await k.wait_for_selector('#f[data-paso=fr]'); await k.click(f'[data-dia="{D1}"]')
         es(await k.locator(f'[data-fr="{U}"]').is_disabled() and 'completa' in await texto(k, f'[data-fr="{U}"]'), 'cliente: esa franja le sale «completa», aunque quede el hueco de urgencias')
-        await ir(c, '#/nuevo', '#fNuevo'); await c.click('[data-b-cu="cita"]'); await c.click(f'[data-b-dia="{D1}"]')
+        await nuevo_cita(c); await c.click(f'[data-b-dia="{D1}"]')
         fD = await c.evaluate(FR + f"('{D1}')"); vis = await c.evaluate("[...document.querySelectorAll('[data-b-fr]')].map(b=>({id:b.dataset.bFr,no:b.disabled,chico:b.querySelector('small').textContent}))")
         es(all(v['no'] == (not f['okOf']) and v['chico'] == chico(f) for v, f in zip(vis, fD)), f"oficina: cada franja dice lo que las reglas: {[(v['id'], v['chico']) for v in vis]}")
         fu = next(f for f in fD if f['id'] == U)
@@ -162,16 +167,16 @@ async def main():
         es(await c.evaluate(f"Oficio.estado().avisos.filter(a=>a.cita&&a.cita.dia==='{D1}'&&a.cita.fr==='{U}').map(a=>a.tec).sort().join()") == ','.join(sorted(sip[:2])), 'repartir: las dos citas quedan una con cada uno')
 
         # ---------- 4. Equipo: quién trabaja y qué lleva ----------
-        await ir(c, f'#/agenda/{D1}', '.seg.segv')
-        es(await c.locator('.seg.segv a').all_inner_texts() == ['Citas', 'Equipo'] and await c.locator('.seg.segv a[aria-current]').inner_text() == 'Citas', 'agenda: arriba se elige entre «Citas» y «Equipo»')
+        await ir(c, f'#/agenda/{D1}', '.fija .pestas')
+        es(await c.locator('.fija .pestas a').all_inner_texts() == ['Citas', 'Equipo'] and await c.locator('.fija .pestas a[aria-current=page]').inner_text() == 'Citas', 'agenda: arriba se elige entre «Citas» y «Equipo»')
         tA = await texto(c, '#v'); fD = await c.evaluate(FR + f"('{D1}')")
         es('undefined' not in tA and 'NaN' not in tA and all(f"de {f['tope']}" in tA for f in fD), 'agenda: cada franja dice cuántas lleva de las que caben')
         es(('reservado para la oficina' in tA or 'reservados para la oficina' in tA) == any(f['okOf'] and f['libresOf'] > (f['libres'] if f['ok'] else 0) for f in fD), 'agenda: los huecos que solo puede usar la oficina van marcados aparte')
         es(await c.locator('.fr .cap').count() == len(fD) and await c.locator('.fr .capb').count() == len(fD) and 'Queda' not in tA, 'agenda: cada franja, en una línea («N libres · N reservados para la oficina») y con su barra')
         dl = await texto(c, '.dlargo')
         es(dl != '' and any(m in dl for m in ('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre')), 'agenda: el día elegido, con su fecha completa')
-        await c.click('.seg.segv a[href^="#/equipo"]'); await c.wait_for_selector('.tecd[data-tec]')
-        es(await texto(c, '#v h1') == 'Equipo' and await c.locator('#nav a[href="#/agenda"][aria-current]').count() == 1 and await c.locator('.tecd[data-tec]').count() == len(tecs), 'equipo: una ficha por técnico, dentro de la agenda')
+        await c.click('.pestas a[href^="#/equipo"]'); await c.wait_for_selector('.tecd[data-tec]')
+        es(await texto(c, '#v h1') == 'Agenda' and await texto(c, '.pestas a[aria-current=page]') == 'Equipo' and await c.locator('#nav a[href="#/agenda"][aria-current]').count() == 1 and await c.locator('.tecd[data-tec]').count() == len(tecs), 'equipo: una ficha por técnico, dentro de la agenda')
         es(await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), 'equipo: en el móvil no se sale por los lados')
         fichas = await c.evaluate(f"[...document.querySelectorAll('.tecd[data-tec]')].map(s=>({{id:s.dataset.tec,linea:s.querySelector('.ln').textContent,filas:[...s.querySelectorAll('.tfr li')].map(li=>li.innerText.replace(/\\n+/g,' | '))}}))")
         regla = await c.evaluate(f"OFICIO_NEGOCIO.tecnicos.map(t=>({{id:t.id,fr:Oficio.cfg.franjas.map(f=>{K}.trabaja(Oficio.cfg,t.id,'{D1}',f.de,f.a))}}))")
@@ -189,11 +194,11 @@ async def main():
         X = sip[0]; nx = next(t['n'] for t in N['tecnicos'] if t['id'] == X)
         await c.click('.cab [data-a="ausencia"]'); await c.wait_for_selector('#uF')
         es(await c.locator('#uF [aria-checked=true]').count() == 0 and await c.input_value('#u_de') == D1 and await c.input_value('#u_a') == D1, 'ausencia: desde el botón de arriba, el día viene puesto y hay que elegir a quién')
-        await c.click('button[form="uF"]')
-        es('Elige quién falta' in await texto(c, '#u_err') and await c.locator('dialog[open]').count() == 1, 'ausencia: sin elegir a nadie no se apunta, y lo dice')
+        await c.click('dialog[open] [data-hps]')   # paso a paso (20-11-2026): primero quién, luego los días
+        es('Elige quién falta' in await texto(c, 'dialog[open] .hpe') and await c.locator('dialog[open]').count() == 1 and not await c.locator('#u_de').is_visible(), 'ausencia: sin elegir a nadie no pasa a los días, y lo dice')
         await c.click('dialog[open] [data-x]'); await c.wait_for_selector('dialog[open]', state='detached')
         await c.click(f'.tecd[data-tec="{X}"] [data-a="ausencia"]'); await c.wait_for_selector('#uF')
-        es(await c.get_attribute(f'#uF [data-ut="{X}"]', 'aria-checked') == 'true', 'ausencia: desde la ficha de un técnico, ya viene elegido')
+        es(await c.get_attribute(f'#uF [data-ut="{X}"]', 'aria-checked') == 'true' and await c.locator('#u_de').is_visible(), 'ausencia: desde la ficha de un técnico, ya viene elegido y va directo a los días')
         await c.evaluate("(()=>{const i=document.querySelector('#u_de');i.removeAttribute('min');i.value='2020-01-01';const j=document.querySelector('#u_a');j.removeAttribute('min');j.value='2020-01-02'})()"); await c.click('button[form="uF"]')
         es('Revisa las fechas' in await texto(c, '#u_err'), 'ausencia: con fechas pasadas no se apunta, y lo dice')
         await c.fill('#u_de', D2); await c.dispatch_event('#u_de', 'change')
@@ -208,9 +213,11 @@ async def main():
         es(any('1 aviso por reasignar' in x for x in al), f'avisos de arriba: «1 aviso por reasignar» {[x[:40] for x in al]}')
         es(len(so) == 1 and so[0]['fr'] == U and any('Sobra 1 cita' in x and 'no hay técnicos para todas' in x for x in al), 'avisos de arriba: con uno menos ya no hay técnicos para las dos de esa franja: «Sobra 1 cita»')
         es(await c.get_attribute('.alertas li a[href^="#/equipo/"]', 'href') == f'#/equipo/{D1}', 'avisos de arriba: el de «sobra» lleva al día en cuestión')
-        await ir(c, '#/bandeja', '.alertas')
-        alB = [x for x in await c.locator('.alertas li').all_inner_texts() if 'mensaje' not in x and 'seguimiento' not in x]   # en la bandeja, además, los mensajes por mandar y el seguimiento
-        es(len(alB) == len(al) and 'Reasignar' in await texto(c, '#bResto'), f'bandeja: los mismos avisos del reparto en «por hacer», y el aviso suelto lleva la etiqueta «Reasignar» ({len(alB)} y {len(al)})')
+        await ir(c, '#/bandeja', '#bResto'); rea = 'Reasignar' in await texto(c, '#bResto')   # «Por repartir»
+        await ir(c, '#/bandeja/hacer', '.alertas')   # «Por hacer», su pestaña (20-11-2026)
+        # en «Equipo» solo sale lo que corre prisa («Ahora»); en la bandeja, además, los mensajes por mandar, el seguimiento y lo de «Después»
+        alB = [x for x in await c.locator('.alertas[aria-label="Lo que hay que hacer ahora"] li').all_inner_texts() if 'mensaje' not in x and 'seguimiento' not in x]
+        es(len(alB) == len(al) and rea, f'bandeja: lo que corre prisa del reparto, lo mismo en «Por hacer» que en «Equipo», y en «Por repartir» el aviso suelto lleva la etiqueta «Reasignar» ({len(alB)} y {len(al)})')
         suelto = await c.evaluate("Oficio.estado().avisos.find(a=>a.reasignar).id")
         await c.click('.alertas li a[href^="#/aviso/"]'); await c.wait_for_selector('.tec')
         es((await c.evaluate("location.hash")).endswith(suelto) and 'ya no puede ir' in await texto(c, '#v') and 'Ausente ese día' in await texto(c, f'.tec[data-tec="{X}"]'), f'aviso suelto: se abre desde el aviso de arriba, dice que hay que elegir a otro y que {nx} está ausente')
@@ -232,11 +239,14 @@ async def main():
         es(await toast(c, 'pendiente de confirmar') and await hasta(c, "!!document.querySelector('#porConf')"), 'cambiar: guardada sin hablarlo, queda «pendiente de confirmar» en el aviso')
         A = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idk}')")
         es(A['cita']['ok'] is False and A['cita']['dia'] == otra[0] and A['cita']['fr'] == otra[1], 'reglas: la cita se ha movido y está marcada como no confirmada')
-        await ir(c, '#/bandeja', '.alertas')
+        await ir(c, '#/bandeja/hacer', '.alertas')
         prox = await c.evaluate("(()=>{const K=Oficio.K,cfg=Oficio.cfg;let d=K.masDias(K.madrid(Date.now()).date,1);for(let i=0;i<7&&!K.laborable(cfg,d);i++)d=K.masDias(d,1);return d})()")
         al2 = await c.locator('.alertas li').all_inner_texts()
-        if otra[0] > prox: await ir(c, f'#/agenda/{otra[0]}', '.fila')   # una cita de más adelante está en la agenda de su día
-        es(any('1 cita pendiente de confirmar' in x for x in al2) and 'por confirmar' in await texto(c, '#v'), 'bandeja: sale en «por hacer» «1 cita pendiente de confirmar», y en su fila')
+        if otra[0] > prox: await ir(c, f'#/agenda/{otra[0]}', '.fila'); fl = await texto(c, '#v')   # una cita de más adelante está en la agenda de su día
+        else:
+            await ir(c, '#/bandeja', '#bResto'); fl = await texto(c, '#v')
+            if 'por confirmar' not in fl: await ir(c, '#/bandeja/marcha', '#bResto'); fl = await texto(c, '#v')
+        es(any('1 cita pendiente de confirmar' in x for x in al2) and 'por confirmar' in fl, 'bandeja: sale en «Por hacer» «1 cita pendiente de confirmar», y en su fila')
         await ir(c, f'#/aviso/{idk}', '#porConf'); await c.click('#porConf [data-a="confirma"]')
         es(await toast(c, 'confirmada') and await hasta(c, "!document.querySelector('#porConf')") and await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idk}').cita.ok") is True, 'cambiar: con «Ya está hablado» deja de estar pendiente')
         # una cita apuntada por teléfono: la casilla viene marcada
@@ -252,7 +262,7 @@ async def main():
         es(await toast(c, 'Ausencia quitada') and await hasta(c, "!document.querySelector('.tecd.aus')") and 'todos' in await texto(c, f'.dias a[href="#/equipo/{D1}"]'), f'ausencia: al quitarla, {nx} vuelve a salir trabajando')
         await ir(c, f'#/aviso/{suelto}', '.tec'); await c.click(f'.tec[data-tec="{X}"]')
         es(await toast(c, 'Asignado') and await c.evaluate(f"!Oficio.estado().avisos.some(a=>a.reasignar)"), 'ausencia: y ya se le puede volver a asignar; no queda nada por reasignar')
-        await ir(c, '#/bandeja', '.cab')
+        await ir(c, '#/bandeja/hacer', '.cab')
         es(all('mensaje' in x or 'seguimiento' in x or 'por reponer' in x for x in await c.locator('.alertas li').all_inner_texts()), 'bandeja: sin nada pendiente del reparto, en «por hacer» como mucho quedan los mensajes por mandar, el seguimiento y lo que toca reponer en las furgonetas')
 
         # ---------- 8. el técnico no ve «Equipo»; anchos; ordenador ----------
@@ -263,14 +273,14 @@ async def main():
         await t.close()
         for w in (320, 360):
             await c.set_viewport_size({'width': w, 'height': 740}); await ir(c, f'#/equipo/{D1}', '.tecd[data-tec]')
-            a1 = await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1'); await ir(c, f'#/agenda/{D1}', '.seg.segv'); a2 = await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
+            a1 = await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1'); await ir(c, f'#/agenda/{D1}', '.fija .pestas'); a2 = await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
             es(a1 and a2, f'ancho {w}: ni «Equipo» ni «Citas» se salen por los lados')
         g = await br.new_context(viewport={'width': 1280, 'height': 860}, locale='es-ES', timezone_id='Europe/Madrid'); await pon_hora(g); pg = await g.new_page(); vigila(pg, 'ordenador')
         await pg.goto(B + f'app.html#/equipo/{D1}'); await pg.wait_for_selector('.tecd[data-tec]')
         cols = await pg.evaluate("new Set([...document.querySelectorAll('.tecd')].map(s=>Math.round(s.getBoundingClientRect().left))).size")
         es(cols >= 2 and await pg.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), f'ordenador: las fichas del equipo van en columnas ({cols})')
         await pg.goto(B + 'app.html#/agenda'); await pg.wait_for_selector('.sem')
-        es(await pg.locator('.seg.segv a').count() == 2 and 'undefined' not in await texto(pg, '#v'), 'ordenador: la agenda de la semana también lleva «Citas | Equipo»')
+        es(await pg.locator('.fija .pestas a').count() == 2 and 'undefined' not in await texto(pg, '#v'), 'ordenador: la agenda de la semana también lleva «Citas | Equipo»')
         await g.close()
 
         # ---------- 9. un negocio sin horarios: las ausencias valen igual, los huecos son fijos ----------
@@ -286,7 +296,7 @@ async def main():
         await ir(ps, f"#/aviso/{ra['id']}", '.tec')
         await ps.click(f'.tec[data-tec="{tecs[0]}"]'); no0 = await toast(ps, 'ausente')
         es('Ausente ese día' in await texto(ps, f'.tec[data-tec="{tecs[0]}"]') and no0 and 'no' not in (await ps.get_attribute(f'.tec[data-tec="{tecs[1]}"]', 'class')).split(), 'sin horarios: a quien falta tampoco se le puede asignar; a los demás, sí')
-        await ir(ps, f'#/agenda/{D1}', '.seg.segv')
+        await ir(ps, f'#/agenda/{D1}', '.fija .pestas')
         es('de 2' in await texto(ps, '#v') and 'undefined' not in await texto(ps, '#v') and 'para la oficina' not in await texto(ps, '#v'), 'sin horarios: la agenda cuenta sobre el número fijo de citas y no hay hueco de urgencias')
         await s.close()
 
