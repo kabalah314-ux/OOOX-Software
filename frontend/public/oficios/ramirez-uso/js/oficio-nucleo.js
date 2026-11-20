@@ -34,7 +34,7 @@
 'use strict';
 const TZ='Europe/Madrid',ESQ=4,MIN=60000;
 /* La versión del código común. Cada copia se la dice a OOOX al abrir «Mejoras»: así se sabe qué copia lleva qué. */
-const VERSION='2026.11.19b';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
+const VERSION='2026.11.20';   /* la fecha del cambio y, si ese día hay más de uno, una letra */
 const PAGOS=['efectivo','tarjeta','bizum','transferencia','pendiente'];
 /* un correo que se puede usar (19-11-2026): algo, una arroba, algo, un punto y al menos dos letras */
 const EMAIL=/^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,}$/;
