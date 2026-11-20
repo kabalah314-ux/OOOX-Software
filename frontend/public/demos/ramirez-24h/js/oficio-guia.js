@@ -34,6 +34,12 @@ let G=null;
 /* ---------- lo que hace «Hazlo por mí» ---------- */
 function clic(k,s){const b=q(k,s);if(b&&!b.disabled){b.click();return true}return false}
 function eligeFranja(){clic('cli','[data-fr]:not([disabled])')}
+/* la cita va paso a paso (20-11-2026): en la guía, lo ya elegido pasa solo al paso siguiente con «Continuar», para que
+   el recorrido siga siendo de tres minutos. «hasta»: el paso al que se quiere llegar */
+function avanza(hasta,n){n=n||0;const f=q('cli','#f');if(n>10||q('cli','#rConfirma'))return;if(!f){setTimeout(()=>avanza(hasta,n+1),150);return}
+ const O=['av','det','fr','tu'],p=f.dataset.paso;if(O.indexOf(p)>=O.indexOf(hasta))return;
+ if(p==='av'&&!q('cli','input[name=av]:checked'))return;if(p==='fr'&&!q('cli','[data-fr][aria-checked="true"]'))return;
+ clic('cli','#sigue');setTimeout(()=>avanza(hasta,n+1),150)}
 function rellena(){const x=docDe('cli'),W=winDe('cli');if(!x||!W)return;
  [['c_nomap','Laura Gómez Prat'],['c_tel','600 123 456'],['c_dir','C/ de Mallorca 200, 3.º 1.ª'],['c_cp','08036']].forEach(([id,v])=>{
   const i=x.getElementById(id);if(!i)return;i.value=v;i.dispatchEvent(new W.Event('input',{bubbles:true}))});
@@ -86,9 +92,9 @@ const PASOS=[
  {cap:0,k:'cli',t:'Tu web, donde pide cita el cliente',x:'Elige qué hay que arreglar, como haría un cliente.',
   prep:()=>{if(hashDe('cli'))ponHash('cli','')},el:()=>q('cli','.avs')||q('cli','#av'),hecho:()=>!!(q('cli','input[name=av]:checked')||q('cli','#rConfirma'))},
  {cap:0,k:'cli',t:'Elige día y hora',x:'Solo salen los huecos que de verdad están libres, según tus técnicos y sus horarios.',
-  el:()=>q('cli','#fr'),hecho:()=>!!(q('cli','[data-fr][aria-checked="true"]')||q('cli','#rConfirma')),bot:[['Elegir por mí',eligeFranja]]},
+  prep:()=>avanza('fr'),el:()=>q('cli','#fr'),hecho:()=>!!(q('cli','[data-fr][aria-checked="true"]')||q('cli','#rConfirma')),bot:[['Elegir por mí',eligeFranja]]},
  {cap:0,k:'cli',t:'Sus datos',x:'Nombre, teléfono y dirección, una sola vez. Para ir rápido, te los relleno.',
-  el:()=>q('cli','#tu'),hecho:()=>!!q('cli','#rConfirma'),bot:[['Rellenar por mí',rellena]]},
+  prep:()=>avanza('tu'),el:()=>q('cli','#tu'),hecho:()=>!!q('cli','#rConfirma'),bot:[['Rellenar por mí',rellena]]},
  {cap:0,k:'cli',t:'Revisa y confirma',x:'Así le llega al negocio. Toca «Confirmar la cita».',
   el:()=>q('cli','#rConfirma'),hecho:()=>!!nuevaCita(),bot:[['Hazlo por mí',()=>clic('cli','#rConfirma')]]},
  {cap:1,k:'cen',t:'Ha entrado en la oficina: repártela',x:'Ha llegado sola, sin una llamada. Es lo que harás cada día: elige qué técnico va. Toca su nombre.',

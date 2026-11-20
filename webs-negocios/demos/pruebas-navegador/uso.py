@@ -113,6 +113,7 @@ async def main():
         k = await ctx.new_page(); k.on('pageerror', lambda e: errs.append(str(e)))
         await k.goto(B + 'cita.html'); await k.wait_for_selector('input[name=av]')
         await k.locator('input[name=av][value=grifo]').check(force=True); await k.wait_for_timeout(150)
+        await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=det]'); await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=fr]')   # la cita va paso a paso
         libres, dia_ok = 0, ''   # el primer día con hueco: mañana puede estar lleno (falta Laia y se guarda un técnico para urgencias)
         for i in range(await k.locator('[data-dia]').count()):
             await k.locator('[data-dia]').nth(i).click(); await k.wait_for_timeout(150)
@@ -120,7 +121,7 @@ async def main():
             if libres: dia_ok = await k.locator('[data-dia]').nth(i).get_attribute('data-dia'); break
         es(libres >= 1, f'U40: con nueve semanas de trabajo, en los próximos días hay franjas para un grifo ({dia_ok or "ninguna"})')
         if libres:
-            await k.locator('[data-fr]:not([disabled])').first.click()
+            await k.locator('[data-fr]:not([disabled])').first.click(); await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=tu]')
             cp = await k.evaluate("Object.keys(Oficio.N.zonas.cp)[0]")
             await k.fill('#c_nomap', 'Clara Prueba Uso'); await k.fill('#c_tel', '611 22 33 99'); await k.fill('#c_dir', 'C/ de la Prueba 12, 3.º'); await k.fill('#c_cp', cp)
             await k.click('button[type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await k.wait_for_selector('.doc'); await k.wait_for_timeout(200)

@@ -64,10 +64,12 @@ async def main():
         es(N['nombre'] in await k.title(), 'cita: el título de la pestaña lleva el nombre del negocio')
         es((await k.locator('#prb').count() == 1) == (N.get('prueba') is True), 'cita: el aviso de «copia de prueba» sale arriba solo si el negocio está marcado como prueba')
         es(await k.locator('input[name=av]').count() == len(N['averias']), 'cita: salen todas las averías del negocio')
+        await k.locator('input[name=av]').first.check(force=True); await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=det]')
+        await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=fr]')   # la cita va paso a paso: el calendario es el paso 3
         frs = await k.locator('[data-fr]').all_inner_texts()
         es(len(frs) == len(N['franjas']) and all(re.match(r'^de \d{1,2}(:\d{2})? a \d{1,2}(:\d{2})?', x.strip()) for x in frs), f'cita: las franjas se leen bien {frs[:4]}')
-        await k.locator('input[name=av]').first.check(force=True)
         await k.locator('[data-dia]').nth(0).click(); await k.locator('[data-fr]:not([disabled])').first.click()   # el primer día con cita (hoy ya no se ofrece)
+        await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=tu]')
         cp = list(N['zonas']['cp'].keys())[0]; fuera = '99999'
         await k.fill('#c_nomap', 'Clara Prueba'); await k.fill('#c_tel', '611 22 33 44'); await k.fill('#c_dir', 'C/ de la Prueba 12, 3.º'); await k.fill('#c_cp', fuera); await k.wait_for_timeout(200)
         t = await guarda(k, 'cita fuera de zona')

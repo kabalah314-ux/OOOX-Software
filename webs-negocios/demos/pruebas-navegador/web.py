@@ -131,10 +131,10 @@ async def main():
             es(tj['k'] == 'Con cita' and re.match(r'Urgente\s*desde \d+', tj['u']), f'tarjeta «{tj["n"]}»: dos precios, con cita y urgente ({tj["k"]} {tj["p"]} · {tj["u"]})')
             es(tj['href'] == f'cita.html?servicio={av}&lang=es' and tj['aria'] == f'Reservar {tj["n"]}' and tj['d'] and av in tj['img'], f'tarjeta «{tj["n"]}»: foto, frase, y «Reservar {tj["n"]}» lleva a cita.html?servicio={av} (con el idioma)')
             await pg.goto(B + tj['href']); await pg.wait_for_selector('#f')
-            ci = await pg.evaluate("({el:(document.querySelector('.elegida')||{}).textContent||'',r:(document.querySelector('.rango .num')||{}).textContent||'',grid:document.querySelectorAll('input[name=av]').length})")
+            ci = await pg.evaluate("({el:(document.querySelector('.lleva')||{}).textContent||'',r:(document.querySelector('.rango .num')||{}).textContent||'',grid:document.querySelectorAll('input[name=av]').length,p:document.querySelector('#f').dataset.paso})")
             nums_w = [int(x) for x in re.findall(r'(\d+)', tj['p'].split('+')[0])]; nums_c = [int(x) for x in re.findall(r'(\d+)', ci['r'])]
-            es(tj['n'] in ci['el'] and ci['grid'] == 0 and nums_w == nums_c, f'tarjeta «{tj["n"]}»: la cita sale con «Has elegido {tj["n"]}» y el mismo precio ({tj["p"]} en la web, {ci["r"]} en la cita)')
-            await pg.click('#cambiaAv'); await pg.wait_for_timeout(150)
+            es(tj['n'] in ci['el'] and ci['grid'] == 0 and ci['p'] == 'det' and nums_w == nums_c, f'tarjeta «{tj["n"]}»: la cita empieza en el paso 2, con {tj["n"]} ya elegido y el mismo precio ({tj["p"]} en la web, {ci["r"]} en la cita)')
+            await pg.click('#atras'); await pg.wait_for_selector('#f[data-paso=av]')
             es(await pg.locator('input[name=av]').count() == len(avs) and await pg.locator(f'input[name=av][value={av}]').is_checked(), f'tarjeta «{tj["n"]}»: en la cita se puede cambiar de servicio sin empezar de nuevo')
             await pg.goto(B + 'index.html'); await pg.wait_for_timeout(500)
 
@@ -157,16 +157,18 @@ async def main():
         await wv.locator('.avc:has(input[value=fuga])').click(); await wv.wait_for_timeout(250)
         es(cn == ['Atasco', 'Fugas y goteras', 'Sin agua caliente', 'Cisterna que pierde', 'Otra avería'] and 'De 80 € a 150 €' in await wv.locator('.rango .num').inner_text(), f'servicios: la cita, igual: su orden, su nombre, su precio y sin el que se ha quitado ({cn})')
         await wv.goto(B + 'cita.html?servicio=fuga'); await wv.wait_for_selector('#f')
-        es('Fugas y goteras' in await wv.locator('.elegida').inner_text(), 'servicios: y «Reservar» desde la web dice «Has elegido Fugas y goteras»')
+        es('Fugas y goteras' in await wv.locator('.lleva').inner_text(), 'servicios: y «Reservar» desde la web lleva «Fugas y goteras» ya elegido')
         # la cita (19-11-2026, lo pidió Oscar): «Pide tu cita aquí.», debajo solo «¿No puedes esperar? Contrata el servicio urgente»,
         # la caja «Explícanos cuál es el problema» y un calendario de lunes a viernes sin hoy (hoy es para las urgencias)
+        c2 = await wv.evaluate("({h1:document.querySelector('h1').textContent,lead:document.querySelector('#urgLead').textContent,lb:document.querySelector('label[for=c_nota]').textContent,ph:document.querySelector('#c_nota').placeholder,pn:document.querySelector('.pn').textContent})")
+        await wv.click('#sigue'); await wv.wait_for_selector('#f[data-paso=fr]')
         ct = await wv.evaluate("""(()=>{const hoy=Oficio.K.madrid().date,d=[...document.querySelectorAll('[data-dia]')].map(b=>b.dataset.dia);
-          return {h1:document.querySelector('h1').textContent,lead:document.querySelector('#urgLead').textContent,lb:document.querySelector('label[for=c_nota]').textContent,
-           ph:document.querySelector('#c_nota').placeholder,sem:document.querySelectorAll('.cal-sem span').length,dias:d,hoy,
+          return {h1:document.querySelector('h1').textContent,sem:document.querySelectorAll('.cal-sem span').length,dias:d,hoy,
            finde:d.filter(f=>[0,6].includes(new Date(f+'T12:00:00Z').getUTCDay())).length,sel:document.querySelectorAll('[data-dia][aria-checked=true]').length,
            hd:document.querySelector('.hd').textContent,otro:(document.querySelector('[data-dia][aria-checked=false]')||{dataset:{}}).dataset.dia||''}})()""")
-        es(ct['h1'] == 'Pide tu cita aquí.' and ct['lead'] == '¿No puedes esperar? Contrata el servicio urgente' and ct['lb'].startswith('Explícanos cuál es el problema')
-           and ct['ph'] == '¿Algún detalle importante que debamos saber? Explícanos cuál es la situación.', f"la cita: el título, la frase de la urgencia y la caja de la avería, con sus textos ({ct['h1']} · {ct['lead']} · {ct['lb']})")
+        es(c2['h1'] == '¿Algo que debamos saber?' and c2['pn'] == 'Paso 2 de 4' and c2['lead'] == '¿No puedes esperar? Contrata el servicio urgente' and c2['lb'].startswith('Explícanos cuál es el problema')
+           and c2['ph'] == '¿Algún detalle importante que debamos saber? Explícanos cuál es la situación.', f"la cita (paso a paso, 20-11): desde la web, el paso 2 con su pregunta, la frase de la urgencia y la caja de la avería ({c2['h1']} · {c2['lead']} · {c2['lb']})")
+        es(ct['h1'] == '¿Cuándo te va bien?', f"la cita: el paso 3 pregunta cuándo ({ct['h1']})")
         es(ct['sem'] == 5 and ct['hoy'] not in ct['dias'] and ct['finde'] == 0 and len(ct['dias']) >= 2 and ct['sel'] == 1, f"la cita: el calendario va de lunes a viernes, sin hoy, con un día elegido ({ct['dias']})")
         d1 = ct['otro']; await wv.locator(f'[data-dia="{d1}"]').click(); await wv.wait_for_timeout(150); hd2 = await wv.locator('.hd').text_content()
         es(await wv.get_attribute(f'[data-dia="{d1}"]', 'aria-checked') == 'true' and hd2 != ct['hd'] and await wv.locator('.hk').count() >= 1 and await wv.locator('[data-fr]').count() >= 1,
@@ -323,9 +325,9 @@ async def main():
         es(ej['abierta'] and ej['t'] == 'Un ejemplo.' and ej['tot'] == '97,50 €' and 'domingo' in ej['dom'] and ej['btn'] == 'Ver el ejemplo' and not ej['enParte'] and cerrada,
            f'lo que cuesta: «Ver el ejemplo» abre su hoja (con el total y el mismo trabajo un domingo) y se cierra; el botón no cambia ({ej}, cerrada: {cerrada})')
         await pg.goto(B + 'cita.html?lang=ca'); await pg.wait_for_selector('#f')
-        es('Demana la teva cita aquí.' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'ca' and await pg.locator('.nota-lang').count() == 0, 'idioma: la cita, en catalán (ya no avisa de que va en castellano)')
+        es('Què necessites arreglar?' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'ca' and await pg.locator('.nota-lang').count() == 0, 'idioma: la cita, en catalán (ya no avisa de que va en castellano)')
         await pg.goto(B + 'cita.html?lang=es'); await pg.wait_for_selector('#f')
-        es('Pide tu cita aquí.' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'es', 'idioma: y en castellano')
+        es('¿Qué necesitas arreglar?' in await pg.locator('h1').inner_text() and await pg.evaluate('document.documentElement.lang') == 'es', 'idioma: y en castellano')
         await ctx.close()
 
         # ---------- 8. la página de los tres móviles ----------

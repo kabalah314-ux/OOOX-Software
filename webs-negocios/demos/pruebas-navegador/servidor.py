@@ -219,10 +219,15 @@ async def main():
             await pg_.evaluate(f"localStorage.setItem('oficio:{N['id']}:avisar','1');window.__pitos=0;document.addEventListener('oficio:avisa',()=>{{window.__pitos++}})")
         ck = await contexto(br); k = await pagina(ck, 'cliente'); h0 = cuenta()['huecos']
         await k.goto(B + 'cita.html'); await k.wait_for_selector('#f')
-        es(cuenta()['huecos'] == h0 + 1 and await k.locator('[data-dia]').count() >= 3 and await k.locator('[data-fr]:not([disabled])').count() >= 1, 'el cliente ve los días y las franjas libres que da el servidor')
+        for _ in range(40):
+            if cuenta()['huecos'] > h0: break
+            await asyncio.sleep(.1)
+        es(cuenta()['huecos'] == h0 + 1, 'al abrir la cita, el cliente pide al servidor los huecos libres (una vez), mientras elige qué arreglar')
         es(await k.evaluate('Oficio.sesion()') is None and await k.evaluate('Oficio.estado().avisos.length') == 0 and 'quedan' not in await k.inner_text('#f'), 'sin entrar en ningún sitio, sin datos de nadie y sin cifras de la casa')
         foto = tempfile.NamedTemporaryFile(suffix='.png', delete=False); foto.write(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==')); foto.close()
-        h1 = cuenta()['huecos']; await k.locator('.avc').nth(1).click(); await k.set_input_files('#c_foto', foto.name); await k.wait_for_selector('.fotoz img')
+        h1 = cuenta()['huecos']; await k.locator('.avc').nth(1).click(); await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=det]')
+        await k.set_input_files('#c_foto', foto.name); await k.wait_for_selector('.fotoz img'); await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=fr]')
+        es(await pasa(k, "document.querySelectorAll('[data-dia]').length>=3&&!!document.querySelector('[data-fr]:not([disabled])')"), 'el cliente ve los días y las franjas libres que da el servidor')
         if (N.get('citas') or {}).get('porTiempo') is True:   # con citas por lo que tarda cada trabajo, los huecos son los de esa avería (aunque el archivo no lleve horarios)
             for _ in range(40):
                 if cuenta()['huecos'] > h1: break
@@ -230,6 +235,7 @@ async def main():
             await asyncio.sleep(.3)
             es(cuenta()['huecos'] == h1 + 1 and await pasa(k, "!!document.querySelector('[data-fr]:not([disabled])')"), 'al elegir la avería, el cliente vuelve a pedir los huecos (una vez): son los de ese trabajo')
         await k.locator('[data-fr]:not([disabled])').first.click(); DIA = await k.get_attribute('[data-dia][aria-checked=true]', 'data-dia'); FR = await k.get_attribute('[data-fr][aria-checked=true]', 'data-fr')
+        await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=tu]')
         await k.fill('#c_nomap', 'Lucía Cliente'); await k.fill('#c_tel', '698765432'); await k.fill('#c_dir', 'Avenida de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
         await k.click('#f [type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await pasa(k, "location.hash.startsWith('#/aviso/')", 9000)
         A2 = (await k.evaluate('location.hash')).split('/')[-1]

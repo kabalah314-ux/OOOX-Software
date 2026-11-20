@@ -8,6 +8,7 @@
 # Y además: el pie para cambiar de idioma, que el idioma elegido se queda (y es el mismo que el de la web), el ?lang= del
 # enlace, las fechas y las franjas en cada idioma, y lo propio del negocio (sus averías, su catálogo) traducido.
 # Uso: python3 idiomas.py [puerto]
+from cita_pasos import hasta
 import os, sys, re, asyncio, json
 NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 from reloj import pon_hora   # la hora de las pruebas es fija: ver reloj.py
@@ -40,15 +41,18 @@ async def recorre(br, lang):
     app = await ctx.new_page(); await app.goto(B + 'app.html#/bandeja'); await app.wait_for_selector('.alertas')
     k = await ctx.new_page(); k.on('pageerror', lambda e: errs.append(str(e)))
     await k.goto(B + 'cita.html'); await k.wait_for_selector('#f'); await mira(k, 'cita')
-    await k.click('button[type=submit]'); await mira(k, 'cita con errores')
-    await k.locator('input[name=av][value=otra]').check(force=True); await mira(k, 'cita, otra avería')
-    await k.locator('input[name=av][value=fuga]').check(force=True)
+    await k.click('#sigue'); await mira(k, 'cita con errores')
+    await k.locator('input[name=av][value=otra]').check(force=True); await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=det]'); await mira(k, 'cita, otra avería')
+    await k.fill('#c_nota', 'Gotea'); await k.click('#atras'); await k.wait_for_selector('#f[data-paso=av]')
+    await k.locator('input[name=av][value=fuga]').check(force=True); await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=det]'); await mira(k, 'cita, algo que debamos saber')
+    await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=fr]'); await k.click('#sigue'); await mira(k, 'cita sin franja')
     await k.locator('[data-dia]').nth(0).click(); await k.locator('[data-fr]:not([disabled])').first.click()   # mañana: hoy ya no se ofrece
     await k.click('#altAbre')
     if await k.locator('#altMas').count(): await k.click('#altMas')
     await k.locator('[data-alt]').first.click(); await k.locator('[data-alt]').nth(1).click(); await mira(k, 'cita con franjas')
+    await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=tu]'); await mira(k, 'cita, dónde vamos')
     await k.fill('#c_nomap', 'Pau'); await k.fill('#c_tel', '123'); await k.fill('#c_cp', '28001'); await k.click('button[type=submit]'); await mira(k, 'cita con datos mal')
-    await k.fill('#c_nomap', 'Pau Ferrer'); await k.fill('#c_tel', '611223344'); await k.fill('#c_dir', 'C/ Balmes 100, 1.º'); await k.fill('#c_cp', '08008'); await k.fill('#c_nota', 'Gotea')
+    await k.fill('#c_nomap', 'Pau Ferrer'); await k.fill('#c_tel', '611223344'); await k.fill('#c_dir', 'C/ Balmes 100, 1.º'); await k.fill('#c_cp', '08008')
     await k.click('button[type=submit]'); await k.wait_for_selector('#rConfirma'); await mira(k, 'resumen')
     await k.click('#rConfirma'); await k.wait_for_function("location.hash.startsWith('#/aviso/')"); await mira(k, 'cita pedida')
     await k.click('#copiaId'); await mira(k, 'número copiado')
@@ -153,7 +157,8 @@ async def main():
         es(not restos, f'nada en castellano en catalán ni en inglés ({len(restos)} textos)')
         # 3) lo de cada idioma, mirado a mano: fechas, franjas, el negocio (sus averías), los papeles y el desistimiento
         txt = lambda P, k: ' | '.join(P[k]['t'])
-        es('Demana la teva cita aquí.' in txt(Pca, 'cita') and 'Book your appointment here.' in txt(Pen, 'cita'), 'la cita, en catalán y en inglés')
+        es('Què necessites arreglar?' in txt(Pca, 'cita') and 'What needs fixing?' in txt(Pen, 'cita') and 'Pas 1 de 4' in txt(Pca, 'cita') and 'Step 1 of 4' in txt(Pen, 'cita'), 'la cita, en catalán y en inglés (con «Pas 1 de 4»)')
+        es('Hi ha alguna cosa que hàgim de saber?' in txt(Pca, 'cita, algo que debamos saber') and 'Anything we should know?' in txt(Pen, 'cita, algo que debamos saber') and 'On anem?' in txt(Pca, 'cita, dónde vamos'), 'los pasos de la cita, también traducidos')
         es('Fuita d’aigua' in txt(Pca, 'cita') and 'Water leak' in txt(Pen, 'cita') and 'Embús' in txt(Pca, 'cita'), 'las averías del negocio, con sus textos (oficio-datos.js)')
         cp = txt(Pca, 'cita confirmada'); ce = txt(Pen, 'cita confirmada')
         es(re.search(r'(dilluns|dimarts|dimecres|dijous|divendres) \d{1,2} (de |d’)\w+, de \d{1,2} a \d{1,2}', cp) is not None, 'en catalán, la fecha y la franja: «dimecres 18 de novembre, de 8 a 11»')
@@ -178,14 +183,14 @@ async def main():
         ctx = await br.new_context(viewport={'width': 375, 'height': 812}, timezone_id='Europe/Madrid', locale='es-ES'); await pon_hora(ctx)
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(B + 'cita.html'); await pg.wait_for_selector('#f')
-        es(await pg.evaluate('document.documentElement.lang') == 'es' and 'Pide tu cita aquí.' in await pg.locator('h1').inner_text(), 'sin elegir nada (y un navegador en castellano), en castellano')
+        es(await pg.evaluate('document.documentElement.lang') == 'es' and '¿Qué necesitas arreglar?' in await pg.locator('h1').inner_text(), 'sin elegir nada (y un navegador en castellano), en castellano')
         bt = pg.locator('#idiomas [data-lang]')
         es(await bt.count() == 3 and await pg.locator('#idiomas [aria-pressed=true]').get_attribute('data-lang') == 'es' and await pg.locator('#idiomas [role=group]').get_attribute('aria-label') == 'Idioma', 'abajo, los tres idiomas en un grupo con su nombre, con el de ahora marcado')
         alto = await pg.evaluate("Math.min(...[...document.querySelectorAll('#idiomas button')].map(b=>b.getBoundingClientRect().height))")
         es(alto >= 44, f'los botones del idioma se pueden tocar (44 px de alto: {alto})')
         es(await pg.locator('#idiomas [data-lang=ca]').get_attribute('lang') == 'ca' and await pg.locator('#idiomas [data-lang=ca]').inner_text() == 'Català', 'cada idioma escrito en el suyo, con su lang')
-        await pg.fill('#c_nomap', 'Laia Puig'); await pg.locator('#idiomas [data-lang=ca]').click(); await pg.wait_for_timeout(150)
-        es(await pg.evaluate('document.documentElement.lang') == 'ca' and 'Demana la teva cita aquí.' in await pg.locator('h1').inner_text() and await pg.input_value('#c_nomap') == 'Laia Puig', 'al tocar «Català», la cita cambia de idioma sin perder lo escrito')
+        await hasta(pg, 'tu'); await pg.fill('#c_nomap', 'Laia Puig'); await pg.locator('#idiomas [data-lang=ca]').click(); await pg.wait_for_timeout(150)
+        es(await pg.evaluate('document.documentElement.lang') == 'ca' and 'On anem?' in await pg.locator('h1').inner_text() and await pg.input_value('#c_nomap') == 'Laia Puig', 'al tocar «Català», la cita cambia de idioma sin perder lo escrito')
         es(await pg.evaluate("document.activeElement&&document.activeElement.dataset.lang") == 'ca' and await pg.locator('#idiomas [aria-pressed=true]').get_attribute('data-lang') == 'ca', 'y el foco se queda en el idioma elegido, ya marcado')
         es(await pg.evaluate("localStorage.getItem('ramirez:lang')") == 'ca' and (await pg.locator('#llama').get_attribute('aria-label')).startswith('Urgent? Truca al'), 'se guarda (en la llave de la web) y cambia también lo de arriba')
         await pg.goto(B + 'cliente.html'); await pg.wait_for_selector('#fE')
@@ -208,7 +213,8 @@ async def main():
         ctx = await br.new_context(viewport={'width': 390, 'height': 844}, timezone_id='Europe/Madrid', locale='es-ES'); await pon_hora(ctx)
         pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(B + 'cita.html?lang=ca'); await pg.wait_for_selector('#f'); N = await pg.evaluate('OFICIO_NEGOCIO'); CP = list(N['zonas']['cp'].keys())[0]
-        await pg.locator('input[name=av]').first.check(force=True); await pg.locator('[data-dia]').nth(1).click(); await pg.locator('[data-fr]:not([disabled])').first.click()
+        await pg.locator('input[name=av]').first.check(force=True); await pg.click('#sigue'); await pg.wait_for_selector('#f[data-paso=det]'); await pg.click('#sigue'); await pg.wait_for_selector('#f[data-paso=fr]')
+        await pg.locator('[data-dia]').nth(1).click(); await pg.locator('[data-fr]:not([disabled])').first.click(); await pg.click('#sigue'); await pg.wait_for_selector('#f[data-paso=tu]')
         await pg.fill('#c_nomap', 'Laia Puig Soler'); await pg.fill('#c_tel', '611 22 33 99'); await pg.fill('#c_dir', 'C/ de la Prova 12, 3r'); await pg.fill('#c_cp', CP)
         await pg.click('#f button[type=submit]'); await pg.wait_for_selector('#rConfirma'); await pg.click('#rConfirma'); await pg.wait_for_function("location.hash.startsWith('#/aviso/')")
         ID = (await pg.evaluate('location.hash')).split('/')[2]

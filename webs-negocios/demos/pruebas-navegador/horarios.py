@@ -75,13 +75,15 @@ async def main():
 
         # ---------- 1. el cliente: huecos reales y otras franjas que le van bien ----------
         k = await ctx.new_page(); vigila(k, 'cliente'); await k.goto(B + 'cita.html'); await k.wait_for_selector('#f')
+        CAL = 'cita.html?servicio=' + await k.evaluate('OFICIO_NEGOCIO.averias[0].id') + '#/p/fr'   # la cita va paso a paso: el calendario es el paso 3
+        await k.goto(B + CAL); await k.wait_for_selector('#f[data-paso=fr]')
         await k.click(f'[data-dia="{D1}"]'); f1 = await c.evaluate(FR + f"('{D1}')")
         vis = await k.evaluate("[...document.querySelectorAll('[data-fr]')].map(b=>({id:b.dataset.fr,no:b.disabled,chico:(b.querySelector('small')||{}).textContent}))")
         es(len(vis) == len(f1) and all(v['no'] == (not f['ok']) for v, f in zip(vis, f1)), f"cliente: solo puede pulsar las franjas que las reglas le ofrecen {[(v['id'], v['no']) for v in vis]}")
         es(all(v['chico'] == (('queda 1' if f['libres'] == 1 else f"quedan {f['libres']}") if f['ok'] else 'ya no da tiempo' if f['libres'] else 'completa') for v, f in zip(vis, f1)), f"cliente: en cada franja pone los huecos que hay de verdad {[v['chico'] for v in vis]}")
         es(any(f['tope'] > f['libres'] for f in f1) and all(f['libres'] < f['tope'] for f in f1 if f['tope']), 'cliente: de lo que cabe, siempre se le ofrece menos: una se guarda para urgencias')
         es(await k.locator('[data-alt]').count() == 0, 'cliente: antes de elegir franja no se le pregunta por otras')
-        libre = [f for f in f1 if f['ok']]; await k.locator('input[name=av]').first.check(force=True); await k.click(f"[data-fr=\"{libre[0]['id']}\"]"); await k.wait_for_selector('#altAbre')
+        libre = [f for f in f1 if f['ok']]; await k.click(f"[data-fr=\"{libre[0]['id']}\"]"); await k.wait_for_selector('#altAbre')
         es(await k.locator('[data-alt]').count() == 0 and await k.get_attribute('#altAbre', 'aria-expanded') == 'false', 'cliente: las otras franjas salen plegadas (16-11): primero la que prefiere')
         await k.click('#altAbre'); await k.wait_for_selector('[data-alt]')
         if await k.locator('#altMas').count(): await k.click('#altMas'); await k.wait_for_timeout(100)
@@ -92,6 +94,7 @@ async def main():
         es(len(marc) == min(4, len(alts)) and (len(alts) < 5 or await toast(k, 'Con cuatro')), f'cliente: puede marcar hasta cuatro; a la quinta se le dice que basta ({len(marc)})')
         await k.click(f'[data-alt="{marc[-1]}"]'); marc = marc[:-1]
         es(await k.locator('[data-alt][aria-pressed=true]').count() == len(marc), 'cliente: y desmarcar una')
+        await k.click('#sigue'); await k.wait_for_selector('#f[data-paso=tu]')
         await k.fill('#c_nomap', 'Clara Franjas'); await k.fill('#c_tel', '611 22 44 90'); await k.fill('#c_dir', 'C/ de la Prueba 9, 2.º'); await k.fill('#c_cp', CP)
         await k.click('button[type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await k.wait_for_selector('.doc'); idk = (await k.evaluate("location.hash")).split('/')[-1]
         A = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idk}')")
@@ -107,7 +110,7 @@ async def main():
             await c.click(f'[data-b-dia="{hoy}"]')
             vis = await c.evaluate("[...document.querySelectorAll('[data-b-fr]')].map(b=>({id:b.dataset.bFr,no:b.disabled,chico:b.querySelector('small').textContent}))")
             es(all(v['no'] == (not f['okOf']) and v['chico'] == chico(f) for v, f in zip(vis, fh)), f"oficina, hoy: cada franja dice lo que las reglas: {[(v['id'], v['chico']) for v in vis]}")
-            await k.goto(B + 'cita.html'); await k.wait_for_selector('#f'); hoy_cli = await k.locator(f'[data-dia="{hoy}"]').count()
+            await k.goto(B + CAL); await k.wait_for_selector('#f[data-paso=fr]'); hoy_cli = await k.locator(f'[data-dia="{hoy}"]').count()
             es(hoy_cli == 0 and await k.locator('.dia.hoy').count() == 1, 'cliente, hoy: no se puede pedir cita para hoy (hoy es para las urgencias); en el calendario se ve, apagado')
             idm = await nuevo_con_cita(c, hoy, margen[0]['id'], 1)
             Am = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idm}')")
@@ -120,7 +123,7 @@ async def main():
             es(r['ok'], f'preparación: el cliente pide la franja {U} ({i + 1})')
         r = await c.evaluate(f"Oficio.hacer({{tipo:'pedir',av:OFICIO_NEGOCIO.averias[0].id,cli:{{nombre:'Cliente De Más',apellidos:'Prueba',tel:'611335599',dir:'C/ Web 9, 1.º',cp:'{CP}'}},cita:{{dia:'{D1}',fr:'{U}'}}}},{{rol:'cliente'}})")
         es(r['ok'] is False and r['err'] == 'franja', 'reglas: con la franja llena para el cliente, otro cliente ya no entra')
-        await k.goto(B + 'cita.html'); await k.wait_for_selector('#f'); await k.click(f'[data-dia="{D1}"]')
+        await k.goto(B + CAL); await k.wait_for_selector('#f[data-paso=fr]'); await k.click(f'[data-dia="{D1}"]')
         es(await k.locator(f'[data-fr="{U}"]').is_disabled() and 'completa' in await texto(k, f'[data-fr="{U}"]'), 'cliente: esa franja le sale «completa», aunque quede el hueco de urgencias')
         await ir(c, '#/nuevo', '#fNuevo'); await c.click('[data-b-cu="cita"]'); await c.click(f'[data-b-dia="{D1}"]')
         fD = await c.evaluate(FR + f"('{D1}')"); vis = await c.evaluate("[...document.querySelectorAll('[data-b-fr]')].map(b=>({id:b.dataset.bFr,no:b.disabled,chico:b.querySelector('small').textContent}))")

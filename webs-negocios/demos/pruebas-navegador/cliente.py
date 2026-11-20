@@ -3,6 +3,7 @@
 #   sin --copia: la demo (avisos de muestra, el código de la demo), en un móvil
 #   con --copia: una copia de un negocio de verdad servida desde su carpeta. Sin servidor, la zona todavía no está abierta;
 #                con servidor, pide el teléfono y el código (entrar de verdad se prueba en servidor.py, contra uno local)
+from cita_pasos import hasta
 import os, sys
 NAV = os.environ.get('NAVEGADOR', 'chromium')   # chromium, firefox o webkit
 import asyncio, json
@@ -73,8 +74,9 @@ async def zona_nueva(pg, B, es, COD):
     if G:
         await entra(pg, B, tel9(G['cli']['tel']), COD); await pg.goto(B + 'cliente.html#/trabajos'); await pg.wait_for_selector(f'a[href*="garantia={G["id"]}"]')
         await pg.click(f'a[href*="garantia={G["id"]}"]'); await pg.wait_for_selector('#garN')
-        es(G['id'] in await pg.locator('#garN').inner_text() and await pg.input_value('#c_tel') != '' and 'elegido' in await pg.locator('.elegida').inner_text(), 'en pedir cita: sobre qué trabajo es, el servicio elegido y sus datos puestos')
-        await pg.locator('.hora[data-fr]:not([disabled])').first.click(); await pg.click('#f [type=submit]'); await pg.wait_for_selector('#rConfirma')
+        es(G['id'] in await pg.locator('#garN').inner_text() and await pg.get_attribute('#f', 'data-paso') == 'det' and await pg.locator('.lleva').count() == 1, 'en pedir cita: sobre qué trabajo es y con el servicio ya elegido (empieza en el paso 2)')
+        await hasta(pg, 'tu'); es(await pg.input_value('#c_tel') != '', 'y sus datos, ya puestos')
+        await hasta(pg, 'resumen')
         es('Ha vuelto a fallar el trabajo ' + G['id'] in await pg.locator('main').inner_text(), 'el resumen dice que ha vuelto a fallar ese trabajo')
         await pg.click('#rConfirma'); await pg.wait_for_url('**#/aviso/*'); nid = pg.url.split('#/aviso/')[1].split('/')[0]
         N2 = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{nid}')")
@@ -88,10 +90,10 @@ async def zona_nueva(pg, B, es, COD):
         es('Tu última revisión fue el' in r and await pg.locator('#rev a[href*="servicio=revision"]').count() == 2 and await pg.locator('#rev a[href*="plan="]').count() == 1, 'revisiones: cuándo fue la última, la revisión suelta y el plan')
         PR = await pg.evaluate("(()=>{const K=Oficio.K,cfg=Oficio.cfg,r=K.rango(cfg,K.REV,false),P=Object.values(cfg.planes)[0];return {suelta:K.eur(r.a).replace(',00',''),plan:K.eur(P.precio).replace(',00',''),id:P.id,n:P.n.toLowerCase(),rev:cfg.cat[P.rev].t}})()")
         es(('Desde ' + PR['suelta']) in r and (PR['plan'] + ' al año') in r, f"con sus precios ({PR['suelta']} y {PR['plan']} al año)")
-        await pg.click('#rev a[href*="plan="]'); await pg.wait_for_selector('#c_nomap')
+        await pg.click('#rev a[href*="plan="]'); await pg.wait_for_selector('#f[data-paso=det]')
         m = await pg.locator('main').inner_text()
         es((PR['plan'] + ' al año') in m and 'Te escribimos para darlo de alta' in m and PR['rev'] in m, 'en pedir cita: la revisión con el plan, su precio y que le escribimos para darlo de alta')
-        await pg.locator('.hora[data-fr]:not([disabled])').first.click(); await pg.click('#f [type=submit]'); await pg.wait_for_selector('#rConfirma'); await pg.click('#rConfirma'); await pg.wait_for_url('**#/aviso/*')
+        await hasta(pg, 'resumen'); await pg.click('#rConfirma'); await pg.wait_for_url('**#/aviso/*')
         nid = pg.url.split('#/aviso/')[1].split('/')[0]; N3 = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{nid}')")
         es(N3['av'] == 'revision' and N3.get('quiere') == PR['id'] and N3.get('cita'), f'{nid}: una revisión con cita, que quiere el plan')
         es((PR['plan'] + ' al año') in await pg.locator('main').inner_text(), 'y su aviso lo dice')
@@ -146,8 +148,9 @@ async def zona_tarde(pg, B, es, COD):
         eur = await pg.evaluate(f"Oficio.K.eur({NP['noPres']['total']})")
         es(eur in await pg.locator('#pend').inner_text() and 'No lo aceptaste' in await pg.locator('#pend').inner_text(), f'Lo pendiente: el presupuesto de {eur} que no aceptó')
         await pg.click(f'#pend a[data-pres="{NP["id"]}"]'); await pg.wait_for_selector('#presN')
-        es(NP['id'] in await pg.locator('#presN').inner_text() and eur in await pg.locator('main').inner_text() and await pg.input_value('#c_tel') != '', 'en pedir cita: qué presupuesto es, su importe y sus datos ya puestos')
-        await pg.locator('.hora[data-fr]:not([disabled])').first.click(); await pg.click('#f [type=submit]'); await pg.wait_for_selector('#rConfirma')
+        es(NP['id'] in await pg.locator('#presN').inner_text() and eur in await pg.locator('main').inner_text(), 'en pedir cita: qué presupuesto es y su importe')
+        await hasta(pg, 'tu'); es(await pg.input_value('#c_tel') != '', 'y sus datos, ya puestos')
+        await hasta(pg, 'resumen')
         es('Hacer el presupuesto ' + NP['id'] in await pg.locator('main').inner_text(), 'el resumen lo dice')
         await pg.click('#rConfirma'); await pg.wait_for_url('**#/aviso/*'); nid = pg.url.split('#/aviso/')[1].split('/')[0]
         N2 = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{nid}')")
@@ -278,10 +281,10 @@ async def main():
             t2 = await pg.locator('main').inner_text()
             es('No está en tu zona' in t2 and otros[0]['cli'].get('dir', '¿?') not in t2, 'el aviso de otro cliente, escrito a mano en la dirección: no se ve')
             # pedir otra cita con sus datos puestos, una sola vez
-            await pg.goto(B + 'cliente.html#/'); await pg.wait_for_selector('#otra'); await pg.click('#otra'); await pg.wait_for_selector('#c_nomap')
+            await pg.goto(B + 'cliente.html#/'); await pg.wait_for_selector('#otra'); await pg.click('#otra'); await hasta(pg, 'tu')
             v = {k: await pg.input_value('#c_' + k) for k in ('nomap', 'tel', 'dir', 'cp')}
             es(v['nomap'] == (P['cli']['nombre'] + ' ' + P['cli']['apellidos']).strip() and tel9(v['tel']) == TEL and v['dir'] == P['cli']['dir'] and v['cp'] == P['cli']['cp'], 'pedir otra cita: sus datos ya puestos')
-            await pg.reload(); await pg.wait_for_selector('#c_nomap')
+            await pg.reload(); await hasta(pg, 'tu')
             es(await pg.input_value('#c_nomap') == '', 'y solo esa vez: al volver a entrar, el formulario sale vacío')
             # salir
             await pg.goto(B + 'cliente.html'); await pg.wait_for_selector('#salir'); await pg.click('#salir'); await pg.wait_for_selector('#fE')
