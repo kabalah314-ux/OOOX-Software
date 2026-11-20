@@ -2,7 +2,7 @@
 # repositorio, que es público) saca, para los primeros de cada zona de Barcelona:
 #   cartas.pdf    una carta A4 por negocio, «al estilo tradicional» (19-11-2026, noche): su nombre, la foto de su web de
 #                 citas con su nombre en un móvil, y GRATIS junto al código QR de su muestra: la demo con sus datos dentro
-#                 del enlace (?guia&m=…, ver «muestraDe» en js/oficio-estado.js). Cada carta son dos páginas: la carta y,
+#                 del enlace (regalo.html?m=…, ver «muestraDe» en js/oficio-estado.js). Cada carta son dos páginas: la carta y,
 #                 detrás, el sobre de la misma hoja (20-11-2026): se imprime a doble cara por el lado largo y se dobla en
 #                 tres, primero la franja de abajo hacia arriba y luego la de arriba hacia abajo (las marcas del borde)
 #   sobres-C5.pdf (solo con --sobre-c5) el sobre C5 de antes, para la carta doblada por la mitad
@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import textos
 from reportlab.graphics.barcode import qrencoder as Q
 
-URL = 'https://ooox.es/demos/ramirez-24h/prueba.html'
+URL = 'https://ooox.es/demos/ramirez-24h/regalo.html'   # la carta en web: su regalo, y desde ahí su web y el programa (20-11-2026)
 GRANJA = ('93694',)   # una misma centralita con decenas de fichas «Fontanero <barrio>»: no son negocios de barrio
 METRO = ['barcelona', 'badalona', 'hospitalet', 'santa coloma', 'sant adrià', 'sant adria', 'cornellà', 'cornella', 'esplugues', 'sant just', 'sant joan despí', 'el prat', 'montcada']
 ZONAS = {'Centro': '08001 08002 08003 08007 08008 08009 08010 08011 08012 08013 08015 08036 08037 08024 08025 08029 08006 08023',
@@ -109,8 +109,7 @@ def enlace(url, n, z, h, t='', d='', nota=0, res=0, b=''):
     if b: o['b'] = b
     o['h'] = h.isoformat()
     j = json.dumps(o, ensure_ascii=False, separators=(',', ':')).encode()
-    # «guia»: al abrirla, empieza sola la demo guiada (20-11-2026)
-    return url + '?guia&m=' + base64.urlsafe_b64encode(j).decode().rstrip('=')
+    return url + '?m=' + base64.urlsafe_b64encode(j).decode().rstrip('=')
 
 def qr_matriz(texto):
     """El QR más pequeño que se lee: cada uno se comprueba leyéndolo (con OpenCV, si está); si no se lee, el siguiente tamaño.
@@ -375,6 +374,6 @@ def main():
         for i, r in enumerate(filas, 1):
             w.writerow([i, NOM_ZONA[r['z']], r['nombre'], r['corto'], r['tel'], r['dir'], str(r['nota']).replace('.', ',') if r['nota'] else '', r['res'] or '', ' · '.join(r['por']),
                         r['web'], r['email'], r['ig'], r['maps'], r['enlace'], h.isoformat(), '', '', '', '', '', '', 'Por mandar', ''])
-    print(f'{len(filas)} cartas A4 y {len(filas)} sobres C5 · muestras hasta el {h.isoformat()} · {o.out}')
+    print(f'{len(filas)} cartas A4 (cada una con su sobre detrás) · muestras hasta el {h.isoformat()} · {o.out}')
 
 if __name__ == '__main__': main()

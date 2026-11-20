@@ -51,7 +51,8 @@ mismo al que lleva «Lo quiero para mi negocio» en la demo.
 - `tanda.py` saca de la lista (en la carpeta de Oscar, nunca aquí) los primeros de cada zona de Barcelona, sin la
   centralita de las decenas de fichas «Fontanero <barrio>» (teléfonos 93694…), y deja `cartas.pdf` (una carta A4 por
   negocio: «Querido equipo de …», la foto de su web de citas con su nombre y el QR de su muestra, que se comprueba
-  leyéndolo; el enlace lleva `?guia`, así que al escanearlo empieza sola la demo guiada) y `hoja.csv` (una fila por
+  leyéndolo; el QR abre `regalo.html`, la carta en web: el sobre con su nombre se abre y dentro está su regalo, su web
+  ya hecha y su programa de gestión con un mes gratis; desde ahí va a su web o al programa, con la guía si quiere) y `hoja.csv` (una fila por
   carta, en el mismo orden, para apuntar la visita, el permiso y los seguimientos).
 - **La carta es su propio sobre (20-11-2026):** cada carta son dos páginas de `cartas.pdf`, la carta y, detrás, el sobre.
   Se imprime a doble cara, por el lado largo, y se dobla en tres por las marcas del borde: primero la franja de abajo
