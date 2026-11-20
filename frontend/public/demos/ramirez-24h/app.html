@@ -778,7 +778,7 @@ function alertas(ag){const ahora=Date.now(),r=K.resumen(S,cfg,ahora),rea=S.aviso
  const L=r.sobran.map(x=>it(x.sobran===1?'Sobra 1 cita':'Sobran '+x.sobran+' citas',diaTxt(x.dia)+', '+frTxt(x.fr)+': no hay técnicos para todas','#/equipo/'+x.dia,1)),D=[];
  if(rea.length)L.push(it(rea.length===1?'1 aviso por reasignar':rea.length+' avisos por reasignar','quien lo llevaba ya no puede ir','#/aviso/'+rea[0].id,1));
  /* sin teléfono, dirección y código postal no se puede asignar (el aviso que entra por WhatsApp trae los datos después) */
- {const sd=S.avisos.filter(a=>(a.e==='nuevo'||a.e==='ausente')&&!(a.cli.tel&&a.cli.dir&&a.cli.dis));
+ {const sd=S.avisos.filter(a=>(a.e==='nuevo'||a.e==='ausente')&&!(a.cli.tel&&a.cli.dir));
   if(sd.length)L.push(it(sd.length===1?'1 aviso sin los datos del cliente':sd.length+' avisos sin los datos del cliente','sin teléfono, dirección y código postal no se puede asignar','#/aviso/'+sd[0].id,1))}
  const M=ag?[]:porMandar(ahora),Mo=M.filter(x=>!esSeg(x)),Ms=M.filter(esSeg);
  if(Mo.length)L.push(it(Mo.length===1?'1 mensaje por mandar':Mo.length+' mensajes por mandar','«'+K.MSG[Mo[0].m.k]+'» a '+esc(K.nomCli(Mo[0].a.cli)||'un cliente')+(Mo.length>1?' y '+(Mo.length-1)+' más':''),'',0,'mensajes'))
@@ -968,7 +968,7 @@ function bEstado(A){const t=cfg.tec[A.tec],L=[],p=A.pago;
 /* la ficha de la oficina: el estado y lo principal del aviso, siempre a mano abajo, también en una ficha larga y a 320 px
    (auditoría UX-17). Primero lo que toca: completar los datos, asignar (en una urgencia, a quien antes llega) o mandar el mensaje */
 function bAccOf(A){if(A.e==='hecho')return bAccHecho(A);if(!['nuevo','asignado','ausente'].includes(A.e))return'';
- const t=cfg.tec[A.tec],datos=A.cli.tel&&A.cli.dir&&A.cli.dis,M=A.msgs.filter(m=>!m.env&&m.t<=Date.now()&&(pro()||m.k!=='resena')),sin=!A.tec||A.e==='ausente';
+ const t=cfg.tec[A.tec],datos=A.cli.tel&&A.cli.dir,M=A.msgs.filter(m=>!m.env&&m.t<=Date.now()&&(pro()||m.k!=='resena')),sin=!A.tec||A.e==='ausente';
  const ua=sin&&datos&&!A.cita&&A.e==='nuevo'?K.urgenciaAhora(Object.assign({},S,{avisos:S.avisos.filter(x=>x.id!==A.id)}),cfg,A.cli.dis,Date.now(),A.av):null,B=[];
  if(!datos)B.push('<button class="btn pri peq" data-a="completar" data-id="'+A.id+'">Completar los datos</button>');
  else if(sin)B.push(ua?'<button class="btn pri peq" data-a="asignar" data-id="'+A.id+'" data-tec="'+ua.tec+'">Asignar a '+esc(cfg.tec[ua.tec].n)+'</button>':'<button class="btn pri peq" data-a="irSec" data-sec="reparto" data-ir="#/aviso/'+A.id+'">Elegir técnico</button>');

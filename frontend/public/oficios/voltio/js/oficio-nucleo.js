@@ -467,7 +467,9 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
  const ok=r=>{S.v++;return Object.assign({ok:true},r)};
  const datosCli=(c0,parcial)=>{const c1=c0&&typeof c0==='object'?c0:{},email=txt(c1.email).trim().toLowerCase().slice(0,120),nombre=txt(c1.nombre).trim().replace(/\s+/g,' ').slice(0,60),apellidos=txt(c1.apellidos).trim().replace(/\s+/g,' ').slice(0,80),tel=tel9(c1.tel),dir=txt(c1.dir).trim().replace(/\s+/g,' ').slice(0,120),cp=soloNum(c1.cp).slice(0,5);
   const dis=cfg.zonas.cp[cp]||(typeof c1.dis==='string'&&cfg.zonas.dis[c1.dis]?c1.dis:'');
-  if(!parcial){if(nombre.length<2)return{err:'nombre'};if(apellidos.length<2)return{err:'apellidos'};if(!tel)return{err:'tel'};if(dir.length<5)return{err:'dir'};if(!dis)return{err:cp.length===5?'zona':'cp'}}
+  /* el código postal es opcional (20-11-2026, Oscar): con la calle, el número y el piso se encuentra. Si se da, tiene que
+     ser de donde se trabaja; sin él, el aviso entra sin barrio y la llegada se calcula con el tiempo más largo */
+  if(!parcial){if(nombre.length<2)return{err:'nombre'};if(apellidos.length<2)return{err:'apellidos'};if(!tel)return{err:'tel'};if(dir.length<5)return{err:'dir'};if(cp&&!dis)return{err:cp.length===5?'zona':'cp'}}
   else if(cp.length===5&&!dis)return{err:'zona'};
   /* el correo, si lo ha dado (desde su zona, 19-11-2026): para mandarle las facturas */
   if(email&&!EMAIL.test(email))return{err:'email'};
@@ -530,7 +532,7 @@ function aplicar(S,cfg,a,q,t){t=t||Date.now();q=q||{};a=a||{};
 
  case 'asignar':{
   if(!esC)return R('permiso');if(!['nuevo','asignado','ausente'].includes(A.e))return R('estado');
-  if(typeof a.tec!=='string'||!cfg.tec[a.tec])return R('tec');if(!A.cli.tel||!A.cli.dir||!A.cli.dis)return R('datos');
+  if(typeof a.tec!=='string'||!cfg.tec[a.tec])return R('tec');if(!A.cli.tel||!A.cli.dir)return R('datos');
   {const no=puedeIr(S,cfg,A,a.tec,t);if(no)return R(no)}
   A.tec=a.tec;A.e='asignado';delete A.aus;delete A.reasignar;sinMsg(A,['ausente']);
   if(A.cita){msg(A,'cita');const v=masDias(A.cita.dia,-1);if(v>madrid(t).date)msg(A,'vispera',Date.parse(v+'T17:00:00Z'))}

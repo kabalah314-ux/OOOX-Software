@@ -7,7 +7,7 @@ from playwright.async_api import async_playwright
 import webkit_linux   # el WebKit de Linux a veces no da una página por cargada: ver webkit_linux.py
 import buzon_falso     # el buzón de mejoras no sale a internet en las pruebas: ver buzon_falso.py
 from PIL import Image
-from cita_pasos import sigue_nuevo, hoja_hasta   # «Nuevo aviso» y las hojas de la app van paso a paso (20-11-2026)
+from cita_pasos import sigue_nuevo, hoja_hasta, hasta   # «Nuevo aviso» y las hojas de la app van paso a paso (20-11-2026)
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
 from reloj import pon_hora, AHORA   # la hora de las pruebas es fija: ver reloj.py
@@ -110,6 +110,8 @@ async def main():
         es(len((await estado(k))['avisos']) == n0 and await k.locator('.campo.mal #c_tel').count() == 1, 'cita: un teléfono mal escrito no deja enviar y marca el campo')
         await k.fill('#c_tel', '611 22 33 44'); await k.fill('#c_cp', '28001'); await k.wait_for_timeout(150)
         es('no llegamos' in await k.locator('#e_cp').inner_text() and await k.locator('.campo.mal #c_cp').count() == 1, 'cita: un código postal de Madrid avisa de que no llegamos, en su campo')
+        await k.fill('#c_cp', ''); await k.wait_for_timeout(150)   # opcional desde el 20-11-2026
+        es(await k.locator('.campo.mal #c_cp').count() == 0 and 'opcional' in await k.locator('label[for=c_cp]').inner_text(), 'cita: el código postal es opcional: vacío no da error, y su rótulo lo dice')
         await k.fill('#c_cp', '08008')
         await k.click('button[type=submit]'); await k.wait_for_selector('#rConfirma'); await k.click('#rConfirma'); await k.wait_for_selector('.doc'); await k.wait_for_timeout(200)
         idc = re.search(r'R-\d{4}', await k.locator('.doc').inner_text()).group(0)
@@ -117,6 +119,16 @@ async def main():
         es(A and A['cli']['tel'] == '611223344' and A['cli']['dis'] == 'eix' and A['cita'], f'cita: entra {idc} con teléfono limpio, barrio y cita')
         es(A and A['foto'].startswith('data:image/jpeg') and len(A['foto']) < 140000, f"cita: la foto llega reducida ({len(A['foto']) if A else 0} letras)")
         es(await k.evaluate('window.__x') is None, 'cita: lo que escribe el cliente no se ejecuta')
+        # sin código postal también se puede pedir (20-11-2026): con la calle, el número y el piso se encuentra
+        k2 = await oye(await ctx.new_page(), 'cliente sin código postal'); await k2.goto(B + 'cita.html'); await hasta(k2, 'tu')
+        await k2.fill('#c_nomap', 'Pau Ferrer Puig'); await k2.fill('#c_tel', '611 22 33 55'); await k2.fill('#c_dir', 'C/ Balmes 100, 1.º'); await k2.fill('#c_cp', '')
+        await k2.click('#sigue'); await k2.wait_for_selector('#rConfirma'); dr = await k2.locator('.resu').inner_text()
+        es('08008' not in dr and 'Balmes' in dr, 'cita: sin código postal, el resumen enseña la dirección tal cual')
+        await k2.click('#rConfirma'); await k2.wait_for_selector('.doc'); await k2.wait_for_timeout(200)
+        idp = re.search(r'R-\d{4}', await k2.locator('.doc').inner_text()).group(0); Ap = await aviso(k2, idp)
+        rp = await k2.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{idp}',tec:'omar'}},{{rol:'centralita',id:'oficina'}})")
+        es(Ap and Ap['cli']['cp'] == '' and Ap['cli']['dis'] == '' and rp.get('ok'), f'cita: {idp} entra sin código postal ni barrio, y la oficina lo reparte igual')
+        await k2.evaluate(f"Oficio.hacer({{tipo:'cancelar',id:'{idp}'}},{{rol:'centralita',id:'oficina'}})"); await k2.close()   # que no cambie lo que miran las demás pruebas
         await k.goto(B + 'cita.html#/aviso/R-9999'); await k.wait_for_timeout(300)
         t = await k.locator('main').inner_text()
         es('R-9999' in t or 'no' in t.lower(), 'cita: un número de aviso que no existe da un mensaje claro')

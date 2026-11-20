@@ -81,7 +81,7 @@ h1.grande{font-size:2.5rem;line-height:.95}
 .mapa-f{margin-top:2px;font-size:.8125rem;text-align:right}
 .otras .lb small{font-weight:400;color:var(--suave);margin-left:4px}
 .lb{font-size:.9375rem;font-weight:600}
-.duo{display:grid;grid-template-columns:minmax(0,1fr) 124px;gap:12px}
+#c_cp{max-width:10rem}
 .fotoz{display:flex;align-items:center;gap:12px}
 .fotoz img{width:76px;height:57px;object-fit:cover;border-radius:8px}
 .zona{font-size:.9375rem;color:var(--bien)}
@@ -195,7 +195,7 @@ const PRESX=(()=>{if(!PRES)return null;try{const x=JSON.parse(mem.get('oficio:'+
 const extra=()=>B.av===K.REV?{enCon:CON,quiere:CON?'':PLAN}:{vuelve:GAR,pres:PRESX&&B.av===PRESX.av?PRESX:null};
 /* desde «Pedir cita» de la zona del cliente: sus datos ya puestos, una sola vez */
 {const y=mem.get('oficio:'+N.id+':yo');if(y){try{const o=JSON.parse(y);['tel','dir','cp'].forEach(k=>{if(o&&typeof o[k]==='string')B[k]=k==='tel'?K.telBonito(o[k]):o[k]});if(o)B.nomap=[o.nombre,o.apellidos].filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()).join(' ')}catch(e){}try{localStorage.removeItem('oficio:'+N.id+':yo')}catch(e){}}}
-const ERR={av:'Elige qué necesitas arreglar.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nomap:'Escribe tu nombre y al menos un apellido.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Falta el código postal.',zona:'Ahí todavía no llegamos: trabajamos en {ciudad}.'};
+const ERR={av:'Elige qué necesitas arreglar.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nomap:'Escribe tu nombre y al menos un apellido.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Escribe el código postal: son 5 cifras.',zona:'Ahí todavía no llegamos: trabajamos en {ciudad}.'};
 /* con servidor: los huecos los da él (días y franjas libres, sin cifras) y el aviso se sigue con la llave del enlace */
 const SRV=Oficio.SRV,H={dias:null,err:'',t:0,va:false};
 Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al {tel}.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al {tel} y te damos cita.',red:'No hay conexión o no podemos recibirla ahora. Tu cita no se ha enviado: prueba otra vez o llámanos al {tel}.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',
@@ -270,7 +270,7 @@ const notaPrecio=(av,o)=>{o=o||{};const Pl=av===K.REV&&!o.enCon&&o.quiere?K.plan
 /* lo que se puede comprobar antes de enviar (lo mismo que mira el núcleo); así se corrige todo de una vez */
 function revisa(){const E=[],nm=s=>String(s||'').trim().replace(/\s+/g,' ');
  if(!B.av)E.push('av');if(!B.fr)E.push('franja');if(!K.parteNombre(B.nomap).bien)E.push('nomap');
- if(!K.tel9(B.tel))E.push('tel');if(nm(B.dir).length<5)E.push('dir');{const cp=String(B.cp).replace(/\D/g,'');if(!cfg.zonas.cp[cp])E.push(cp.length===5?'zona':'cp')}
+ if(!K.tel9(B.tel))E.push('tel');if(nm(B.dir).length<5)E.push('dir');{const cp=String(B.cp).replace(/\D/g,'');if(cp&&!cfg.zonas.cp[cp])E.push(cp.length===5?'zona':'cp')}
  return E}
 const CAMPO_DE={av:'av',franja:'fr',llena:'fr',nomap:'c_nomap',nombre:'c_nomap',apellidos:'c_nomap',tel:'c_tel',dir:'c_dir',cp:'c_cp',zona:'c_cp'};
 const malEn=k=>B.errs.includes(k)||B.err===k;
@@ -349,7 +349,7 @@ function vPedir(){
  const resumenMal=E.length?'<div class="revisa" id="revisa" role="alert" tabindex="-1"><p>'+_('{cuantos} antes de seguir:',{cuantos:'<b>'+(E.length===1?_('Revisa 1 dato'):_('Revisa {n} datos',{n:E.length}))+'</b>'})+'</p><ul>'+E.map(k=>'<li><a href="#" data-ir="'+(CAMPO_DE[k]||k)+'">'+err(k)+'</a></li>').join('')+'</ul></div>':'';
  return cab+resumenMal+'<form id="f" data-paso="tu" novalidate><fieldset id="tu"><legend class="vh">'+P_TIT('tu')+'</legend>'+c('nomap',_('Nombre y apellidos'),B.nomap,'autocomplete="name" maxlength="140"')+
    c('tel',_('Teléfono móvil'),B.tel,'type="tel" inputmode="tel" autocomplete="tel"',_('Te escribimos por WhatsApp para confirmar la cita y avisarte cuando salgamos. Si no tienes WhatsApp, te llamamos.'))+
-   '<div class="duo">'+c('dir',_('Calle, número y piso'),B.dir,'autocomplete="street-address"')+c('cp',_('Código postal'),B.cp,'inputmode="numeric" maxlength="5" autocomplete="postal-code"')+'</div>'+
+   c('dir',_('Calle, número y piso'),B.dir,'autocomplete="street-address"')+c('cp',_('Código postal (opcional)'),B.cp,'inputmode="numeric" maxlength="5" autocomplete="postal-code"')+
    (!malEn('zona')&&zonaDe(B.cp)?'<p class="zona">'+_('{zona}: llegamos.',{zona:esc(zonaDe(B.cp))})+'</p>':'')+'</fieldset>'+fallo+
   sigue(_('Revisar la cita'))+'<p class="ayuda" style="text-align:center;margin-top:8px">'+_('Antes de enviarla, la ves entera.')+'</p></form>'}
 
@@ -391,7 +391,7 @@ function vResumen(dias){const cp=String(B.cp).replace(/\D/g,'');
    fila(extra().pres?_('Presupuesto'):_('Precio orientativo'),precioTxt(B.av,extra())+'<br><small>'+(B.av===K.REV&&(CON||PLAN)||extra().pres?notaPrecio(B.av,extra()):_('IVA incluido. El precio final se cierra y lo firmas antes de empezar.'))+'</small>',null)+
    (GAR&&B.av!==K.REV?fila(_('Garantía'),_('Ha vuelto a fallar el trabajo {id}',{id:esc(GAR)}),null):'')+
    (PRES&&B.av!==K.REV?fila(_('Presupuesto'),_('Hacer el presupuesto {id}',{id:esc(PRES)}),null):'')+
-   fila(_('Dirección'),esc(B.dir.trim())+', '+esc(cp)+' '+esc(zonaDe(cp)),'tu')+
+   fila(_('Dirección'),esc(B.dir.trim())+(cp?', '+esc(cp)+' '+esc(zonaDe(cp)):''),'tu')+
    fila(_('A nombre de'),esc(String(B.nomap).trim().replace(/\s+/g,' '))+'<br><small>'+_('{tel} · por WhatsApp',{tel:esc(K.telBonito(K.tel9(B.tel)))})+'</small>','tu')+
    (B.nota.trim()||B.foto?fila(_('Lo que nos cuentas'),(B.nota.trim()?esc(B.nota.trim()):'')+(B.foto?(B.nota.trim()?'<br>':'')+'<img class="rfoto" src="'+esc(B.foto)+'" alt="'+_('La foto que mandas')+'">':''),'det'):'')+
   '</dl>'+
@@ -471,10 +471,11 @@ if(SRV){setInterval(alDia,5000);document.addEventListener('visibilitychange',()=
 
 /* al escribir: si el campo tenía un error y ya está bien, el error se va (y el aviso de arriba), sin perder lo escrito */
 const nmL=s=>String(s||'').trim().replace(/\s+/g,' ');
-const campoBien=k=>k==='nomap'?K.parteNombre(B.nomap).bien:k==='tel'?!!K.tel9(B.tel):k==='dir'?nmL(B.dir).length>=5:k==='cp'?!!cfg.zonas.cp[String(B.cp).replace(/\D/g,'')]:true;
+const campoBien=k=>k==='nomap'?K.parteNombre(B.nomap).bien:k==='tel'?!!K.tel9(B.tel):k==='dir'?nmL(B.dir).length>=5:k==='cp'?(c=>!c||!!cfg.zonas.cp[c])(String(B.cp).replace(/\D/g,'')):true;
 const repinta=id=>{const a=document.getElementById(id),p=a&&typeof a.selectionStart==='number'?a.selectionStart:null;pinta();const n=document.getElementById(id);if(n){n.focus({preventScroll:true});if(p!=null)try{n.setSelectionRange(p,p)}catch(e){}}};
 document.addEventListener('input',e=>{const i=e.target;if(!(i.dataset&&i.dataset.b))return;const k=i.dataset.b;B[k]=i.value;
- if(k==='cp'){const d=i.value.replace(/\D/g,'');if(d.length===5){if(zonaDe(d)){if(B.err==='zona')B.err='';B.errs=B.errs.filter(x=>x!=='cp'&&x!=='zona')}else B.err='zona';repinta(i.id)}return}
+ /* el código postal es opcional (20-11-2026): vacío vale; con sus 5 cifras se mira si llegamos */
+ if(k==='cp'){const d=i.value.replace(/\D/g,'');if(d.length===5||!d){if(!d||zonaDe(d)){if(B.err==='zona')B.err='';B.errs=B.errs.filter(x=>x!=='cp'&&x!=='zona')}else B.err='zona';repinta(i.id)}return}
  if((B.errs.includes(k)||B.err===k)&&campoBien(k)){B.errs=B.errs.filter(x=>x!==k);if(B.err===k)B.err='';repinta(i.id)}});
 /* con citas por lo que tarda cada trabajo, los huecos dependen de la avería: al elegirla se piden otra vez. Se mira también
    en los datos tal cual: el archivo de una copia con servidor no lleva los horarios y ahí cfg.porTiempo sale falso (17-11-2026) */

@@ -83,7 +83,7 @@ es(ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, nombre: 'M' } }, CLI).err =
 es(ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, tel: '12345' } }, CLI).err === 'tel', 'con un teléfono mal escrito no entra');
 es(ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, dir: 'x' } }, CLI).err === 'dir', 'sin dirección no entra');
 es(ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, cp: '28001' } }, CLI).err === 'zona', 'fuera de Barcelona se dice que no llegamos');
-es(ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, cp: '' } }, CLI).err === 'cp', 'sin código postal se pide');
+es(ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, cp: '080' } }, CLI).err === 'cp', 'un código postal a medias se pide entero (sin él también vale: ver al final)');
 es(S.avisos.length === 0 && S.n === 0, 'un aviso rechazado no gasta número');
 let r = ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, tel: '+34 600 00 01 43' }, nota: 'Sale agua.' }, CLI);
 es(r.ok && r.id === 'R-0001' && A(r.id).e === 'nuevo' && A(r.id).urg && A(r.id).cli.dis === 'gra', 'el aviso entra como urgente, con su número y su barrio');
@@ -337,7 +337,7 @@ for (const raro of ['toString', '__proto__', 'constructor', 'valueOf']) {
   es(ap({ tipo: 'pedir', av: raro, cli: montse }, CLI).err === 'av', 'una avería llamada «' + raro + '» se rechaza');
   es(K.precio(cfg, [{ k: raro }], {}).total === 0 && K.rango(cfg, raro, false) === null, 'un concepto llamado «' + raro + '» no tiene precio');
   es(Number.isInteger(K.etaMin(cfg, raro)) && K.etaMin(cfg, raro) > 0, 'una zona llamada «' + raro + '» da un tiempo de llegada normal');
-  es(['cp', 'zona'].includes(ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, montse, { cp: 'xx', dis: raro }) }, CLI).err), 'y no vale como zona del cliente');
+  es(['cp', 'zona'].includes(ap({ tipo: 'pedir', av: 'grifo', cli: Object.assign({}, montse, { cp: '99x99', dis: raro }) }, CLI).err), 'y no vale como zona del cliente');
 }
 ap({ tipo: 'asignar', id: r.id, tec: 'omar' }, C); ap({ tipo: 'voy', id: r.id }, T('omar'));
 es(ap({ tipo: 'empezar', id: r.id, pres: { lineas: 'valueOf', firma: F } }, T('omar')).err === 'lineas' && ap({ tipo: 'empezar', id: r.id, pres: 'hola' }, T('omar')).err === 'firma', 'un presupuesto que no es una lista se rechaza sin romper nada');
@@ -1734,6 +1734,14 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(!u().pago.cobrado && ap({ tipo: 'pagadoCon', id: ct, modo: 'bizum' }, OTRO).err === 'permiso' && ap({ tipo: 'pagadoCon', id: ct, modo: 'efectivo' }, Z).err === 'modo' && ap({ tipo: 'pagadoCon', id: 'C-9999', modo: 'bizum' }, Z).err === 'contrato', 'la cuota: él, por Bizum o transferencia, de un contrato que existe');
   es(ap({ tipo: 'pagadoCon', id: ct, modo: 'transferencia' }, Z).ok && u().pago.dice.modo === 'transferencia' && !u().pago.cobrado && K.pendientesContratos(S, cfg, t).cobrar.some(x => x.id === ct) && ap({ tipo: 'cobroContrato', id: ct, modo: 'transferencia' }, C).ok && u().pago.cobrado && !u().pago.dice && ap({ tipo: 'pagadoCon', id: ct, modo: 'bizum' }, Z).err === 'estado',
     'dicho, sigue por cobrar hasta que la oficina lo apunta'); }
+
+// el código postal es opcional (20-11-2026, Oscar): con la calle, el número y el piso se encuentra
+{ empieza(); const r0 = ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, cp: '' } }, CLI), A0 = r0.ok ? A(r0.id) : null;
+  es(r0.ok && A0.cli.cp === '' && A0.cli.dis === '' && K.etaMin(cfg, A0.cli.dis) === cfg.etaMax, 'sin código postal también entra: sin barrio, y la llegada se cuenta con el tiempo más largo');
+  es(ap({ tipo: 'asignar', id: r0.id, tec: 'omar' }, C).ok && A(r0.id).tec === 'omar', 'y se reparte como cualquier otro: basta con el teléfono y la dirección');
+  es(ap({ tipo: 'completar', id: r0.id, cli: { cp: '08012' } }, C).ok && A(r0.id).cli.dis === 'gra', 'si luego se sabe, la oficina lo pone y sale el barrio');
+  const r1 = ap({ tipo: 'pedir', av: 'fuga', cli: { ...montse, cp: '', dir: 'x' } }, CLI);
+  es(r1.err === 'dir', 'la dirección sí hace falta'); }
 
 console.log(`${mal ? 'MAL' : 'BIEN'}: ${ok} comprobaciones pasan${mal ? ', ' + mal + ' fallan' : ''}.`);
 process.exit(mal ? 1 : 0);
