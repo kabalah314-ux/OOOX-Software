@@ -1,0 +1,16 @@
+/* OOOX Oficios · la app (app.html), vistas/cobros. Partido de app.html el 22-11-2026 (C3): los archivos de js/app/ se cargan en
+   este orden y comparten sus nombres (scripts clásicos, sin paso de compilación). Ver la lista en app.html. */
+/* ===== centralita: cobros ===== */
+/* Cobros: arriba, tres cifras (por cobrar, por facturar, cobrado hoy) que son también las pestañas; debajo, lo de la
+   pestaña elegida. Lo del mes (la hoja para la gestoría, las urgencias y lo que deja cada trabajo) va con la caja. */
+function vCobros(pe){const r=K.resumen(S,cfg,Date.now()),L=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&!a.pago.cobrado).sort((a,b)=>a.fin-b.fin);
+ const PF=K.porFacturar(S,Date.now()).map(x=>el(x.id)).filter(Boolean);if(pe!=='facturar'&&pe!=='caja')pe='';
+ let h='<div class="cab"><div><h1>Cobros</h1><p class="sub">'+(r.pend.n?(r.pend.n===1?'1 trabajo por cobrar: ':r.pend.n+' trabajos por cobrar: ')+K.eur(r.pend.total)+'.':'No hay nada por cobrar.')+'</p></div></div>';
+ h+=pestas([{k:'',h:'#/cobros',t:'Por cobrar',n:r.pend.n},{k:'facturar',h:'#/cobros/facturar',t:'Por facturar',n:PF.length},{k:'caja',h:'#/cobros/caja',t:'Caja'}],pe,'Qué ver de los cobros');
+ if(pe==='facturar')return h+'<div class="pcuerpo"><p class="cifra"><b class="num">'+PF.length+'</b>'+(PF.length===1?'trabajo cobrado sin factura':'trabajos cobrados sin factura')+'</p>'+sec('Por facturar',PF,'','Todo lo terminado está facturado.')+(PF.length?'<p class="mnota" style="margin:-4px 0 14px">Ábrelo, copia los datos, haz la factura con tu programa y toca «Marcar como facturada».</p>':'')+'</div>';
+ if(pe==='caja'){const U=S.avisos.filter(a=>a.e==='hecho'&&a.pago&&a.pago.cobrado).sort((a,b)=>b.pago.t-a.pago.t).slice(0,5);
+  return h+'<div class="pcuerpo"><p class="cifra"><b class="num">'+K.eur(r.caja.total)+'</b>cobrado hoy</p><section class="sec"><h2>Caja de hoy</h2><dl class="cifras">'+['efectivo','tarjeta','bizum','transferencia'].map(k=>'<div><dt>'+PAGO[k]+'</dt><dd class="num">'+K.eur(r.caja[k])+'</dd></div>').join('')+'</dl><p class="mnota" style="margin-top:8px">Total cobrado hoy: '+K.eur(r.caja.total)+'. Las facturas las emite el programa de facturas del negocio, no esta app.</p></section>'+(U.length?sec('Últimos cobros',U,'',''):'')+bMes()+bUrgMes()+bDeja()+'</div>'}
+ return h+'<div class="pcuerpo"><p class="cifra"><b class="num">'+K.eur(r.pend.total)+'</b>'+(r.pend.n===1?'por cobrar, de 1 trabajo':'por cobrar, de '+r.pend.n+' trabajos')+'</p>'+sec('Por cobrar',L,'','Todo lo terminado está cobrado.',{cobro:1})+'</div>'}
+/* las urgencias con suplemento cobradas este mes, y lo que es de OOOX por ellas */
+function bUrgMes(){if(!cfg.urge)return'';const u=K.urgenciasMes(S,cfg,K.madrid().date.slice(0,7)),pc=Math.round(u.pct*100);
+ return'<section class="sec" id="urgMes"><h2>Urgencias de este mes</h2><p>'+(u.n?(u.n===1?'1 urgencia cobrada':u.n+' urgencias cobradas')+' con suplemento: '+K.eur(u.base)+' sin IVA. La parte de OOOX ('+pc+' %): <b class="num">'+K.eur(u.oox)+'</b>.':'Este mes todavía no se ha cobrado ninguna urgencia con suplemento.')+'</p><p class="mnota">El suplemento lo cobra el negocio; OOOX lo factura a final de mes. Las urgencias de clientes con contrato van sin suplemento y no cuentan.</p></section>'}

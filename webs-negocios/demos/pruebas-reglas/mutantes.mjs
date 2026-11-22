@@ -474,7 +474,7 @@ const M = [
 // una copia del sitio donde solo cambian las reglas o los papeles (lo demás, enlazado)
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mutantes-')); fs.mkdirSync(path.join(tmp, 'js'));
 for (const f of fs.readdirSync(sitio)) if (f !== 'js') fs.symlinkSync(path.resolve(sitio, f), path.join(tmp, f));
-for (const f of fs.readdirSync(path.join(sitio, 'js'))) if (f !== 'oficio-nucleo.js') fs.copyFileSync(path.join(sitio, 'js', f), path.join(tmp, 'js', f));
+for (const f of fs.readdirSync(path.join(sitio, 'js'))) if (f !== 'oficio-nucleo.js') fs.cpSync(path.join(sitio, 'js', f), path.join(tmp, 'js', f), { recursive: true });   // js/app/ es una carpeta (C3, 22-11-2026)
 const corre = (args, ms) => spawnSync(process.execPath, args, { encoding: 'utf8', timeout: ms }).status;
 const ejemplos = () => corre([path.join(aqui, '../prueba-oficio.mjs'), tmp], 60000);
 const azar = () => corre([path.join(aqui, 'azar.mjs'), tmp, '--negocio', path.join(tmp, 'js/oficio-datos.js'), '--negocio', path.join(aqui, 'negocios/voltio.js'), '--tandas', '30', '--pasos', '120'], 600000);

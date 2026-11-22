@@ -59,11 +59,13 @@ const ARCHIVOS = {
   'js/oficio-nucleo.js': ['_'],          // los mensajes al cliente (K.mensaje), en su idioma desde el 17-11-2026
   'app.html': ['_c', 'const DES='],      // lo que la oficina o el técnico le manda o le enseña al cliente (y lo que firma)
 };
+const APP = ['js/app/base.js', 'js/app/vistas/bandeja.js', 'js/app/vistas/aviso.js', 'js/app/vistas/furgo.js', 'js/app/vistas/aviso-ficha.js', 'js/app/vistas/hoy.js', 'js/app/vistas/agenda.js', 'js/app/vistas/equipo.js', 'js/app/vistas/cobros.js', 'js/app/vistas/nuevo.js', 'js/app/vistas/contratos.js', 'js/app/vistas/papel.js', 'js/app/vistas/mejoras.js', 'js/app/navegar.js', 'js/app/hojas/mensajes.js', 'js/app/entrar-y-avisos.js', 'js/app/hojas/equipo.js', 'js/app/hojas/web.js', 'js/app/hojas/aviso.js', 'js/app/acciones.js', 'js/app/eventos.js', 'js/app/arranque.js'];
 const llaves = new Map();   // texto en castellano → dónde sale
 for (const [f, [fn, ...listas]] of Object.entries(ARCHIVOS)) {
   const ruta = path.join(sitio, f);
   if (!fs.existsSync(ruta)) { falla('falta ' + f); continue }
-  const s = fs.readFileSync(ruta, 'utf8'); let n = 0;
+  // la app (app.html) se lee junto con su programa, partido en js/app/ desde el 22-11-2026 (C3)
+  const s = fs.readFileSync(ruta, 'utf8') + (f === 'app.html' ? APP.map(x => '\n' + fs.readFileSync(path.join(sitio, x), 'utf8')).join('') : ''); let n = 0;
   for (const m of s.matchAll(new RegExp('(?<![\\w$.])' + fn + '\\(', 'g'))) for (const t of literales(primerArg(s, m.index + fn.length + 1))) { if (t) { llaves.set(t, f); n++ } }
   for (const l of listas) { const b = bloque(s, l); if (!b) { falla(f + ': no encuentro «' + l + '»'); continue } literales(b).forEach(t => { if (t) llaves.set(t, f) }) }
   // los textos sueltos que se guardan en castellano y se traducen al enseñarlos

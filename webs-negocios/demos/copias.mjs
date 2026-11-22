@@ -56,6 +56,7 @@ import { valida, leeNucleo, leeNegocio } from './pruebas-reglas/valida-negocio.m
 
 const aqui = path.dirname(fileURLToPath(import.meta.url));
 export const COMUNES = ['app.html', 'cita.html', 'cliente.html', 'oficio.css', 'sw.js', 'js/oficio-nucleo.js', 'js/oficio-espejo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js', 'js/oficio-papeles.js', 'js/oficio-vigia.js', 'js/oficio-idioma.js',
+  'js/app/base.js', 'js/app/vistas/bandeja.js', 'js/app/vistas/aviso.js', 'js/app/vistas/furgo.js', 'js/app/vistas/aviso-ficha.js', 'js/app/vistas/hoy.js', 'js/app/vistas/agenda.js', 'js/app/vistas/equipo.js', 'js/app/vistas/cobros.js', 'js/app/vistas/nuevo.js', 'js/app/vistas/contratos.js', 'js/app/vistas/papel.js', 'js/app/vistas/mejoras.js', 'js/app/navegar.js', 'js/app/hojas/mensajes.js', 'js/app/entrar-y-avisos.js', 'js/app/hojas/equipo.js', 'js/app/hojas/web.js', 'js/app/hojas/aviso.js', 'js/app/acciones.js', 'js/app/eventos.js', 'js/app/arranque.js',
   'assets/fuentes/barlow-400.woff2', 'assets/fuentes/barlow-500.woff2', 'assets/fuentes/barlow-600.woff2', 'assets/fuentes/barlow-condensed-600.woff2', 'assets/fuentes/barlow-condensed-700.woff2', 'assets/fuentes/barlow-condensed-800.woff2'];
 const DATOS = 'js/oficio-datos.js', FICHA = 'copia.json';
 // la portada de una copia: lleva a pedir cita. La web del negocio, si la tiene, es otra cosa y va aparte.

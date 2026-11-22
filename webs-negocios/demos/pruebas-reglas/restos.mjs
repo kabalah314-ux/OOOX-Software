@@ -8,7 +8,8 @@ import { leeNegocio } from './valida-negocio.mjs';
 
 const sitio = process.argv[2];
 if (!sitio) { console.log('Uso: node restos.mjs <carpeta del sitio>'); process.exit(2) }
-const COMUNES = ['app.html', 'cita.html', 'cliente.html', 'oficio.css', 'sw.js', 'js/oficio-nucleo.js', 'js/oficio-espejo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js', 'js/oficio-papeles.js', 'js/oficio-vigia.js', 'js/oficio-idioma.js'];
+const COMUNES = ['app.html', 'cita.html', 'cliente.html', 'oficio.css', 'sw.js', 'js/oficio-nucleo.js', 'js/oficio-espejo.js', 'js/oficio-estado.js', 'js/oficio-soporte.js', 'js/oficio-papeles.js', 'js/oficio-vigia.js', 'js/oficio-idioma.js',
+  'js/app/base.js', 'js/app/vistas/bandeja.js', 'js/app/vistas/aviso.js', 'js/app/vistas/furgo.js', 'js/app/vistas/aviso-ficha.js', 'js/app/vistas/hoy.js', 'js/app/vistas/agenda.js', 'js/app/vistas/equipo.js', 'js/app/vistas/cobros.js', 'js/app/vistas/nuevo.js', 'js/app/vistas/contratos.js', 'js/app/vistas/papel.js', 'js/app/vistas/mejoras.js', 'js/app/navegar.js', 'js/app/hojas/mensajes.js', 'js/app/entrar-y-avisos.js', 'js/app/hojas/equipo.js', 'js/app/hojas/web.js', 'js/app/hojas/aviso.js', 'js/app/acciones.js', 'js/app/eventos.js', 'js/app/arranque.js'];
 const { N } = leeNegocio(path.join(sitio, 'js/oficio-datos.js'));
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const palabra = t => new RegExp('(?<![\\p{L}\\p{N}])' + esc(t) + '(?![\\p{L}\\p{N}])', 'iu');

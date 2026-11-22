@@ -8,7 +8,9 @@ const ESPERA = 3000;   // lo que se espera a la red antes de abrir con lo guarda
 const BASE = new URL('./', self.location).href;   // la carpeta del negocio: aquí vive este archivo
 const ARCHIVO = /\.(html|css|js|mjs|json|webmanifest|png|jpg|jpeg|webp|svg|ico|woff2?)$/i;
 const PRIMERO = ['app.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-datos.js', 'js/oficio-espejo.js', 'js/oficio-estado.js',
-  'js/oficio-papeles.js', 'js/oficio-idioma.js', 'js/oficio-soporte.js', 'js/oficio-vigia.js', 'manifest.webmanifest'];
+  'js/oficio-papeles.js', 'js/oficio-idioma.js', 'js/oficio-soporte.js', 'js/oficio-vigia.js', 'manifest.webmanifest',
+  // el programa de la app, partido por pantallas (C3, 22-11-2026)
+  'js/app/base.js', 'js/app/vistas/bandeja.js', 'js/app/vistas/aviso.js', 'js/app/vistas/furgo.js', 'js/app/vistas/aviso-ficha.js', 'js/app/vistas/hoy.js', 'js/app/vistas/agenda.js', 'js/app/vistas/equipo.js', 'js/app/vistas/cobros.js', 'js/app/vistas/nuevo.js', 'js/app/vistas/contratos.js', 'js/app/vistas/papel.js', 'js/app/vistas/mejoras.js', 'js/app/navegar.js', 'js/app/hojas/mensajes.js', 'js/app/entrar-y-avisos.js', 'js/app/hojas/equipo.js', 'js/app/hojas/web.js', 'js/app/hojas/aviso.js', 'js/app/acciones.js', 'js/app/eventos.js', 'js/app/arranque.js'];
 
 self.addEventListener('install', e => {
   /* lo justo para abrir la app sin red; si algo falta (una copia sin algún archivo), se sigue igual */
