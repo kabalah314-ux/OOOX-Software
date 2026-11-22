@@ -23,7 +23,8 @@ def es(c, txt):
     else: fallos.append(txt); print('  MAL ', txt)
 
 async def firma(pg, sel):
-    await pg.locator(sel).scroll_into_view_if_needed()
+    # al centro de la pantalla: en WebKit, si el cuadro queda pegado abajo, la barra fija de la hoja se queda con el trazo (22-11-2026)
+    await pg.locator(sel).evaluate("e=>e.scrollIntoView({block:'center',inline:'nearest'})"); await pg.wait_for_timeout(120)
     bb = await pg.locator(sel).bounding_box(); x, y, w, h = bb['x'], bb['y'], bb['width'], bb['height']
     await pg.mouse.move(x + 20, y + h * .6); await pg.mouse.down()
     for i in range(1, 16): await pg.mouse.move(x + 20 + i * (w - 40) / 16, y + h * (.65 if i % 2 else .3), steps=2)
@@ -151,7 +152,10 @@ async def main():
         if horas and any(l['k'] == horas for l in av['ini']):
             antes = (await tl.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}').tot.total"))
             await tl.click('[data-a=ampliar]'); await tl.wait_for_selector('#pC'); await tl.click(f'#pC [data-add={horas}]'); await tl.wait_for_timeout(150)
-            await hoja_hasta(tl, '#pF'); await tl.wait_for_timeout(200); await firma(tl, '#pF'); await tl.click('#pPide'); await tl.click('#pOk'); await tl.wait_for_timeout(400)
+            await hoja_hasta(tl, '#pF'); await tl.wait_for_timeout(200); await firma(tl, '#pF'); await tl.click('#pPide')
+            if await tl.locator('#pOk').is_disabled():   # si aún no se puede firmar, que el registro diga por qué
+                print('  aviso: «Firmado: añadir» sigue cerrado tras firmar:', await tl.evaluate("(()=>{const f=document.querySelector('#pF'),b=f.getBoundingClientRect(),e=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return JSON.stringify({pPide:!!(document.querySelector('#pPide')||{}).checked,lienzo:[Math.round(b.x),Math.round(b.y),Math.round(b.width),Math.round(b.height)],encima:e?e.tagName+'#'+e.id+'.'+e.className:null,ventana:[innerWidth,innerHeight]})})()"), flush=True)
+            await tl.click('#pOk'); await tl.wait_for_timeout(400)
             paso = await tl.evaluate(f"(()=>{{const c=Oficio.cfg,it=c.cat[c.horas];return Math.round(it.p10*it.paso)}})()")
             ahora = (await tl.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}').tot.total"))
             es(ahora - antes == paso, f'ampliar: «más tiempo» suma un paso de mano de obra ({antes} → {ahora}, paso {paso})')
