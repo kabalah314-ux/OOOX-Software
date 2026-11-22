@@ -155,6 +155,9 @@ async def main():
             await hoja_hasta(tl, '#pF'); await tl.wait_for_timeout(200); await firma(tl, '#pF'); await tl.locator('#pPide').check()   # marcada, esté como esté: pide que lo hagan ya
             if await tl.locator('#pOk').is_disabled():   # si aún no se puede firmar, que el registro diga por qué
                 print('  aviso: «Firmado: añadir» sigue cerrado tras firmar:', await tl.evaluate("(()=>{const f=document.querySelector('#pF'),b=f.getBoundingClientRect(),e=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);return JSON.stringify({pPide:(document.querySelectorAll('#pPide').length)+' · '+[...document.querySelectorAll('#pPide')].map(x=>x.checked).join(','),lienzo:[Math.round(b.x),Math.round(b.y),Math.round(b.width),Math.round(b.height)],encima:e?e.tagName+'#'+e.id+'.'+e.className:null,ventana:[innerWidth,innerHeight]})})()"), flush=True)
+            if await tl.locator('#pOk').is_disabled():   # en WebKit de Linux el primer trazo a veces no llega a la hoja de «más tiempo»: se repite una vez y se deja dicho
+                await firma(tl, '#pF'); await tl.wait_for_timeout(200)
+                print('  aviso: en WebKit, la firma de «más tiempo» hizo falta dos veces; ¿abierta tras repetirla?', not await tl.locator('#pOk').is_disabled(), flush=True)
             await tl.click('#pOk'); await tl.wait_for_timeout(400)
             paso = await tl.evaluate(f"(()=>{{const c=Oficio.cfg,it=c.cat[c.horas];return Math.round(it.p10*it.paso)}})()")
             ahora = (await tl.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}').tot.total"))
