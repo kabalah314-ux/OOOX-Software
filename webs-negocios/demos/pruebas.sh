@@ -36,7 +36,7 @@ paso(){
   # en GitHub, lo que falla se escribe además como aviso («::error::»): los avisos se pueden leer sin sesión y el registro no (21-11-2026)
   if [ -n "${GITHUB_ACTIONS:-}" ]; then reg="$(mktemp)"; { "$@"; } 2>&1 | tee "$reg"; local st=${PIPESTATUS[0]}
     if [ "$st" != 0 ]; then mal=$((mal+1)); echo "   ✗ FALLA este bloque"
-      echo "::error title=Bloque que falla (${NAVEGADOR:-reglas}${GRUPO:+ $GRUPO})::$nombre — $(grep -E 'MAL|FALLA|Error|Traceback|error' "$reg" | head -n 4 | tr '\n' '|' | cut -c1-500)"; fi
+      echo "::error title=Bloque que falla (${NAVEGADOR:-reglas}${GRUPO:+ $GRUPO})::$nombre — $(grep -E 'MAL|FALLA|Error|Traceback|error|File "|waiting for|locator|intercepts|not visible|not stable|outside' "$reg" | head -n 10 | cut -c1-220 | tr '\n' '|' | cut -c1-1500)"; fi
     rm -f "$reg"
   else "$@" || { mal=$((mal+1)); echo "   ✗ FALLA este bloque"; }; fi; }
 # el servidor de la fase 2 (el «juez»): está en el repositorio, en webs-negocios/oficios-servidor; en la copia del PC, al lado (../servidor)
