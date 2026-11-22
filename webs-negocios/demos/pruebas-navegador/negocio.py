@@ -159,6 +159,9 @@ async def main():
                 await tl.evaluate("(()=>{const f=document.querySelector('#pF');window.__ev={};['pointerdown','pointermove','pointerup','pointercancel','mousedown','touchstart'].forEach(n=>f.addEventListener(n,()=>{window.__ev[n]=(window.__ev[n]||0)+1},true))})()")
                 await firma(tl, '#pF'); await tl.wait_for_timeout(200)
                 print('  aviso: en WebKit, la firma de «más tiempo» hizo falta dos veces; ¿abierta tras repetirla?', not await tl.locator('#pOk').is_disabled(), 'eventos', await tl.evaluate('JSON.stringify(window.__ev)'), 'lienzo', await tl.evaluate("(()=>{const f=document.querySelector('#pF'),b=f.getBoundingClientRect();return f.width+'x'+f.height+' css '+Math.round(b.width)+'x'+Math.round(b.height)+' dlg '+document.querySelectorAll('dialog[open]').length+' pOk '+document.querySelectorAll('#pOk').length+' pL '+document.querySelectorAll('#pL li').length})()"), flush=True)
+            if await tl.locator('#pOk').is_disabled():   # última prueba: desmarcar y volver a marcar la casilla, por si su cambio no llegó
+                await tl.locator('#pPide').uncheck(); await tl.locator('#pPide').check(); await tl.wait_for_timeout(200)
+                print('  aviso: en WebKit, ¿abierta tras desmarcar y marcar la casilla?', not await tl.locator('#pOk').is_disabled(), 'casilla', await tl.evaluate("document.querySelector('#pPide')&&document.querySelector('#pPide').checked"), flush=True)
             await tl.click('#pOk'); await tl.wait_for_timeout(400)
             paso = await tl.evaluate(f"(()=>{{const c=Oficio.cfg,it=c.cat[c.horas];return Math.round(it.p10*it.paso)}})()")
             ahora = (await tl.evaluate(f"JSON.parse(localStorage.getItem('{clave}')).avisos.find(a=>a.id==='{idc}').tot.total"))
