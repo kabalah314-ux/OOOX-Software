@@ -57,7 +57,7 @@ const ARCHIVOS = {
   'js/oficio-estado.js': ['_'],
   'js/oficio-idioma.js': ['T'],
   'js/oficio-nucleo.js': ['_'],          // los mensajes al cliente (K.mensaje), en su idioma desde el 17-11-2026
-  'app.html': ['_c', 'const DES='],      // lo que la oficina o el técnico le manda o le enseña al cliente (y lo que firma)
+  'app.html': ['_c', 'const DES = '],   // su programa va en js/app/, con el formato de prettier (22-11-2026)      // lo que la oficina o el técnico le manda o le enseña al cliente (y lo que firma)
 };
 const APP = ['js/app/base.js', 'js/app/vistas/bandeja.js', 'js/app/vistas/aviso.js', 'js/app/vistas/furgo.js', 'js/app/vistas/aviso-ficha.js', 'js/app/vistas/hoy.js', 'js/app/vistas/agenda.js', 'js/app/vistas/equipo.js', 'js/app/vistas/cobros.js', 'js/app/vistas/nuevo.js', 'js/app/vistas/contratos.js', 'js/app/vistas/papel.js', 'js/app/vistas/mejoras.js', 'js/app/navegar.js', 'js/app/hojas/mensajes.js', 'js/app/entrar-y-avisos.js', 'js/app/hojas/equipo.js', 'js/app/hojas/web.js', 'js/app/hojas/aviso.js', 'js/app/acciones.js', 'js/app/eventos.js', 'js/app/arranque.js'];
 const llaves = new Map();   // texto en castellano → dónde sale

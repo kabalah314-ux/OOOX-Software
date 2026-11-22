@@ -48,6 +48,7 @@ if [ "$QUE" != navegador ]; then
   paso "La base de servicios y la hoja de cada negocio" node "$R/prueba-servicios.mjs" "$SITIO"
   paso "Precios de la web: los mismos que la cita y el catálogo" node "$R/precios-web.mjs" "$SITIO"
   paso "Versión de las reglas: si cambian, cambia VERSION (y está apuntada)" node "$R/prueba-version.mjs" "$SITIO" "$AQUI/reglas.lock.json"
+  paso "Orden de los archivos de la app (js/app/): nada usa lo que aún no se ha cargado" node "$R/orden-app.mjs" "$SITIO"
   paso "Reglas, con ejemplos" node "$AQUI/prueba-oficio.mjs" "$SITIO"
   paso "Reglas, con recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$SITIO/js/oficio-datos.js" --negocio "$OTRO" --tandas "${TANDAS:-100}" --semilla "${SEMILLA:-20261113}"
   paso "Restos del negocio de muestra en los archivos comunes" node "$R/restos.mjs" "$SITIO"

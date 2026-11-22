@@ -33,6 +33,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Analizador de JavaScript para la prueba del orden de la app (acorn)
+        run: npm install --no-save --no-audit --no-fund --prefix webs-negocios/demos/pruebas-reglas acorn@8 acorn-walk@8
       - name: Reglas, datos, recorridos al azar, restos y reglas estropeadas adrede
         run: |
           export MUTANTES=1
