@@ -251,6 +251,10 @@ async def main():
         es((await aviso(c, idw))['tec'] == 'jordi', 'web: y ya se reparte (a Jordi)')
         # agenda
         await c.goto(B + 'app.html#/agenda'); await c.wait_for_selector('.sem')
+        # la frase «para la oficina» no se repite en cada casilla: una leyenda debajo de la semana (22-11-2026)
+        capt = ' '.join(await c.locator('.sem .capt').all_inner_texts())
+        es('para la oficina' not in capt and 'libre' in capt, 'agenda: las casillas de la semana van cortas, sin repetir «para la oficina»')
+        es('solo puede dar la oficina' in await c.locator('main').inner_text(), 'agenda: la leyenda de «reservado» sale una vez, debajo de la semana')
         enl = c.locator('.sem a[href^="#/aviso/"]')
         es(await enl.count() >= 1, f'agenda: la semana enseña las citas ({await enl.count()})')
         await enl.first.click(); await c.wait_for_timeout(300)
