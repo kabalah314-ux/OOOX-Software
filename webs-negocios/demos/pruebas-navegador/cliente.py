@@ -45,6 +45,7 @@ async def zona_nueva(pg, B, es, COD):
     await pg.click('#fC [type=submit]'); await pg.wait_for_url('**/cita.html#/aviso/' + A['id'] + '*'); await pg.wait_for_selector('#tit')
     A2 = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{A['id']}')")
     es(A2['cita']['dia'] == dia and A2['cita']['fr'] == fr and A2['h'][-1]['q'] == 'Cliente' and 'Cita cambiada' in await pg.locator('#toast').inner_text(), f'cambiada al {dia}, {fr}: queda apuntado que la cambió él y se ve su aviso')
+    await pg.wait_for_function("()=>document.querySelector('main').innerText.includes('Hazlo en')", timeout=5000)   # en un equipo lento el aviso se pinta un instante después
     es('Hazlo en' in await pg.locator('main').inner_text() and await pg.locator('main a[href="cliente.html"]').count() >= 1, 'en su aviso, que se cambia o se cancela en su zona hasta 24 horas antes')
     es(await pg.evaluate("localStorage.getItem('oficio:'+Oficio.N.id+':cambia')") is None, 'y no queda nada del cambio guardado')
     # cancelar: se pregunta antes
@@ -96,6 +97,8 @@ async def zona_nueva(pg, B, es, COD):
         await hasta(pg, 'resumen'); await pg.click('#rConfirma'); await pg.wait_for_url('**#/aviso/*')
         nid = pg.url.split('#/aviso/')[1].split('/')[0]; N3 = await pg.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{nid}')")
         es(N3['av'] == 'revision' and N3.get('quiere') == PR['id'] and N3.get('cita'), f'{nid}: una revisión con cita, que quiere el plan')
+        try: await pg.wait_for_function("t=>document.querySelector('main').innerText.includes(t)", arg=PR['plan'] + ' al año', timeout=5000)
+        except Exception: pass
         es((PR['plan'] + ' al año') in await pg.locator('main').inner_text(), 'y su aviso lo dice')
         o = await pg.context.new_page(); await o.goto(B + 'app.html#/aviso/' + nid); await o.wait_for_selector('#conQ')
         es(('quiere el ' + PR['n']) in await o.locator('#conQ').inner_text() and await o.locator('#conQ [data-a=conAlta]').count() == 1, 'la oficina ve que quiere el plan, con «Dar de alta el contrato»'); await o.close()
