@@ -80,6 +80,9 @@ function estado(){const x=lee();
  else if(x){S=muestra();S.v=Math.max(Date.now(),(x.v||0)+1);guarda()}
  else if(!S){S=muestra();guarda()}
  return S}
+/* ¿la próxima vez que se pida el estado hay que fabricar la muestra? (solo la demo, y solo la primera vez o cuando caduca). La
+   pantalla lo mira antes de pedirlo para pintar un «preparando la demo» y no quedarse en blanco lo que tarde (21-11-2026) */
+function haceFalta(){if(!DEMO||S)return false;const x=lee();return !(x&&!(Date.now()-(x.t0||0)>VIEJA||x.vm!==K.VERSION))}
 function hacer(a,quien){estado();const r=K.aplicar(S,cfg,a,quien,Date.now());if(r.ok){guarda();avisa()}return r}
 function reiniciar(){S=muestra();S.v=Date.now();guarda();avisa()}
 if(canal&&!SV)canal.onmessage=e=>{const d=e.data||{};if(d.S&&(!S||d.S.v>=S.v))S=d.S;avisa()};
@@ -284,7 +287,7 @@ const firmaSvg=d=>'<svg viewBox="0 0 300 110" fill="none" stroke="currentColor" 
    porque con servidor el número lo pone él. Sin servidor contesta al momento, igual que «hacer». */
 g.Oficio=R?{K,N,cfg,DEMO,SRV:true,estado:R.estado,hacer:R.hacer,crear:R.crear,reiniciar(){},suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
   sesion:R.sesion,ultima:R.ultima,entrar:R.entrar,salir:R.salir,red:R.red,alRechazar:R.alRechazar,fotoSrc:R.fotoSrc,rechazos:R.rechazos,olvidaRechazos:R.olvidaRechazos,huecos:R.huecos,vista:R.vista,miraVista:R.miraVista,llaveDe:R.llaveDe,ponLlave:R.ponLlave,perfil:R.perfil,zona:R.zona,acceso:R.acceso,equipo:R.equipo}
- :{K,N,cfg,DEMO,SRV:false,estado,hacer,crear:(a,q)=>Promise.resolve(hacer(a,q)),reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
+ :{K,N,cfg,DEMO,SRV:false,estado,haceFalta,hacer,crear:(a,q)=>Promise.resolve(hacer(a,q)),reiniciar,suscribir:f=>{subs.push(f)},foto,firma,firmaSvg,
   /* sin servidor (la demo), la zona del cliente cambia su cita aquí mismo, con su teléfono */
   zona:(tel,codigo,a)=>Promise.resolve(hacer(a,{rol:'cliente',id:K.tel9(tel)})),
   sesion:()=>null,red:()=>null,alRechazar(){},fotoSrc:x=>typeof x==='string'?x:'',rechazos:()=>[],olvidaRechazos(){}};

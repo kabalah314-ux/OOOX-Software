@@ -63,6 +63,30 @@ async def main():
             # al quitarlo todo, la app sigue igual
             await pg.evaluate("navigator.serviceWorker.getRegistrations().then(L=>Promise.all(L.map(r=>r.unregister())))")
 
+            # ---------- 3. con una raya de cobertura: la red no contesta ni falla, y la app no espera a que se rinda (21-11-2026) ----------
+            # un servidor propio, que se pone lento a petición, y su propio origen (el trabajador es de un origen)
+            import subprocess, time
+            carpeta = os.environ.get('SITIO_PRUEBA') or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'frontend', 'public', 'demos', 'ramirez-24h'))
+            if not os.path.isdir(carpeta): carpeta = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'site'))
+            PL = PORT + 6; BL = f'http://127.0.0.1:{PL}/'
+            lento = subprocess.Popen([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'servidor_lento.py'), carpeta, str(PL)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            try:
+                await asyncio.sleep(1.2)
+                ctx2 = await br.new_context(viewport={'width': 390, 'height': 844}, locale='es-ES', timezone_id='Europe/Madrid'); await pon_hora(ctx2)
+                p2 = await ctx2.new_page()
+                await p2.goto(BL + 'app.html?sw=1#/bandeja'); await p2.wait_for_selector('#nav a')
+                await p2.evaluate("navigator.serviceWorker.ready.then(()=>1)"); await p2.reload(); await p2.wait_for_selector('#nav a')
+                es(await hasta(p2, "!!navigator.serviceWorker.controller"), 'con la red normal, la app va por el trabajador')
+                await ctx2.request.get(BL + '__lento?ms=9000')   # a partir de aquí, la red tarda nueve segundos en contestar
+                t0 = time.time(); await p2.reload(wait_until='commit'); abre = await hasta(p2, "!!document.querySelector('#nav a')", 12000); dt = time.time() - t0
+                es(abre and dt < 4.6, f'con la red colgada, la app abre con lo guardado en menos de 4,6 s ({dt:.1f} s)')
+                es(abre and dt >= 2.5, f'y no antes de lo que espera a la red ({dt:.1f} s): tiene que probarla primero')
+                await ctx2.request.get(BL + '__lento?ms=0')
+                await p2.evaluate("navigator.serviceWorker.getRegistrations().then(L=>Promise.all(L.map(r=>r.unregister())))")
+                await ctx2.close()
+            finally:
+                lento.terminate()
+
         es(not errores, 'sin errores en la consola: ' + '; '.join(errores[:5]))
         await br.close()
     print(('BIEN' if not fallos else 'MAL') + f': {ok} comprobaciones pasan' + (f', {len(fallos)} fallan' if fallos else '') + ' · la app instalable · motor ' + NAV)

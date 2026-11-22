@@ -15,6 +15,9 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23ffc400'/%3E%3Cpath d='M30 76V24h22c12 0 19 6 19 16 0 8-5 13-12 15l14 21H59L47 57h-5v19z' fill='%23141414'/%3E%3C/svg%3E">
 <link rel="preload" href="assets/fuentes/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fuentes/barlow-500.woff2" as="font" type="font/woff2" crossorigin>
+<!-- la foto de la entrada se pide desde el principio (la de ordenador o la de móvil, según la pantalla), no al final de la página -->
+<link rel="preload" href="assets/entrada-h-poster.jpg" as="image" media="(min-aspect-ratio: 1/1)">
+<link rel="preload" href="assets/entrada-v-poster.jpg" as="image" media="(max-aspect-ratio: 99/100)">
 <style>
 @font-face{font-family:'Barlow';font-weight:400;font-display:swap;src:url(assets/fuentes/barlow-400.woff2) format('woff2')}
 @font-face{font-family:'Barlow';font-weight:500;font-display:swap;src:url(assets/fuentes/barlow-500.woff2) format('woff2')}
@@ -396,6 +399,7 @@ html.snap{scroll-snap-type:y mandatory}
   <section class="track" id="track" aria-label="Entrada: la furgoneta llega a tu portal" data-ta="aria-label:a.track">
     <div class="stage" id="stage">
       <video id="v" muted playsinline preload="auto" aria-hidden="true"></video>
+      <script>document.getElementById('v').poster='assets/entrada-'+(matchMedia('(min-aspect-ratio:1/1)').matches?'h':'v')+'-poster.jpg'</script>
       <div class="scrim"></div>
       <div class="veil"></div>
       <div class="index" id="index">
@@ -910,7 +914,7 @@ $('#cp').addEventListener('input',()=>{const i=$('#cp'),v=i.value.replace(/\D/g,
  if(v.length<5){$('#cpMsg').textContent='';return}const id=CP[v];if(id){elige(id,'cp');$('#cpMsg').textContent='';i.blur()}else $('#cpMsg').textContent=t('ba.no')});
 
 /* ===== entrada: al abrir la web, la furgoneta llega, el técnico baja y se planta delante (3,4 s); acaba en la portada ===== */
-const v=$('#v'),index=$('#index');let ready=false,acabada=false,vigia=0,gliding=false,holdUntil=0;
+const v=$('#v'),index=$('#index');let ready=false,acabada=false,corre=false,vigia=0,gliding=false,holdUntil=0;
 const wide=matchMedia('(min-aspect-ratio:1/1)');let ori='';const enteros={};
 /* Si el servidor no da el vídeo por trozos (las vistas previas de Cloudflare Pages no lo hacen), el iPhone no lo reproduce.
    Se pregunta antes: si contesta con el archivo entero, ese mismo archivo es el que se usa. */
@@ -925,7 +929,7 @@ function setOri(){const o=wide.matches?'h':'v';if(o===ori)return;ori=o;if(acabad
  v.poster=`assets/entrada-${o}-poster.jpg`;if(v.getAttribute('src')){v.removeAttribute('src');v.load()}pon(o)}
 v.addEventListener('ended',()=>llega());v.addEventListener('error',()=>{if(v.getAttribute('src'))llega()});
 /* si ya corre, se le da lo que le queda y un margen; si se atasca, la portada sale igual */
-v.addEventListener('playing',()=>{clearTimeout(vigia);vigia=setTimeout(()=>llega(),Math.max(1,(v.duration||4)-v.currentTime)*1000+2500)});
+v.addEventListener('playing',()=>{corre=true;clearTimeout(vigia);vigia=setTimeout(()=>llega(),Math.max(1,(v.duration||4)-v.currentTime)*1000+2500)});
 wide.addEventListener('change',setOri);
 $('#stage').addEventListener('click',()=>{if(!acabada)llega(true)});
 const tmax=()=>Math.max(0,$('#track').offsetHeight-innerHeight);
@@ -936,9 +940,11 @@ function arrive(){if(ready)return;ready=true;document.body.classList.add('ready'
   gsap.fromTo('#hola',{y:46,opacity:0},{y:0,opacity:1,duration:1,ease:'expo.out',delay:.12});
   gsap.fromTo('#index .guardia,#index .acts,#index .hint',{y:24,opacity:0},{y:0,opacity:1,stagger:.07,duration:.7,ease:'power3.out',delay:.45})}}
 function corta(){if(!acabada)llega()}
-/* con movimiento reducido (y en las capturas), la portada directamente; si no, el vídeo, y si en 3,5 s no ha empezado, la portada */
+/* con movimiento reducido (y en las capturas), la portada directamente; si no, el vídeo, y si a los 2 s de abrir la página no se ha
+   puesto a correr, la portada. «Pedido» no es «corriendo»: con mala cobertura el vídeo se pide y tarda en llegar, y el navegador no lo da
+   por parado mientras tanto (antes, 21-11-2026, se esperaba a verlo parado y el titular tardaba lo que tardase el vídeo: 5,4 s o más) */
 if(SHOT||RM){ori=wide.matches?'h':'v';llega()}
-else{setOri();vigia=setTimeout(()=>{if(!acabada&&v.paused)llega()},3500)}
+else{setOri();vigia=setTimeout(()=>{if(!acabada&&!corre)llega()},Math.max(400,2000-performance.now()))}
 
 /* ===== pila: la pantalla que llega pasa por encima; la de atrás casi no se mueve, encoge y se oscurece ===== */
 const SECS=['averias','cuesta','barrio','garantia','mientras','fin'];

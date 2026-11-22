@@ -34,9 +34,13 @@ async def main():
         st = await c.evaluate("(()=>{const S=Oficio.estado();return{n:S.avisos.length,t0:S.t0,v:S.v}})()")
         es(st["n"] >= 300, f"U31: la oficina abre con el negocio en marcha ({st['n']} avisos)")
         es(t1 < 5, f'U31: la primera vez abre en menos de 5 segundos ({t1:.1f} s)')
+        # la primera vez se pinta un «preparando la demo» ANTES de fabricar las semanas de avisos (no se queda en blanco) y se quita al acabar (21-11-2026)
+        pre = await c.evaluate("({p:window.__prepara||0,f:window.__pinto||0,a:window.__arranco||0,vivo:!!document.getElementById('preparando')})")
+        es(pre['p'] > 0 and pre['p'] < pre['f'] <= pre['a'] and not pre['vivo'], f'U31: la primera vez, primero se pinta «preparando la demo», luego se fabrica y, al acabar, se quita ({pre})')
         t0 = time.time(); await c.reload(); await c.wait_for_selector('#nav a'); t2 = time.time() - t0
         st2 = await c.evaluate("(()=>{const S=Oficio.estado();return{n:S.avisos.length,t0:S.t0}})()")
         es(t2 < 2 and st2['n'] == st['n'] and st2['t0'] == st['t0'], f'U42: al volver a abrir, los datos siguen ahí y no se rehacen ({t2:.1f} s)')
+        es(not await c.evaluate("window.__prepara||!!document.getElementById('preparando')"), 'U42: y ya sin «preparando la demo»: abre directamente')
         K = "Oficio.K"; CFG = "Oficio.cfg"
         hoy = await c.evaluate(f"{K}.madrid(Date.now()).date")
         man = await c.evaluate(f"(()=>{{let d={K}.masDias('{hoy}',1);while(!{K}.laborable({CFG},d))d={K}.masDias(d,1);return d}})()")

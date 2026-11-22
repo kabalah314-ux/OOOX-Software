@@ -32,7 +32,13 @@ if [ -n "${GRUPO:-}" ]; then
 fi
 paso(){
   if [ "$EN_PANTALLAS" = 1 ] && [ -n "$GRUPO_N" ]; then NBLOQUE=$((NBLOQUE+1)); [ $(( (NBLOQUE-1) % GRUPO_DE + 1 )) = "$GRUPO_N" ] || return 0; fi
-  echo; echo "── $1"; shift; "$@" || { mal=$((mal+1)); echo "   ✗ FALLA este bloque"; }; }
+  local nombre="$1" reg; shift; echo; echo "── $nombre"
+  # en GitHub, lo que falla se escribe además como aviso («::error::»): los avisos se pueden leer sin sesión y el registro no (21-11-2026)
+  if [ -n "${GITHUB_ACTIONS:-}" ]; then reg="$(mktemp)"; { "$@"; } 2>&1 | tee "$reg"; local st=${PIPESTATUS[0]}
+    if [ "$st" != 0 ]; then mal=$((mal+1)); echo "   ✗ FALLA este bloque"
+      echo "::error title=Bloque que falla (${NAVEGADOR:-reglas}${GRUPO:+ $GRUPO})::$nombre — $(grep -E 'MAL|FALLA|Error|Traceback|error' "$reg" | head -n 4 | tr '\n' '|' | cut -c1-500)"; fi
+    rm -f "$reg"
+  else "$@" || { mal=$((mal+1)); echo "   ✗ FALLA este bloque"; }; fi; }
 # el servidor de la fase 2 (el «juez»): está en el repositorio, en webs-negocios/oficios-servidor; en la copia del PC, al lado (../servidor)
 JUEZ=""; for d in "$AQUI/../oficios-servidor" "$AQUI/../servidor"; do [ -f "$d/juez.mjs" ] && { JUEZ="$(cd "$d" && pwd)"; break; }; done
 if [ "$QUE" != navegador ]; then
@@ -40,6 +46,7 @@ if [ "$QUE" != navegador ]; then
   paso "El validador caza los archivos mal hechos" node "$R/prueba-valida.mjs" "$SITIO"
   paso "La base de servicios y la hoja de cada negocio" node "$R/prueba-servicios.mjs" "$SITIO"
   paso "Precios de la web: los mismos que la cita y el catálogo" node "$R/precios-web.mjs" "$SITIO"
+  paso "Versión de las reglas: si cambian, cambia VERSION (y está apuntada)" node "$R/prueba-version.mjs" "$SITIO" "$AQUI/reglas.lock.json"
   paso "Reglas, con ejemplos" node "$AQUI/prueba-oficio.mjs" "$SITIO"
   paso "Reglas, con recorridos al azar" node "$R/azar.mjs" "$SITIO" --negocio "$SITIO/js/oficio-datos.js" --negocio "$OTRO" --tandas "${TANDAS:-100}" --semilla "${SEMILLA:-20261113}"
   paso "Restos del negocio de muestra en los archivos comunes" node "$R/restos.mjs" "$SITIO"

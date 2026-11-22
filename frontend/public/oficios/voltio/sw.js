@@ -1,9 +1,10 @@
 /* OOOX Oficios · el «trabajador» de la app (service worker), para que abra sin cobertura (16-11-2026).
    Guarda lo de esta carpeta (páginas, estilos, scripts, imágenes y fuentes) cada vez que lo baja y, si no hay red, sirve lo
-   guardado. Siempre prueba la red primero: con cobertura, todo llega nuevo, así que una versión nueva entra en cuanto hay red.
+   guardado. Siempre prueba la red primero (hasta ESPERA ms): con cobertura, todo llega nuevo, así que una versión nueva entra en cuanto hay red.
    No toca nada de fuera de esta carpeta (el servidor, los mapas), ni lo que no sea GET, ni nada que no sea un archivo.
    También abre el aviso al tocar una notificación de la app. */
 const CAJA = 'oficio-1';
+const ESPERA = 3000;   // lo que se espera a la red antes de abrir con lo guardado (ms)
 const BASE = new URL('./', self.location).href;   // la carpeta del negocio: aquí vive este archivo
 const ARCHIVO = /\.(html|css|js|mjs|json|webmanifest|png|jpg|jpeg|webp|svg|ico|woff2?)$/i;
 const PRIMERO = ['app.html', 'oficio.css', 'js/oficio-nucleo.js', 'js/oficio-datos.js', 'js/oficio-espejo.js', 'js/oficio-estado.js',
@@ -25,15 +26,17 @@ self.addEventListener('fetch', e => {
   if (!ARCHIVO.test(ruta) || ruta.includes('/__')) return;
   const clave = u.origin + ruta;   // sin lo de después de «?»: app.html?papel=tecnico es la misma página
   e.respondWith((async () => {
-    const c = await caches.open(CAJA);
-    try {
-      const res = await fetch(r);
+    const c = await caches.open(CAJA), g = await c.match(clave);
+    const red = fetch(r).then(res => {
       if (res.ok && res.type === 'basic' && !(res.headers.get('content-type') || '').startsWith('video/')) c.put(clave, res.clone()).catch(() => null);
       return res;
-    } catch (err) {
-      const g = await c.match(clave); if (g) return g;
-      throw err;
-    }
+    });
+    if (!g) return red;   // sin copia guardada no hay otra cosa que esperar: la red, sin prisa
+    /* con copia: la red tiene ESPERA ms (21-11-2026). Con una raya de cobertura, la red no contesta ni falla: se queda colgada, y
+       la app esperaba a que se rindiera. Pasado el tiempo se abre con lo guardado, y la red sigue su camino por detrás para que
+       la próxima vez ya esté lo nuevo */
+    e.waitUntil(red.catch(() => null));
+    return Promise.race([red.catch(() => g), new Promise(fin => setTimeout(() => fin(g), ESPERA))]);
   })());
 });
 /* tocar una notificación: lleva a la app y abre ese aviso */

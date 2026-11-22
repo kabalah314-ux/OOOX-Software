@@ -83,7 +83,7 @@ main.dos.det>.col:last-child>*:has(+ .accion){margin-bottom:18px}
 .tira li{display:flex;align-items:center;gap:10px;min-height:54px;padding:8px 14px;font-size:.9375rem}
 .tira li+li{border-top:1px solid var(--linea)}
 .tira li>span{min-width:0}
-.tira small{display:block;font-size:.8125rem;color:var(--suave)}
+.tira small{display:block;font-size:.875rem;color:var(--suave)}
 .tira .on small{color:var(--agua)}
 .tira .off small{color:var(--tenue)}
 
@@ -186,7 +186,7 @@ main.dos.det>.col:last-child>*:has(+ .accion){margin-bottom:18px}
 .capb .cr{background:repeating-linear-gradient(-45deg,var(--senal) 0 4px,var(--asfalto) 4px 7px)}
 .capb .cx{background:repeating-linear-gradient(-45deg,var(--control) 0 2px,var(--asfalto) 2px 5px);opacity:.6}
 .capt{font-size:.9375rem;color:var(--suave)}
-.sem .cap .capt{font-size:.8125rem}
+.sem .cap .capt{font-size:.875rem}
 .dlargo{margin-top:14px;font:600 1.0625rem/1.2 var(--fb);color:var(--texto)}
 .semd i{display:block;font-style:normal;font-size:.75rem;color:var(--texto)}
 /* el resumen de la bandeja */
@@ -195,7 +195,7 @@ main.dos.det>.col:last-child>*:has(+ .accion){margin-bottom:18px}
 .resumen a.rs:hover,.resumen button.rs:hover{background:var(--asfalto-3)}
 .resumen .rs b{font:700 1.875rem/1 var(--fd)}
 .resumen .rs span{font-weight:600;font-size:.9375rem;line-height:1.2}
-.resumen .rs small{font-size:.8125rem;line-height:1.25;color:var(--suave)}
+.resumen .rs small{font-size:.875rem;line-height:1.25;color:var(--suave)}
 .resumen .rs.u:not(.cero){padding-left:20px}
 .resumen .rs.u:not(.cero)::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--cinta-fina)}
 .resumen .rs.c:not(.cero) b{color:var(--agua)}
@@ -256,7 +256,7 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .dia .dj span{display:block;overflow:hidden;text-overflow:ellipsis}
 @container (max-width:50px){.dia .dj span{visibility:hidden}}
 .dia .dg{position:absolute;top:0;bottom:0;width:1px;background:var(--linea);opacity:.7}
-.dia .dj.u{background:repeating-linear-gradient(-45deg,var(--senal) 0 6px,#e8b400 6px 12px)}
+.dia .dj.u{min-width:24px;background:repeating-linear-gradient(-45deg,var(--senal) 0 6px,#e8b400 6px 12px)}   /* una urgencia corta no baja de 24 px: es un enlace y tiene que poder tocarse */
 .dia .dj.h{background:var(--bien-f);color:var(--bien);box-shadow:inset 0 0 0 1px var(--bien)}
 .dia .dj.n{color:var(--texto);text-shadow:0 0 3px var(--asfalto),0 0 3px var(--asfalto)}
 .dia .dx{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none;container-type:inline-size}
@@ -273,7 +273,7 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .tabe span{position:absolute;transform:translateX(-50%);font-size:.8125rem;color:var(--tenue);font-variant-numeric:tabular-nums}
 .tabn{display:flex;align-items:center;gap:8px;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tabx{color:var(--tenue);font-size:.9375rem}
-.tabl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:12px;font-size:.8125rem;color:var(--suave)}
+.tabl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:12px;font-size:.875rem;color:var(--suave)}
 .tabl i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:-8px}
 .tabl .lc{background:var(--agua)}.tabl .lu{background:repeating-linear-gradient(-45deg,var(--senal) 0 4px,#e8b400 4px 8px)}.tabl .lh{background:var(--bien-f);box-shadow:inset 0 0 0 1px var(--bien)}
 .tabl .ln{background:repeating-linear-gradient(-45deg,var(--control) 0 3px,var(--asfalto) 3px 5px)}
@@ -409,7 +409,7 @@ main .sigue{margin:10px -16px 0;padding-left:16px;padding-right:16px}
 .npres{display:grid;border-top:1px solid var(--linea)}
 .npres li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--linea)}
 .npres li>span{display:grid;gap:2px;min-width:0;overflow-wrap:anywhere}
-.npres small{font-size:.8125rem;color:var(--suave)}
+.npres small{font-size:.875rem;color:var(--suave)}
 .npres .txt{flex:none;display:inline-flex;align-items:center}
 #fNuevo .ops .op{min-height:52px}
 @media (min-width:960px){.npq{font-size:2.25rem}main .sigue{margin:14px -36px 0;padding-left:36px;padding-right:36px}}
@@ -494,7 +494,7 @@ details[open]>summary.cs::after,.mdet[open]>summary::after{transform:rotate(-135
 .fst li.bajo span.num{color:var(--mal);font-weight:700}
 .fzl{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
 .fzr{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.fzr label{font-size:.9375rem}.fzr label small{display:block;color:var(--suave);font-size:.8125rem}
+.fzr label{font-size:.9375rem}.fzr label small{display:block;color:var(--suave);font-size:.875rem}
 .fzr input{width:3.4em;height:44px;text-align:center;font:inherit;font-weight:700;border:1px solid var(--control);border-radius:10px;background:transparent;color:inherit;-moz-appearance:textfield;appearance:textfield}
 .fzr input::-webkit-inner-spin-button,.fzr input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 </style>
@@ -521,7 +521,10 @@ details[open]>summary.cs::after,.mdet[open]>summary::after{transform:rotate(-135
 <script src="js/oficio-papeles.js"></script>
 <script src="js/oficio-soporte.js"></script>
 <script>
-(function(){
+/* el programa de la app va en una función que se llama al final: así la demo, la primera vez, puede pintar su «preparando la demo»
+   antes de fabricar sus semanas de avisos (en un móvil modesto son varios segundos) y no dejar la pantalla en blanco (21-11-2026) */
+window.__arranca=function(){
+window.__arranco=performance.now();
 'use strict';
 const {K,N,cfg}=Oficio,$=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 /* lo que cambia de un negocio a otro sale siempre del archivo de datos: rótulo, ciudad, recargo y el concepto que va por horas */
@@ -1913,7 +1916,13 @@ document.addEventListener('submit',e=>{if(e.target.id!=='fNuevo')return;e.preven
   if(r.ok){Object.assign(B,{av:'',or:'llamada',cuando:'',fr:'',nomap:'',tel:'',dir:'',cp:'',nota:'',err:'',visto:false});toast('Aviso '+r.id+' creado. Ahora, asígnalo.');S=Oficio.estado();if(location.hash==='#/aviso/'+r.id)pinta();else location.hash='#/aviso/'+r.id}
   else{B.err=r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;const x=NP_DE[B.err];if(x&&x!==p){npVe(x);return}pinta();if(bt)bt.disabled=false;const i=$('#n_'+(r.err==='zona'?'cp':B.err));if(i)i.focus();else toast(errDe(r)||'Revisa los datos.')}})});
 pinta();
-})();
+const pr=document.getElementById('preparando');if(pr)pr.remove();
+};
+(function(){const O=window.Oficio;
+ if(!(O&&O.haceFalta&&O.haceFalta())){window.__arranca();return}
+ window.__prepara=performance.now();
+ document.body.insertAdjacentHTML('beforeend','<div id="preparando" role="status" style="position:fixed;inset:0;z-index:99;display:grid;place-content:center;gap:10px;text-align:center;background:#14171a;color:#fff;font:600 18px/1.4 system-ui,-apple-system,sans-serif">Preparando la demo…<small style="font:400 14px/1.4 system-ui,-apple-system,sans-serif;opacity:.75">Solo la primera vez</small></div>');
+ requestAnimationFrame(()=>{window.__pinto=performance.now();setTimeout(window.__arranca,0)})})();
 </script>
 </body>
 </html>

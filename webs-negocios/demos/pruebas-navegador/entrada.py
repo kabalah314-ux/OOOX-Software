@@ -94,12 +94,15 @@ async def lento(p,port,nombre,modo):
     b,pg,errs=await nuevo(p,1280,800,False)
     async def r(route):
         if modo=='corta': await route.abort()
+        elif modo=='cuerpo' and (route.request.headers.get('range') or '')=='bytes=0-1': await route.continue_()   # la pregunta de si da rangos contesta enseguida…
         else:
-            await asyncio.sleep(6); await route.continue_()
+            await asyncio.sleep(6); await route.continue_()   # …y el vídeo en sí, no: es la cobertura mala de verdad (21-11-2026)
     await pg.route('**/entrada-*.mp4', r)
+    t0=asyncio.get_event_loop().time()
     await pg.goto(f'http://127.0.0.1:{port}/index.html')
-    llega=await hasta(pg,LISTO,7000); await pg.wait_for_timeout(300); e=await pg.evaluate(EST); print(nombre,e)
-    ok(llega and e['poster']=='fin-h.webp' and e['src']=='', f'{nombre}: sin esperar al vídeo, a los 3,5 s la portada en foto con la bienvenida ({e})')
+    llega=await hasta(pg,LISTO,7000); dt=asyncio.get_event_loop().time()-t0; await pg.wait_for_timeout(300); e=await pg.evaluate(EST); print(nombre,e,f'{dt:.1f} s')
+    ok(llega and e['poster']=='fin-h.webp' and e['src']=='', f'{nombre}: sin esperar al vídeo, a los 2 s la portada en foto con la bienvenida ({e})')
+    if modo=='cuerpo': ok(dt<3.5, f'{nombre}: aunque el vídeo se pida y tarde, la portada sale a los 2 s y no a los 6 ({dt:.1f} s)')
     await pg.wait_for_timeout(7000); e=await pg.evaluate(EST)
     ok(e['src']=='' and e['ready'], f'{nombre}: y si el vídeo llega después, no se pone encima ({e})')
     await gesto(pg,True,'rueda',1280,800); pasa=await hasta(pg,"scrollY>innerHeight*.6",7000)
@@ -131,6 +134,7 @@ async def main():
         await caso(p,8766,390,844,True,'con rangos, móvil',False)
         await lento(p,8765,'vídeo lento, sin rangos','lento')
         await lento(p,8766,'vídeo lento, con rangos','lento')
+        await lento(p,8766,'vídeo que empieza y no acaba de llegar','cuerpo')
         await lento(p,8765,'vídeo que no llega','corta')
         await quieto(p,8766)
         await gira(p,8766)
