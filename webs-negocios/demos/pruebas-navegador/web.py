@@ -21,7 +21,7 @@ def oye(pg, nombre):
     pg.on('pageerror', lambda e: errores.append(f'{nombre}! {e}'))
     pg.on('response', lambda r: rotos.append(f'{r.status} {r.url}') if r.status >= 400 else None)
     # una foto que el navegador corta porque la página cambia o se cierra mientras carga no es un archivo roto (ERR_ABORTED); un 404 sí cuenta, por la línea de arriba
-    pg.on('requestfailed', lambda r: rotos.append(f'falla {r.url} {r.failure}') if r.url.startswith(B) and not (r.resource_type == 'image' and 'ERR_ABORTED' in (r.failure or '')) else None)
+    pg.on('requestfailed', lambda r: rotos.append(f'falla {r.url} {r.failure}') if r.url.startswith(B) and not (r.resource_type == 'image' and any(x in (r.failure or '') for x in ('ERR_ABORTED', 'cancelled', 'NS_BINDING_ABORTED'))) else None)   # Chromium, WebKit y Firefox lo dicen así
     return pg
 
 from reloj import pon_hora   # la hora de las pruebas es fija: ver reloj.py
