@@ -43,14 +43,15 @@ async def main():
         es(await pg.evaluate('Oficio.N.nombre') == 'Fontanería Serra' and await pg.evaluate("Oficio.N.tecnicos.every(t=>!/Ramírez/.test(t.coche||''))"), 'en la misma pestaña sigue con su nombre: la oficina y las furgonetas')
         # la página de los tres móviles: el aviso arriba, una vez; los marcos con su nombre
         await ir(pg, B + 'prueba.html?m=' + M); await pg.wait_for_selector('#muestraOoox'); await pg.wait_for_timeout(1500)
+        # un marco que no contesta no puede dejar la prueba colgada (WebKit de Linux, 22-11-2026): se le espera 4 s
         noms = []
         for f in pg.frames[1:]:
-            try: noms.append(await f.evaluate('window.Oficio&&Oficio.N&&Oficio.N.nombre'))
-            except Exception: pass
+            try: noms.append(await asyncio.wait_for(f.evaluate('window.Oficio&&Oficio.N&&Oficio.N.nombre'), 4))
+            except Exception as x: print('  aviso: un marco no contesta (', type(x).__name__, ')', flush=True)
         dentro = 0
         for f in pg.frames[1:]:
-            try: dentro += await f.evaluate("document.querySelectorAll('#muestraOoox').length")
-            except Exception: pass
+            try: dentro += await asyncio.wait_for(f.evaluate("document.querySelectorAll('#muestraOoox').length"), 4)
+            except Exception as x: print('  aviso: un marco no contesta (', type(x).__name__, ')', flush=True)
         es(await pg.locator('#muestraOoox').count() == 1 and dentro == 0 and noms and all(n == 'Fontanería Serra' for n in noms if n), f'los tres móviles con su nombre ({noms}) y el aviso solo arriba')
         es('Serra' in await pg.locator('.fila1 .wm').inner_text() and 'Ramírez' not in await pg.locator('.fila1 .wm').inner_text(), 'y la marca de arriba, la suya')
         es(await pg.evaluate("[...document.querySelectorAll('[data-muestra-oculta]')].every(e=>e.hidden)") and await pg.locator('[data-muestra-nombre]').first.inner_text() == 'Fontanería Serra', 'sin el fundador inventado, y «Volver a la web de» con su nombre')
