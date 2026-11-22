@@ -1911,7 +1911,7 @@ document.addEventListener('keydown',e=>{if(Q.rol!=='centralita'||!ANCHO.matches|
  const t=e.target,tg=t&&t.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT'||(t&&t.isContentEditable)||document.querySelector('dialog[open]'))return;
  const r=ruta();
  if(e.key==='n'||e.key==='N'){e.preventDefault();if(r.v!=='nuevo')location.hash='#/nuevo'}
- else if(e.key==='/'){e.preventDefault();const f=()=>{const i=$('#busca');if(i){i.focus();i.select()}};if($('#busca'))f();else{addEventListener('hashchange',()=>requestAnimationFrame(f),{once:true});location.hash='#/bandeja'}}
+ else if(e.key==='/'){e.preventDefault();const f=()=>{const i=$('#busca');if(i){i.focus();i.select()}};if($('#busca'))f();else{addEventListener('hashchange',f,{once:true});location.hash='#/bandeja'}}
  else if(e.key==='Escape'&&r.v==='aviso')location.hash='#/bandeja'});
 document.addEventListener('submit',e=>{if(e.target.id!=='fNuevo')return;e.preventDefault();
  const p=e.target.dataset.paso,foco=()=>{const i=$('#fNuevo [aria-invalid=true]')||$('#n_'+(B.err==='zona'?'cp':B.err))||$('#fNuevo [role=radio]:not([disabled])');if(i)i.focus()};
