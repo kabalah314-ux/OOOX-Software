@@ -60,7 +60,7 @@ async def contexto(br, movil=True):
 
 async def pagina(ctx, nombre):
     pg = await ctx.new_page()
-    pg.on('console', lambda m: errores.append(f'{nombre}: {m.text}') if m.type == 'error' and 'Failed to load resource' not in m.text and not webkit_linux.es_rareza(m.text) else None)
+    pg.on('console', lambda m: errores.append(f'{nombre}: {m.text} @ {(m.location or {}).get("url","").split("/")[-1]}:{(m.location or {}).get("lineNumber","")}') if m.type == 'error' and 'Failed to load resource' not in m.text and not webkit_linux.es_rareza(m.text) else None)
     pg.on('pageerror', lambda e: (de_red if es_corte(e) else errores).append(f'{nombre}! {e} [a los {ahora()}]'))
     va, otra = pg.goto, pg.reload
     async def goto(*a, **k): recargando(); return await va(*a, **k)
