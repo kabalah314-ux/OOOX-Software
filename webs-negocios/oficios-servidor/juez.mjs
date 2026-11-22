@@ -29,6 +29,7 @@ export const TOPES = {
   pedirTodos: [40, 3600000],  // …y 40 por hora entre todas, por negocio
   dias: 5,            // días con huecos que se enseñan a quien pide cita
   zona: [20, 3600000],       // cambios desde la zona del cliente: 20 por hora y teléfono
+  abierto: [600, 3600000],   // lo que se pide sin código (huecos de la web, enlace de seguimiento): 600 por hora y conexión (21-11-2026)
 };
 
 /* LA HORA DE UNA ACCIÓN (16-11-2026). Lo hecho sin conexión se apunta con la hora en que se hizo, no con la de cuando llega:
@@ -315,6 +316,9 @@ export function crea({ K, almacen, ahora = () => Date.now(), llave = llaveNueva,
       if (p.accion !== undefined) { let n = 0; try { n = JSON.stringify(p.accion).length; } catch (e) { return R('accion'); } if (n > TOPES.accion) return R('grande'); }
       const neg = await negocio(p.negocio);
       if (!neg) return R(p.que === 'ver' ? 'enlace' : p.que === 'pedir' || p.que === 'huecos' ? 'negocio' : 'clave');   // un negocio que no existe contesta lo mismo que un código malo
+      // lo que no pide código (huecos para pedir cita, enlace de seguimiento) cuesta lecturas a quien lo atiende: freno por conexión, bien
+      // por encima de lo que hace una persona (la conexión la pone el servidor; sin ella, no hay a quién frenar)
+      if ((p.que === 'huecos' || p.que === 'ver') && texto(p.red, 80) && !(await almacen.tope(neg.id, 'abierto:' + p.red, TOPES.abierto[0], TOPES.abierto[1]))) return R('limite');
       return await QUE_HACE[p.que](neg, K.cfgDe(neg.datos), p);
     } catch (e) { try { aviso(e); } catch (x) { /* nada */ } return R('servidor'); }
   }

@@ -10,6 +10,8 @@
 #                         defecto, pruebas-reglas/completos (las copias de prueba). Sin ellos, esa copia se prueba solo por su parte pública
 #   AHORA=2026-11-17T10:30:00+01:00   la hora fija de las pruebas de pantallas (por defecto, un martes laborable a media mañana)
 #   HORAS="..."  otras horas a las que se repite la batería de la app (por defecto, un sábado de noche y el cruce de fin de año)
+#   GRUPO=2/3    solo el tercio 2 de 3 de las pruebas de pantallas (reparto por turnos: cada bloque va a un grupo distinto, así los
+#                pesados no se juntan). Los tres grupos juntos hacen lo mismo que sin GRUPO. Sirve para repartir el trabajo en GitHub
 set -u
 AQUI="$(cd "$(dirname "$0")" && pwd)"
 # la carpeta del sitio: la del repositorio o, en la copia del PC, la que está al lado (../site)
@@ -23,7 +25,14 @@ completos(){ local d="$1" id; id="$(basename "$(dirname "$(dirname "$d")")")"
   if grep -q '^ publico:true' "$d"; then [ -f "$COMPLETOS/$id.js" ] && echo "$COMPLETOS/$id.js"; else echo "$d"; fi; }
 # las copias de la app hechas para cada negocio (ver copias.mjs): en el repositorio o, en la copia del PC, en la carpeta de al lado (../oficios)
 if [ -z "${COPIAS:-}" ]; then if [ -d "$AQUI/../../frontend/public" ]; then COPIAS="$AQUI/../../frontend/public/oficios"; else COPIAS="$AQUI/../oficios"; fi; fi
-paso(){ echo; echo "── $1"; shift; "$@" || { mal=$((mal+1)); echo "   ✗ FALLA este bloque"; }; }
+# GRUPO=n/total: en las pruebas de pantallas (EN_PANTALLAS=1) cada bloque, por turnos, le toca a un grupo; los demás lo saltan
+NBLOQUE=0; EN_PANTALLAS=0; GRUPO_N=""; GRUPO_DE=""
+if [ -n "${GRUPO:-}" ]; then
+  case "$GRUPO" in [1-9]/[1-9]) GRUPO_N="${GRUPO%/*}"; GRUPO_DE="${GRUPO#*/}"; [ "$GRUPO_N" -le "$GRUPO_DE" ] || { echo "GRUPO=$GRUPO: el grupo no puede pasar del total"; exit 2; } ;; *) echo "GRUPO tiene que ser así: 2/3 (el grupo 2 de 3)"; exit 2 ;; esac
+fi
+paso(){
+  if [ "$EN_PANTALLAS" = 1 ] && [ -n "$GRUPO_N" ]; then NBLOQUE=$((NBLOQUE+1)); [ $(( (NBLOQUE-1) % GRUPO_DE + 1 )) = "$GRUPO_N" ] || return 0; fi
+  echo; echo "── $1"; shift; "$@" || { mal=$((mal+1)); echo "   ✗ FALLA este bloque"; }; }
 # el servidor de la fase 2 (el «juez»): está en el repositorio, en webs-negocios/oficios-servidor; en la copia del PC, al lado (../servidor)
 JUEZ=""; for d in "$AQUI/../oficios-servidor" "$AQUI/../servidor"; do [ -f "$d/juez.mjs" ] && { JUEZ="$(cd "$d" && pwd)"; break; }; done
 if [ "$QUE" != navegador ]; then
@@ -59,6 +68,7 @@ if [ "$QUE" != navegador ]; then
   [ "${MUTANTES:-0}" = 1 ] && [ -n "$JUEZ" ] && paso "Protecciones del espejo quitadas adrede" env OFICIOS_SERVIDOR="$JUEZ" node "$R/mutantes-espejo.mjs" "$SITIO"
 fi
 if [ "$QUE" != reglas ]; then
+  EN_PANTALLAS=1
   ( cd "$SITIO" && exec python3 -m http.server 8765 >/dev/null 2>&1 ) & S1=$!
   python3 "$AQUI/pruebas-navegador/servidor_con_rangos.py" "$SITIO" 8766 >/dev/null 2>&1 & S2=$!
   sleep 1.5; cd "$AQUI/pruebas-navegador"

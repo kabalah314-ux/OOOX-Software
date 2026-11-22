@@ -88,7 +88,8 @@ async def a_mejoras(pg, pesta=''):
         await pg.evaluate("location.hash='#/bandeja'"); await pg.wait_for_function("!document.querySelector('#fMejora,#fCodigo,#mLista')")
     await pg.evaluate("h=>{location.hash=h}", '#/mejoras' + ('/' + pesta if pesta else '')); await pg.wait_for_selector('#fMejora,#fCodigo,#mLista')
 async def pesta(pg, k):
-    await pg.click(f'.pestas [data-pesta={k}]'); await pg.wait_for_selector('#fMejora' if k == 'pedir' else '#mLista')
+    # espera a la sección de esa pestaña, no a «#mLista», que está en las dos y se queda de la anterior hasta que se vuelve a pintar (21-11-2026)
+    await pg.click(f'.pestas [data-pesta={k}]'); await pg.wait_for_selector({'pedir': '#fMejora', 'peticiones': '#mPet', 'novedades': '#mNov'}[k])
 async def escribe(pg, tipo, txt):
     # «Pedir» va en dos pasos (20-11-2026): qué es («Continuar») y, luego, cuéntalo
     if not await pg.locator('#fMejora').count(): await pesta(pg, 'pedir')

@@ -55,7 +55,7 @@ jobs:
           PGURL: postgresql:///postgres?host=/var/run/postgresql
         run: bash webs-negocios/oficios-mantenimiento/prueba-restaurar.sh
   pantallas:
-    name: Pantallas en ${{ matrix.motor }}
+    name: Pantallas en ${{ matrix.motor }}${{ matrix.grupo && format(' ({0})', matrix.grupo) || '' }}
     runs-on: ubuntu-24.04   # sistema fijo, como la versión del probador: «latest» cambia solo con los años
     # La instalación de lo que necesita el navegador a veces tarda más de media hora (WebKit, 18-11-2026: 28 minutos y, en
     # la tanda siguiente, más de 32): el espejo de Ubuntu da los paquetes muy despacio. Por eso los paquetes se guardan de
@@ -64,7 +64,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        motor: [chromium, firefox, webkit]
+        # WebKit tardaba más de los 35 minutos del paso en una sola máquina (19-11-2026): se reparte en tres, cada una con un tercio
+        # de los bloques (GRUPO=n/total en pruebas.sh). Chromium y Firefox caben enteros.
+        include:
+          - { motor: chromium, grupo: '' }
+          - { motor: firefox, grupo: '' }
+          - { motor: webkit, grupo: '1/3' }
+          - { motor: webkit, grupo: '2/3' }
+          - { motor: webkit, grupo: '3/3' }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -101,6 +108,7 @@ jobs:
         timeout-minutes: 35
         env:
           NAVEGADOR: ${{ matrix.motor }}
+          GRUPO: ${{ matrix.grupo }}
         # Las pantallas se prueban con la hora fija (un martes a media mañana) y la app se repite a otras horas.
         # De noche se repite a siete: viernes y sábado de noche, festivo, fin de año, cambio de hora y los dos bordes de la tarifa.
         run: |

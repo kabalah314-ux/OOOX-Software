@@ -157,6 +157,12 @@ let idW, llaveW;
   crudo('ramirez').topes.clear(); let pasan = 0, ult = null;
   for (let i = 0; i < 7; i++) { ult = await J.atiende({ que: 'pedir', negocio: 'ramirez', red: 'red-9', accion: { tipo: 'pedir', av: NR.averias[0].id, origen: 'web', cli: {} } }); if (ult.ok) pasan++; }
   es(pasan === TOPES.pedirRed[0] && ult.err === 'limite' && (await J.atiende({ que: 'pedir', negocio: 'ramirez', red: 'red-10', accion: { tipo: 'pedir', av: NR.averias[0].id, origen: 'web', cli: {} } })).ok, 'desde la misma conexión, cinco por hora; desde otra sigue entrando');
+  // lo que se pide sin código (huecos, enlace de seguimiento) también tiene freno por conexión (21-11-2026)
+  { crudo('ramirez').topes.clear(); let hp = 0, hu1 = null; for (let i = 0; i < TOPES.abierto[0] + 3; i++) { hu1 = await J.atiende({ que: 'huecos', negocio: 'ramirez', red: 'red-h1' }); if (hu1.ok) hp++ }
+    const v1 = await J.atiende({ que: 'ver', negocio: 'ramirez', red: 'red-h1', aviso: 'R-1', llave: 'x'.repeat(20) });
+    es(hp === TOPES.abierto[0] && hu1.err === 'limite' && v1.err === 'limite', 'huecos y enlaces sin código: 600 por hora y conexión; el siguiente espera, y el freno es el mismo para los dos');
+    es((await J.atiende({ que: 'huecos', negocio: 'ramirez', red: 'red-h2' })).ok && (await J.atiende({ que: 'huecos', negocio: 'ramirez' })).ok, 'otra conexión sigue entrando, y sin conexión (pruebas locales) no se frena a nadie');
+    es((await J.atiende({ que: 'pedir', negocio: 'ramirez', red: 'red-h1', accion: { tipo: 'pedir', av: NR.averias[0].id, origen: 'web', cli: {} } })).err !== 'limite', 'y el freno de pedir cita es otro: no se gasta con los huecos'); crudo('ramirez').topes.clear() }
   es(!(await J.atiende({ que: 'pedir', negocio: 'no-existe', accion: { tipo: 'pedir' } })).ok && !(await J.atiende({ que: 'huecos', negocio: 'no-existe' })).ok, 'un negocio que no existe no da huecos ni admite citas');
   /* aunque un día las reglas se equivocaran y dejasen al cliente hacer otra cosa, por esta puerta no pasa */
   let llamadas = 0; const KB = Object.assign({}, K, { aplicar: (S2, c2, a2) => { llamadas++; S2.v++; return { ok: true, id: 'X' }; } });

@@ -1044,6 +1044,12 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(ft.libresOf === 0, 'en el hueco que queda en la última franja cabe un grifo, pero no un termo: acabaría mucho después de su hora');
   const rc = hb({ tipo: 'mover', id: r1.id, cita: { dia, fr: 'f4' } }, C);
   es(rc.ok, 'cambiar de franja una cita mira lo que tarda ese trabajo: un grifo sí cabe en ese hueco');
+  // lo mismo cuando la cambia el cliente desde su zona (19-11-2026): su grifo cabe en el hueco que queda en la última franja, su termo no
+  { const SE = K.nuevo(); let tE = MAR; const hE = (a, q) => K.aplicar(SE, ct, a, q, tE += M), dia2 = '2026-11-12', yo = n => ({ rol: 'cliente', id: K.tel9(cl(n).tel) });
+    hE({ tipo: 'pedir', av: 'grifo', cli: cl(60), cita: { dia: dia2, fr: 'f4' } }, C);
+    const gr = hE({ tipo: 'pedir', av: 'grifo', cli: cl(61), cita: { dia: dia2, fr: 'f1' } }, C).id, tr = hE({ tipo: 'pedir', av: 'termo', cli: cl(62), cita: { dia: dia2, fr: 'f1' } }, C).id;
+    es(hE({ tipo: 'mover', id: tr, cita: { dia: dia2, fr: 'f4' } }, yo(62)).err === 'franja' && hE({ tipo: 'mover', id: gr, cita: { dia: dia2, fr: 'f4' } }, yo(61)).ok,
+      'el cliente que cambia su cita desde su zona: su grifo cabe en el hueco que queda en la última franja, su termo no') }
   // cambiar de franja una cita que ya tiene técnico: si con ella su día ya no cuadra, se queda sin técnico (visto con la demo en uso, 15-11-2026)
   { const SM = K.nuevo(); let tm = MAR; const hm = (a, q) => K.aplicar(SM, ct, a, q, tm += M);
     const vieja = hm({ tipo: 'pedir', av: 'atasco', cli: cl(40), cita: { dia, fr: 'f1' } }, C).id; hm({ tipo: 'asignar', id: vieja, tec: 'jordi' }, C);
@@ -1692,7 +1698,11 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(K.perfilCliente(S, cfg, tel).avisos.find(a => a.id === debe).pago.dice.modo === 'bizum' && !P.tipos(K.perfilCliente(S, cfg, tel).avisos.find(a => a.id === debe)).some(x => x[0] === 'recibo'), 'lo ve en su zona; sin recibo hasta que se cobra');
   es(ap({ tipo: 'cobrar', id: debe, modo: 'bizum' }, C).ok && A(debe).pago.cobrado && !A(debe).pago.dice && P.tipos(A(debe)).some(x => x[0] === 'recibo') && P.elige(A(debe), '') === 'parte', 'la oficina lo apunta como cobrado: ya tiene su recibo (y se sigue enseñando el parte)');
   { const html = P.doc(A(debe), 'recibo', { K, N: cfg.N, cfg, firmaSvg: () => '' });
-    es(html.includes('Recibo') && html.includes(K.eur(A(debe).tot.total)) && html.includes('bizum') && html.includes('no es una factura') && !/undefined|NaN|null/.test(html), 'el recibo: cuánto, cuándo, cómo, y que no es la factura') }
+    es(html.includes('Recibo') && html.includes(K.eur(A(debe).tot.total)) && html.includes('bizum') && html.includes('no es una factura') && !/undefined|NaN|null/.test(html), 'el recibo: cuánto, cuándo, cómo, y que no es la factura');
+    // ya facturado, el recibo dice con qué número (y, si se quita, vuelve a no decirlo)
+    ap({ tipo: 'facturar', id: debe, num: 'F-12' }, C);
+    es(P.doc(A(debe), 'recibo', { K, N: cfg.N, cfg, firmaSvg: () => '' }).includes('(factura n.º F-12)'), 'ya facturado, el recibo lleva el número de la factura');
+    ap({ tipo: 'facturar', id: debe, quitar: true }, C) }
   // «¿Sigue todo bien?»: lo contesta él; ya no se le pregunta por mensaje
   es(A(pagado).msgs.some(m => m.k === 'seguimiento' && !m.env), 'después del trabajo se le iba a preguntar');
   es(ap({ tipo: 'bien', id: pagado }, OTRO).err === 'permiso' && ap({ tipo: 'bien', id: deOtro }, Z).err === 'permiso', 'solo lo suyo');
@@ -1726,8 +1736,10 @@ es(ap({ tipo: 'cancelar', id: r.id }, C).err === 'estado', 'ni una vez terminado
   es(ap({ tipo: 'escribir', tel, si: true }, Z).ok && K.perfilCliente(S, cfg, tel).escribe === true, 'y los vuelve a querer');
   // pedir que se borren sus datos: queda en su último aviso y, desde ya, ningún mensaje de seguimiento
   es(ap({ tipo: 'olvido' }, CLI).err === 'permiso' && ap({ tipo: 'olvido' }, { rol: 'cliente', id: '611000999' }).err === 'tel', 'solo con su teléfono');
+  const servAntes = S.avisos.filter(a => K.tel9(a.cli.tel) === Z.id).flatMap(a => a.msgs.filter(m => !m.env && !K.SEGUIR.includes(m.k)).map(m => a.id + ':' + m.k));
   es(ap({ tipo: 'olvido' }, Z).ok && S.avisos.filter(a => a.olvido).length === 1 && S.avisos.filter(a => K.tel9(a.cli.tel) === Z.id).every(a => a.noMsg && !a.msgs.some(m => !m.env && K.SEGUIR.includes(m.k))) && !A(deOtro).olvido && ap({ tipo: 'olvido' }, Z).err === 'estado',
     'pedido una vez, sin mensajes de seguimiento, y nada de otro cliente');
+  es(servAntes.length > 0 && servAntes.every(k => S.avisos.some(a => a.msgs.some(m => !m.env && a.id + ':' + m.k === k))), 'y los mensajes del servicio que estaban por mandar (la cita, la víspera…) se quedan');
   es(K.perfilCliente(S, cfg, tel).avisos.some(a => a.olvido) && K.perfilCliente(S, cfg, tel).escribe === false, 'lo ve en su zona');
   // la cuota de su contrato
   const PL = Object.values(cfg.planes)[0], ct = ap({ tipo: 'contrato', plan: PL.id, cli: Object.assign({}, cli, { dir: 'C/ de Aribau 82, 1.º' }), acepta: 'mensaje' }, C).id, Ct = () => S.contratos.find(c => c.id === ct), u = () => Ct().per.at(-1);

@@ -331,9 +331,11 @@ Voltio traen `web` y una foto que no está puesta en la web contesta «nadie». 
 7. **Copia de seguridad**: el plan gratis no hace copias automáticas. Antes del primer negocio de verdad, o plan de pago
    (desde 25 $ al mes, con el visto bueno de Oscar) o una copia diaria propia.
 8. **Texto legal** del formulario del cliente (quién es el responsable de los datos): lo tiene que revisar la gestoría.
-9. **Freno general por conexión** en la función. Hoy tienen freno pedir cita (5 por hora y conexión, 40 por hora en
-   total) y los códigos fallados (10 en diez minutos). Mirar huecos o llamar sin más no lo tiene: alguien con mala idea
-   podría gastar las 500.000 llamadas al mes del plan gratis. No cuesta dinero (la función dejaría de contestar hasta
-   el mes siguiente), pero antes de un negocio de verdad hay que ponerlo.
+9. **Freno general por conexión.** Hecho a medias (21-11-2026): lo que se pide sin código (huecos y enlace de seguimiento)
+   ya tiene freno en el juez, 600 por hora y conexión, igual que pedir cita (5 por hora y conexión, 40 por hora en total)
+   y los códigos fallados (10 en diez minutos). Ese freno ahorra lecturas a la base de datos, pero **no evita que la
+   función se invoque**: cada llamada, frenada o no, cuenta en las 500.000 del plan gratis. Alguien con mala idea podría
+   gastarlas. No cuesta dinero (la función dejaría de contestar hasta el mes siguiente). Falta un freno **delante** de la
+   función (en el borde, antes de que llegue); antes de un negocio de verdad hay que decidir dónde ponerlo.
 10. **La zona del cliente con sus facturas**: hoy enseña presupuestos, partes y garantías. Las facturas llegarán cuando
    Oscar decida cómo se hacen (un proveedor de Verifactu o el programa de facturas de cada negocio).
