@@ -707,8 +707,8 @@ function vBandeja(sel){const ahora=Date.now(),hoy=K.madrid().date,p=proxLab(),H=
   '<section class="sec"><h2>El equipo ahora</h2>'+tira()+'</section>';
  else if(t==='marcha')c=sec('En marcha',marcha,sel,'Ahora no hay ningún aviso en marcha.')+sec('Hechos hoy',hechos,sel,'Hoy todavía no se ha terminado ninguno.');
  else c='<section class="sec"><h2>Por hacer</h2>'+(bAlertas()||'<p class="hueco">Todo al día.</p>')+'</section>';
- return'<div class="cab"><div><'+H+'>Bandeja</'+Hc+'><p class="sub">'+sub+'</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+
-  '<form class="busca" id="fBusca" role="search"><label class="vh" for="busca">Buscar un aviso</label>'+I.lupa+'<input id="busca" type="search" value="'+esc(BQ)+'" placeholder="Nombre, teléfono, calle o nº de aviso" autocomplete="off" enterkeyhint="search"></form>'+
+ return'<div class="cab"><div><'+H+'>Bandeja</'+Hc+'><p class="sub">'+sub+'</p></div><a class="btn pri peq" href="#/nuevo" aria-keyshortcuts="N">'+I.mas+'Nuevo aviso</a></div>'+
+  '<form class="busca" id="fBusca" role="search"><label class="vh" for="busca">Buscar un aviso</label>'+I.lupa+'<input id="busca" type="search" aria-keyshortcuts="/" value="'+esc(BQ)+'" placeholder="Nombre, teléfono, calle o nº de aviso" autocomplete="off" enterkeyhint="search"></form>'+
   '<div id="bRes">'+resB(R,sel)+'</div>'+
   pestas([{k:'repartir',h:'#/bandeja',t:'Por repartir',n:urg.length+citas.length},{k:'marcha',h:'#/bandeja/marcha',t:'En marcha',n:marcha.length},{k:'hacer',h:'#/bandeja/hacer',t:'Por hacer',n:AL.L.length+AL.D.length}],t,'Qué ver de la bandeja',{grupo:'b'})+
   '<div id="bResto" class="pcuerpo"'+(R?' hidden':'')+'>'+c+'</div>'}
@@ -1054,7 +1054,7 @@ function vAgenda(d){const ahora=Date.now(),hoy=K.madrid().date,dias=diasAg(ahora
  const L=S.avisos.filter(a=>a.cita&&a.cita.dia===d&&a.e!=='cancelado'),fr=K.franjasDe(S,cfg,d,ahora);
  const todas=S.avisos.filter(a=>a.cita&&a.e!=='cancelado'&&a.e!=='hecho'&&a.cita.dia>=hoy),prox=todas.filter(a=>a.cita.dia>d).sort((a,b)=>a.cita.dia<b.cita.dia?-1:1)[0];
  if(ANCHO.matches){const n=todas.filter(a=>dias.includes(a.cita.dia)).length;
-  return'<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(n?(n===1?'1 cita':n+' citas')+' en los próximos días.':'Sin citas en los próximos días.')+' '+CABEN()+'; con cita, tarifa normal.</p></div><a class="btn pri peq" href="#/nuevo">'+I.mas+'Nuevo aviso</a></div>'+segAg('agenda',d)+bAlertas(1,true)+
+  return'<div class="cab"><div><h1>Agenda</h1><p class="sub">'+(n?(n===1?'1 cita':n+' citas')+' en los próximos días.':'Sin citas en los próximos días.')+' '+CABEN()+'; con cita, tarifa normal.</p></div><a class="btn pri peq" href="#/nuevo" aria-keyshortcuts="N">'+I.mas+'Nuevo aviso</a></div>'+segAg('agenda',d)+bAlertas(1,true)+
    '<div class="sem" role="table" aria-label="Citas de los próximos días"><div class="semc" role="row"><span role="columnheader">Día</span>'+cfg.franjas.map(f=>'<span role="columnheader">'+K.franjaTxt(f).replace(/^d/,'D')+'</span>').join('')+'</div>'+
    dias.map(x=>'<div class="semf" role="row"><span class="semd" role="rowheader">'+D3[new Date(x+'T12:00:00Z').getUTCDay()]+'<b class="num">'+(+x.slice(8))+'</b>'+MES3[+x.slice(5,7)-1]+(x===hoy?'<i>hoy</i>':'')+'</span>'+K.franjasDe(S,cfg,x,ahora).map(f=>{const C=todas.filter(a=>a.cita.dia===x&&a.cita.fr===f.id);
     return'<div role="cell">'+C.map(a=>'<a class="cch'+(a.tec?'':' sin')+'" href="#/aviso/'+a.id+'"><b>'+esc(cfg.av[a.av].n)+' · '+esc(barrio(a))+'</b><small>'+esc(K.nomCli(a.cli))+' · '+(a.tec?esc(cfg.tec[a.tec].n):'sin asignar')+'</small></a>').join('')+huecoAg(f,C.length)+'</div>'}).join('')+'</div>').join('')+'</div>'}
@@ -1906,6 +1906,13 @@ document.addEventListener('keydown',e=>{const r=e.target.closest&&e.target.close
  const R=[...g.querySelectorAll('[role=radio]')].filter(x=>!x.disabled);let i=R.indexOf(r);if(d)i=(i+d+R.length)%R.length;const x=R[i];if(!x)return;
  const a=[...x.attributes].find(z=>z.name.startsWith('data-')),sel=a?'['+a.name+'="'+CSS.escape(a.value)+'"]':null,raiz=x.closest('dialog')||document;
  if(x.getAttribute('aria-checked')!=='true')x.click();requestAnimationFrame(()=>{const y=sel&&raiz.querySelector(sel)||x;if(y.isConnected)y.focus()})});
+/* atajos de la oficina en pantalla grande (22-11-2026): «n» aviso nuevo, «/» buscar, Esc cierra el aviso abierto. Escribiendo en un campo o con una hoja abierta no hacen nada */
+document.addEventListener('keydown',e=>{if(Q.rol!=='centralita'||!ANCHO.matches||e.defaultPrevented||e.ctrlKey||e.metaKey||e.altKey)return;
+ const t=e.target,tg=t&&t.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT'||(t&&t.isContentEditable)||document.querySelector('dialog[open]'))return;
+ const r=ruta();
+ if(e.key==='n'||e.key==='N'){e.preventDefault();if(r.v!=='nuevo')location.hash='#/nuevo'}
+ else if(e.key==='/'){e.preventDefault();const f=()=>{const i=$('#busca');if(i){i.focus();i.select()}};if($('#busca'))f();else{addEventListener('hashchange',()=>requestAnimationFrame(f),{once:true});location.hash='#/bandeja'}}
+ else if(e.key==='Escape'&&r.v==='aviso')location.hash='#/bandeja'});
 document.addEventListener('submit',e=>{if(e.target.id!=='fNuevo')return;e.preventDefault();
  const p=e.target.dataset.paso,foco=()=>{const i=$('#fNuevo [aria-invalid=true]')||$('#n_'+(B.err==='zona'?'cp':B.err))||$('#fNuevo [role=radio]:not([disabled])');if(i)i.focus()};
  if(p!=='fin'){const m=npMal(p);if(m){B.err=m;pinta();foco();return}B.err='';
