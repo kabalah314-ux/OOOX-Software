@@ -34,7 +34,8 @@ paso(){
   if [ "$EN_PANTALLAS" = 1 ] && [ -n "$GRUPO_N" ]; then NBLOQUE=$((NBLOQUE+1)); [ $(( (NBLOQUE-1) % GRUPO_DE + 1 )) = "$GRUPO_N" ] || return 0; fi
   local nombre="$1" reg; shift; echo; echo "── $nombre"
   # en GitHub, lo que falla se escribe además como aviso («::error::»): los avisos se pueden leer sin sesión y el registro no (21-11-2026)
-  if [ -n "${GITHUB_ACTIONS:-}" ]; then reg="$(mktemp)"; { "$@"; } 2>&1 | tee "$reg"; local st=${PIPESTATUS[0]}
+  # un bloque colgado no puede dejar el trabajo entero parado: a los 15 minutos se corta y se cuenta como fallo (22-11-2026)
+  if [ -n "${GITHUB_ACTIONS:-}" ]; then echo "::notice title=Empieza (${NAVEGADOR:-reglas}${GRUPO:+ $GRUPO})::$nombre"; reg="$(mktemp)"; { timeout 900 "$@"; } 2>&1 | tee "$reg"; local st=${PIPESTATUS[0]}
     if [ "$st" != 0 ]; then mal=$((mal+1)); echo "   ✗ FALLA este bloque"
       echo "::error title=Bloque que falla (${NAVEGADOR:-reglas}${GRUPO:+ $GRUPO})::$nombre — $(grep -E 'MAL|FALLA|Error|Traceback|error|Peticiones|aviso:|File "|waiting for|locator|intercepts|not visible|not stable|outside' "$reg" | head -n 10 | cut -c1-220 | tr '\n' '|' | cut -c1-1000) /// $(sed -n '/Call log/,$p' "$reg" | head -n 14 | cut -c1-200 | tr '\n' '|' | cut -c1-1500)"; fi
     rm -f "$reg"
