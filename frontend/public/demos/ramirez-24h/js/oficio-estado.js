@@ -144,7 +144,18 @@ const R=SV?(function(){
    if(x.err==='servidor'&&g.OficioVigia&&typeof g.OficioVigia.servidor==='function')try{g.OficioVigia.servidor(url,'servidor')}catch(e){}
    return x})}
  /* al juez (la función del servidor). El cuerpo va como texto: así el navegador no hace una llamada previa de permiso por cada una. */
- const juez=(p,ms)=>llama(URLF,{method:'POST',body:JSON.stringify(p)},ms);
+ /* EL FRENO DEL APARATO (A5, 23-11-2026): cada llamada a la función cuenta en las 500.000 al mes del plan gratis, para
+    todos los negocios juntos, y el freno del juez no la evita (ya se ha gastado al llegar). Un fallo que llame sin parar
+    se para aquí: no más de 60 llamadas al juez por minuto ni 600 por hora desde este aparato (todas sus pestañas). Pasado
+    el tope no sale nada y se contesta como sin red: lo pendiente se queda en el aparato y sale solo cuando hay sitio.
+    La primera vez que frena en una hora, el vigía lo apunta (llega al buzón de fallos de OOOX). */
+ const FRENO={min:60,hora:600},K_FRE=CLAVE+':freno';let frenoAvisado=0;
+ function frena(){const ahora=Date.now();let L=leeJ(K_FRE);L=(Array.isArray(L)?L:[]).filter(t=>typeof t==='number'&&ahora-t<36e5&&t<=ahora+6e4);
+  if(L.length>=FRENO.hora||L.filter(t=>ahora-t<6e4).length>=FRENO.min){
+   if(ahora-frenoAvisado>36e5){frenoAvisado=ahora;try{g.OficioVigia&&g.OficioVigia.servidor&&g.OficioVigia.servidor(URLF,'freno del aparato')}catch(e){}}
+   return true}
+  L.push(ahora);mem.set(K_FRE,JSON.stringify(L));return false}
+ const juez=(p,ms)=>frena()?Promise.resolve(FALLO):llama(URLF,{method:'POST',body:JSON.stringify(p)},ms);
  /* a la base de datos: solo «¿qué versión hay?» y lo que ve el cliente con su enlace. Estas llamadas no tienen límite. */
  const rpc=(fn,c)=>llama(URLR+fn,{method:'POST',headers:{apikey:SV.llave,'Content-Type':'application/json'},body:JSON.stringify(c)},12000);
  const con=p=>Object.assign({negocio:N.id,persona:ses.persona,codigo:ses.codigo},p);
@@ -198,7 +209,7 @@ const R=SV?(function(){
   await ciclo();miraReglas();avisa();return{ok:true,rol:ses.rol,id:ses.id}}
  function salir(){ses=null;E=null;motivo='';clearTimeout(tm);mem.del(K_SES);mem.del(K_SRV);mem.del(K_REC);vuelveArchivo();avisa()}
  /* ¿lleva el servidor las mismas reglas que esta app? Si no, se dice en el menú: evita perseguir fallos que no lo son. */
- function miraReglas(){llama(URLF,{method:'GET'},12000).then(x=>{const v=x&&x.oficio&&x.oficio.reglas;if(typeof v==='string'&&v!==reglas){reglas=v;if(v!==K.VERSION)avisa()}})}
+ function miraReglas(){if(frena())return;llama(URLF,{method:'GET'},12000).then(x=>{const v=x&&x.oficio&&x.oficio.reglas;if(typeof v==='string'&&v!==reglas){reglas=v;if(v!==K.VERSION)avisa()}})}
 
  /* la misma creación repetida en diez minutos lleva la misma marca: si la primera llegó y su respuesta se perdió, no se crea dos veces */
  const marcas=new Map();

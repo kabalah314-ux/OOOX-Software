@@ -94,6 +94,7 @@ if [ "$QUE" != reglas ]; then
   paso "Demo guiada: el recorrido con flechas, en el ordenador y en el móvil" python3 guia.py
   paso "Muestra de la demo" python3 muestra.py
   paso "La muestra con el nombre de un negocio: el enlace de las cartas de captación" python3 muestra_enlace.py
+  paso "El contador de las cartas: cada paso de quien llega desde una carta, una vez y sin datos personales" python3 visitas.py
   paso "Zona del cliente: entrar con el teléfono y ver lo suyo" python3 cliente.py
   paso "Idiomas: la cita, la zona del cliente y los papeles, en catalán y en inglés" python3 idiomas.py
   paso "Vídeo de entrada" python3 entrada.py

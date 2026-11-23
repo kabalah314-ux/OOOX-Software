@@ -510,6 +510,17 @@ async def main():
         pista = await o.evaluate("JSON.stringify({sesion:Oficio.sesion(),quien:(document.querySelector('#e_quien')||{}).value,error:(document.querySelector('#e_ecod')||{}).textContent,red:Oficio.red()})")
         es(await o.evaluate('!!Oficio.sesion()') and await o.evaluate(f"Oficio.estado().avisos.every(a=>a.tec==='{T1}')") and await o.evaluate('Oficio.sesion().rol') == 'tecnico', f'en ese mismo navegador entra un técnico y solo recibe lo suyo {pista}')
 
+        # ---------- 14 b. el freno del aparato (A5, 23-11-2026): no más de 60 llamadas al juez por minuto ni 600 por hora ----------
+        FRE = f"oficio:{N['id']}:freno"
+        for nombre, js in (('60 en el último minuto', "k=>localStorage.setItem(k,JSON.stringify(Array.from({length:60},()=>Date.now())))"),
+                           ('600 en la última hora', "k=>localStorage.setItem(k,JSON.stringify(Array.from({length:600},(x,i)=>Date.now()-30*6e4-i)))")):
+            await t2.evaluate(js, FRE); await t2.reload(); await pasa(t2, "Oficio.sesion()&&document.querySelector('#nav a')", 8000); await t2.wait_for_timeout(2500)
+            es(await t2.evaluate('__n.juez') == 0, f'con el freno lleno ({nombre}), el aparato no llama al juez')
+            es(len(json.loads(await t2.evaluate('k=>localStorage.getItem(k)', FRE))) in (60, 600), f'y no apunta más llamadas ({nombre})')
+        await t2.evaluate('k=>localStorage.removeItem(k)', FRE); await t2.reload(); await pasa(t2, '__n.juez>0', 8000)
+        es(await t2.evaluate('__n.juez') > 0, 'sin el freno, el aparato vuelve a llamar al juez')
+        await pasa(t2, f"Oficio.estado().avisos.length==={len([a for a in estado()['avisos'] if a['tec'] == T2])}", 8000)
+
         # ---------- 15. al final, todo cuadra ----------
         E = estado()
         es([x['v'] for x in E['diario']] == list(range(1, len(E['diario']) + 1)) and E['v'] == len(E['diario']), 'el diario del servidor tiene las versiones seguidas, sin huecos ni repetidas')

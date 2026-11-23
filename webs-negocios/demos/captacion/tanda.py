@@ -9,7 +9,7 @@
 #   hoja.csv    una fila por negocio, en el orden de las cartas, para apuntar la visita, el permiso y los seguimientos
 # Antes de mandarlas: pasar la lista por la Lista Robinson (las de autónomos) y publicar la demo (el enlace es de ooox.es).
 # Uso: python3 tanda.py --lista <lista-larga.csv> --contactos <contactos.csv> --out <carpeta> [--max 40] [--hasta 2026-12-20]
-import argparse, base64, csv, datetime, html, json, os, re, sys, asyncio
+import argparse, base64, csv, datetime, hashlib, html, json, os, re, sys, asyncio
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import textos
 from reportlab.graphics.barcode import qrencoder as Q
@@ -98,6 +98,11 @@ DISTRITO = {'cve': (41.3826, 2.1769), 'eix': (41.3900, 2.1630), 'stm': (41.3735,
 def distrito(xy):
     if not xy: return ''
     return min(DISTRITO, key=lambda k: (DISTRITO[k][0] - xy[0]) ** 2 + ((DISTRITO[k][1] - xy[1]) * 0.75) ** 2)
+
+def clave(enlace):
+    # la clave de la carta en el contador (js/oficio-visitas.js, 23-11-2026): los 12 primeros del sha256 de lo que va tras «?m=».
+    # Con ella, embudo.html junta los números del servidor con esta hoja sin que el servidor sepa a qué negocio va cada carta.
+    return hashlib.sha256(enlace.split('?m=', 1)[1].encode()).hexdigest()[:12]
 
 def enlace(url, n, z, h, t='', d='', nota=0, res=0, b=''):
     """El enlace de su muestra: todo va dentro (nada se guarda en ningún sitio). nota y res: las de Google, de verdad; b: su distrito."""
@@ -370,10 +375,10 @@ def main():
     with open(os.path.join(o.out, 'hoja.csv'), 'w', encoding='utf-8-sig', newline='') as fh:
         w = csv.writer(fh, delimiter=';')
         w.writerow(['Orden', 'Zona', 'Negocio', 'En la carta', 'Teléfono', 'Dirección', 'Nota', 'Reseñas', 'Por qué', 'Web', 'Correo', 'Instagram', 'Maps', 'Su muestra', 'Hasta',
-                    'Carta (fecha)', 'Visita (fecha)', 'Permiso (cómo y cuándo)', 'Nos escribe (fecha)', 'Seguimiento 1', 'Seguimiento 2', 'Estado', 'Notas'])
+                    'Carta (fecha)', 'Visita (fecha)', 'Permiso (cómo y cuándo)', 'Nos escribe (fecha)', 'Seguimiento 1', 'Seguimiento 2', 'Estado', 'Notas', 'Clave (contador)'])
         for i, r in enumerate(filas, 1):
             w.writerow([i, NOM_ZONA[r['z']], r['nombre'], r['corto'], r['tel'], r['dir'], str(r['nota']).replace('.', ',') if r['nota'] else '', r['res'] or '', ' · '.join(r['por']),
-                        r['web'], r['email'], r['ig'], r['maps'], r['enlace'], h.isoformat(), '', '', '', '', '', '', 'Por mandar', ''])
+                        r['web'], r['email'], r['ig'], r['maps'], r['enlace'], h.isoformat(), '', '', '', '', '', '', 'Por mandar', '', clave(r['enlace'])])
     print(f'{len(filas)} cartas A4 (cada una con su sobre detrás) · muestras hasta el {h.isoformat()} · {o.out}')
 
 if __name__ == '__main__': main()

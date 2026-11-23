@@ -28,6 +28,9 @@ window.fetch=function(u,o){const s=String(u&&u.url||u);
  /* los fallos que apunta el vigía (js/oficio-vigia.js) se quedan aquí, para mirarlos: window.__vigia */
  if(fn==='oficios_error'){if(window.__vigiaSinRed)return Promise.reject(new TypeError('Failed to fetch'));let c={};try{c=JSON.parse(o.body)}catch(e){}window.__vigia.push(c);
   return Promise.resolve(new Response(JSON.stringify({ok:true,n:(c.p_lote||[]).length}),{status:200,headers:{'content-type':'application/json'}}))}
+ /* el contador de las cartas (js/oficio-visitas.js, 23-11-2026): lo que manda se queda en window.__visitas */
+ if(fn==='oficios_visita'){window.__visitas=window.__visitas||[];let c={};try{c=JSON.parse(o.body)}catch(e){}window.__visitas.push(c);
+  return Promise.resolve(new Response('{"ok":true}',{status:200,headers:{'content-type':'application/json'}}))}
  /* para probar que el vigía ve un servidor que se rompe */
  if(window.__falso503)return Promise.resolve(new Response('{}',{status:503,headers:{'content-type':'application/json'}}));
  return Promise.resolve(new Response(JSON.stringify(fn==='oficios_buzon'?%s:{ok:false,err:'servidor'}),{status:200,headers:{'content-type':'application/json'}}))}})()""" % json.dumps(VACIO)

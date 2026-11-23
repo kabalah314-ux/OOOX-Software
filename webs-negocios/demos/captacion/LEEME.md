@@ -67,3 +67,15 @@ python3 tanda.py --lista PIPELINE-oficios-lista-larga.csv --contactos PIPELINE-o
 ```
 
 Lo que queda antes de mandarlas: pasar la lista por la Lista Robinson (las de autónomos) y publicar la demo.
+
+## El embudo de cada tanda (23-11-2026)
+
+La demo cuenta, sin cookies ni datos personales, cada paso de quien llega desde una carta: abre el QR, ve la web, abre
+la app, mira los tres móviles, empieza una cita y la manda (`js/oficio-visitas.js` y, en el servidor,
+`oficios-servidor/visitas.sql`). El servidor solo guarda la tanda, una clave de 12 letras por carta y el número.
+
+Para verlo: abre `embudo.html` en el ordenador (doble clic) y elige la `hoja.csv` de la tanda. La hoja no sale del
+ordenador. Desde hoy `tanda.py` escribe la clave de cada carta en la columna «Clave (contador)»; las hojas de antes
+también valen (la clave sale del enlace de «Su muestra»).
+
+Ojo: la demo pública solo cuenta cuando esta rama esté publicada (en `main`).

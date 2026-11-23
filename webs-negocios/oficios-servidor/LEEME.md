@@ -20,6 +20,8 @@ negocio de verdad lo usa todavía. La demo de Ramírez sigue sin servidor, como 
 | `almacen.sql` | Las tablas y funciones del almacén de verdad, en Supabase (apartado `oficios`). Aplicado | Hecho |
 | `pruebas-almacen.sql` | 37 comprobaciones del almacén de verdad. Se pasan en la base de datos y no dejan nada escrito | Hecho |
 | `funcion/index.ts` | La función `oficio` de Supabase: envuelve al juez con el almacén de verdad. Desplegada | Hecho |
+| `visitas.sql` | El contador de las cartas (B6): `public.oficios_visita` (la demo cuenta cada paso de quien llega desde una carta) y `public.oficios_embudo` (los números de una tanda). Sin datos personales. Aplicado el 23-11-2026 | Hecho |
+| `pruebas-visitas.sql` | 14 comprobaciones del contador. Se pasan en la base de datos y no dejan nada escrito (14 de 14 el 23-11-2026) | Hecho |
 | `js/oficio-espejo.js` (en la app) | El espejo: lo que el aparato sabe del servidor y lo que le falta por enviar. Sin red ni reloj: se prueba sin navegador | Hecho |
 | `js/oficio-estado.js` (en la app) | Con `servidor` en los datos del negocio: la sesión, la red, cada cuánto se pregunta y lo que se guarda en el aparato | Hecho |
 | `demos/pruebas-navegador/servidor_local.mjs` | Un servidor local con este mismo juez, para probar las pantallas sin salir a internet | Hecho |

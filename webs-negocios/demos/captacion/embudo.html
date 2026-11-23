@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Embudo de las cartas · OOOX</title>
+<!-- EL EMBUDO DE UNA TANDA DE CARTAS (B6, 23-11-2026). Se abre en el ordenador de Oscar (doble clic) y se le da la hoja de la
+     tanda (hoja.csv, la que hace tanda.py). La hoja no sale del ordenador: la página solo pide al servidor los números de esa
+     tanda (public.oficios_embudo, que da claves y números, nunca nombres) y los junta aquí con los negocios de la hoja.
+     Una hoja antigua, sin la columna «Clave (contador)», también vale: la clave sale del enlace de «Su muestra». -->
+<style>
+:root{--papel:#fbf8f2;--tinta:#1d1b18;--gris:#6b665d;--linea:#e2ddd2;--verde:#1f6b4a;--suave:#f1ece2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:0 auto;padding:32px 20px 60px}
+h1{font-size:1.6rem;margin:0 0 4px}
+p{margin:0 0 12px;max-width:68ch}
+.gris{color:var(--gris)}
+label.archivo{display:inline-block;margin:8px 0 20px;padding:10px 16px;border:1px solid var(--tinta);border-radius:8px;cursor:pointer;background:#fff}
+label.archivo:focus-within{outline:3px solid #7aa7ff;outline-offset:2px}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+.embudo{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:8px 0 26px}
+.embudo div{background:#fff;border:1px solid var(--linea);border-radius:10px;padding:12px 14px}
+.embudo b{display:block;font-size:1.7rem;line-height:1.1}
+.embudo small{color:var(--gris)}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--linea);border-radius:10px;overflow:hidden}
+th,td{padding:8px 10px;border-bottom:1px solid var(--linea);text-align:left;vertical-align:top}
+th{background:var(--suave);font-weight:600;font-size:.85rem}
+td.n{text-align:center;font-variant-numeric:tabular-nums}
+td.n.si{color:var(--verde);font-weight:700}
+tr:last-child td{border-bottom:0}
+.fallo{color:#a3261b;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>Embudo de las cartas</h1>
+<p class="gris">Elige la hoja de una tanda (<code>hoja.csv</code>). La hoja se queda en este ordenador: al servidor solo se le piden los números de esa tanda.</p>
+<label class="archivo">Elegir la hoja de la tanda<input type="file" id="hoja" accept=".csv,text/csv"></label>
+<div id="sale" aria-live="polite"></div>
+</main>
+<script>
+const SERVIDOR='https://hquvlfujruskpgnkmnfl.supabase.co',LLAVE='sb_publishable_XZG_z_f0ya0f-7esYS8zrw_OOI35qpf';
+const PASOS=[['carta','Abren el QR'],['web','Ven la web'],['app','Abren la app'],['prueba','Ven los tres móviles'],['cita','Empiezan una cita'],['pide','Mandan una cita']];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* una hoja con punto y coma y comillas, como la que escribe tanda.py */
+function csv(t){t=t.replace(/^﻿/,'');const F=[];let f=[],c='',q=false;
+ for(let i=0;i<t.length;i++){const x=t[i];
+  if(q){if(x==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=x;continue}
+  if(x==='"')q=true;else if(x===';'){f.push(c);c=''}else if(x==='\n'){f.push(c.replace(/\r$/,''));F.push(f);f=[];c=''}else c+=x}
+ if(c||f.length){f.push(c);F.push(f)}
+ const cab=F.shift()||[];return F.filter(r=>r.length>1).map(r=>Object.fromEntries(cab.map((k,i)=>[k,r[i]||''])))}
+async function clave(enlace){const t=(enlace.split('?m=')[1]||'').split('&')[0];if(!t)return'';
+ const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(h).slice(0,6),b=>b.toString(16).padStart(2,'0')).join('')}
+const sale=document.getElementById('sale');
+document.getElementById('hoja').addEventListener('change',async e=>{
+ const f=e.target.files[0];if(!f)return;sale.innerHTML='<p class="gris">Leyendo…</p>';
+ try{
+  const filas=csv(await f.text());if(!filas.length)throw new Error('La hoja está vacía.');
+  for(const r of filas)r._c=r['Clave (contador)']||await clave(r['Su muestra']||'');
+  const tandas=[...new Set(filas.map(r=>r['Hasta']).filter(h=>/^\d{4}-\d{2}-\d{2}$/.test(h)))];
+  if(!tandas.length)throw new Error('La hoja no tiene la columna «Hasta» con una fecha: ¿es la hoja.csv de tanda.py?');
+  const num={};
+  for(const t of tandas){
+   const r=await fetch(SERVIDOR+'/rest/v1/rpc/oficios_embudo',{method:'POST',headers:{'content-type':'application/json',apikey:LLAVE},body:JSON.stringify({p_tanda:t})});
+   const j=await r.json();if(!j.ok)throw new Error('El servidor no ha dado los números de la tanda '+t+'.');
+   for(const x of j.filas)(num[x.carta]=num[x.carta]||{})[x.paso]=x}
+  const fecha=d=>d?d.split('-').reverse().join('/'):'';
+  const llegan=k=>filas.filter(r=>num[r._c]&&num[r._c][k]).length,total=filas.length;
+  let h='<p>'+total+' cartas · tanda'+(tandas.length>1?'s ':' ')+tandas.map(fecha).join(', ')+'. Cada número de arriba cuenta cartas, no visitas: cuántos negocios llegan a ese paso.</p><div class="embudo">';
+  for(const[k,n]of PASOS){const c=llegan(k);h+='<div><b>'+c+'</b>'+esc(n)+'<br><small>'+(total?Math.round(c*100/total):0)+' % de las cartas</small></div>'}
+  h+='</div><table><thead><tr><th>Negocio</th>'+PASOS.map(([,n])=>'<th>'+esc(n)+'</th>').join('')+'<th>Primera vez</th><th>Estado en la hoja</th></tr></thead><tbody>';
+  const orden=[...filas].sort((a,b)=>PASOS.filter(([k])=>num[b._c]&&num[b._c][k]).length-PASOS.filter(([k])=>num[a._c]&&num[a._c][k]).length);
+  for(const r of orden){const v=num[r._c]||{},pr=Object.values(v).map(x=>x.primero).sort()[0];
+   h+='<tr><td>'+esc(r['En la carta']||r['Negocio'])+'<br><small class="gris">'+esc(r['Zona'])+'</small></td>'+PASOS.map(([k])=>v[k]?'<td class="n si">'+v[k].n+'</td>':'<td class="n gris">·</td>').join('')+'<td>'+fecha(pr)+'</td><td>'+esc(r['Estado'])+'</td></tr>'}
+  sale.innerHTML=h+'</tbody></table><p class="gris" style="margin-top:12px">En cada casilla, las veces que se ha hecho ese paso (una por pestaña). Un punto: todavía no.</p>';
+ }catch(err){sale.innerHTML='<p class="fallo">'+esc(err.message||err)+'</p>'}
+});
+</script>
+</body>
+</html>

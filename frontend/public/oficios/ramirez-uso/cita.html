@@ -169,6 +169,7 @@ form>.btn{margin-top:16px}
 <script src="js/oficio-idioma.js"></script>
 <script src="js/oficio-espejo.js"></script>
 <script src="js/oficio-estado.js"></script>
+<script src="js/oficio-visitas.js"></script>
 <script>
 (function(){
 'use strict';
@@ -491,6 +492,7 @@ async function envia(){if(B.va)return;B.va=true;B.err='';pinta();
  if(!r.ok){if(SRV&&r.err==='franja'){H.t=0;traeHuecos(true)}const k=r.err==='franja'?'llena':r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;B.err=k;
   /* si es de un dato (la franja se ha llenado, el teléfono…), se vuelve al formulario con ese dato marcado */
   if(CAMPO_DE[k]){vePaso(PASO_DE[k]||'tu');setTimeout(()=>irA(CAMPO_DE[k]),60)}else{pinta();const x=$('.fallo');if(x)x.scrollIntoView({block:'center'})}return}
+ if(window.OficioVisitas)OficioVisitas.cuenta('pide');   /* el contador de las cartas: la manda */
  mem.set('oficio:'+N.id+':mio',r.id);Object.assign(B,{nota:'',foto:'',fr:'',alt:[],err:'',errs:[],paso:'',visto:false,altOpen:false,altMas:false});location.hash='#/aviso/'+r.id}
 /* el idioma: lo fijo de la página (lo de arriba y el pie) y, al cambiarlo, la pantalla entera */
 function fijos(){$('#marca').setAttribute('aria-label',_('{n}: volver a la web',{n:N.nombre}));$('#salta').textContent=_('Saltar al contenido');
@@ -515,6 +517,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dia],[data
 /* «Continuar»: cada paso mira lo suyo. Si falta, se dice ahí mismo; si no, al siguiente (o al resumen, si ya lo ha visto
    y está todo). En el último, los errores de los datos van juntos arriba, con un enlace a cada uno */
 document.addEventListener('submit',e=>{if(e.target.id==='fC'){e.preventDefault();cambia();return}if(e.target.id!=='f')return;e.preventDefault();
+ if(window.OficioVisitas)OficioVisitas.cuenta('cita');   /* el contador de las cartas: empieza la cita (solo desde una carta) */
  const p=e.target.dataset.paso,i=PASOS.indexOf(p);B.err='';
  const sig=()=>{B.errs=[];if(B.visto&&!revisa().length)return vePaso('resumen');vePaso(i<PASOS.length-1?PASOS[i+1]:'resumen')};
  const falla=k=>{B.errs=[k];pinta();const x=$('.fallo');if(x)x.scrollIntoView({block:'center'})};
