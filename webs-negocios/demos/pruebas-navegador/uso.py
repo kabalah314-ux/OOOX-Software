@@ -41,6 +41,14 @@ async def main():
         st2 = await c.evaluate("(()=>{const S=Oficio.estado();return{n:S.avisos.length,t0:S.t0}})()")
         es(t2 < 2 and st2['n'] == st['n'] and st2['t0'] == st['t0'], f'U42: al volver a abrir, los datos siguen ahí y no se rehacen ({t2:.1f} s)')
         es(not await c.evaluate("window.__prepara||!!document.getElementById('preparando')"), 'U42: y ya sin «preparando la demo»: abre directamente')
+        # U43 (23-11-2026, visto en ooox.es): la primera vez, en una pestaña en segundo plano (sin fotogramas), la app arranca igual
+        # y el buzón, si contesta antes del arranque, no rompe nada (antes: se quedaba en «Preparando la demo…» y daba un error)
+        cx = await b.new_context(viewport={'width': 390, 'height': 844}, timezone_id='Europe/Madrid'); await pon_hora(cx, HORA)
+        await cx.add_init_script('window.requestAnimationFrame=()=>0')
+        h = await cx.new_page(); errh = []; h.on('pageerror', lambda e: errh.append(str(e)))
+        await h.goto(B + 'app.html#/bandeja'); await h.wait_for_selector('#nav a', timeout=15000)
+        es(not errh and not await h.evaluate("!!document.getElementById('preparando')"), f'U43: sin fotogramas (pestaña en segundo plano), la primera vez arranca igual y sin errores {errh[:2]}')
+        await cx.close()
         K = "Oficio.K"; CFG = "Oficio.cfg"
         hoy = await c.evaluate(f"{K}.madrid(Date.now()).date")
         man = await c.evaluate(f"(()=>{{let d={K}.masDias('{hoy}',1);while(!{K}.laborable({CFG},d))d={K}.masDias(d,1);return d}})()")

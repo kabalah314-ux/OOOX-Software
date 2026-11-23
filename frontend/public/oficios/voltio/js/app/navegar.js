@@ -11,6 +11,7 @@ let CUR = '',
   NAVH = '';
 /* El menú, con sus números. Se puede repintar solo, sin tocar la pantalla. */
 function pNav() {
+  if (!S) return; // antes del arranque no hay nada que contar (23-11-2026)
   const esT = Q.rol === 'tecnico',
     res = K.resumen(S, cfg, Date.now()),
     mios = S.avisos.filter(a => a.tec === Q.id && a.e === 'asignado').length,

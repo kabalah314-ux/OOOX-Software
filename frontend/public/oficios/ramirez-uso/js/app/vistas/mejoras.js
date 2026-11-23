@@ -267,6 +267,9 @@ function mTrae(fuerza) {
       M.cambia = true;
       M.codErr = r.err;
     }
+    // si el buzón contesta antes de que la app haya pintado su primera pantalla (la primera vez de la demo, o una pestaña
+    // abierta en segundo plano), no se pinta nada todavía: ya lo hará el arranque (23-11-2026)
+    if (!S) return r;
     if (ruta().v === 'mejoras' && Q.rol !== 'tecnico') {
       if (mal) pinta();
       else {
