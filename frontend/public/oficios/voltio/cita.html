@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="es" data-demo>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pide cita sin llamar</title>
+<meta name="description" content="Pide cita sin llamar: eliges la avería, el día y la franja. Con cita, tarifa normal.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14171a">
+<link rel="preload" href="assets/fuentes/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fuentes/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="oficio.css">
+<style>
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px;padding:0 16px;background:var(--asfalto);border-bottom:1px solid var(--linea)}
+@media (max-width:359px){#llama .ll-u{display:none}}
+.wm{font:800 1.5rem/1 var(--fd);text-decoration:none;white-space:nowrap}
+.wm span{margin-left:.22em;padding:.02em .22em;border-radius:4px;background:var(--senal);color:var(--negro)}
+main{display:block;max-width:640px;margin:0 auto;padding:24px 18px calc(44px + var(--sb))}
+main:focus{outline:0}
+h1{font:800 1.75rem/1 var(--fd)}
+.lead{margin-top:12px;font-size:1.125rem;color:var(--suave)}
+.lead a{color:var(--texto);font-weight:600}
+.ult{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--linea)}
+.ult a{font-weight:600}
+fieldset{border:0;min-width:0;display:grid;gap:14px;margin-top:30px}
+legend{display:flex;gap:.45em;margin-bottom:14px;font:700 1.75rem/1 var(--fd)}
+legend b{color:var(--senal)}
+.avs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.avc{position:relative;display:grid;grid-template-columns:52px minmax(0,1fr);align-items:center;gap:10px;min-height:66px;padding:6px 10px 6px 6px;border-radius:12px;border:2px solid var(--control);font-weight:600;line-height:1.15;cursor:pointer}
+.avc img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:var(--asfalto-3)}
+.avc input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.avc:has(input:checked){border-color:var(--senal);background:var(--asfalto-3)}
+.avc:has(input:focus-visible){outline:3px solid var(--senal);outline-offset:2px}
+.rango{padding:12px 14px;border-radius:12px;background:var(--asfalto-2);border:1px solid var(--linea)}
+.rango b{font:700 1.5rem/1.1 var(--fd)}
+.rango small{display:block;margin-top:3px;font-size:.9375rem;color:var(--suave)}
+.ops{display:flex;flex-wrap:wrap;gap:8px}
+.op{min-height:52px;padding:0 16px;border-radius:999px;border:2px solid var(--control);font-weight:600}
+.op small{font-weight:400;color:var(--suave);margin-left:5px}
+.op[aria-pressed=true],.op[aria-checked=true]{border-color:var(--senal);background:var(--asfalto-3)}
+.op[role=radio]{display:inline-flex;align-items:center;gap:8px}
+.op[role=radio]::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--control);box-sizing:border-box}
+.op[role=radio][aria-checked=true]::before{border-color:var(--senal);background:radial-gradient(circle,var(--senal) 0 3.5px,transparent 4.5px)}
+.op[disabled]{border-style:dashed;color:var(--tenue);cursor:not-allowed}
+h1.grande{font-size:2.5rem;line-height:.95}
+/* «¿Cuándo te va bien?»: el calendario de lunes a viernes y las franjas del día elegido */
+.cal{display:grid;gap:8px}
+.cal-mes{font:700 1.25rem/1 var(--fd)}
+.cal-sem,.cal-dias{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.cal-sem span{text-align:center;font-size:.8125rem;font-weight:600;color:var(--tenue)}
+.dia{display:grid;justify-items:center;align-content:center;gap:5px;min-height:62px;border-radius:14px;border:2px solid var(--control);background:var(--asfalto-2);color:var(--texto)}
+.dia b{font:800 1.625rem/1 var(--fd)}
+.dia i{width:6px;height:6px;border-radius:50%;background:var(--bien)}
+@media (hover:hover){button.dia:hover{border-color:var(--suave)}}
+.dia[aria-checked=true]{border-color:var(--senal);background:var(--senal);color:var(--negro)}
+.dia[aria-checked=true] i{background:var(--negro)}
+.dia.no{border-color:transparent;background:none;color:var(--tenue);opacity:.45}
+.dia.no:has(small){opacity:1}
+.dia.no b{font-weight:600}
+.dia small{font-size:.6875rem;line-height:1}
+.dia.hoy{border:2px dashed var(--linea)}
+.dia.hoy small{color:var(--senal);font-weight:600}
+.cal-nota{font-size:.875rem;color:var(--tenue)}
+.horas{display:grid;gap:8px;margin-top:6px}
+.hd{font:700 1.375rem/1.1 var(--fd)}
+.hk{margin-top:4px;font-size:.875rem;font-weight:600;color:var(--suave)}
+.hs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.op.hora{min-height:60px;padding:8px 12px;border-radius:14px}
+.op.hora span{display:grid;gap:2px;text-align:left;font:700 1.1875rem/1.05 var(--fd)}
+.op.hora small{margin:0;font:400 .8125rem/1.2 var(--fb);color:var(--suave)}
+.op.hora[disabled] small{color:var(--tenue)}
+@media (min-width:560px){h1.grande{font-size:3.25rem}.dia{min-height:72px}.dia b{font-size:1.875rem}}
+.otras{margin-top:18px}
+/* el mapa del técnico de camino: nueve teselas alrededor de su última posición y un punto en el centro */
+.mapa{margin-top:16px}
+.mapa-v{position:relative;height:220px;max-width:512px;margin:0 auto;overflow:hidden;border-radius:12px;background:#dfe3e6}
+.mapa-t{position:absolute;left:50%;top:50%;width:0;height:0}
+.mapa-t img{position:absolute;width:256px;height:256px;max-width:none}
+.mapa-p{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#ffc400;border:3px solid #15191c;box-shadow:0 0 0 7px rgba(255,196,0,.28)}
+.mapa-l{margin-top:8px}
+.mapa-f{margin-top:2px;font-size:.8125rem;text-align:right}
+.otras .lb small{font-weight:400;color:var(--suave);margin-left:4px}
+.lb{font-size:.9375rem;font-weight:600}
+#c_cp{max-width:10rem}
+.fotoz{display:flex;align-items:center;gap:12px}
+.fotoz img{width:76px;height:57px;object-fit:cover;border-radius:8px}
+.zona{font-size:.9375rem;color:var(--bien)}
+.legal{margin-top:18px;font-size:.9375rem;color:var(--suave)}
+form>.btn{margin-top:16px}
+.fallo{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--mal-f);color:var(--mal);font-weight:600}
+/* paso a paso: la barra, «atrás» y «Continuar» son comunes (oficio.css); aquí, lo propio de la cita */
+.prog+h1{font:800 2.25rem/1 var(--fd)}
+@media (min-width:560px){.prog+h1{font-size:2.75rem}}
+#f fieldset{margin-top:22px}
+#f .avc{min-height:76px;font-size:1.0625rem}
+#f .avc img{width:60px;height:60px}
+#f .avs{grid-template-columns:repeat(2,minmax(0,1fr))}
+#f .avc{grid-template-columns:60px minmax(0,1fr)}
+@media (prefers-reduced-motion:no-preference){#v.entra{animation:entraPaso .32s var(--ease-out) both}}
+/* el resguardo del cliente: papel */
+.doc h1{font:800 1.75rem/1 var(--fd)}
+.doc .frase{margin-top:10px;font-size:1.125rem}
+.doc .pista{margin:22px 0 6px}
+.doc .pista li::before{background:var(--papel);border-color:#aeb4ba}
+.doc .pista li::after{background:var(--raya)}
+.doc .pista li.ok{color:var(--tinta)}
+.doc .pista li.ok::before{background:var(--tinta);border-color:var(--tinta)}
+.doc .pista li.ok::after{background:var(--tinta)}
+.doc .pista li.ya::before{outline-color:rgba(23,25,27,.14)}
+.doc .pista time{color:var(--tinta-2)}
+.tras{display:grid;gap:10px;margin-top:18px}
+.tras .txt{justify-self:center;display:inline-flex;align-items:center}
+@media (min-width:560px){.avs{grid-template-columns:repeat(3,minmax(0,1fr))}h1,.doc h1{font-size:2rem}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.quien{display:flex;gap:12px;align-items:center;margin:16px 0}
+.quien .ava{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:700;color:#fff;background:hsl(var(--h) 45% 36%);object-fit:cover}
+.quien .coche{opacity:.8}
+/* el servicio que viene elegido desde la web */
+.elegida{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 10px 8px 8px;border-radius:12px;border:2px solid var(--senal);background:var(--asfalto-3)}
+.elegida img{width:52px;height:52px;border-radius:8px;object-fit:cover;background:var(--asfalto-2)}
+.elegida p{font-size:1.0625rem}
+.obl{margin-top:22px;font-size:.9375rem;color:var(--suave)}
+.fotow{display:grid;gap:6px}
+/* lo que se enseña con scrollIntoView no se queda debajo de la cabecera fija */
+.revisa,fieldset,.campo,.fallo,#tit{scroll-margin-top:72px}
+.opc{font-weight:400;color:var(--suave);font-size:.875rem}
+.rango .rk{display:block;font-size:.875rem;font-weight:600;color:var(--suave);margin-bottom:2px}
+.plega{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-weight:600}
+.plega::after{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);margin-left:4px}
+.plega[aria-expanded=true]::after{transform:rotate(-135deg) translate(-2px,-1px)}
+#altL{display:grid;gap:10px}
+/* el aviso de errores: cuántos y un enlace a cada uno */
+.revisa{margin-top:18px;padding:14px 16px;border-radius:12px;border:2px solid var(--mal);background:var(--mal-f);color:var(--texto)}
+.revisa:focus{outline:3px solid var(--mal);outline-offset:2px}
+.revisa ul{margin:8px 0 0;padding-left:20px;list-style:disc;display:grid;gap:4px}
+.revisa a{color:var(--texto);font-weight:600}
+/* el resumen antes de confirmar */
+.resu{margin-top:18px;border-top:1px solid var(--linea)}
+.rf{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:12px 0;border-bottom:1px solid var(--linea)}
+.rf dt{grid-column:1;font-size:.875rem;font-weight:600;color:var(--suave)}
+.rf dd{grid-column:1;margin:0;font-size:1.0625rem}
+.rf dd small{font-size:.875rem;color:var(--suave)}
+.rf .rc{grid-column:2;grid-row:1 / span 2;align-self:center}
+.rf .rc a{display:inline-flex;align-items:center;min-height:44px;font-weight:600;color:var(--texto)}
+.rfoto{width:96px;height:72px;object-fit:cover;border-radius:8px;margin-top:6px}
+/* la confirmación: el número, qué pasa ahora y cómo cambiarla */
+.conf{margin-top:20px;display:grid;gap:10px}
+.conf h2{margin-top:8px;font:700 1.25rem/1.1 var(--fd)}
+.conf .numero{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:12px 14px;border-radius:10px;background:#fff;border:1px solid var(--raya)}
+.conf .numero span{color:var(--tinta-2)}
+.conf .numero b{font:800 1.5rem/1 var(--fd)}
+.conf .numero .txt{color:var(--tinta)}
+.conf .pasos{margin:0;padding-left:22px;list-style:decimal;display:grid;gap:4px}
+.conf a{color:var(--tinta);font-weight:600}
+</style>
+</head>
+<body>
+<a class="vh" href="#v" id="salta">Saltar al contenido</a>
+<header class="top">
+ <a class="wm" href="./" id="marca"></a>
+ <button class="btn peq" id="llama"><span class="ll-u">¿Urgente? </span><span id="llamaTel"></span></button>
+</header>
+<main id="v" tabindex="-1"></main>
+<footer class="idiomas" id="idiomas"></footer>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="js/oficio-vigia.js" data-pagina="cita"></script>
+<script src="js/oficio-nucleo.js"></script>
+<script src="js/oficio-datos.js"></script>
+<script src="js/oficio-idioma.js"></script>
+<script src="js/oficio-espejo.js"></script>
+<script src="js/oficio-estado.js"></script>
+<script src="js/oficio-visitas.js"></script>
+<script>
+(function(){
+'use strict';
+const {K,N,cfg}=Oficio,I=OficioIdioma,_=I.T,$=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* el rótulo y el teléfono salen del archivo de datos del negocio */
+const MARCA=esc(N.marca[0])+(N.marca[1]?'<span>'+esc(N.marca[1])+'</span>':'');
+{const b=$('#llama');$('#marca').innerHTML=MARCA;$('#llamaTel').textContent=N.tel;
+ if(!Oficio.DEMO){document.documentElement.removeAttribute('data-demo');b.addEventListener('click',e=>{e.stopImmediatePropagation();location.href='tel:+34'+K.tel9(N.tel)},true)}}
+const mem={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let S=Oficio.estado();
+const P=new URLSearchParams(location.search),sv=P.get('servicio')||P.get('av'),avM=mem.get(N.id+':av'),av0=sv||(avM!==K.REV?avM:'');
+/* «servicio» (o «av»): la avería que se eligió en la web. Entonces sale arriba «Has elegido…», con un botón para cambiarla */
+const B={av:cfg.av[av0]?av0:'',fijo:!!(sv&&cfg.av[sv]),nota:'',foto:'',dia:'',fr:'',alt:[],altOpen:false,altMas:false,nomap:'',tel:'',dir:'',cp:'',err:'',errs:[],paso:'form'};
+if(B.fijo&&B.av!==K.REV)mem.set(N.id+':av',B.av);
+/* desde la zona del cliente (19-11-2026). «garantia»: el trabajo suyo que ha vuelto a fallar; la oficina mira si entra en la
+   garantía al verlo, así que aquí no se promete nada. Con la revisión: «plan», el mantenimiento que quiere (lo da de alta la
+   oficina antes de la visita) y «con», que va en su contrato. Las reglas lo comprueban todo al pedirla */
+const GAR=/^[A-Za-z0-9]{1,4}-\d{1,7}$/.test(P.get('garantia')||'')?P.get('garantia'):'',PLAN=K.planDe(cfg,P.get('plan')||'')?P.get('plan'):'',CON=P.get('con')==='1';
+/* «Pedir cita para hacerlo», desde su zona (19-11-2026): un presupuesto suyo que no aceptó. Lo que se sabe de él (importe, fecha,
+   si fue en una urgencia) lo deja su zona en este navegador; sin eso, se dice solo el número */
+const PRES=/^[A-Za-z0-9]{1,4}-\d{1,7}$/.test(P.get('pres')||'')&&!GAR?P.get('pres'):'';
+const PRESX=(()=>{if(!PRES)return null;try{const x=JSON.parse(mem.get('oficio:'+N.id+':pres')||'null');return x&&x.id===PRES&&x.total>0&&typeof x.t==='number'?x:null}catch(e){return null}})();
+const extra=()=>B.av===K.REV?{enCon:CON,quiere:CON?'':PLAN}:{vuelve:GAR,pres:PRESX&&B.av===PRESX.av?PRESX:null};
+/* desde «Pedir cita» de la zona del cliente: sus datos ya puestos, una sola vez */
+{const y=mem.get('oficio:'+N.id+':yo');if(y){try{const o=JSON.parse(y);['tel','dir','cp'].forEach(k=>{if(o&&typeof o[k]==='string')B[k]=k==='tel'?K.telBonito(o[k]):o[k]});if(o)B.nomap=[o.nombre,o.apellidos].filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()).join(' ')}catch(e){}try{localStorage.removeItem('oficio:'+N.id+':yo')}catch(e){}}}
+const ERR={av:'Elige qué necesitas arreglar.',franja:'Elige un día y una franja.',llena:'Esa franja se acaba de llenar. Elige otra.',nomap:'Escribe tu nombre y al menos un apellido.',tel:'El teléfono tiene que tener 9 cifras.',dir:'Escribe la calle y el número.',cp:'Escribe el código postal: son 5 cifras.',zona:'Ahí todavía no llegamos: trabajamos en {ciudad}.'};
+/* con servidor: los huecos los da él (días y franjas libres, sin cifras) y el aviso se sigue con la llave del enlace */
+const SRV=Oficio.SRV,H={dias:null,err:'',t:0,va:false};
+Object.assign(ERR,{servidor:'Algo ha fallado al enviar. Prueba otra vez o llámanos al {tel}.',limite:'Hoy ya no caben más peticiones desde aquí. Llámanos al {tel} y te damos cita.',red:'No hay conexión o no podemos recibirla ahora. Tu cita no se ha enviado: prueba otra vez o llámanos al {tel}.',lleno:'Hay mucha gente pidiendo a la vez. Prueba otra vez en unos segundos.',
+ /* al cambiar la cita desde la zona del cliente */
+ tarde:'Ya faltan menos de 24 horas para tu cita: para cambiarla, llámanos al {tel}.',estado:'Esta cita ya no se puede cambiar desde aquí. Llámanos al {tel}.',
+ sesion:'Tu sesión ha caducado. Vuelve a entrar en tu zona de cliente.',bloqueo:'Demasiados intentos seguidos. Espera diez minutos y prueba otra vez.',
+ muchos:'Has hecho muchos cambios seguidos. Espera un rato o llámanos al {tel}.',redC:'No hay conexión. Tu cita no se ha cambiado: prueba otra vez o llámanos al {tel}.',grande:'Esa foto pesa demasiado. Quítala y prueba otra vez.'});
+const err=k=>_(ERR[k]||ERR.servidor,{ciudad:N.ciudad,tel:N.tel});
+/* «otra»: lo que se busca ha cambiado (la avería). Si ya se estaba preguntando, al llegar esa respuesta se pregunta otra vez:
+   la que llega es la de antes del cambio */
+/* lo que se pregunta: la avería y el barrio del formulario o, al cambiar una cita, los de ese aviso */
+const qH=()=>{const C=ruta().v==='cambiar'?CMB():null;return C?{av:C.av||'',dis:C.dis||''}:{av:B.av||'',dis:cfg.zonas.cp[B.cp]||''}};
+function traeHuecos(otra){if(!SRV)return;if(H.va){if(otra)H.otra=true;return}H.va=true;H.otra=false;const q=qH();H.q=JSON.stringify(q);Oficio.huecos(q).then(r=>{H.va=false;
+ if(H.otra){H.t=0;traeHuecos();return}H.t=Date.now();
+ const w=r.ok?(r.web&&typeof r.web==='object'&&!Array.isArray(r.web)?r.web:null):H.web===undefined?null:H.web,webOtra=JSON.stringify(w)!==JSON.stringify(H.web);H.web=w;
+ if(r.ok&&Array.isArray(r.dias)){H.err='';H.urg=r.urg&&Number.isInteger(r.urg.de)&&Number.isInteger(r.urg.a)?{de:r.urg.de,a:r.urg.a}:null;H.dias=r.dias.map(d=>({dia:d.dia,hoy:!!d.hoy,franjas:cfg.franjas.map(f=>{const x=(d.franjas||[]).find(y=>y.id===f.id);return{id:f.id,txt:K.franjaTxt(f),ok:!!(x&&x.ok),libres:null}})}))}else H.err=r.err||'red';
+ const a=document.activeElement;if(ruta().v!=='aviso'?!(a&&a.closest&&a.closest('#f input,#f textarea')):webOtra)pinta()})}
+const diaCorto=f=>{const h=K.madrid().date;return f===h?_('hoy'):f===K.masDias(h,1)?_('mañana'):I.diaSemCorto(f)+' '+(+f.slice(8))};
+const frTxt=id=>{const f=cfg.franjas.find(x=>x.id===id);return f?I.franja(f):''};
+const mayus=s=>s.charAt(0).toUpperCase()+s.slice(1);
+/* cambiar la cita desde la zona del cliente (19-11-2026), «#/cambiar/ID»: el mismo calendario y nada más. Lo de su aviso (la
+   avería, el barrio y la cita de ahora) lo deja su zona en este navegador; el teléfono y el código, los de su sesión */
+const M={dia:'',fr:'',va:false,err:''};
+const CMB=()=>{try{const o=JSON.parse(mem.get('oficio:'+N.id+':cambia')||'null');return o&&typeof o.id==='string'&&o.cita&&typeof o.cita.dia==='string'&&typeof o.cita.fr==='string'?o:null}catch(e){return null}};
+const SES=()=>{try{const x=JSON.parse(mem.get('oficio:'+N.id+':cliente')||'null');return x&&K.tel9(x.tel)&&(!SRV||typeof x.cod==='string')?x:null}catch(e){return null}};
+const SEL=()=>ruta().v==='cambiar'?M:B;
+/* «¿Cuándo te va bien?» (19-11-2026, lo pidió Oscar): un calendario de lunes a viernes, que son los días con cita, desde
+   esta semana hasta la del último día con hueco. Se eligen los días con algún hueco; hoy, los festivos y los días llenos
+   se ven apagados (hoy es solo para las urgencias). Debajo, las franjas del día elegido: por la mañana y por la tarde */
+function calendario(dias){const hoy=K.madrid().date,de={};dias.forEach(x=>de[x.dia]=x);
+ const sem=f=>new Date(f+'T12:00:00Z').getUTCDay(),lunes=f=>K.masDias(f,1-(sem(f)||7));
+ const ini=sem(hoy)>=1&&sem(hoy)<=5?hoy:dias[0].dia,fin=dias[dias.length-1].dia,m1=I.mes(ini),m2=I.mes(fin);
+ let cel='';const E=SEL();for(let s0=lunes(ini);s0<=fin;s0=K.masDias(s0,7))for(let i=0;i<5;i++){const f=K.masDias(s0,i),x=de[f],n=+f.slice(8);
+  if(x&&x.franjas.some(z=>z.ok))cel+='<button type="button" class="dia" data-dia="'+f+'" role="radio" aria-checked="'+(E.dia===f)+'" aria-label="'+esc(I.fechaLarga(f))+(x.suya?', '+_('tu cita'):'')+'"><b>'+n+'</b>'+(x.suya?'<small>'+_('tu cita')+'</small>':'<i></i>')+'</button>';
+  else{const k=f===hoy?_('hoy'):cfg.festivos.includes(f)?_('festivo'):x&&x.suya?_('tu cita'):x?_('completo'):'';
+   cel+='<span class="dia no'+(f===hoy?' hoy':'')+'" aria-hidden="true"><b>'+n+'</b>'+(k?'<small>'+k+'</small>':'')+'</span>'}}
+ return'<div class="cal"><p class="cal-mes" aria-hidden="true">'+esc(mayus(m1===m2?m1:m1+' – '+m2))+'</p>'+
+  '<div class="cal-sem" aria-hidden="true">'+[0,1,2,3,4].map(i=>'<span>'+esc(I.diaSemCorto(K.masDias(lunes(ini),i)))+'</span>').join('')+'</div>'+
+  '<div class="cal-dias" role="radiogroup" aria-label="'+_('Día')+'">'+cel+'</div>'+
+  '<p class="cal-nota">'+_('Hoy y los fines de semana, solo servicio urgente.')+'</p></div>'}
+function horas(fr){const de=id=>(cfg.franjas.find(z=>z.id===id)||{de:0}).de,E=SEL();
+ const b=f=>'<button type="button" class="op hora" data-fr="'+f.id+'" role="radio" aria-checked="'+(E.fr===f.id)+'"'+(f.ok?'':' disabled')+'><span>'+frTxt(f.id)+
+  '<small>'+(f.suya?_('tu cita ahora'):f.libres==null?(f.ok?_('libre'):_('no disponible')):f.ok?(f.libres===1?_('queda 1'):_('quedan {n}',{n:f.libres})):f.libres?_('ya no da tiempo'):_('completa'))+'</small></span></button>';
+ const g=(k,L)=>L.length?'<p class="hk">'+k+'</p><div class="hs">'+L.map(b).join('')+'</div>':'';
+ return'<div class="horas" role="radiogroup" aria-label="'+_('Franja')+'"><p class="hd">'+esc(mayus(I.fechaLarga(E.dia)))+'</p>'+
+  g(_('Por la mañana'),fr.filter(f=>de(f.id)<840))+g(_('Por la tarde'),fr.filter(f=>de(f.id)>=840))+'</div>'}
+const toast=s=>{const e=$('#toast');e.textContent=s;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200)};
+const zonaDe=cp=>{const d=cfg.zonas.cp[String(cp).replace(/\D/g,'')];return d?cfg.zonas.dis[d][0]:''};
+
+/* el precio orientativo: el mismo en la web, aquí, en el resumen y en la confirmación (sale del catálogo del negocio) */
+/* los servicios tal como los enseña la web del negocio (18-11-2026): el nombre, la foto, el precio con cita, el orden y si
+   salen, que el negocio cambia en su app. En la demo, los de este navegador; con servidor, llegan con los huecos (también al
+   ver un aviso, para que el nombre y el precio sean los mismos que al pedirlo). Un nombre que ha escrito el negocio no se traduce */
+const webL=()=>K.webDe?K.webDe(SRV?{web:H.web||null}:S,cfg):N.averias.map(a=>({id:a.id,n:a.n,oculto:false}));
+const svDe=id=>webL().find(x=>x.id===id)||null;
+/* la revisión, como la ve el cliente: con el nombre de la que lleva el plan en el catálogo, que vale con contrato y sin él */
+const nomRev=()=>{const Pl=Object.values(cfg.planes||{})[0],c=Pl&&cfg.cat[Pl.rev];return _(c?c.t:(cfg.av[K.REV]||{n:''}).n)};
+const nomAv=id=>{if(id===K.REV)return nomRev();const x=svDe(id);return x?(x.nPropio?x.n:_(x.n)):_((cfg.av[id]||{n:''}).n)};
+const fotoAv=id=>{if(id===K.REV)id='otra';   /* la revisión no tiene foto propia: la de «otra avería», la caja de herramientas */
+ const x=svDe(id);return x&&x.foto?(SRV?Oficio.fotoSrc(x.foto,'web'):x.foto):'assets/img/av-'+id+'-s.webp'};
+/* «o»: lo de la revisión (19-11-2026): «enCon», que va en su contrato; «quiere», el plan que quiere, con la revisión dentro */
+const precioTxt=(av,o)=>{o=o||{};const e=v=>K.eur(v).replace(',00','');
+ if(o.pres)return K.eur(o.pres.total);
+ if(av===K.REV&&o.enCon)return _('Incluida en tu contrato');const Pl=av===K.REV&&o.quiere?K.planDe(cfg,o.quiere):null;if(Pl)return _('{precio} al año',{precio:e(Pl.precio)});
+ const x=svDe(av),R=x&&K.webPrecios?K.webPrecios(cfg,x):(()=>{const r=K.rango(cfg,av,false);return r&&{a:r.a,b:r.b}})();if(!R)return'';return R.b?_('De {a} a {b}',{a:e(R.a),b:e(R.b)}):_('Desde {a}',{a:e(R.a)})};
+const PRECIO_NOTA='IVA incluido, en una vivienda. Con cita, tarifa normal. El precio final se cierra y lo firmas antes de empezar.';
+const nomPlan=Pl=>esc(_(Pl.n).toLowerCase());
+const notaPrecio=(av,o)=>{o=o||{};const Pl=av===K.REV&&!o.enCon&&o.quiere?K.planDe(cfg,o.quiere):null;
+ if(o.pres)return o.pres.urg?_('Es el presupuesto que te dimos el {fecha}, con el suplemento de urgencia. Con cita no lo lleva: el técnico te lo vuelve a presentar y lo firmas antes de empezar.',{fecha:K.fechaCorta(K.madrid(o.pres.t).date)})
+  :_('Es el presupuesto que te dimos el {fecha}, IVA incluido. El técnico te lo vuelve a presentar y lo firmas antes de empezar.',{fecha:K.fechaCorta(K.madrid(o.pres.t).date)});
+ return av===K.REV&&o.enCon?_('La revisión y el desplazamiento van en tu contrato de mantenimiento.'):Pl?_('Con el {plan}, esta revisión va incluida. IVA incluido. Te escribimos para darlo de alta antes de la visita.',{plan:nomPlan(Pl)}):_(PRECIO_NOTA)};
+/* lo que se puede comprobar antes de enviar (lo mismo que mira el núcleo); así se corrige todo de una vez */
+function revisa(){const E=[],nm=s=>String(s||'').trim().replace(/\s+/g,' ');
+ if(!B.av)E.push('av');if(!B.fr)E.push('franja');if(!K.parteNombre(B.nomap).bien)E.push('nomap');
+ if(!K.tel9(B.tel))E.push('tel');if(nm(B.dir).length<5)E.push('dir');{const cp=String(B.cp).replace(/\D/g,'');if(cp&&!cfg.zonas.cp[cp])E.push(cp.length===5?'zona':'cp')}
+ return E}
+const CAMPO_DE={av:'av',franja:'fr',llena:'fr',nomap:'c_nomap',nombre:'c_nomap',apellidos:'c_nomap',tel:'c_tel',dir:'c_dir',cp:'c_cp',zona:'c_cp'};
+const malEn=k=>B.errs.includes(k)||B.err===k;
+/* «Pide cita», paso a paso (20-11-2026, lo pidió Oscar: «que los pasos sean uno a uno, una pantalla simple que vas
+   avanzando»). Cuatro pantallas con una sola pregunta cada una y «Continuar» abajo: 1 qué arreglar, 2 algo que debamos
+   saber (opcional), 3 cuándo te va bien, 4 dónde vamos; luego el resumen. Cada paso tiene su dirección (#/p/fr…), así que
+   el «atrás» del móvil vuelve al paso anterior. Si se viene de la web con el servicio elegido, se empieza por el 2. No se
+   puede saltar a un paso sin lo de antes: se vuelve al primero que falta. Después de ver el resumen, «Continuar» vuelve
+   a él en cuanto está todo */
+const PASOS=['av','det','fr','tu'],P_TIT=x=>({av:_('¿Qué necesitas arreglar?'),det:_('¿Algo que debamos saber?'),fr:_('¿Cuándo te va bien?'),tu:_('¿Dónde vamos?')}[x]);
+const PASO_DE={av:'av',franja:'fr',llena:'fr',nomap:'tu',nombre:'tu',apellidos:'tu',tel:'tu',dir:'tu',cp:'tu',zona:'tu'};
+const p0=()=>B.fijo&&B.av?'det':'av';
+const hashPaso=p=>p===p0()?'#/':'#/p/'+p;
+function vePaso(p){if(location.hash===hashPaso(p)||(p===p0()&&!location.hash)){pinta();scrollTo(0,0);const t=$('#tit');if(t)t.focus({preventScroll:true})}else location.hash=hashPaso(p)}
+/* el paso que toca: el de la dirección, si ya se tiene lo de antes */
+function pasoDe(dias){const r=ruta();let p=r.v==='p'&&(PASOS.includes(r.a)||r.a==='resumen')?r.a:p0();
+ if(p!=='av'&&!B.av)p='av';else if((p==='tu'||p==='resumen')&&!B.fr)p='fr';else if(p==='resumen'&&revisa().length)p=PASO_DE[revisa()[0]]||'tu';
+ if((r.v==='p'?r.a:p0())!==p)try{history.replaceState(null,'',location.pathname+location.search+hashPaso(p))}catch(e){}
+ return p}
+function vPedir(){
+ const conHueco=x=>x.franjas.some(f=>f.ok);let dias=null,p=ruta().v==='p'?ruta().a:'';
+ const necesita=p==='fr'||p==='resumen'||p==='tu';
+ if(necesita&&!(SRV&&!H.dias)){dias=(SRV?H.dias:K.diasDe(S,cfg,Date.now(),6,false,B.av?{av:B.av,cli:{dis:cfg.zonas.cp[B.cp]||''}}:null)).filter(x=>!x.hoy).slice(0,5);
+  /* la franja elegida tiene que seguir libre: si no, se vuelve a elegir */
+  if(B.fr&&!dias.some(x=>x.dia===B.dia&&x.franjas.some(f=>f.id===B.fr&&f.ok)))B.fr=''}
+ p=pasoDe(dias);B.paso=p;
+ if(p==='resumen'){B.visto=true;return vResumen(dias)}
+ const i=PASOS.indexOf(p),dEsp=SRV&&!H.dias;
+ /* arriba: atrás, la barra de los cuatro pasos y en cuál estás */
+ const prog='<nav class="prog" aria-label="'+_('Pasos')+'">'+(i>0?'<button type="button" class="atras" id="atras" data-a="'+PASOS[i-1]+'" aria-label="'+_('Atrás')+'">':'<a class="atras" href="./" aria-label="'+_('Volver a la web')+'">')+
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>'+(i>0?'</button>':'</a>')+
+  '<ol>'+PASOS.map((x,j)=>'<li class="'+(j<i?'ok':j===i?'ya':'')+'"'+(j===i?' aria-current="step"':'')+'><span class="vh">'+P_TIT(x)+'</span></li>').join('')+'</ol>'+
+  '<span class="pn">'+_('Paso {n} de {t}',{n:i+1,t:PASOS.length})+'</span></nav>';
+ /* lo que ya has elegido, en una línea */
+ const lleva=[i>0&&B.av?esc(nomAv(B.av)):'',i>2&&B.fr?esc(mayus(diaCorto(B.dia)))+', '+esc(frTxt(B.fr)):''].filter(Boolean).join(' · ');
+ const cab=prog+'<h1 tabindex="-1" id="tit">'+P_TIT(p)+'</h1>'+(lleva?'<p class="lleva">'+lleva+'</p>':'');
+ const sigue=(t,dis)=>'<div class="sigue"><button class="btn pri ancho" type="submit" id="sigue"'+(dis?' disabled':'')+'>'+t+'</button></div>';
+ const malF=k=>malEn(k)?'<p class="fallo" role="alert">'+err(k)+'</p>':'';
+ const ult=mem.get('oficio:'+N.id+':mio'),U=ult&&(SRV?(Oficio.vista(ult)||{}).v:K.vistaCliente(S,cfg,ult));
+ /* los avisos de arriba (urgente, ya tienes un aviso, presupuesto, garantía), solo en la primera pantalla */
+ const notas=p!==p0()?'':'<p class="lead" id="urgLead">'+_('¿No puedes esperar?')+' <a href="./">'+_('Contrata el servicio urgente')+'</a></p>'+
+  (U&&U.e!=='cancelado'&&U.e!=='hecho'?'<p class="ult">'+_('Ya tienes un aviso: {id}, {av}.',{id:U.id,av:esc(nomAv(U.av).toLowerCase())})+' <a href="#/aviso/'+U.id+'">'+_('Ver cómo va')+'</a>. '+_('Para cambiarlo, llámanos al {tel}.',{tel:esc(N.tel)})+'</p>':'')+
+  (PRES&&B.av!==K.REV?'<p class="ult" id="presN">'+_('Pides cita para hacer el presupuesto {id}, que no aceptaste en la visita. El técnico te lo vuelve a presentar y lo firmas antes de empezar.',{id:esc(PRES)})+'</p>':'')+
+  (GAR&&B.av!==K.REV?'<p class="ult" id="garN">'+_('Pides cita porque ha vuelto a fallar el trabajo {id}, que sigue en garantía. Al verlo, te decimos si entra en ella.',{id:esc(GAR)})+'</p>':'');
+ const fallo=B.err&&!CAMPO_DE[B.err]?'<p class="fallo" role="alert">'+err(B.err)+'</p>':'';
+ const rango=B.av?'<p class="rango"><span class="rk">'+(extra().pres?_('Presupuesto'):_('Precio orientativo'))+'</span><b class="num">'+precioTxt(B.av,extra())+'</b><small>'+notaPrecio(B.av,extra())+'</small></p>':'';
+ if(p==='av')return cab+notas+'<form id="f" data-paso="av" novalidate><fieldset id="av"><legend class="vh">'+P_TIT('av')+'</legend>'+
+   '<div class="avs">'+webL().filter(a=>!a.oculto||a.id===B.av).map(a=>'<label class="avc"><img src="'+esc(fotoAv(a.id))+'" alt="" width="52" height="52" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>'+esc(nomAv(a.id))+'</span><input type="radio" name="av" value="'+a.id+'"'+(B.av===a.id?' checked':'')+'></label>').join('')+'</div>'+
+   malF('av')+rango+'</fieldset>'+fallo+sigue(_('Continuar'))+'</form>';
+ if(p==='det'){const otra=B.av==='otra';
+  return cab+notas+'<form id="f" data-paso="det" novalidate><fieldset id="det"><legend class="vh">'+P_TIT('det')+'</legend>'+
+   '<p class="ayuda">'+_('Opcional. Con una nota o una foto venimos con lo que hace falta.')+'</p>'+
+   '<div class="campo"><label for="c_nota">'+_('Explícanos cuál es el problema')+' <small class="opc">'+_('Opcional')+'</small></label><textarea id="c_nota" data-b="nota" placeholder="'+esc(_('¿Algún detalle importante que debamos saber? Explícanos cuál es la situación.'))+'">'+esc(B.nota)+'</textarea>'+(otra?'<p class="ayuda">'+_('Si no sabes explicarlo, manda una foto: con eso nos basta para prepararlo.')+'</p>':'')+'</div>'+
+   '<div class="fotow"><span class="lb">'+_('Una foto')+' <small class="opc">'+_('Opcional · ayuda a preparar la visita')+'</small></span><div class="fotoz">'+(B.foto?'<img src="'+esc(B.foto)+'" alt="'+_('La foto que has añadido')+'">':'')+
+    '<label class="btn peq">'+(B.fotoVa?_('Preparando la foto…'):B.foto?_('Cambiar la foto'):_('Añadir una foto'))+'<input class="vh" type="file" accept="image/*" id="c_foto"></label>'+(B.foto?'<button type="button" class="txt" id="fQuita">'+_('Quitar')+'</button>':'')+'</div>'+
+    (B.fotoMal?'<p class="err" role="alert">'+esc(_(B.fotoMal))+'</p>':'')+'</div>'+rango+'</fieldset>'+fallo+sigue(B.nota.trim()||B.foto?_('Continuar'):_('Continuar sin nada más'),B.fotoVa)+'</form>'}
+ if(p==='fr'){
+  if(dEsp)return cab+'<p class="lead" id="hEsp" role="status">'+(H.err?_('No he podido mirar los huecos libres. {boton} o llama al {tel}.',{boton:'<button class="txt" type="button" id="hOtra">'+_('Probar otra vez')+'</button>',tel:esc(N.tel)}):_('Mirando los huecos libres…'))+'</p>';
+  if(!dias.some(conHueco))return cab+'<p class="lead">'+_('Ahora mismo no quedan huecos en los próximos días. Llama al {tel} y lo miramos.',{tel:esc(N.tel)})+'</p>';
+  if(!dias.find(x=>x.dia===B.dia&&conHueco(x)))B.dia=dias.find(conHueco).dia;
+  const fr=dias.find(x=>x.dia===B.dia).franjas;if(!fr.find(f=>f.id===B.fr&&f.ok))B.fr='';
+  /* otras franjas que también le van bien: las libres de ese día y de los dos siguientes. Plegadas: se abren si quiere,
+     y se ven tres (o las que ya ha marcado); «Ver más» enseña hasta ocho. Cuatro marcadas como mucho */
+  const i0=dias.findIndex(x=>x.dia===B.dia),cand=[];if(B.fr)dias.slice(i0,i0+3).forEach(x=>x.franjas.forEach(f=>{if(f.ok&&!(x.dia===B.dia&&f.id===B.fr)&&cand.length<8)cand.push({k:x.dia+'|'+f.id,txt:diaCorto(x.dia)+', '+frTxt(f.id)})}));
+  B.alt=B.alt.filter(k=>cand.some(c=>c.k===k));
+  const verAlt=B.altMas?cand:cand.filter((c,i)=>i<3||B.alt.includes(c.k));
+  return cab+'<form id="f" data-paso="fr" novalidate><fieldset id="fr"><legend class="vh">'+P_TIT('fr')+'</legend>'+calendario(dias)+horas(fr)+
+   (malEn('franja')||malEn('llena')?'<p class="fallo" role="alert">'+err(malEn('llena')?'llena':'franja')+'</p>':'')+
+   (cand.length?'<div class="campo otras"><button type="button" class="txt plega" id="altAbre" aria-expanded="'+(B.altOpen||B.alt.length>0)+'" aria-controls="altL">'+_('¿Te va bien también otra franja?')+' <small>'+_('Opcional')+'</small></button>'+
+    (B.altOpen||B.alt.length?'<div id="altL"><p class="ayuda">'+_('Si hay que mover la cita, la pasamos a una de estas sin tener que llamarte.')+'</p><div class="ops" role="group" aria-label="'+_('Otras franjas que te van bien')+'">'+verAlt.map(c=>'<button type="button" class="op" data-alt="'+c.k+'" aria-pressed="'+B.alt.includes(c.k)+'">'+c.txt+'</button>').join('')+'</div>'+
+     (!B.altMas&&cand.length>verAlt.length?'<button type="button" class="txt" id="altMas">'+_('Ver más franjas')+'</button>':'')+'</div>':'')+'</div>':'')+'</fieldset>'+fallo+sigue(_('Continuar'))+'</form>'}
+ /* 4 · dónde vamos: los datos, con el aviso de errores arriba (cuántos y un enlace a cada uno) */
+ const c=(id,lb,v,o,ay)=>{const m=malEn(id)||(id==='cp'&&malEn('zona')),k=id==='cp'&&malEn('zona')?'zona':id;
+  return'<div class="campo'+(m?' mal':'')+'"><label for="c_'+id+'">'+lb+'</label>'+(ay?'<p class="ayuda" id="a_'+id+'">'+ay+'</p>':'')+'<input id="c_'+id+'" data-b="'+id+'" value="'+esc(v)+'" '+(o||'')+(m?' aria-invalid="true"':'')+((m||ay)?' aria-describedby="'+[ay?'a_'+id:'',m?'e_'+id:''].filter(Boolean).join(' ')+'"':'')+'>'+(m?'<p class="err" id="e_'+id+'">'+err(k)+'</p>':'')+'</div>'};
+ const E=B.errs.filter(k=>PASO_DE[k]==='tu');
+ const resumenMal=E.length?'<div class="revisa" id="revisa" role="alert" tabindex="-1"><p>'+_('{cuantos} antes de seguir:',{cuantos:'<b>'+(E.length===1?_('Revisa 1 dato'):_('Revisa {n} datos',{n:E.length}))+'</b>'})+'</p><ul>'+E.map(k=>'<li><a href="#" data-ir="'+(CAMPO_DE[k]||k)+'">'+err(k)+'</a></li>').join('')+'</ul></div>':'';
+ return cab+resumenMal+'<form id="f" data-paso="tu" novalidate><fieldset id="tu"><legend class="vh">'+P_TIT('tu')+'</legend>'+c('nomap',_('Nombre y apellidos'),B.nomap,'autocomplete="name" maxlength="140"')+
+   c('tel',_('Teléfono móvil'),B.tel,'type="tel" inputmode="tel" autocomplete="tel"',_('Te escribimos por WhatsApp para confirmar la cita y avisarte cuando salgamos. Si no tienes WhatsApp, te llamamos.'))+
+   c('dir',_('Calle, número y piso'),B.dir,'autocomplete="street-address"')+c('cp',_('Código postal (opcional)'),B.cp,'inputmode="numeric" maxlength="5" autocomplete="postal-code"')+
+   (!malEn('zona')&&zonaDe(B.cp)?'<p class="zona">'+_('{zona}: llegamos.',{zona:esc(zonaDe(B.cp))})+'</p>':'')+'</fieldset>'+fallo+
+  sigue(_('Revisar la cita'))+'<p class="ayuda" style="text-align:center;margin-top:8px">'+_('Antes de enviarla, la ves entera.')+'</p></form>'}
+
+/* cambiar la cita: hasta 24 horas antes, a cualquier hueco libre de los próximos días que no sea hoy. La de ahora sale
+   marcada y no se puede elegir */
+function vCambia(id){const C=CMB(),se=SES(),T=t=>'<h1 class="grande" tabindex="-1" id="tit">'+_('Cambia tu cita.')+'</h1>'+t;
+ if(M.id!==id){M.id=id;M.dia='';M.fr='';M.err=''}
+ if(!C||C.id!==id||!se)return T('<p class="lead">'+_('Para cambiarla, entra en {zona}.',{zona:'<a href="cliente.html">'+_('tu zona de cliente')+'</a>'})+'</p>');
+ if(!K.cambiaCli(cfg,{cita:C.cita,e:C.e||'nuevo'},Date.now()))return T('<p class="lead">'+err('tarde')+'</p><div class="tras"><a class="btn ancho" href="cliente.html">'+_('Volver a tu zona')+'</a></div>');
+ if(SRV&&!H.dias)return T('<p class="lead" role="status">'+(H.err?_('No he podido mirar los huecos libres. {boton} o llama al {tel}.',{boton:'<button class="txt" type="button" id="hOtra">'+_('Probar otra vez')+'</button>',tel:esc(N.tel)}):_('Mirando los huecos libres…'))+'</p>');
+ const X={av:C.av||'',cli:{dis:C.dis||''}},suya=x=>x.dia!==C.cita.dia?x:Object.assign({},x,{suya:true,franjas:x.franjas.map(f=>f.id===C.cita.fr?Object.assign({},f,{ok:false,suya:true}):f)});
+ const dias=(SRV?H.dias:K.diasDe(S,cfg,Date.now(),6,false,X)).filter(x=>!x.hoy).slice(0,5).map(suya),conHueco=x=>x.franjas.some(f=>f.ok);
+ if(!dias.some(conHueco))return T('<p class="lead">'+_('Ahora mismo no quedan otros huecos en los próximos días. Llama al {tel} y lo miramos.',{tel:esc(N.tel)})+'</p>');
+ if(!dias.find(x=>x.dia===M.dia&&conHueco(x)))M.dia=dias.find(conHueco).dia;
+ const fr=dias.find(x=>x.dia===M.dia).franjas;if(!fr.find(f=>f.id===M.fr&&f.ok))M.fr='';
+ return T('<p class="lead">'+_('Ahora la tienes el {cuando}. Elige otro día y otra hora.',{cuando:esc(I.fechaLarga(C.cita.dia)+', '+frTxt(C.cita.fr))})+'</p>'+
+  '<form id="fC" novalidate><fieldset id="fr"><legend>'+_('¿Cuándo te va mejor?')+'</legend>'+calendario(dias)+horas(fr)+
+  (M.err?'<p class="fallo" role="alert">'+err(M.err)+'</p>':'')+'</fieldset>'+
+  '<div class="tras"><button class="btn pri ancho" type="submit"'+(M.va?' disabled':'')+'>'+(M.va?_('Cambiando…'):_('Cambiar la cita'))+'</button><a class="btn ancho" href="cliente.html">'+_('Dejarla como está')+'</a></div></form>')}
+async function cambia(){const C=CMB(),se=SES();if(M.va||!C||!se)return;
+ if(!M.fr){M.err='franja';pinta();const x=$('.fallo');if(x)x.scrollIntoView({block:'center'});return}
+ M.va=true;M.err='';pinta();
+ const r=await Oficio.zona(se.tel,se.cod||'',{tipo:'mover',id:C.id,cita:{dia:M.dia,fr:M.fr}});M.va=false;
+ if(!r||!r.ok){const e=r&&r.err||'red';if(e==='franja'&&SRV){H.t=0;traeHuecos(true)}
+  M.err=e==='franja'?'llena':e==='tarde'||e==='estado'||e==='bloqueo'?e:e==='clave'||e==='permiso'?'sesion':e==='limite'?'muchos':e==='red'?'redC':'servidor';
+  pinta();const x=$('.fallo');if(x)x.scrollIntoView({block:'center'});return}
+ const cuando=I.fechaLarga(M.dia)+', '+frTxt(M.fr);try{localStorage.removeItem('oficio:'+N.id+':cambia')}catch(e){}M.id='';VT=0;
+ location.hash='#/aviso/'+C.id+(SRV&&C.llave?'/'+C.llave:'');toast(_('Cita cambiada: {cuando}.',{cuando}))}
+
+/* el resumen antes de confirmar: todo lo elegido, con un «Cambiar» a cada parte; y aquí se envía */
+function vResumen(dias){const cp=String(B.cp).replace(/\D/g,'');
+ const fila=(k,v,ir)=>'<div class="rf"><dt>'+k+'</dt><dd>'+v+'</dd>'+(ir?'<dd class="rc"><a href="#" data-cambia="'+ir+'">'+_('Cambiar')+'<span class="vh"> '+k.toLowerCase()+'</span></a></dd>':'')+'</div>';
+ const alt=B.alt.map(k=>{const[di,fi]=k.split('|');return diaCorto(di)+', '+frTxt(fi)});
+ return'<nav class="prog" aria-label="'+_('Pasos')+'"><button type="button" class="atras" id="atras" data-a="tu" aria-label="'+_('Atrás')+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><ol>'+PASOS.map(x=>'<li class="ok"><span class="vh">'+P_TIT(x)+'</span></li>').join('')+'</ol><span class="pn">'+_('Último paso')+'</span></nav><h1 tabindex="-1" id="tit">'+_('Revisa tu cita')+'</h1><p class="lead">'+_('Así nos llega. Si algo no está bien, cámbialo antes de confirmar.')+'</p>'+
+  '<dl class="resu">'+
+   fila(_('Qué arreglar'),esc(nomAv(B.av)),'av')+
+   fila(_('Cuándo'),esc(I.fechaLarga(B.dia))+', '+esc(frTxt(B.fr))+(alt.length?'<br><small>'+_('También te va bien: {cuando}',{cuando:esc(alt.join(' · '))})+'</small>':''),'fr')+
+   fila(_('Tarifa'),_('Normal, con cita'),null)+
+   fila(extra().pres?_('Presupuesto'):_('Precio orientativo'),precioTxt(B.av,extra())+'<br><small>'+(B.av===K.REV&&(CON||PLAN)||extra().pres?notaPrecio(B.av,extra()):_('IVA incluido. El precio final se cierra y lo firmas antes de empezar.'))+'</small>',null)+
+   (GAR&&B.av!==K.REV?fila(_('Garantía'),_('Ha vuelto a fallar el trabajo {id}',{id:esc(GAR)}),null):'')+
+   (PRES&&B.av!==K.REV?fila(_('Presupuesto'),_('Hacer el presupuesto {id}',{id:esc(PRES)}),null):'')+
+   fila(_('Dirección'),esc(B.dir.trim())+(cp?', '+esc(cp)+' '+esc(zonaDe(cp)):''),'tu')+
+   fila(_('A nombre de'),esc(String(B.nomap).trim().replace(/\s+/g,' '))+'<br><small>'+_('{tel} · por WhatsApp',{tel:esc(K.telBonito(K.tel9(B.tel)))})+'</small>','tu')+
+   (B.nota.trim()||B.foto?fila(_('Lo que nos cuentas'),(B.nota.trim()?esc(B.nota.trim()):'')+(B.foto?(B.nota.trim()?'<br>':'')+'<img class="rfoto" src="'+esc(B.foto)+'" alt="'+_('La foto que mandas')+'">':''),'det'):'')+
+  '</dl>'+
+  (B.err&&!CAMPO_DE[B.err]?'<p class="fallo" role="alert">'+err(B.err)+'</p>':'')+
+  '<p class="legal">'+_('Usamos estos datos solo para atender tu aviso.')+' '+(SRV&&N.prueba===true?_('Esto es una copia de prueba: lo que escribas se guarda en el servidor de pruebas de OOOX y no llega a ningún negocio.'):!SRV&&Oficio.DEMO?_('Esto es una web de muestra: lo que escribas se queda en tu navegador y no llega a nadie.'):_('Responsable: {razon}, NIF {nif}.',{razon:esc(N.razon),nif:esc(N.nif)}))+'</p>'+
+  '<div class="tras"><button class="btn pri ancho" id="rConfirma"'+(B.va?' disabled':'')+'>'+(B.va?_('Enviando…'):_('Confirmar la cita'))+'</button><button class="btn ancho" id="rVuelve"'+(B.va?' disabled':'')+'>'+_('Cambiar algo')+'</button></div>'}
+
+/* lo que conviene hacer mientras llega el técnico: lo pone cada negocio en sus averías («mientras»), porque es de su oficio */
+const mientras=av=>{const a=cfg.av[av];return a&&typeof a.mientras==='string'?a.mientras:''};
+
+/* un mapa sencillo, sin librerías: las nueve teselas de alrededor de un punto, con el punto en el centro */
+function mapaHtml(M,pos,quien){const z=15,n=2**z,x=(pos.lon+180)/360*n,la=pos.lat*Math.PI/180,y=(1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n;
+ const tx=Math.floor(x),ty=Math.floor(y),ox=(x-tx)*256,oy=(y-ty)*256;let h='';
+ for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const X=((tx+i)%n+n)%n,Y=ty+j;if(Y<0||Y>=n)continue;
+  h+='<img alt="" width="256" height="256" decoding="async" src="'+esc(M.teselas.replace('{z}',z).replace('{x}',X).replace('{y}',Y))+'" style="left:'+(i*256)+'px;top:'+(j*256)+'px" onerror="this.style.visibility=\'hidden\'">'}
+ return'<div class="mapa-v" role="img" aria-label="'+_('Mapa con la última posición de {quien}',{quien:esc(quien)})+'"><div class="mapa-t" style="transform:translate('+(-ox).toFixed(1)+'px,'+(-oy).toFixed(1)+'px)">'+h+'</div><i class="mapa-p"></i></div>'}
+const haceMin=t=>{const m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?_('ahora mismo'):m===1?_('hace 1 minuto'):m<60?_('hace {n} minutos',{n:m}):_('hace más de una hora')};
+function bMapa(v,T){const M=cfg.mapa;if(!M||v.e!=='camino'||!v.pos)return'';const viejo=Date.now()-v.pos.t>5*60000,ok=typeof M.teselas==='string'&&/^https:\/\//.test(M.teselas);
+ return'<section class="mapa" id="mapa" aria-label="'+_('Dónde está {quien}',{quien:esc(T)})+'">'+(ok?mapaHtml(M,v.pos,T):'')+
+  '<p class="mapa-l"><b>'+_('Última posición de {quien}',{quien:esc(T)})+'</b>: '+haceMin(v.pos.t)+'.'+(viejo?' '+_('Puede que tenga la app cerrada mientras conduce.'):'')+
+  (ok?'':' <a href="https://www.openstreetmap.org/?mlat='+v.pos.lat+'&amp;mlon='+v.pos.lon+'#map=16/'+v.pos.lat+'/'+v.pos.lon+'" target="_blank" rel="noopener noreferrer">'+_('Abrirla en un mapa')+'</a>')+'</p>'+
+  (ok&&M.firma?'<p class="mapa-f">'+(typeof M.firmaUrl==='string'&&/^https:\/\//.test(M.firmaUrl)?'<a href="'+esc(M.firmaUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(M.firma)+'</a>':esc(M.firma))+'</p>':'')+'</section>'}
+/* quién va: su nombre, la inicial de su apellido, su furgoneta y, si dio permiso, su foto */
+function bQuien(v){const q=v.quien;if(!q||!['asignado','camino','curso'].includes(v.e))return'';
+ return'<div class="quien">'+(q.foto?'<img class="ava" src="'+esc(q.foto)+'" alt="">':'<span class="ava" style="--h:'+(+q.tono||0)+'" aria-hidden="true">'+esc((q.n||'?').slice(0,1)+(q.ap||''))+'</span>')+'<p><b>'+esc(q.n)+(q.ap?' '+esc(q.ap)+'.':'')+'</b>'+(q.coche?'<br><span class="coche">'+esc(_(q.coche))+'</span>':'')+'</p></div>'}
+/* antes de la visita (pedida o ya con técnico): el número, el precio, qué pasa ahora, qué hacer mientras y cómo cambiarla.
+   Es la pantalla a la que se llega al pedir la cita; al recargarla se vuelve a ver igual, sin pedir nada otra vez */
+function bAntes(v,T){if(!['nuevo','asignado'].includes(v.e))return'';
+ const tel=Oficio.DEMO?esc(N.tel):'<a href="tel:+34'+K.tel9(N.tel)+'">'+esc(N.tel)+'</a>';
+ return'<section class="conf" aria-label="'+_('Lo que tienes que saber')+'">'+
+  '<p class="numero"><span>'+_('Tu número de aviso')+'</span> <b class="num">'+esc(v.id)+'</b> <button type="button" class="txt" id="copiaId" data-id="'+esc(v.id)+'">'+_('Copiar')+'</button></p>'+
+  (v.cita?'<p class="cprecio">'+(v.av===K.REV&&v.enCon?_('La revisión y el desplazamiento van en tu contrato de mantenimiento: no se pagan.'):v.av===K.REV&&K.planDe(cfg,v.quiere||'')?_('Con el {plan} ({precio} al año), esta revisión va incluida. Te escribimos para darlo de alta antes de la visita.',{plan:nomPlan(K.planDe(cfg,v.quiere)),precio:'<b>'+K.eur(K.planDe(cfg,v.quiere).precio).replace(',00','')+'</b>'})
+   :_('Con cita, tarifa normal. Precio orientativo: {precio}, IVA incluido. El precio final se cierra y lo firmas antes de empezar.',{precio:'<b>'+precioTxt(v.av)+'</b>'}))+'</p>':'')+
+  '<h2>'+_('Qué pasa ahora')+'</h2><ol class="pasos">'+
+   (v.e==='nuevo'?'<li>'+_('Te confirmamos por WhatsApp quién irá.')+'</li>':'<li>'+(v.cita?_('Irá {quien}, en la franja que has elegido.',{quien:esc(T)}):_('Irá {quien}.',{quien:esc(T)}))+'</li>')+
+   (v.cita?'<li>'+_('El día de la cita te escribimos cuando salga hacia tu casa.')+'</li>':'<li>'+_('Te escribimos cuando salga hacia tu casa.')+'</li>')+
+   '<li>'+_('Antes de empezar te da el precio cerrado, y lo firmas.')+'</li></ol>'+
+  (mientras(v.av)?'<h2>'+_('Mientras tanto')+'</h2><p>'+esc(_(mientras(v.av)))+'</p>':'')+
+  /* con zona de cliente, la cita se cambia o se cancela allí hasta 24 horas antes (19-11-2026) */
+  '<p class="cambia">'+(v.cita&&(Oficio.DEMO||SRV)?_('¿Tienes que cambiarla o anularla? Hazlo en {zona} hasta 24 horas antes, o llámanos al {tel}.',{zona:'<a href="cliente.html">'+_('tu zona de cliente')+'</a>',tel}):_('¿Tienes que cambiarla o anularla? Llámanos al {tel} y la movemos sin perder nada.',{tel}))+'</p></section>'}
+function vAviso(id){if(SRV&&H.web===undefined)traeHuecos();   /* el nombre y el precio del servicio, como en la web */
+ const X=SRV?Oficio.vista(id):null,v=SRV?(X&&X.v):K.vistaCliente(S,cfg,id);
+ if(SRV&&!v&&(!X||X.err==='red'))return'<h1>'+_('Tu aviso {id}',{id:esc(id)})+'</h1><p class="lead" role="status">'+(X?_('No hay conexión. Lo vuelvo a intentar solo en unos segundos.'):_('Buscando tu aviso…'))+'</p>';
+ if(!v)return'<h1>'+_('No encuentro ese aviso.')+'</h1><p class="lead">'+(Oficio.DEMO?_('Puede que la demo se haya reiniciado.')+' ':'')+'<a href="#/">'+_('Pedir una cita')+'</a></p>';
+ const av=cfg.av[v.av],cu=v.cita?I.fechaLarga(v.cita.dia)+', '+frTxt(v.cita.fr):'',T=v.tec||_('El técnico');
+ const orden={nuevo:0,ausente:0,cancelado:0,asignado:1,camino:2,curso:3,hecho:4}[v.e];
+ const tit=_({nuevo:v.cita?'Cita pedida':'Aviso recibido',asignado:v.cita?'Cita confirmada':'Ya tiene técnico',camino:'Va de camino',curso:'Está en tu casa',hecho:v.sinTrabajo?'Aviso cerrado':'Trabajo terminado',ausente:'No había nadie',cancelado:'Cita cancelada'}[v.e]);
+ const gar=v.gar?' '+_('Garantía hasta el {fecha}.',{fecha:K.fechaCorta(v.gar)}):'',q={quien:esc(T)};
+ const frase={nuevo:v.cita?_('Para el {cuando}. Te confirmamos enseguida quién irá.',{cuando:cu}):_('Te decimos enseguida quién va y a qué hora llega.'),
+  asignado:v.cita?_('El {cuando}. Irá {quien}.',{cuando:cu,quien:esc(T)}):_('Irá {quien}. Sale enseguida.',q),
+  camino:_('{quien} llega sobre las {hora}.',{quien:esc(T),hora:K.hora(v.eta)}),curso:_('{quien} empezó a las {hora}. El precio ya está cerrado y firmado.',{quien:esc(T),hora:K.hora(v.ini)}),
+  hecho:v.total?(v.sinTrabajo?_('Solo se ha cobrado el desplazamiento: {total}.',{total:K.eur(v.total)}):_('Total: {total}, IVA incluido.',{total:K.eur(v.total)})+' '+(v.pago&&v.pago.cobrado?_('Pagado.'):_('Pendiente de pago.'))+gar):_('Gracias por confiar en {n}.',{n:N.nombre})+gar,
+  ausente:_('Hemos ido y no hemos encontrado a nadie. Escríbenos y volvemos cuando te vaya bien.'),cancelado:_('Si quieres, pide otra cuando te vaya bien.')}[v.e];
+ const p=[[_('Recibido'),v.t],[_('Asignado'),0],[_('De camino'),v.sal],[_('En casa'),v.ini],[_('Hecho'),v.fin]];
+ return'<article class="papel doc"><div class="dh"><span class="wm">'+MARCA+'</span><p>'+_('Aviso {id}',{id:v.id})+'<br>'+esc(nomAv(v.av))+'</p></div><h1 tabindex="-1" id="tit">'+tit+'</h1><p class="frase">'+frase+'</p>'+
+  (v.e==='cancelado'?'':'<ol class="pista" aria-label="'+_('Cómo va tu aviso')+'">'+p.map((x,i)=>'<li class="'+(i<=orden?'ok':'')+(i===orden?' ya':'')+'"'+(i===orden?' aria-current="step"':'')+'>'+x[0]+(x[1]&&i<=orden?'<time>'+K.hora(x[1])+'</time>':'')+'</li>').join('')+'</ol>')+bQuien(v)+bMapa(v,T)+bAntes(v,T)+
+  '<p class="pie">'+(v.e==='hecho'?(Oficio.DEMO||SRV?_('El parte y la garantía los tienes en {zona}. ¿Algo no cuadra? Llama al {tel}.',{zona:'<a href="cliente.html">'+_('tu zona de cliente')+'</a>',tel:esc(N.tel)}):_('El parte y la garantía te los mandamos por WhatsApp. ¿Algo no cuadra? Llama al {tel}.',{tel:esc(N.tel)})):['nuevo','asignado'].includes(v.e)?_('Esta página se actualiza sola: guárdala para ver cómo va.'):_('Esta página se actualiza sola. También te avisamos por WhatsApp cuando el técnico salga. ¿Algo no cuadra? Llama al {tel}.',{tel:N.tel}))+'</p></article>'+
+  '<div class="tras">'+(Oficio.DEMO?'<a class="btn ancho" href="app.html#/aviso/'+v.id+'" target="_top">'+_('Ver cómo le llega a {n}',{n:esc(N.marca[0])})+'</a>':'')+'<a class="txt" href="#/">'+_('Pedir cita')+'</a></div>'}
+
+function ruta(){const h=location.hash.replace(/^#\/?/,'').split('/').map(decodeURIComponent);return{v:h[0]||'',a:h[1]||'',b:h[2]||''}}
+/* con servidor: se pregunta por el aviso al abrirlo y cada pocos segundos mientras se mira; los huecos, al abrir y cada minuto */
+let VT=0;
+function alDia(){if(!SRV)return;const r=ruta();
+ if(r.v==='aviso'&&r.a&&r.b)Oficio.ponLlave(r.a,r.b);
+ if(document.hidden)return;   /* con la página en segundo plano no se pregunta nada */
+ if(r.v==='aviso'&&r.a){if(Date.now()-VT>4000){VT=Date.now();Oficio.miraVista(r.a)}}
+ else{const otro=ruta().v==='cambiar'&&!!H.q&&H.q!==JSON.stringify(qH());if((!H.dias&&!H.err)||Date.now()-H.t>60000||otro)traeHuecos(otro);const u=mem.get('oficio:'+N.id+':mio');if(u&&!Oficio.vista(u))Oficio.miraVista(u)}}
+let ultV='';
+function pinta(){S=Oficio.estado();alDia();const r=ruta(),V=$('#v');V.innerHTML=r.v==='aviso'?vAviso(r.a):r.v==='cambiar'?vCambia(r.a):vPedir();
+ /* al cambiar de pantalla (no al marcar algo en ella), entra con un leve deslizamiento */
+ {const k=r.v==='aviso'||r.v==='cambiar'?r.v+r.a:'p'+B.paso;if(k!==ultV){ultV=k;V.classList.remove('entra');void V.offsetWidth;V.classList.add('entra')}}document.title=(r.v==='aviso'?_('Tu aviso {id}',{id:r.a}):r.v==='cambiar'?_('Cambia tu cita'):_('Pide cita'))+' · '+N.nombre}
+addEventListener('hashchange',()=>{pinta();scrollTo(0,0);const t=$('#tit')||$('#v');t.focus({preventScroll:true})});
+Oficio.suscribir(()=>{const a=document.activeElement;if(ruta().v!=='aviso'&&a&&a.closest&&a.closest('#f'))return;if(M.va)return;pinta()});
+setInterval(()=>{if(ruta().v==='aviso')pinta()},60000);
+if(SRV){setInterval(alDia,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){VT=0;alDia()}});
+ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#hOtra')){H.err='';pinta();traeHuecos()}})}
+
+/* al escribir: si el campo tenía un error y ya está bien, el error se va (y el aviso de arriba), sin perder lo escrito */
+const nmL=s=>String(s||'').trim().replace(/\s+/g,' ');
+const campoBien=k=>k==='nomap'?K.parteNombre(B.nomap).bien:k==='tel'?!!K.tel9(B.tel):k==='dir'?nmL(B.dir).length>=5:k==='cp'?(c=>!c||!!cfg.zonas.cp[c])(String(B.cp).replace(/\D/g,'')):true;
+const repinta=id=>{const a=document.getElementById(id),p=a&&typeof a.selectionStart==='number'?a.selectionStart:null;pinta();const n=document.getElementById(id);if(n){n.focus({preventScroll:true});if(p!=null)try{n.setSelectionRange(p,p)}catch(e){}}};
+document.addEventListener('input',e=>{const i=e.target;if(!(i.dataset&&i.dataset.b))return;const k=i.dataset.b;B[k]=i.value;
+ /* el código postal es opcional (20-11-2026): vacío vale; con sus 5 cifras se mira si llegamos */
+ if(k==='cp'){const d=i.value.replace(/\D/g,'');if(d.length===5||!d){if(!d||zonaDe(d)){if(B.err==='zona')B.err='';B.errs=B.errs.filter(x=>x!=='cp'&&x!=='zona')}else B.err='zona';repinta(i.id)}return}
+ if((B.errs.includes(k)||B.err===k)&&campoBien(k)){B.errs=B.errs.filter(x=>x!==k);if(B.err===k)B.err='';repinta(i.id)}});
+/* con citas por lo que tarda cada trabajo, los huecos dependen de la avería: al elegirla se piden otra vez. Se mira también
+   en los datos tal cual: el archivo de una copia con servidor no lleva los horarios y ahí cfg.porTiempo sale falso (17-11-2026) */
+document.addEventListener('change',e=>{const i=e.target;
+ if(i.name==='av'){B.av=i.value;mem.set(N.id+':av',B.av);B.errs=B.errs.filter(x=>x!=='av');if(B.err==='av')B.err='';if(SRV&&(cfg.porTiempo||(N.citas&&N.citas.porTiempo===true))){H.t=0;traeHuecos(true)}pinta();const n=$('input[name=av]:checked');if(n)n.focus()}
+ if(i.id==='c_foto'&&i.files[0]){const fi=i.files[0];B.fotoVa=true;B.fotoMal='';pinta();
+  Oficio.foto(fi).then(f=>{B.foto=f;B.fotoVa=false;pinta()}).catch(()=>{B.fotoVa=false;B.fotoMal='No he podido usar esa foto. Prueba con otra (una foto normal del móvil).';pinta()})}});
+/* ir a un campo desde el aviso de errores, o volver del resumen a la parte que se quiere cambiar */
+const irA=id=>{const t=document.getElementById(id);if(!t)return;t.scrollIntoView({block:'center'});const x=t.matches('input,textarea,button')?t:t.querySelector('input:checked,input,button:not([disabled])');if(x)x.focus({preventScroll:true})};
+async function envia(){if(B.va)return;B.va=true;B.err='';pinta();
+ const pn=K.parteNombre(B.nomap),r=await Oficio.crear(Object.assign({tipo:'pedir',av:B.av,origen:'cita',idioma:I.lang(),nota:B.nota,foto:B.foto,cli:{nombre:pn.nombre,apellidos:pn.apellidos,tel:B.tel,dir:B.dir,cp:B.cp},cita:{dia:B.dia,fr:B.fr},alt:B.alt.map(k=>({dia:k.split('|')[0],fr:k.split('|')[1]}))},GAR&&B.av!==K.REV?{garDe:GAR}:{},PRES&&B.av!==K.REV?{dePres:PRES}:{},B.av===K.REV&&PLAN&&!CON?{plan:PLAN}:{}),{rol:'cliente'});
+ B.va=false;
+ if(!r.ok){if(SRV&&r.err==='franja'){H.t=0;traeHuecos(true)}const k=r.err==='franja'?'llena':r.err==='nombre'||r.err==='apellidos'?'nomap':r.err;B.err=k;
+  /* si es de un dato (la franja se ha llenado, el teléfono…), se vuelve al formulario con ese dato marcado */
+  if(CAMPO_DE[k]){vePaso(PASO_DE[k]||'tu');setTimeout(()=>irA(CAMPO_DE[k]),60)}else{pinta();const x=$('.fallo');if(x)x.scrollIntoView({block:'center'})}return}
+ if(window.OficioVisitas)OficioVisitas.cuenta('pide');   /* el contador de las cartas: la manda */
+ mem.set('oficio:'+N.id+':mio',r.id);Object.assign(B,{nota:'',foto:'',fr:'',alt:[],err:'',errs:[],paso:'',visto:false,altOpen:false,altMas:false});location.hash='#/aviso/'+r.id}
+/* el idioma: lo fijo de la página (lo de arriba y el pie) y, al cambiarlo, la pantalla entera */
+function fijos(){$('#marca').setAttribute('aria-label',_('{n}: volver a la web',{n:N.nombre}));$('#salta').textContent=_('Saltar al contenido');
+ $('#llama .ll-u').textContent=_('¿Urgente?')+' ';$('#llama').setAttribute('aria-label',_('¿Urgente? Llama al {tel}',{tel:N.tel}));I.pie($('#idiomas'))}
+fijos();
+document.addEventListener('click',e=>{const b=e.target.closest('[data-dia],[data-fr],[data-alt],#llama,#cambiaAv,#altAbre,#altMas,#fQuita,[data-ir],[data-cambia],#rConfirma,#rVuelve,#copiaId,#atras,[data-lang]');if(!b)return;
+ if(b.id==='atras'){B.errs=[];if(!CAMPO_DE[B.err])B.err='';vePaso(b.dataset.a);return}
+ if(b.dataset.lang){const l=b.dataset.lang;if(I.pon(l)){fijos();pinta();const n=$('#idiomas [data-lang="'+l+'"]');if(n)n.focus()}return}
+ if(b.id==='cambiaAv'){B.fijo=false;pinta();const n=$('input[name=av]:checked')||$('input[name=av]');if(n)n.focus();return}
+ if(b.id==='altAbre'){B.altOpen=!(B.altOpen||B.alt.length>0);if(!B.altOpen)B.alt=[];pinta();const n=$('#altAbre');if(n)n.focus();return}
+ if(b.id==='altMas'){B.altMas=true;pinta();const n=$('#altL [data-alt]:not([aria-pressed=true])');if(n)n.focus();return}
+ if(b.id==='fQuita'){B.foto='';B.fotoMal='';pinta();const n=$('#c_foto');if(n)n.closest('label').focus();return}
+ if(b.dataset.ir){e.preventDefault();irA(b.dataset.ir);return}
+ if(b.dataset.cambia||b.id==='rVuelve'){e.preventDefault();if(B.va)return;B.err='';vePaso(b.dataset.cambia||'tu');return}
+ if(b.id==='rConfirma'){envia();return}
+ if(b.id==='copiaId'){const id=b.dataset.id,ok=()=>toast(_('Número de aviso copiado: {id}',{id})),no=()=>toast(_('Tu número de aviso es {id}.',{id}));try{navigator.clipboard.writeText(id).then(ok,no)}catch(x){no()}return}
+ if(b.dataset.alt){const k=b.dataset.alt,i=B.alt.indexOf(k);if(i>=0)B.alt.splice(i,1);else if(B.alt.length>=4)return toast(_('Con cuatro nos basta.'));else B.alt.push(k);pinta();const n=$('[data-alt="'+k+'"]');if(n)n.focus();return}
+ if(b.id==='llama'){const d=document.createElement('dialog');d.className='hoja';d.innerHTML='<div class="hc"><h2>'+_('Llamada directa')+'</h2><button class="x" data-x aria-label="'+_('Cerrar')+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="hb"><p style="font:800 2.6rem/1 var(--fd)">'+N.tel+'</p><p style="color:var(--suave)">'+_('En la web real, este botón llama con un toque. En la demo no llamamos a nadie.')+'</p></div><div class="hp"><button class="btn ancho" data-x>'+_('Cerrar')+'</button></div>';
+  document.body.appendChild(d);d.addEventListener('close',()=>d.remove());d.addEventListener('click',x=>{if(x.target===d||x.target.closest('[data-x]'))d.close()});d.showModal();return}
+ const E=SEL();if(b.dataset.dia){E.dia=b.dataset.dia;E.fr=''}else E.fr=b.dataset.fr;if(E===M)M.err='';
+ B.errs=B.errs.filter(x=>x!=='franja');if(B.err==='franja'||B.err==='llena')B.err='';pinta();const n=$(b.dataset.dia?'[data-dia="'+E.dia+'"]':'[data-fr="'+E.fr+'"]');if(n)n.focus()});
+/* «Continuar»: cada paso mira lo suyo. Si falta, se dice ahí mismo; si no, al siguiente (o al resumen, si ya lo ha visto
+   y está todo). En el último, los errores de los datos van juntos arriba, con un enlace a cada uno */
+document.addEventListener('submit',e=>{if(e.target.id==='fC'){e.preventDefault();cambia();return}if(e.target.id!=='f')return;e.preventDefault();
+ if(window.OficioVisitas)OficioVisitas.cuenta('cita');   /* el contador de las cartas: empieza la cita (solo desde una carta) */
+ const p=e.target.dataset.paso,i=PASOS.indexOf(p);B.err='';
+ const sig=()=>{B.errs=[];if(B.visto&&!revisa().length)return vePaso('resumen');vePaso(i<PASOS.length-1?PASOS[i+1]:'resumen')};
+ const falla=k=>{B.errs=[k];pinta();const x=$('.fallo');if(x)x.scrollIntoView({block:'center'})};
+ if(p==='av')return B.av?sig():falla('av');
+ if(p==='det')return B.fotoVa?null:sig();
+ if(p==='fr')return B.fr?sig():falla('franja');
+ const E=revisa().filter(k=>PASO_DE[k]==='tu');
+ if(E.length){B.errs=E;pinta();const r=$('#revisa');if(r){r.scrollIntoView({block:'start'});r.focus({preventScroll:true})}return}
+ B.errs=[];const R=revisa();vePaso(R.length?PASO_DE[R[0]]:'resumen')});
+/* día y franja son de una sola opción (como en la app): Tab entra por la elegida y las flechas pasan de una a otra */
+const RADIOS='[role=radiogroup]';
+function ronda(g){const R=[...g.querySelectorAll('[role=radio]')],c=R.find(r=>r.getAttribute('aria-checked')==='true'&&!r.disabled)||R.find(r=>!r.disabled);R.forEach(r=>{const v=r===c?0:-1;if(r.tabIndex!==v)r.tabIndex=v})}
+new MutationObserver(ms=>{const G=new Set();ms.forEach(m=>{const n=m.target.nodeType===1?m.target:m.target.parentElement;if(!n)return;const g=n.closest&&n.closest(RADIOS);if(g)G.add(g);
+ if(m.type==='childList')m.addedNodes.forEach(x=>{if(x.nodeType!==1)return;if(x.matches(RADIOS))G.add(x);x.querySelectorAll(RADIOS).forEach(y=>G.add(y))})});G.forEach(ronda)})
+ .observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-checked','disabled']});
+document.addEventListener('keydown',e=>{const r=e.target.closest&&e.target.closest('[role=radio]'),g=r&&r.closest(RADIOS);if(!g)return;
+ const d={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[e.key];if(!d&&e.key!==' ')return;e.preventDefault();
+ const R=[...g.querySelectorAll('[role=radio]')].filter(x=>!x.disabled);let i=R.indexOf(r);if(d)i=(i+d+R.length)%R.length;const x=R[i];if(!x)return;
+ const a=[...x.attributes].find(z=>z.name.startsWith('data-')),sel=a?'['+a.name+'="'+CSS.escape(a.value)+'"]':null;
+ if(x.getAttribute('aria-checked')!=='true')x.click();requestAnimationFrame(()=>{const y=sel&&document.querySelector(sel)||x;if(y.isConnected)y.focus()})});
+pinta();
+document.querySelectorAll(RADIOS).forEach(ronda);
+})();
+</script>
+</body>
+</html>

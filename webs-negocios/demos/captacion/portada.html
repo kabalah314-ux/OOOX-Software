@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Portada de una muestra · OOOX Oficios</title>
+<!-- La imagen del correo y del WhatsApp de cada negocio (1200×630): su nombre a la izquierda y, a la derecha, su web de
+     citas, la oficina y el técnico, sacados de la demo con su nombre puesto. La rellena muestra.py (window.DATOS). -->
+<style>
+@font-face{font-family:'Barlow';font-weight:500;src:url(fuentes/barlow-500.woff2) format('woff2')}
+@font-face{font-family:'Barlow';font-weight:600;src:url(fuentes/barlow-600.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:700;src:url(fuentes/barlow-condensed-700.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:800;src:url(fuentes/barlow-condensed-800.woff2) format('woff2')}
+:root{--tinta:#17191b;--tinta2:#5d636a;--senal:#ffc400}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1200px;height:630px;overflow:hidden}
+#st{position:relative;width:1200px;height:630px;overflow:hidden;background:radial-gradient(900px 640px at 74% 46%,#fafbfc 0%,#eef0f3 58%,#e3e6ea 100%);font-family:'Barlow',sans-serif;color:var(--tinta)}
+/* el texto */
+.txt{position:absolute;left:66px;top:0;bottom:0;width:470px;display:flex;flex-direction:column;justify-content:center}
+.para{font:700 27px/1 'Barlow Condensed',sans-serif;color:var(--tinta2);letter-spacing:.2px}
+h1{margin-top:14px;font:800 86px/.94 'Barlow Condensed',sans-serif;letter-spacing:-.4px;overflow-wrap:break-word}
+.linea{margin-top:22px;font:500 27px/1.28 'Barlow',sans-serif;color:var(--tinta2);max-width:440px;text-wrap:balance}
+.toca{display:inline-flex;align-items:center;gap:12px;align-self:flex-start;margin-top:30px;padding:13px 24px 13px 16px;border-radius:999px;background:var(--senal);color:var(--tinta);font:600 24px/1 'Barlow',sans-serif;box-shadow:0 10px 24px rgba(20,23,26,.16)}
+.toca svg{width:30px;height:30px;flex:none}
+/* los móviles: la pantalla es la de la app (390×844) */
+.movil{position:absolute;width:425px;height:888px;border-radius:66px;background:#0d0f11;transform-origin:0 0;
+ box-shadow:0 60px 110px rgba(20,23,26,.30),0 14px 30px rgba(20,23,26,.20),inset 0 0 0 2px #2f343a,inset 0 0 0 7px #0d0f11,inset 0 0 0 8px #262a2f}
+.movil .scr{position:absolute;left:14px;top:14px;width:397px;height:860px;border-radius:52px;overflow:hidden;background:#14171a}
+.movil .scr img{display:block;width:397px;height:860px}
+</style>
+</head>
+<body>
+<div id="st">
+ <div class="txt">
+  <p class="para">Preparado para</p>
+  <h1 id="nom"></h1>
+  <p class="linea" id="lin"></p>
+  <p class="toca"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M13 17V7.5a2.5 2.5 0 0 1 5 0V15l6.2 1.3a3 3 0 0 1 2.3 3.4l-1 6.3a3 3 0 0 1-3 2.5H15a3 3 0 0 1-2.4-1.2l-4.9-6.5a2.2 2.2 0 0 1 3.3-2.9z" fill="#17191b"/></svg><span id="tc"></span></p>
+ </div>
+ <div class="movil" id="m0"><div class="scr"><img id="i0" alt=""></div></div>
+ <div class="movil" id="m2"><div class="scr"><img id="i2" alt=""></div></div>
+ <div class="movil" id="m1"><div class="scr"><img id="i1" alt=""></div></div>
+</div>
+<script>
+(()=>{
+const D=window.DATOS||{negocio:'Fontanería Serra',linea:'Tu web de citas y tu oficina, en el móvil.',toca:'Ábrela y toca · 3 minutos',cap:['cap/cita.jpg','cap/cen.jpg','cap/tec.jpg']};
+const $=s=>document.querySelector(s);
+$('#nom').textContent=D.negocio;$('#lin').textContent=D.linea;$('#tc').textContent=D.toca;
+D.cap.forEach((src,i)=>{$('#i'+i).src=src});
+/* el móvil de la oficina, delante y más grande; la web y el técnico, detrás */
+[[540,96,.5],[728,40,.6],[952,96,.5]].forEach(([x,y,s],i)=>{const m=$('#m'+i);m.style.left=x+'px';m.style.top=y+'px';m.style.transform='scale('+s+')'});
+/* el nombre cabe en dos líneas como mucho: si es largo, la letra baja */
+const h=$('#nom');let f=86;const cabe=()=>h.scrollHeight<=Math.ceil(2*.94*f)+4&&h.scrollWidth<=h.clientWidth+1;
+window.listo=document.fonts.ready.then(()=>{while(!cabe()&&f>44){f-=2;h.style.fontSize=f+'px'}
+ return Promise.all([...document.images].map(i=>i.complete&&i.naturalWidth?1:new Promise(r=>{i.onload=i.onerror=r})))});
+})();
+</script>
+</body>
+</html>

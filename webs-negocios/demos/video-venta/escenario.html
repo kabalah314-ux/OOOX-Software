@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>OOOX Oficios · vídeo</title>
+<style>
+@font-face{font-family:'Barlow';font-weight:400;src:url(fuentes/barlow-400.woff2) format('woff2')}
+@font-face{font-family:'Barlow';font-weight:500;src:url(fuentes/barlow-500.woff2) format('woff2')}
+@font-face{font-family:'Barlow';font-weight:600;src:url(fuentes/barlow-600.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:600;src:url(fuentes/barlow-condensed-600.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:700;src:url(fuentes/barlow-condensed-700.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:800;src:url(fuentes/barlow-condensed-800.woff2) format('woff2')}
+:root{--tinta:#17191b;--tinta2:#5d636a;--senal:#ffc400;--asfalto:#14171a;--papel:#f5f6f7}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#e9ecef}
+#st{position:relative;width:1920px;height:1080px;overflow:hidden;background:radial-gradient(1500px 1000px at 68% 42%,#f8f9fa 0%,#eceef1 55%,#e2e5e9 100%);font-family:'Barlow',sans-serif;color:var(--tinta)}
+.esc{position:absolute;inset:0;display:none}
+.ab{position:absolute;left:0;top:0;transform-origin:0 0}
+/* el móvil: la pantalla es la de la app (390×844) a 397×860 */
+.movil{width:425px;height:888px;border-radius:66px;background:#0d0f11;box-shadow:0 60px 110px rgba(20,23,26,.30),0 14px 30px rgba(20,23,26,.20),inset 0 0 0 2px #2f343a,inset 0 0 0 7px #0d0f11,inset 0 0 0 8px #262a2f}
+.movil .scr{position:absolute;left:14px;top:14px;width:397px;height:860px;border-radius:52px;overflow:hidden;background:#14171a}
+.movil .scr img{position:absolute;left:0;top:0;width:397px;height:860px;display:block}
+.movil .isla{position:absolute;left:50%;top:26px;width:112px;height:32px;margin-left:-56px;border-radius:20px;background:#050607}
+/* el portátil */
+.port{width:1240px;height:820px}
+.port .tapa{position:absolute;left:44px;top:0;width:1152px;height:756px;border-radius:26px;background:#0d0f11;box-shadow:0 50px 100px rgba(20,23,26,.28),inset 0 0 0 2px #2f343a}
+.port .tapa img{position:absolute;left:18px;top:18px;width:1116px;height:698px;border-radius:8px}
+.port .base{position:absolute;left:0;top:752px;width:1240px;height:34px;border-radius:0 0 22px 22px;background:linear-gradient(#d9dde1,#b9bfc6);box-shadow:0 30px 60px rgba(20,23,26,.25)}
+.port .base::before{content:"";position:absolute;left:50%;top:0;width:180px;height:10px;margin-left:-90px;border-radius:0 0 10px 10px;background:#a7aeb6}
+/* el texto */
+.cap{width:720px}
+.cap .k{display:inline-flex;align-items:center;gap:14px;font:700 30px/1 'Barlow Condensed',sans-serif;color:var(--tinta2);letter-spacing:.2px}
+.cap .k b{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--tinta);color:var(--senal);font-size:28px}
+.cap h1{margin-top:22px;font:800 104px/.92 'Barlow Condensed',sans-serif;letter-spacing:-.5px}
+.cap h1 span{display:block}
+.cap .s{margin-top:30px;font:500 36px/1.3 'Barlow',sans-serif;color:var(--tinta2);max-width:640px}
+.ln{display:block}
+/* el dedo y su onda */
+.dedo{width:74px;height:74px;margin:-37px 0 0 -37px;border-radius:50%;background:rgba(23,25,27,.30);border:3px solid rgba(255,255,255,.95);box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.onda{width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;border:6px solid var(--senal)}
+.aro{border:5px solid var(--senal);border-radius:18px;box-shadow:0 0 0 6px rgba(255,196,0,.25)}
+.chip{display:inline-flex;align-items:center;gap:12px;padding:16px 26px;border-radius:999px;background:#fff;box-shadow:0 10px 30px rgba(20,23,26,.12);font:600 34px/1 'Barlow',sans-serif;white-space:nowrap}
+.chip i{width:14px;height:14px;border-radius:50%;background:var(--senal);box-shadow:0 0 0 4px rgba(255,196,0,.25)}
+.eti{font:700 40px/1.05 'Barlow Condensed',sans-serif;color:var(--tinta);white-space:nowrap}
+.eti small{display:block;font:500 26px/1.2 'Barlow',sans-serif;color:var(--tinta2);white-space:normal;width:360px;margin-top:6px}
+.marca{font:600 150px/.9 'Barlow',sans-serif;letter-spacing:-4px;white-space:nowrap}
+.marca span{font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:-1px}
+.marca span{display:inline-block;margin-left:22px;padding:0 20px;border-radius:14px;background:var(--senal);color:var(--tinta)}
+.cinta{height:16px;background:repeating-linear-gradient(-45deg,var(--senal) 0 14px,var(--tinta) 14px 28px)}
+.hoja{width:560px;border-radius:6px;box-shadow:0 40px 80px rgba(20,23,26,.25),0 8px 18px rgba(20,23,26,.12);overflow:hidden;background:#f5f6f7}
+.hoja img{display:block;width:560px}
+svg.capa{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:visible;pointer-events:none}
+svg.capa path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.f0{stroke:rgba(23,25,27,.85);stroke-width:13}
+.f1{stroke:var(--senal);stroke-width:7}
+.firma{fill:none;stroke:#17191b;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.toque{font:700 30px/1 'Barlow Condensed',sans-serif;padding:12px 20px;border-radius:12px;background:var(--tinta);color:#fff;white-space:nowrap;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.toque em{font-style:normal;color:var(--senal)}
+</style>
+</head>
+<body>
+<div id="st"></div>
+<script>
+'use strict';
+const ST=document.getElementById('st');
+const C=window.CAJAS||{};
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),seg=(t,a,b)=>cl((t-a)/(b-a)),mix=(a,b,p)=>a+(b-a)*p;
+const E={o3:x=>1-Math.pow(1-x,3),o5:x=>1-Math.pow(1-x,5),io3:x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2,
+ back:x=>{const c1=1.5,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}};
+const h=(tag,cls,html,padre)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;(padre||ST).appendChild(e);return e};
+const pon=(e,x,y,s=1,o=1,r=0)=>{e.style.transform='translate('+x.toFixed(2)+'px,'+y.toFixed(2)+'px)'+(r?' rotate('+r.toFixed(3)+'deg)':'')+(s!==1?' scale('+s.toFixed(4)+')':'');e.style.opacity=o.toFixed(3)};
+const K=397/390;   // de la app (px CSS) a la pantalla del móvil
+const SVGNS='http://www.w3.org/2000/svg';
+
+/* un móvil con sus pantallas: se cambia de una a otra fundiendo */
+function movil(padre,fotos){const m=h('div','movil ab','',padre),s=h('div','scr','',m);
+ const im=fotos.map(f=>{const i=h('img','',null,s);i.src='cap/'+f+'.jpg';i.style.opacity=0;return i});return{m,im,s}}
+/* la pantalla que se ve en el momento t: lista de [desde, índice]; funde en 0,35 s */
+function pantallas(M,t,lista){M.im.forEach(i=>i.style.opacity=0);
+ for(let j=0;j<lista.length;j++){const[d,i]=lista[j],sig=lista[j+1];const fin=sig?seg(t,sig[0],sig[0]+.35):0;
+  const ini=j===0?1:seg(t,d,d+.35);if(t>=d-(j===0?99:0)){M.im[i].style.opacity=(ini*(1-fin)).toFixed(3)}}}
+/* dónde cae en el escenario una caja de la app, con el móvil en (x,y) y escala s */
+const enMovil=(x,y,s,b)=>({x:x+(14+b.x*K)*s,y:y+(14+b.y*K)*s,w:b.width*K*s,h:b.height*K*s});
+const centro=r=>({x:r.x+r.w/2,y:r.y+r.h/2});
+
+/* el texto de la izquierda: entra línea a línea */
+function texto(padre,k,n,lineas,sub){const c=h('div','cap ab','',padre);
+ const kk=h('p','k','<b>'+n+'</b>'+k,c),h1=h('h1','','',c),L=lineas.map(l=>h('span','',l,h1)),s=h('p','s',sub,c);return{c,kk,L,s}}
+function dibTexto(T,t,x,y,t0=.15){pon(T.c,x,y);const it=[T.kk,...T.L,T.s];
+ it.forEach((e,i)=>{const p=E.o5(seg(t,t0+i*.09,t0+i*.09+.75));e.style.transform='translateY('+((1-p)*34).toFixed(1)+'px)';e.style.opacity=p.toFixed(3)})}
+
+/* el dedo que toca: llega, aprieta y deja la onda */
+function dedo(padre){return{d:h('div','dedo ab','',padre),o:h('div','onda ab','',padre)}}
+function dibDedo(D,t,t0,P,de){const llega=E.o3(seg(t,t0-.55,t0-.1)),sale=seg(t,t0+.45,t0+.75);
+ const x=mix(de?de.x:P.x+90,P.x,llega),y=mix(de?de.y:P.y+120,P.y,llega),apr=t>=t0&&t<t0+.18?.86:1;
+ pon(D.d,x,y,apr,llega*(1-sale));const on=seg(t,t0,t0+.6);pon(D.o,P.x,P.y,mix(.25,1.15,E.o3(on)),on>0&&on<1?(1-on):0)}
+function dibDedos(D,t,L){const x=L.find(([t0])=>t>=t0-.6&&t<=t0+.8);if(!x){D.d.style.opacity=0;D.o.style.opacity=0;return}dibDedo(D,t,x[0],x[1])}
+/* el aro amarillo alrededor de algo */
+function aro(padre){return h('div','aro ab','',padre)}
+function dibAro(A,t,t0,r,t1=1e9){const p=E.back(seg(t,t0,t0+.45)),q=1-seg(t,t1,t1+.3),pd=8;
+ A.style.width=(r.w+pd*2)+'px';A.style.height=(r.h+pd*2)+'px';const s=mix(1.08,1,cl(p,0,1.2));
+ pon(A,r.x-pd-(s-1)*(r.w+pd*2)/2,r.y-pd-(s-1)*(r.h+pd*2)/2,s,cl(seg(t,t0,t0+.2))*q)}
+/* la flecha dibujada a mano, de (a) a (b), con su punta */
+function flecha(padre){const s=document.createElementNS(SVGNS,'svg');s.setAttribute('class','capa');padre.appendChild(s);
+ const P=['f0','f1','f0','f1'].map(c=>{const p=document.createElementNS(SVGNS,'path');p.setAttribute('class',c);s.appendChild(p);return p});
+ P[0].setAttribute('pathLength',1);P[1].setAttribute('pathLength',1);return{s,P}}
+function dibFlecha(F,t,t0,a,b,curva=.28,t1=1e9){const dx=b.x-a.x,dy=b.y-a.y,l=Math.hypot(dx,dy),nx=-dy/l,ny=dx/l,k=l*curva;
+ const c1={x:a.x+dx*.3+nx*k,y:a.y+dy*.3+ny*k},c2={x:a.x+dx*.72+nx*k,y:a.y+dy*.72+ny*k},ang=Math.atan2(b.y-c2.y,b.x-c2.x),pu=30,ab=.5,f=n=>n.toFixed(1);
+ const cu='M'+f(a.x)+' '+f(a.y)+'C'+f(c1.x)+' '+f(c1.y)+' '+f(c2.x)+' '+f(c2.y)+' '+f(b.x)+' '+f(b.y);
+ const pt='M'+f(b.x-pu*Math.cos(ang-ab))+' '+f(b.y-pu*Math.sin(ang-ab))+'L'+f(b.x)+' '+f(b.y)+'L'+f(b.x-pu*Math.cos(ang+ab))+' '+f(b.y-pu*Math.sin(ang+ab));
+ const p=E.io3(seg(t,t0,t0+.6)),q=1-seg(t,t1,t1+.3);
+ F.P.forEach((x,i)=>{x.setAttribute('d',i<2?cu:pt);x.style.opacity=(i<2?(p>0?1:0):seg(t,t0+.5,t0+.65))*q});
+ F.P[0].style.strokeDasharray=F.P[1].style.strokeDasharray='1';F.P[0].style.strokeDashoffset=F.P[1].style.strokeDashoffset=(1-p).toFixed(4)}
+/* una etiqueta que sale */
+function eti(padre,html,cls){return h('div',(cls||'eti')+' ab',html,padre)}
+function dibEti(e,t,t0,x,y,t1=1e9){const p=E.o5(seg(t,t0,t0+.6)),q=1-seg(t,t1,t1+.3);pon(e,x,y+(1-p)*24,1,p*q)}
+const entra=(t,d)=>E.o5(seg(t,.05,.85))*(1-E.io3(seg(t,d-.45,d)));   // el móvil o lo grande: entra al empezar y se va al final
+const velo=(e,t,d)=>{e.style.opacity=(seg(t,0,.3)*(1-seg(t,d-.35,d))).toFixed(3)};
+
+const ESC=[];
+function escena(d,montar){const el=h('div','esc');const dib=montar(el,d);ESC.push({d,el,dib})}
+
+/* ===== 1. La marca ===== */
+escena(5.2,(el,d)=>{const ci=h('div','cinta ab','',el);ci.style.width='1920px';const ci2=h('div','cinta ab','',el);ci2.style.width='1920px';
+ const m=h('div','marca ab','OOOX<span>Oficios</span>',el);
+ const s=h('p','ab','La oficina de tu negocio, en el móvil.',el);s.style.cssText+='font:600 54px/1.1 Barlow,sans-serif;color:#17191b;white-space:nowrap';
+ const s2=h('p','ab','Para fontaneros, electricistas y otros oficios.',el);s2.style.cssText+='font:500 36px/1.1 Barlow,sans-serif;color:#5d636a;white-space:nowrap';
+ return t=>{velo(el,t,d);const p=E.o5(seg(t,.1,1.1));pon(ci,mix(-1920,0,E.io3(seg(t,0,.9))),120);pon(ci2,mix(1920,0,E.io3(seg(t,0,.9))),944);
+  pon(m,960-m.offsetWidth/2,380+(1-p)*60,1,p);const q=E.o5(seg(t,.55,1.4));pon(s,960-s.offsetWidth/2,560+(1-q)*30,1,q);
+  const r=E.o5(seg(t,.8,1.6));pon(s2,960-s2.offsetWidth/2,650+(1-r)*30,1,r)}});
+
+/* ===== 2. La web ===== */
+escena(7,(el,d)=>{const T=texto(el,'Tu web','1',['Una web que','trabaja por ti.'],'Tus clientes ven precios, zonas y garantía, y piden cita sin llamarte.');
+ const P=h('div','port ab','',el),ta=h('div','tapa','',P),im=h('img','',null,ta);im.src='cap/web.jpg';h('div','base','',P);
+ const D=dedo(el),A=aro(el),F=flecha(el),L=eti(el,'«Pedir cita», a un toque');
+ return t=>{velo(el,t,d);dibTexto(T,t,130,250);const p=entra(t,d),x=mix(1010,840,p),y=170,s=.86;pon(P,x,y,s,p);
+  /* el botón «Pedir cita» de la web: 71,6–81,8 % de ancho y 1,1–6,1 % de alto de la captura */
+  const R={x:x+(44+18+1116*.716)*s,y:y+(18+698*.011)*s,w:1116*.102*s,h:698*.05*s};
+  dibAro(A,t,2.2,R);dibEti(L,t,2.5,1010,58);dibFlecha(F,t,2.7,{x:1370,y:108},{x:R.x-6,y:R.y+R.h*.4},.3);dibDedos(D,t,[[4.4,centro(R)]])}});
+
+/* ===== 3. La cita ===== */
+escena(9.4,(el,d)=>{const T=texto(el,'El cliente pide cita','2',['Pide cita en un','minuto, cuando','quiera.'],'Solo ve los huecos que de verdad tienes libres.');
+ const M=movil(el,['cita-0','cita-1a','cita-1','cita-2','cita-3']),D=dedo(el),A=aro(el),F=flecha(el),L=eti(el,'Huecos libres<br>de verdad<small>Según tus técnicos y sus horarios.</small>');
+ return t=>{velo(el,t,d);dibTexto(T,t,130,240);const p=entra(t,d),x=mix(1420,1240,p),y=96;pon(M.m,x,y,1,p);
+  pantallas(M,t,[[0,0],[2.1,1],[3.5,2],[4.8,3],[6.1,4]]);
+  const g=enMovil(x,y,1,C['cita-grifo']),f=enMovil(x,y,1,C['cita-franja']),c=enMovil(x,y,1,C['cita-confirma']);
+  dibDedos(D,t,[[1.6,centro(g)],[3.2,centro(f)],[5.6,centro(c)]]);
+  dibAro(A,t,3.5,f,4.75);dibEti(L,t,3.8,880,f.y+60,4.75);dibFlecha(F,t,3.9,{x:1110,y:f.y+60},{x:f.x-14,y:f.y+f.h/2},.3,4.75)}});
+
+/* ===== 4. La oficina ===== */
+escena(9.4,(el,d)=>{const T=texto(el,'La oficina','3',['Todo entra en la','bandeja, sin','llamadas.'],'Lo urgente, arriba. Asignas con un toque a quien llega antes.');
+ const M=movil(el,['cen-1','cen-2','cen-3']),D=dedo(el),A=aro(el),A2=aro(el),F=flecha(el),F2=flecha(el),L=eti(el,'Acaba de entrar<small>La cita de Laura, sin una llamada.</small>'),L2=eti(el,'Quién llega antes<small>La app lo calcula por ti.</small>');
+ return t=>{velo(el,t,d);dibTexto(T,t,130,240);const p=entra(t,d),x=mix(1420,1240,p),y=96;pon(M.m,x,y,1,p);
+  pantallas(M,t,[[0,0],[3.6,1],[6.6,2]]);
+  const c=enMovil(x,y,1,C['cen-cita']),u=enMovil(x,y,1,C['cen-urg']),a=enMovil(x,y,1,C['cen-asignar']);
+  dibAro(A,t,1.0,c,3.4);dibEti(L,t,1.3,880,c.y+80,3.4);dibFlecha(F,t,1.4,{x:1120,y:c.y+78},{x:c.x-14,y:c.y+c.h/2},.3,3.4);
+  dibAro(A2,t,4.1,u,6.5);dibEti(L2,t,4.4,880,u.y+u.h+40,6.6);dibFlecha(F2,t,4.5,{x:1120,y:u.y+u.h+36},{x:u.x-14,y:u.y+u.h*.55},.3,6.6);
+  dibDedos(D,t,[[6.2,centro(a)]])}});
+
+/* ===== 5. El técnico y el cliente ===== */
+escena(10,(el,d)=>{const T=texto(el,'El técnico','4',['Toca «Voy» y el','cliente lo sabe.'],'Quién va, en qué furgoneta y a qué hora llega. Sin llamadas para preguntar.');
+ const M=movil(el,['tec-0','tec-1a']),N=movil(el,['cli-camino']),D=dedo(el),A=aro(el),F=flecha(el),L=eti(el,'Le llega al cliente');
+ return t=>{velo(el,t,d);dibTexto(T,t,130,250);const p=entra(t,d),s=.88;
+  const x=mix(1500,990,p),y=150;pon(M.m,x,y,s,p);pantallas(M,t,[[0,0],[2.6,1]]);
+  const q=E.o5(seg(t,3.0,3.9))*(1-E.io3(seg(t,d-.45,d))),x2=mix(1700,1430,q),y2=150;pon(N.m,x2,y2,s,q);pantallas(N,t,[[0,0]]);
+  dibDedos(D,t,[[2.2,centro(enMovil(x,y,s,C['tec-voy']))]]);
+  const w=enMovil(x2,y2,s,C['cli-quien']);dibAro(A,t,4.3,w);dibEti(L,t,4.6,1440,52);dibFlecha(F,t,4.7,{x:1712,y:84},{x:w.x+w.w+16,y:w.y+w.h*.5},-.45)}});
+
+/* ===== 6. El precio firmado ===== */
+escena(9,(el,d)=>{const T=texto(el,'En casa del cliente','5',['Precio cerrado y','firmado con','el dedo.'],'Con el IVA calculado. Antes de empezar, sin sorpresas.');
+ const M=movil(el,['tec-2']),D=dedo(el),A=aro(el),F=flecha(el),L=eti(el,'117,00 €,<br>IVA incluido<small>El precio que firma no cambia.</small>');
+ const sv=document.createElementNS(SVGNS,'svg');sv.setAttribute('class','capa');el.appendChild(sv);const fi=document.createElementNS(SVGNS,'path');fi.setAttribute('class','firma');fi.setAttribute('pathLength',1);sv.appendChild(fi);
+ const B=h('div','ab','Firmado: empezar',el);B.style.cssText+='display:grid;place-items:center;border-radius:12px;background:#17191b;color:#fff;font:600 17.5px/1 Barlow,sans-serif';
+ fi.setAttribute('d','M14 78C30 70 44 34 50 14 54 44 44 86 26 96M52 62C64 66 80 58 90 48 84 66 86 80 98 76 108 72 114 54 118 46 118 62 122 72 132 70 144 68 150 50 156 38 156 52 156 66 166 66 178 66 188 42 194 26');
+ return t=>{velo(el,t,d);dibTexto(T,t,130,240);const p=entra(t,d),x=mix(1420,1240,p),y=96;pon(M.m,x,y,1,p);pantallas(M,t,[[0,0]]);
+  const to=enMovil(x,y,1,C['tec-total']),fr=enMovil(x,y,1,C['tec-firma']),ok=enMovil(x,y,1,C['tec-pok']);
+  dibAro(A,t,1.2,to,3.1);dibEti(L,t,1.5,880,to.y+70,3.1);dibFlecha(F,t,1.6,{x:1100,y:to.y+66},{x:to.x-14,y:to.y+to.h/2},.3,3.1);
+  /* la firma, trazo a trazo, dentro del recuadro, con el dedo encima */
+  const ps=E.io3(seg(t,3.6,5.6)),sc=fr.h/100*.8,ox=fr.x+fr.w*.2,oy=fr.y+fr.h*.08;sv.style.opacity=t>3.5?1:0;
+  fi.style.transform='translate('+ox+'px,'+oy+'px) scale('+sc+')';fi.style.strokeDasharray='1';fi.style.strokeDashoffset=(1-ps).toFixed(4);fi.style.strokeWidth=(4.2/sc).toFixed(2);
+  if(t>=3.0&&t<5.9){const len=fi.getTotalLength(),pt=fi.getPointAtLength(len*ps),llega=E.o3(seg(t,3.0,3.5)),sale=seg(t,5.6,5.9);
+   pon(D.d,mix(ox+pt.x*sc+90,ox+pt.x*sc,llega),mix(oy+pt.y*sc+120,oy+pt.y*sc,llega),1,llega*(1-sale));D.o.style.opacity=0}
+  else dibDedos(D,t,[[6.7,centro(ok)]]);
+  const on=seg(t,5.5,5.8);B.style.width=ok.w+'px';B.style.height=ok.h+'px';pon(B,ok.x,ok.y,1,on)}});
+
+/* ===== 7. Terminado: los papeles ===== */
+escena(10,(el,d)=>{const T=texto(el,'Terminado','6',['El parte y la','garantía salen','solos.'],'Firmados y listos para mandar por WhatsApp con un toque.');
+ const M=movil(el,['tec-5']),D=dedo(el),A=aro(el);
+ const H1=h('div','hoja ab','<img src="cap/papel-parte.jpg" alt="">',el),H2=h('div','hoja ab','<img src="cap/papel-garantia.jpg" alt="">',el);
+ const L=h('div','toque ab','Mandar por <em>WhatsApp</em>',el);
+ return t=>{velo(el,t,d);dibTexto(T,t,130,240);const p=entra(t,d),sal=E.io3(seg(t,3.2,4.0)),x=mix(1420,1240,p)+sal*260,y=96;pon(M.m,x,y,1,p*(1-sal));
+  pantallas(M,t,[[0,0]]);const tj=enMovil(x,y,1,C['tec-tarjeta']),ok=enMovil(x,y,1,C['tec-tok']);dibAro(A,t,.9,tj,2.4);dibDedos(D,t,[[2.6,centro(ok)]]);
+  /* las hojas salen de donde estaba el móvil y se abren en abanico */
+  const a=E.o5(seg(t,3.5,4.6)),b=E.o5(seg(t,3.8,4.9)),q=1-E.io3(seg(t,d-.45,d));
+  pon(H2,mix(1330,1290,b),mix(700,150,b),.92,b*q,mix(0,5,b));pon(H1,mix(1330,1000,a),mix(700,110,a),.92,a*q,mix(0,-4,a));
+  const c=E.back(seg(t,5.6,6.2));pon(L,1060,930,mix(.6,1,cl(c,0,1.2)),cl(seg(t,5.6,5.8))*q)}});
+
+/* ===== 8. Los cobros ===== */
+escena(7.4,(el,d)=>{const T=texto(el,'La oficina','7',['Sabes qué has','cobrado y qué','falta.'],'Y el mes, listo para tu gestoría.');
+ const M=movil(el,['cen-4']),A=aro(el),F=flecha(el),L=eti(el,'Por cobrar, por<br>facturar y cobrado hoy<small>Cada trabajo, con su forma de pago.</small>');
+ return t=>{velo(el,t,d);dibTexto(T,t,130,240);const p=entra(t,d),x=mix(1420,1240,p),y=96;pon(M.m,x,y,1,p);pantallas(M,t,[[0,0]]);
+  const r=enMovil(x,y,1,C['cen-cobros']);dibAro(A,t,1.3,r);dibEti(L,t,1.6,880,r.y+150);dibFlecha(F,t,1.7,{x:1130,y:r.y+146},{x:r.x-14,y:r.y+r.h/2},.3)}});
+
+/* ===== 9. A su medida ===== */
+escena(9.6,(el,d)=>{const M=[movil(el,['cita-3']),movil(el,['cen-3']),movil(el,['tec-1a'])];
+ const t1=h('h2','ab','Lo adaptamos a tu forma de trabajar.',el);t1.style.cssText+='font:800 92px/1 Barlow Condensed,sans-serif;white-space:nowrap';
+ const CH=['Tus precios','Tus zonas','Tus horarios','Tus técnicos','Tus papeles'].map(c=>h('div','chip ab','<i></i>'+c,el));
+ const t2=h('p','ab','Si algo no encaja, lo cambiamos hasta que encaje.',el);t2.style.cssText+='font:600 46px/1.1 Barlow,sans-serif;color:#17191b;white-space:nowrap';
+ const sub=h('div','ab','',el);sub.style.cssText+='width:880px;height:10px;border-radius:6px;background:#ffc400';
+ return t=>{velo(el,t,d);const q=1-E.io3(seg(t,d-.45,d));
+  M.forEach((m,i)=>{const p=E.o5(seg(t,.1+i*.12,1.1+i*.12));pon(m.m,520+i*330,mix(610,470,p),.62,p*.9*q);pantallas(m,t,[[0,0]])});
+  const a=E.o5(seg(t,1.0,1.8));pon(t1,960-t1.offsetWidth/2,mix(150,110,a),1,a*q);
+  let x=0;const w=CH.map(c=>c.offsetWidth),tot=w.reduce((s,v)=>s+v,0)+24*(CH.length-1);x=960-tot/2;
+  CH.forEach((c,i)=>{const p=E.back(seg(t,2.0+i*.28,2.6+i*.28));pon(c,x,250,mix(.7,1,cl(p,0,1.2)),cl(seg(t,2.0+i*.28,2.2+i*.28))*q);x+=w[i]+24});
+  const b=E.o5(seg(t,4.2,5.0));pon(t2,960-t2.offsetWidth/2,mix(372,352,b),1,b*q);
+  const u=E.io3(seg(t,4.7,5.5));sub.style.width=(t2.offsetWidth*u)+'px';pon(sub,960-t2.offsetWidth/2,416,1,q*(u>0?1:0))}});
+
+/* ===== 10. Pruébalo ===== */
+escena(6.6,(el,d)=>{const ci=h('div','cinta ab','',el);ci.style.width='1920px';
+ const t1=h('h2','ab','Pruébalo tú mismo.',el);t1.style.cssText+='font:800 140px/.95 Barlow Condensed,sans-serif;white-space:nowrap';
+ const t2=h('p','ab','La demo guiada está en el enlace del correo: tres minutos.',el);t2.style.cssText+='font:500 44px/1.2 Barlow,sans-serif;color:#5d636a;white-space:nowrap';
+ const m=h('div','marca ab','OOOX<span>Oficios</span>',el);m.style.fontSize='96px';
+ const w=h('p','ab','ooox.es',el);w.style.cssText+='font:600 40px/1 Barlow,sans-serif;color:#17191b';
+ return t=>{velo(el,t,d+1);pon(ci,mix(-1920,0,E.io3(seg(t,0,.9))),940);const a=E.o5(seg(t,.2,1.1));pon(t1,960-t1.offsetWidth/2,250+(1-a)*50,1,a);
+  const b=E.o5(seg(t,.6,1.4));pon(t2,960-t2.offsetWidth/2,430+(1-b)*30,1,b);const c=E.o5(seg(t,1.2,2.0));pon(m,960-m.offsetWidth/2,600+(1-c)*30,1,c);
+  pon(w,960-w.offsetWidth/2,740,1,E.o5(seg(t,1.6,2.3)))}});
+
+/* la portada (para el reproductor y el correo): no es parte del vídeo */
+window.portada=(boton=true)=>{ESC.forEach(e=>e.el.style.display='none');const el=h('div','esc');el.style.display='block';
+ const M=[movil(el,['cita-3']),movil(el,['cen-2']),movil(el,['tec-1a'])];
+ [[930,250,.74],[1230,170,.82],[1560,250,.74]].forEach(([x,y,s],i)=>{pon(M[i].m,x,y,s,1);M[i].im[0].style.opacity=1});
+ const ci=h('div','cinta ab','',el);ci.style.width='1920px';pon(ci,0,0);
+ const k=h('p','ab','Vídeo · 1 min 24 s',el);k.style.cssText+='font:700 40px/1 Barlow Condensed,sans-serif;color:#5d636a';pon(k,130,300);
+ const t=h('h1','ab','<span style="display:block">Así funciona</span>',el);t.style.cssText+='font:800 150px/.92 Barlow Condensed,sans-serif;white-space:nowrap';pon(t,124,360);
+ const m=h('div','marca ab','OOOX<span>Oficios</span>',el);m.style.fontSize='112px';pon(m,130,520);
+ const s=h('p','ab','La oficina de tu negocio, en el móvil.',el);s.style.cssText+='font:500 44px/1.2 Barlow,sans-serif;color:#5d636a;white-space:nowrap';pon(s,130,690);
+ if(boton){const b=h('div','ab','',el);b.style.cssText+='width:220px;height:220px;border-radius:50%;background:#ffc400;box-shadow:0 30px 60px rgba(20,23,26,.35),0 0 0 14px rgba(255,255,255,.65)';pon(b,1310,430);
+  const tr=h('div','ab','',el);tr.style.cssText+='width:0;height:0;border-top:52px solid transparent;border-bottom:52px solid transparent;border-left:84px solid #17191b';pon(tr,1396,488)}};
+window.ESCENAS=ESC.map(e=>e.d);
+window.dibuja=(i,t)=>{ESC.forEach((e,j)=>e.el.style.display=j===i?'block':'none');ESC[i].dib(t)};
+window.listo=Promise.all([document.fonts.ready,...[...document.images].map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r}))]);
+</script>
+</body>
+</html>

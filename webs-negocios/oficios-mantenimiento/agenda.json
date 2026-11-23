@@ -1,0 +1,13 @@
+{
+ "_que": "Lo que toca de vez en cuando. La revisión diaria de Claude mira lo que vence en los próximos días y lo pone en el resumen. «cada»: año, trimestre o mes. «dia»: MM-DD para lo de cada año, DD para lo de cada mes. «avisar»: cuántos días antes. Al dar de alta un negocio con su dominio, se añade aquí su renovación.",
+ "tareas": [
+  {"que": "Festivos del año que viene en los datos de cada negocio (los nacionales, los de Cataluña y los locales de su ciudad). La app avisa cuando quedan menos de 12 meses.", "cada": "año", "dia": "10-01", "avisar": 14, "quien": "Claude lo prepara; Oscar confirma los locales"},
+  {"que": "Subir los precios de cada negocio si lo pide (IPC o tarifa nueva): en sus datos y en el servidor, iguales.", "cada": "año", "dia": "12-15", "avisar": 14, "quien": "Oscar pregunta a cada negocio; Claude lo cambia"},
+  {"que": "Revisión legal: textos del formulario de cita, desistimiento, protección de datos, cambios de ley (Verifactu, IVA, consumo).", "cada": "año", "dia": "01-15", "avisar": 21, "quien": "Oscar con su abogado o gestoría"},
+  {"que": "Probar la app en un iPhone y un Android de verdad después de las versiones nuevas de iOS y Android (salen en septiembre y octubre).", "cada": "año", "dia": "10-15", "avisar": 7, "quien": "Oscar"},
+  {"que": "Simulacro de restaurar con la llave de verdad: bajar la copia de anoche, descifrarla en el PC de Oscar y restaurarla aparte (LEEME.md, «Restaurar una copia»). Comprobar que la otra copia de la llave (pendrive o gestor de contraseñas) sigue ahí.", "cada": "trimestre", "dia": "01-20", "avisar": 7, "quien": "Oscar y Claude"},
+  {"que": "Repasar el espacio de la base de datos, las versiones del probador (Playwright) y de las acciones de GitHub, y si conviene pasar a Supabase Pro.", "cada": "mes", "dia": "05", "avisar": 3, "quien": "Claude"},
+  {"que": "Informe del mes de cada negocio.", "cada": "mes", "dia": "01", "avisar": 0, "quien": "Claude"}
+ ],
+ "dominios": []
+}

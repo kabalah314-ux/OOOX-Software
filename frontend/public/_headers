@@ -1,0 +1,20 @@
+# Cabeceras de seguridad que pone Cloudflare Pages (16-11-2026). Solo para la app de oficios: la demo y la copia de
+# cada negocio. El resto de ooox.es va aparte y no cambia.
+#  - nosniff: el navegador no adivina el tipo de un archivo (un texto no se ejecuta como si fuera código).
+#  - frame-ancestors 'self' y X-Frame-Options: ninguna web de fuera puede meter la app dentro de la suya para engañar
+#    a quien pulsa. Dentro de ooox.es sí (la página de prueba de los tres móviles lo hace).
+#  - base-uri y object-src: nadie puede cambiar desde dentro de dónde salen los enlaces ni meter complementos.
+#  - Referrer-Policy: a otras webs solo les llega «ooox.es», nunca la página ni el aviso. El servidor de mapas pide
+#    saber desde qué web se le llama: por eso no va «no-referrer».
+# Sin lista de scripts permitidos: las pantallas llevan su código dentro, y una lista así no protegería nada más.
+/oficios/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'; base-uri 'self'; object-src 'none'
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/demos/ramirez-24h/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'; base-uri 'self'; object-src 'none'
+  Referrer-Policy: strict-origin-when-cross-origin

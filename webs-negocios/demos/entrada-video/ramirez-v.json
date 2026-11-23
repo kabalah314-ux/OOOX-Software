@@ -1,0 +1,12 @@
+{
+  "video": "../../originales/flow-2026-11-16/entrada-v-veo31lite-720p.mp4",
+  "primera": "../../originales/flow-2026-11-16/calle-vacia-v.jpg",
+  "ultima": "../../originales/flow-2026-11-16/portada-v.jpg",
+  "salida": "salida/entrada-v",
+  "ancho": 720,
+  "alto": 1280,
+  "fps": 30,
+  "velocidad": [[0, 3.0], [0.3, 3.0], [0.4, 2.0], [1.8, 2.0], [2.05, 1.5], [2.2, 1.8], [5.2, 1.8], [5.5, 5.0], [7.92, 5.0]],
+  "clave": 60,
+  "crf": 25.5
+}

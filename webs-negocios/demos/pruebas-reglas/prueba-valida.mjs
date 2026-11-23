@@ -1,0 +1,154 @@
+// Prueba del validador: se estropea un dato cada vez en un archivo bueno y el validador tiene que decirlo.
+// Uso: node prueba-valida.mjs <carpeta del sitio>
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { valida, leeNucleo, leeNegocio } from './valida-negocio.mjs';
+
+const sitio = process.argv[2]; if (!sitio) { console.log('Uso: node prueba-valida.mjs <carpeta del sitio>'); process.exit(2) }
+const aqui = path.dirname(fileURLToPath(import.meta.url)), K = leeNucleo(sitio), HOY = '2026-11-13';
+const R = leeNegocio(path.join(sitio, 'js/oficio-datos.js')).N, V = leeNegocio(path.join(aqui, 'negocios/voltio.js')).N;
+const clon = o => JSON.parse(JSON.stringify(o));
+let ok = 0, mal = 0; const es = (c, t) => { if (c) ok++; else { mal++; console.log('  FALLA: ' + t) } };
+
+es(valida(R, K, HOY).errores.length === 0, 'el negocio de muestra no tiene errores');
+es(valida(V, K, HOY).errores.length === 0, 'el negocio de prueba no tiene errores');
+[null, undefined, {}, [], 'hola', 7].forEach(x => { let r; try { r = valida(x, K, HOY) } catch (e) { r = null } es(r && r.errores.length > 0, 'con ' + JSON.stringify(x) + ' no revienta y da error') });
+
+// [qué se estropea, cómo, sobre qué negocio]
+const ROTOS = [
+  ...['id', 'serie', 'nombre', 'marca', 'razon', 'nif', 'dir', 'ciudad', 'tel', 'resenas', 'pack', 'garantiaMeses', 'sinTrabajo', 'tarifa', 'festivos', 'tecnicos', 'zonas', 'franjas', 'catalogo', 'averias'].map(k => ['falta «' + k + '»', N => { delete N[k] }]),
+  ['falta el cupo en un negocio sin horarios', N => { N.tecnicos.forEach(x => { delete x.horario; delete x.guardia }); delete N.horario; delete N.citas; delete N.cupo }],
+  ['un pack que ya no existe', N => { N.pack = 'basico' }],
+  ['la serie en minúsculas', N => { N.serie = 'r1' }],
+  ['un teléfono de tres cifras', N => { N.tel = '123' }],
+  ['un NIF sin letra', N => { N.nif = '12345678' }],
+  ['el horario de tarifa al revés', N => { N.tarifa.dia = [1200, 480] }],
+  ['un recargo del 500 %', N => { N.tarifa.recargo = 5 }],
+  ['un festivo que no existe', N => { N.festivos.push('2027-02-30') }],
+  ['los festivos desordenados', N => { N.festivos.reverse() }],
+  ['un festivo repetido', N => { N.festivos.push(N.festivos[N.festivos.length - 1]) }],
+  ['la lista de festivos a punto de acabarse', N => { N.festivos = N.festivos.filter(f => f < '2027-03-01') }],
+  ['sin técnicos', N => { N.tecnicos = [] }],
+  ['dos técnicos con el mismo id', N => { N.tecnicos[1].id = N.tecnicos[0].id }],
+  ['un técnico sin nombre', N => { N.tecnicos[0].n = '' }],
+  ['una zona con una banda que no existe', N => { Object.values(N.zonas.dis)[0][1] = 'zz' }],
+  ['un código postal que lleva a una zona que no existe', N => { N.zonas.cp[Object.keys(N.zonas.cp)[0]] = 'zz' }],
+  ['un código postal de cuatro cifras', N => { N.zonas.cp['0800'] = Object.keys(N.zonas.dis)[0] }],
+  ['dos franjas que se pisan', N => { N.franjas[1].de = N.franjas[0].de + 10 }],
+  ['una franja al revés', N => { N.franjas[0].a = N.franjas[0].de - 30 }],
+  ['dos franjas con el mismo id', N => { N.franjas[1].id = N.franjas[0].id }],
+  ['un precio a cero', N => { const k = Object.keys(N.catalogo)[0]; N.catalogo[k].p10 = 0 }],
+  ['un precio con tres decimales', N => { const k = Object.keys(N.catalogo)[0]; N.catalogo[k].p10 = 30.125 }],
+  ['un concepto con dos precios', N => { const k = Object.keys(N.catalogo)[0]; N.catalogo[k].p21 = 40 }],
+  ['una unidad que no es «h»', N => { const k = Object.keys(N.catalogo)[0]; N.catalogo[k].un = 'kg' }],
+  ['horas sin paso', N => { const k = Object.keys(N.catalogo).find(x => N.catalogo[x].un === 'h'); delete N.catalogo[k].paso }],
+  ['un mínimo que no es múltiplo del paso', N => { const k = Object.keys(N.catalogo).find(x => N.catalogo[x].un === 'h'); N.catalogo[k].min = N.catalogo[k].paso * 1.5 }],
+  ['un concepto llamado «otro»', N => { N.catalogo.otro = { t: 'Otro concepto', p10: 5 } }],
+  ['«sin trabajo» apunta a un material', N => { N.sinTrabajo = Object.keys(N.catalogo).find(x => N.catalogo[x].mat) }],
+  ['una avería con un concepto que no está en el catálogo', N => { N.averias[0].ini.push({ k: 'zz' }) }],
+  ['una avería con un añadido que no está en el catálogo', N => { N.averias[0].chips.push('zz') }],
+  ['dos averías con el mismo id', N => { N.averias[1].id = N.averias[0].id }],
+  ['una avería con el máximo por debajo del mínimo', N => { const a = N.averias.find(x => x.max); a.max = [a.min[0]]; a.min = a.min.concat(a.min.map(l => ({ k: l.k, q: 3 }))).concat(Object.keys(N.catalogo).filter(k => N.catalogo[k].mat).slice(0, 2).map(k => ({ k, q: 5 }))) }],
+  ['una hora peninsular que no es', N => { N.zona = 'Atlantic/Canary' }],
+  ['un horario con un día 9', N => { N.tecnicos[0].horario = { 9: [[480, 840]] } }, V],
+  ['un horario con los tramos pisados', N => { N.tecnicos[0].horario[1] = [[480, 840], [800, 900]] }, V],
+  ['un técnico sin horario cuando los demás lo tienen', N => { delete N.tecnicos[1].horario }, V],
+  ['tanta reserva que no cabe ninguna cita', N => { N.citas.reserva = 8 }, V],
+  ['cero citas por franja', N => { N.citas.porFranja = 0 }, V],
+  ['un mapa que no es un objeto', N => { N.mapa = 'sí' }],
+  ['un mapa de fondo sin https', N => { N.mapa = { teselas: 'http://ejemplo.es/{z}/{x}/{y}.png', firma: 'Ejemplo' } }],
+  ['un mapa de fondo sin {z}, {x}, {y}', N => { N.mapa = { teselas: 'https://ejemplo.es/mapa.png', firma: 'Ejemplo' } }],
+  ['un mapa de fondo sin la firma de quien lo da', N => { N.mapa = { teselas: 'https://ejemplo.es/{z}/{x}/{y}.png' } }],
+  ['un dato de mapa que la app no usa', N => { N.mapa = { clave: 'abc' } }],
+  ['la firma del mapa con un enlace que no es https', N => { N.mapa.firmaUrl = 'javascript:alert(1)' }],
+  ['un servidor que no es un objeto', N => { N.servidor = 'https://abc.supabase.co' }],
+  ['un servidor sin https', N => { N.servidor = { url: 'http://abc.supabase.co', llave: 'sb_publishable_abcdefghij' } }],
+  ['un servidor con algo detrás de la dirección', N => { N.servidor = { url: 'https://abc.supabase.co/functions/v1/oficio', llave: 'sb_publishable_abcdefghij' } }],
+  ['un servidor sin llave', N => { N.servidor = { url: 'https://abc.supabase.co' } }],
+  ['un dato de servidor que la app no usa', N => { N.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', clave: 'x' } }],
+  ['un servidor con otra función mal escrita', N => { N.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', funcion: 'Oficio 2' } }],
+  ['un servidor al que se pregunta demasiado a menudo', N => { N.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', cada: 200 } }],
+  ['«prueba» con un texto', N => { N.prueba = 'sí' }],
+  ['un correo sin arroba', N => { N.email = 'avisos.minegocio.es' }],
+  ['un correo con un espacio', N => { N.email = 'avisos @minegocio.es' }],
+  ['un correo que no es texto', N => { N.email = 7 }],
+  ['el coche del técnico vacío', N => { N.tecnicos[0].coche = '' }],
+  ['la foto del técnico fuera de assets', N => { N.tecnicos[0].foto = 'https://ejemplo.es/jordi.jpg'; N.tecnicos[0].fotoOk = 1 }],
+  ['la foto del técnico subiendo de carpeta', N => { N.tecnicos[0].foto = 'assets/../app.html.jpg'; N.tecnicos[0].fotoOk = 1 }],
+  ['el permiso de la foto con un sí escrito', N => { N.tecnicos[0].foto = 'assets/tec/jordi.jpg'; N.tecnicos[0].fotoOk = 'sí' }],
+  // lo que tarda cada servicio y su servicio de la base (15-11-2026)
+  ['lo que tarda un servicio al revés', N => { N.catalogo.grifo.dur = [60, 30] }],
+  ['cada cuántos meses toca volver, con decimales', N => { N.catalogo.revinst.cada = 12.5 }],
+  ['cada cuántos meses toca volver, demasiado seguido', N => { N.catalogo.revinst.cada = 1 }],
+  ['cada cuántos meses toca volver, escrito como texto', N => { N.catalogo.revinst.cada = '12' }],
+  ['lo que tarda un servicio en horas y no en minutos', N => { N.catalogo.grifo.dur = [0.5, 1] }],
+  ['un servicio de la base que no existe', N => { N.catalogo.grifo.base = 'fon-no-existe' }],
+  ['lo que tarda una avería con un solo número', N => { N.averias[0].dur = [45] }],
+  ['un suplemento de urgencia que no está en el catálogo', N => { N.tarifa.urgente = 'nada' }],
+  ['un suplemento de urgencia por horas', N => { N.tarifa.urgente = 'mo' }],
+  // lo que lleva siempre la furgoneta (16-11-2026)
+  ['la furgoneta como lista', N => { N.furgoneta = ['juntas'] }],
+  ['en la furgoneta, algo que no está en el catálogo', N => { N.furgoneta = { zz: [1, 2] } }],
+  ['en la furgoneta, algo que no es material', N => { N.furgoneta = { desp: [1, 2] } }],
+  ['en la furgoneta, el mínimo por encima del máximo', N => { N.furgoneta = { juntas: [5, 2] } }],
+  ['en la furgoneta, un máximo de cero', N => { N.furgoneta = { juntas: [0, 0] } }],
+  ['en la furgoneta, cantidades con decimales', N => { N.furgoneta = { juntas: [1.5, 3] } }],
+  ['en la furgoneta, un solo número', N => { N.furgoneta = { juntas: 4 } }],
+  ['la furgoneta de un técnico con algo que no es material', N => { N.tecnicos[0].furgoneta = { desp: [1, 2] } }],
+];
+for (const [que, rompe, base] of ROTOS) {
+  const N = clon(base || R); let r;
+  try { rompe(N); r = valida(N, K, HOY) } catch (e) { r = { errores: [], revienta: e.message } }
+  es(r.errores.length > 0, que + (r.revienta ? ' (el validador revienta: ' + r.revienta + ')' : ' (el validador no dice nada)'));
+}
+{ const F = clon(R); F.tecnicos.forEach(x => { delete x.horario; delete x.guardia }); delete F.horario; delete F.citas; F.cupo = 2;
+  es(valida(F, K, HOY).errores.length === 0, 'el negocio de muestra sin horarios, con su número fijo de citas por franja, también vale') }
+{ const M1 = clon(R); M1.mapa = {}; const M2 = clon(V); M2.prueba = true;
+  es(valida(M1, K, HOY).errores.length === 0 && valida(M1, K, HOY).avisos.some(t => /mapa/.test(t)) && valida(M2, K, HOY).errores.length === 0 && valida(R, K, HOY).avisos.some(t => /OpenStreetMap/.test(t)),
+    'un mapa vacío vale (sin mapa de fondo), una copia de prueba vale, y con el servidor gratuito de OpenStreetMap se avisa de que es solo para una demo') }
+{ const M3 = clon(V); M3.servidor = { url: 'https://abc.supabase.co', llave: 'sb_publishable_abcdefghij', cada: 2000 }; const M4 = clon(V); M4.servidor = { url: 'https://abc.supabase.co', llave: 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.abcdefghijkl' };
+  es(valida(M3, K, HOY).errores.length === 0 && !valida(M3, K, HOY).avisos.some(t => /servidor/.test(t)) && valida(M4, K, HOY).avisos.some(t => /PÚBLICA/.test(t)),
+    'un servidor bien puesto vale sin avisos, y con una llave que no parece la pública se avisa') }
+// la furgoneta: la del negocio y la de un técnico valen; vacía o con un aparato, se avisa
+{ const F1 = clon(R); F1.tecnicos[0].furgoneta = { juntas: [2, 4] }; const F2 = clon(R); F2.furgoneta = {}; const F3 = clon(R); F3.furgoneta = Object.assign({}, F3.furgoneta, { termo80: [0, 1] });
+  es(R.furgoneta && valida(R, K, HOY).errores.length === 0 && valida(F1, K, HOY).errores.length === 0 && valida(F2, K, HOY).errores.length === 0 && valida(F2, K, HOY).avisos.some(t => /^furgoneta: está vacía/.test(t))
+    && valida(F3, K, HOY).errores.length === 0 && valida(F3, K, HOY).avisos.some(t => /termo80: es un aparato/.test(t)),
+    'la furgoneta de la demo y la de un técnico valen; vacía o con un aparato, vale pero se avisa') }
+// lo que pide el formulario de desistimiento: el correo, si lo hay, y la dirección completa
+{ const C = clon(R); C.email = 'avisos@ramirez.example'; C.dir = 'Carrer de Sants 100, 08014 Barcelona';
+  es(valida(R, K, HOY).avisos.some(t => /^email:/.test(t)) && valida(R, K, HOY).avisos.some(t => /^dir:/.test(t)) && valida(C, K, HOY).errores.length === 0 && !valida(C, K, HOY).avisos.some(t => /^(email|dir):/.test(t)),
+    'sin correo y con una dirección sin número se avisa, sin parar nada; con los dos bien, ni error ni aviso') }
+// un servicio de la base: sin lo que tarda, o con un precio muy lejos de lo que se suele cobrar, vale pero se avisa
+{ const S1 = clon(R); delete S1.catalogo.grifo.dur; const S2 = clon(R); S2.catalogo.grifo.p10 = 900;
+  es(valida(S1, K, HOY).errores.length === 0 && valida(S1, K, HOY).avisos.some(t => /no dice lo que tarda/.test(t)) && valida(S2, K, HOY).errores.length === 0 && valida(S2, K, HOY).avisos.some(t => /muy lejos/.test(t)) && !valida(R, K, HOY).avisos.some(t => /muy lejos|no dice lo que tarda/.test(t)),
+    'un servicio de la base sin lo que tarda, o con un precio muy lejos del de mercado, vale pero se avisa; la demo, sin avisos de eso') }
+// la foto del técnico: sin su permiso no se enseña, y se avisa
+{ const F = clon(R); F.tecnicos[0].foto = 'assets/tec/jordi.jpg'; const G = clon(F); G.tecnicos[0].fotoOk = 1;
+  es(valida(F, K, HOY).errores.length === 0 && valida(F, K, HOY).avisos.some(t => /permiso/.test(t)) && valida(G, K, HOY).errores.length === 0 && !valida(G, K, HOY).avisos.some(t => /permiso/.test(t)),
+    'una foto sin permiso vale pero se avisa de que no se enseña; con fotoOk: 1, sin aviso') }
+// citas por tiempo (15-11-2026): «porTiempo» tiene que ser sí o no; sin horarios no vale; y la reserva guarda técnicos enteros
+{ const P1 = clon(R); P1.citas = { porFranja: 3, reserva: 1, porTiempo: true }; const P2 = clon(P1); P2.citas.porTiempo = 'sí';
+  const P3 = clon(P1); P3.tecnicos.forEach(x => { delete x.horario }); delete P3.horario; P3.cupo = 2; const P4 = clon(P1); P4.citas.reserva = 2;
+  es(valida(P1, K, HOY).errores.length === 0 && !valida(P1, K, HOY).avisos.some(t => /porTiempo|reserva/.test(t)) && valida(P2, K, HOY).errores.some(t => /porTiempo/.test(t))
+    && valida(P3, K, HOY).avisos.some(t => /sin horarios/.test(t)) && valida(P4, K, HOY).avisos.some(t => /citas.reserva/.test(t) && / f4/.test(t)),
+    'citas por tiempo: vale con horarios; «porTiempo» que no es sí o no, error; sin horarios, aviso; y si la reserva guarda a todos los de una franja (aquí, de 18 a 20), aviso') }
+// la reserva los días que falta alguien (15-11-2026): la decide el dueño; tiene que ser sí o no, y sin reserva no cambia nada
+{ const Q1 = clon(R); Q1.citas = { porFranja: 3, reserva: 1, porTiempo: true, reservaSiFalta: false }; const Q2 = clon(Q1); Q2.citas.reservaSiFalta = 'no';
+  const Q3 = clon(Q1); Q3.citas.reserva = 0;
+  es(valida(Q1, K, HOY).errores.length === 0 && !valida(Q1, K, HOY).avisos.some(t => /reservaSiFalta/.test(t)) && valida(Q2, K, HOY).errores.some(t => /citas.reservaSiFalta/.test(t))
+    && valida(Q3, K, HOY).errores.length === 0 && valida(Q3, K, HOY).avisos.some(t => /citas.reservaSiFalta/.test(t)),
+    'la reserva los días que falta alguien: false vale; algo que no es sí o no, error; y sin reserva, aviso de que no cambia nada') }
+// el archivo público de una copia con servidor (17-11-2026): del equipo, solo el nombre, la inicial y el color
+{ const SV = { url: 'https://x.supabase.co', llave: 'sb_publishable_x' }, P = K.publico(Object.assign(clon(R), { servidor: SV })), rP = valida(P, K, HOY);
+  es(rP.errores.length === 0 && !rP.avisos.some(t => /jefe|guardias|horario|cupo|porTiempo/.test(t)), 'el archivo público del negocio de muestra vale, sin avisos por lo que lleva el servidor (jefe, horarios, guardias, cupo)');
+  const P1 = clon(P); delete P1.servidor; const P2 = clon(P); P2.tecnicos[0].horario = R.tecnicos[0].horario || { 1: [[480, 840]] }; P2.tecnicos[1].jefe = 1;
+  const P3 = clon(P); P3.tecnicos[0].ap = R.tecnicos[0].ap; const P4 = clon(P); P4.publico = 'si'; const P5 = clon(P); delete P5.tecnicos[0].ap;
+  es(valida(P1, K, HOY).errores.some(t => /publico: .*servidor/.test(t)), 'un archivo público sin servidor no vale: la app no tendría de dónde sacar el equipo');
+  es(valida(P2, K, HOY).errores.filter(t => /archivo público no van «(horario|jefe)»/.test(t)).length === 2, 'en el archivo público, un horario o «jefe» es un error: esos datos van solo al servidor');
+  es(valida(P3, K, HOY).errores.some(t => /solo la inicial/.test(t)) && valida(P5, K, HOY).errores.length === 0, 'el apellido entero en el archivo público es un error; sin apellido, vale');
+  es(valida(P4, K, HOY).errores.some(t => /^publico: solo puede ser true/.test(t)), '«publico» solo puede ser true') }
+// las caducidades: lo mismo que hoy pasa, dentro de un año tiene que fallar
+es(valida(R, K, '2027-08-01').errores.some(t => /festivos/.test(t)), 'con la fecha de dentro de nueve meses, avisa de que hay que renovar los festivos');
+es(valida(R, K, '2026-12-28').avisos.some(t => /festivos/.test(t)) && valida(R, K, '2026-12-28').errores.length === 0, 'cuando queda menos de un año, lo dice como aviso, sin parar nada');
+console.log((mal ? 'MAL' : 'BIEN') + ': ' + ok + ' comprobaciones pasan' + (mal ? ', ' + mal + ' fallan' : '') + '.');
+process.exit(mal ? 1 : 0);

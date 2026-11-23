@@ -1,0 +1,58 @@
+[
+[
+"TypeError: Cannot read properties of undefined (reading 'nombre') at pinta (https://x.pages.dev/demos/ramirez-24h/app.html?papel=tecnico&tec=omar#/aviso/R-0012/abcdefghjkmnpqrstuvwxyza:441:23)",
+"TypeError: Cannot read properties of undefined (reading 'nombre') at pinta (https://x.pages.dev/demos/ramirez-24h/app.html:441:23)"
+],
+[
+"Llama al 600 00 01 12 o al +34 600000112, escribe a pepe.garcia@gmail.com; cód abcd-efgh-jkmn-pqrs y abcd-efgh",
+"Llama al # o al #, escribe a [correo]; cód [código] y [código]"
+],
+[
+"SyntaxError: Unexpected token 'a', \"Calle Mayor 5, 3.º\" is not valid JSON",
+"SyntaxError: Unexpected token 'a', \"…\" is not valid JSON"
+],
+[
+"img data:image/webp;base64,UklGRhYAAABXRUJQVlA4IAoAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v3AgAA= falla",
+"img data:… falla"
+],
+[
+"pinta@https://x.pages.dev/demos/ramirez-24h/cliente.html#/entra/600000112/abcd-efgh:12:5",
+"pinta@https://x.pages.dev/demos/ramirez-24h/cliente.html:12:5"
+],
+[
+"ruta #/aviso/R-0012/qwertyuiopasdfghjkzxcvbn rota; ver #fE",
+"ruta #/… rota; ver #fE"
+],
+[
+"at https://hquvlfujruskpgnkmnfl.supabase.co/functions/v1/oficio:12:34567 llave qwertyuiopasdfghjkzxcvbnm",
+"at https://hquvlfujruskpgnkmnfl.supabase.co/functions/v1/oficio:12:34567 llave [x]"
+],
+[
+"Aviso VS-0005 en la versión 2026.11.16a",
+"Aviso VS-0005 en la versión #a"
+],
+[
+"Código del día 1234 y franja 3",
+"Código del día 1234 y franja 3"
+],
+[
+"Cannot read properties of null (reading 'foto') en app.html:1200:15",
+"Cannot read properties of null (reading 'foto') en app.html:1200:15"
+],
+[
+"HTTP 503 · rest/v1/rpc/oficios_v",
+"HTTP 503 · rest/v1/rpc/oficios_v"
+],
+[
+"No carga: /oficios/voltio/assets/img/av-fuga-s.webp (img)",
+"No carga: /oficios/voltio/assets/img/av-fuga-s.webp (img)"
+],
+[
+"Escribió 'me cambiaron el termo ayer' en la nota",
+"Escribió '…' en la nota"
+],
+[
+"   espacios   ",
+"espacios"
+]
+]

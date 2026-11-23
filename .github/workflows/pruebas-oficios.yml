@@ -1,0 +1,118 @@
+# Pruebas de la app de oficios (OOOX Oficios). Corren solas:
+#  - en cada cambio que toque la demo, la copia de algún negocio o sus pruebas, en cualquier rama;
+#  - cada noche (solo desde la rama principal, que es como funciona GitHub), con el triple de recorridos al azar
+#    y una semilla nueva cada día.
+# La prueba de reglas estropeadas adrede tarda unos minutos y corre siempre.
+# El repositorio es público: las máquinas estándar de GitHub no cuestan nada. No usar máquinas «grandes».
+name: Pruebas de la app de oficios
+on:
+  push:
+    paths:
+      - 'frontend/public/demos/ramirez-24h/**'
+      - 'frontend/public/oficios/**'
+      - 'webs-negocios/demos/**'
+      - 'webs-negocios/oficios-servidor/**'
+      - 'webs-negocios/oficios-soporte/**'
+      - 'webs-negocios/oficios-mantenimiento/**'
+      - '.github/workflows/pruebas-oficios.yml'
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pruebas-oficios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  reglas:
+    name: Reglas y datos
+    runs-on: ubuntu-24.04   # sistema fijo, como la versión del probador: «latest» cambia solo con los años
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Analizador de JavaScript para la prueba del orden de la app (acorn)
+        run: npm install --no-save --no-audit --no-fund --prefix webs-negocios/demos/pruebas-reglas acorn@8 acorn-walk@8
+      - name: Reglas, datos, recorridos al azar, restos y reglas estropeadas adrede
+        run: |
+          export MUTANTES=1
+          if [ "${{ github.event_name }}" = "schedule" ]; then export SEMILLA=$(date -u +%Y%m%d) TANDAS=300; fi
+          bash webs-negocios/demos/pruebas.sh reglas
+  copias:
+    # La copia cifrada de cada noche, de punta a punta, en un Postgres de la propia máquina (nunca en Supabase) y con
+    # datos inventados: hacerla, bajarla, descifrarla, restaurarla y comparar fila a fila. Y las pruebas del mantenimiento.
+    name: Copias y mantenimiento
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Postgres de la máquina
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres createuser -s "$USER"
+      - name: Simulacro de restaurar y pruebas del mantenimiento
+        env:
+          PGURL: postgresql:///postgres?host=/var/run/postgresql
+        run: bash webs-negocios/oficios-mantenimiento/prueba-restaurar.sh
+  pantallas:
+    name: Pantallas en ${{ matrix.motor }}${{ matrix.grupo && format(' ({0})', matrix.grupo) || '' }}
+    runs-on: ubuntu-24.04   # sistema fijo, como la versión del probador: «latest» cambia solo con los años
+    # La instalación de lo que necesita el navegador a veces tarda más de media hora (WebKit, 18-11-2026: 28 minutos y, en
+    # la tanda siguiente, más de 32): el espejo de Ubuntu da los paquetes muy despacio. Por eso los paquetes se guardan de
+    # una vez para la siguiente (caché de GitHub) y cada paso lleva su tope; el trabajo, la suma.
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        # WebKit tardaba más de los 35 minutos del paso en una sola máquina (19-11-2026): se reparte en tres, cada una con un tercio
+        # de los bloques (GRUPO=n/total en pruebas.sh). Chromium y Firefox caben enteros.
+        include:
+          - { motor: chromium, grupo: '' }
+          - { motor: firefox, grupo: '' }
+          - { motor: webkit, grupo: '1/3' }
+          - { motor: webkit, grupo: '2/3' }
+          - { motor: webkit, grupo: '3/3' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # el modo servidor se prueba contra un servidor local con el mismo juez, que corre con Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Paquetes del navegador guardados de otra vez
+        id: apt
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/paquetes-apt
+          key: apt-${{ matrix.motor }}-playwright-1.65.1-ubuntu-24.04-v1
+      - name: Instalar Playwright y el navegador
+        timeout-minutes: 50
+        # Versiones fijas: así una versión nueva del probador no hace fallar la prueba de la noche sin que haya cambiado la app.
+        # Para subir de versión: cambiar el número aquí (y en las dos claves de la caché), mirar que las tres pasan y solo
+        # entonces dejarlo. Con los paquetes guardados, apt no los vuelve a bajar: solo los que hayan cambiado.
+        run: |
+          pip install playwright==1.65.1 pillow==13.0.0
+          echo 'APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99-guardar-paquetes >/dev/null
+          if ls ~/paquetes-apt/*.deb >/dev/null 2>&1; then sudo cp ~/paquetes-apt/*.deb /var/cache/apt/archives/; fi
+          python -m playwright install --with-deps ${{ matrix.motor }}
+          mkdir -p ~/paquetes-apt && cp /var/cache/apt/archives/*.deb ~/paquetes-apt/ 2>/dev/null || true
+      - name: Guardar los paquetes del navegador para la próxima vez
+        if: steps.apt.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/paquetes-apt
+          key: apt-${{ matrix.motor }}-playwright-1.65.1-ubuntu-24.04-v1
+      - name: Pantallas en ${{ matrix.motor }}
+        timeout-minutes: 35
+        env:
+          NAVEGADOR: ${{ matrix.motor }}
+          GRUPO: ${{ matrix.grupo }}
+        # Las pantallas se prueban con la hora fija (un martes a media mañana) y la app se repite a otras horas.
+        # De noche se repite a siete: viernes y sábado de noche, festivo, fin de año, cambio de hora y los dos bordes de la tarifa.
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then export HORAS="2026-11-13T20:10:00+01:00 2026-11-14T23:30:00+01:00 2026-12-08T11:00:00+01:00 2026-12-31T23:58:30+01:00 2027-03-28T01:58:30+01:00 2026-11-17T07:59:00+01:00 2026-11-20T19:58:30+01:00"; fi
+          bash webs-negocios/demos/pruebas.sh navegador

@@ -1,0 +1,185 @@
+/* ============================================================
+   DATOS DEL NEGOCIO · Ramírez 24 h (negocio de ejemplo).
+   Es el único archivo que cambia de un fontanero a otro: quiénes son,
+   dónde trabajan, qué cobran y cuándo dan cita.
+   Los precios son finales para una vivienda (IVA del 10 % dentro) y son
+   los mismos que enseña la web. Todo lo de aquí es inventado.
+   ============================================================ */
+(function(g){
+'use strict';
+g.OFICIO_NEGOCIO={
+ id:'ramirez',serie:'R',nombre:'Ramírez 24 h',marca:['Ramírez','24 h'],razon:'Ramírez Fontaneros, S. L.',nif:'B00000000',dir:'Taller en Sants, Barcelona',ciudad:'Barcelona',tel:'930 00 00 00',
+ resenas:'g.page/r/ramirez24h-demo/review',
+ pack:'pro',garantiaMeses:12,sinTrabajo:'desp',
+ /* el cliente cambia o cancela su cita desde su zona hasta 24 horas antes; después, llamando. Si cancela tarde, lo que se le
+    cobra (una línea del catálogo; sin poner, nada): aquí, el desplazamiento. La zona se lo dice antes (19-11-2026) */
+ cancelaTarde:'desp',
+ /* cómo se paga lo que queda pendiente, para el recordatorio del cobro: «bizum», el móvil; «iban», la cuenta. Los dos son
+    opcionales; sin ninguno, el recordatorio pide al cliente que conteste para saber cómo pagar. Aquí, una cuenta inventada:
+    el banco 0000 no existe */
+ pago:{iban:'ES96 0000 0000 0001 2345 6789'},
+ /* tarifa normal de 8 a 20 h en días laborables; el resto, urgencia */
+ tarifa:{dia:[480,1200],recargo:.4,urgente:'urge'},
+ festivos:['2026-01-01','2026-01-06','2026-04-03','2026-04-06','2026-05-01','2026-05-25','2026-06-24','2026-08-15','2026-09-11','2026-09-24','2026-10-12','2026-11-01','2026-12-06','2026-12-08','2026-12-25','2026-12-26','2027-01-01','2027-01-06','2027-03-26','2027-03-29','2027-05-01','2027-05-17','2027-06-24','2027-09-11','2027-09-24','2027-10-12','2027-11-01','2027-12-06','2027-12-08','2027-12-25'],
+ /* horarios y turnos, con valores de prueba (cada negocio pone los suyos):
+    Omar y Laia, de lunes a viernes, de 8 a 14 y de 15 a 20. Jordi, de 8 a 14 y de 15 a 18: la última franja no la hace.
+    Los tres hacen guardias, porque el servicio es de 24 horas. Cada técnico lleva una cita por franja y, de las que caben,
+    una no se ofrece al cliente: se guarda para urgencias y solo la puede usar la oficina. */
+ citas:{porFranja:1,reserva:1,
+  /* «Voy» de una cita se enciende estos minutos antes de su franja (de 0 a 240; sin poner, 30). Las urgencias, al momento */
+  voyAntes:30},
+ /* coche: lo que ve el cliente cuando va de camino. foto (en assets/) solo con fotoOk:1, que es su permiso por escrito */
+ tecnicos:[
+  {id:'omar',n:'Omar',ap:'Benali',tono:205,coche:'Furgoneta blanca con el logo de Ramírez',guardia:1,horario:{1:[[480,840],[900,1200]],2:[[480,840],[900,1200]],3:[[480,840],[900,1200]],4:[[480,840],[900,1200]],5:[[480,840],[900,1200]]}},
+  {id:'laia',n:'Laia',ap:'Ferrer',tono:340,coche:'Furgoneta blanca con el logo de Ramírez',guardia:1,horario:{1:[[480,840],[900,1200]],2:[[480,840],[900,1200]],3:[[480,840],[900,1200]],4:[[480,840],[900,1200]],5:[[480,840],[900,1200]]}},
+  {id:'jordi',n:'Jordi',ap:'Ramírez',tono:95,coche:'Furgoneta blanca con el logo de Ramírez',jefe:1,guardia:1,horario:{1:[[480,840],[900,1080]],2:[[480,840],[900,1080]],3:[[480,840],[900,1080]],4:[[480,840],[900,1080]],5:[[480,840],[900,1080]]}}],
+ zonas:{banda:{a:25,b:35,c:40},dis:{cve:['Ciutat Vella','a','Ciutat Vella'],eix:['Eixample','a','Eixample'],stm:['Sants-Montjuïc','a','Sants-Montjuïc'],cor:['Les Corts','a','Les Corts'],sar:['Sarrià-Sant Gervasi','c','Sarrià-St. Gervasi'],gra:['Gràcia','b','Gràcia'],hor:['Horta-Guinardó','c','Horta-Guinardó'],nou:['Nou Barris','c','Nou Barris'],and:['Sant Andreu','c','Sant Andreu'],smt:['Sant Martí','b','Sant Martí']},cp:{'08001':'cve','08002':'cve','08003':'cve','08039':'cve','08007':'eix','08008':'eix','08009':'eix','08010':'eix','08011':'eix','08013':'eix','08015':'eix','08029':'eix','08036':'eix','08037':'eix','08004':'stm','08014':'stm','08038':'stm','08040':'stm','08028':'cor','08034':'cor','08006':'sar','08017':'sar','08021':'sar','08022':'sar','08012':'gra','08023':'gra','08024':'gra','08025':'gra','08032':'hor','08035':'hor','08041':'hor','08016':'nou','08031':'nou','08033':'nou','08042':'nou','08027':'and','08030':'and','08005':'smt','08018':'smt','08019':'smt','08020':'smt','08026':'smt'}},
+ /* el mapa: con esto puesto, el técnico comparte su posición con el cliente desde «Voy» hasta que llega, y el cliente la ve
+    sobre el mapa de «teselas». Sin «mapa», no se comparte nada. El servidor gratuito de OpenStreetMap vale para una demo;
+    un negocio en marcha necesita un proveedor de mapas o un servidor propio (lo dice su política de uso). */
+ mapa:{teselas:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',firma:'© OpenStreetMap',firmaUrl:'https://www.openstreetmap.org/copyright'},
+ /* citas sin prisa: las franjas de los días laborables. Cuántas caben en cada una sale de los horarios de arriba */
+ franjas:[{id:'f1',de:480,a:660},{id:'f2',de:660,a:840},{id:'f3',de:900,a:1080},{id:'f4',de:1080,a:1200}],
+ /* el catálogo. u: lleva el recargo de urgencia · mat: es material · un: 'h' se cuenta por horas ·
+    extra: no es una pieza para arreglar la avería (un aparato nuevo): aunque sea una urgencia, tiene desistimiento */
+ catalogo:{
+  desp:{t:'Desplazamiento en Barcelona',p10:30,u:1},
+  urge:{t:'Servicio urgente: salimos en el momento',p10:30},
+  mo:{t:'Mano de obra',p10:45,u:1,un:'h',min:1,paso:.25},
+  desatasco:{t:'Desatasco manual, con desplazamiento',p10:65,u:1,base:'fon-desatasco',dur:[30,60]},
+  maquina:{t:'Máquina desatascadora',p10:55,u:1,dur:[20,40]},
+  cisterna:{t:'Ajuste o cambio de mecanismo, con desplazamiento',p10:55,u:1,base:'fon-cisterna-ajustar',dur:[20,45]},
+  grifo:{t:'Cambio o reparación de grifo, con desplazamiento',p10:50,u:1,base:'fon-grifo-cambiar',dur:[30,60]},
+  juntas:{t:'Juntas y racores',p10:12,mat:1},
+  sellador:{t:'Teflón y sellador',p10:8,mat:1},
+  latig:{t:'Latiguillos, el par',p10:12,mat:1},
+  llave:{t:'Llave de escuadra',p10:18,mat:1},
+  sifon:{t:'Sifón',p10:14,mat:1},
+  tubo:{t:'Tramo de tubería, hasta 1 m',p10:35,mat:1},
+  mecanismo:{t:'Mecanismo de cisterna',p10:35,mat:1},
+  valvula:{t:'Válvula de seguridad',p10:15,mat:1},
+  termostato:{t:'Termostato',p10:22,mat:1},
+  resistencia:{t:'Resistencia',p10:38,mat:1},
+  grifon:{t:'Grifo monomando',p10:35,mat:1},
+  termo80:{t:'Termo eléctrico de 80 litros, instalado',p21:390,mat:1,extra:1,base:'fon-termo',dur:[90,180]},
+  revinst:{t:'Revisión de la instalación',p10:45,base:'fon-revision',dur:[40,75],cada:12}},
+ /* la furgoneta: lo que lleva siempre cada una, [mínimo, máximo]. Solo cuenta en la de quien lleva la cuenta en la app (lo decide
+    cada técnico). Lo que baja del mínimo sale para reponer hasta el máximo. Si alguien lleva otra cosa, se le pone la suya en su ficha */
+ furgoneta:{juntas:[6,12],sellador:[2,4],latig:[4,8],llave:[3,6],sifon:[2,4],tubo:[2,4],mecanismo:[2,4],valvula:[2,4],termostato:[1,2],resistencia:[1,2],grifon:[1,2]},
+ /* las averías: min y max dan el «de cuánto a cuánto» de la web; ini es el presupuesto que sale ya puesto en la puerta */
+ averias:[
+  {id:'fuga',n:'Fuga de agua',c:'Fuga',d:'Tubería, llave de paso o latiguillo.',mientras:'Si sale agua, cierra la llave de paso. Si hay agua cerca de enchufes, baja el diferencial del cuadro de la luz.',min:[{k:'desp'},{k:'mo',q:1}],max:[{k:'desp'},{k:'mo',q:2},{k:'juntas'},{k:'sellador'}],dur:[45,120],ini:[{k:'desp'},{k:'mo',q:1},{k:'juntas'}],chips:['sellador','latig','llave','tubo']},
+  {id:'atasco',n:'Atasco',c:'Atasco',d:'Fregadero, lavabo, ducha o inodoro.',mientras:'No eches productos desatascadores: pueden estropear la tubería y salpicar a quien lo arregle.',min:[{k:'desatasco'}],max:[{k:'desatasco'},{k:'maquina'}],dur:[30,90],ini:[{k:'desatasco'}],chips:['maquina','sifon']},
+  {id:'termo',n:'Sin agua caliente',c:'Termo',d:'Termo eléctrico que no calienta o pierde.',mientras:'Si el termo pierde agua, ciérrale la llave de entrada y desenchúfalo.',min:[{k:'desp'},{k:'mo',q:1},{k:'valvula'}],max:[{k:'desp'},{k:'mo',q:2},{k:'resistencia'},{k:'termostato'}],dur:[60,150],ini:[{k:'desp'},{k:'mo',q:1}],chips:['valvula','termostato','resistencia','termo80']},
+  {id:'cisterna',n:'Cisterna que pierde',c:'Cisterna',d:'No para de correr el agua o no carga.',mientras:'Cierra la llave de la cisterna (detrás o debajo) para que no siga corriendo el agua.',min:[{k:'cisterna'}],max:[{k:'cisterna'},{k:'mecanismo'}],dur:[30,75],ini:[{k:'cisterna'}],chips:['mecanismo','latig','llave']},
+  {id:'grifo',n:'Grifo que gotea',c:'Grifo',d:'Gotea, está duro o hay que cambiarlo.',mientras:'Si gotea mucho, cierra la llave que tiene debajo.',min:[{k:'grifo'}],max:[{k:'grifo'},{k:'latig'},{k:'llave'}],dur:[30,60],ini:[{k:'grifo'}],chips:['latig','llave','grifon']},
+  {id:'otra',n:'Otra avería',c:'Otra',d:'Cuéntanos qué pasa.',mientras:'Si sale agua, cierra la llave de paso. Si hay agua cerca de enchufes, baja el diferencial del cuadro de la luz.',min:[{k:'desp'},{k:'mo',q:1}],max:null,dur:[45,120],ini:[{k:'desp'},{k:'mo',q:1}],chips:['juntas','sellador','latig','llave','sifon','tubo']}],
+ /* el mantenimiento: la cuota al año que vende el negocio. La revisión no sale en la lista de averías de la web: la pide el
+    cliente desde su zona, con cita, con el contrato o suelta (19-11-2026), o la crea la oficina.
+    En cada plan: «precio», al año y con el IVA dentro; «desp», lo que no se cobra en una urgencia; «rev», la revisión incluida
+    (en su aviso tampoco se cobra el desplazamiento); «revisiones», cuántas al año; «prioridad», sus avisos van primero. */
+ mantenimiento:{
+  revision:{n:'Revisión de la instalación',c:'Revisión',d:'La revisión de toda la instalación: la del contrato o una suelta.',dur:[40,75],ini:[{k:'desp'},{k:'revinst'}],chips:['juntas','sellador','latig','llave','valvula','termostato']},
+  planes:[{id:'anual',n:'Mantenimiento anual',precio:120,iva:21,revisiones:1,desp:'desp',rev:'revinst',prioridad:1}]},
+ /* lo de este negocio en catalán y en inglés, para lo que ve el cliente (la cita, su zona y sus papeles). En cada fila:
+    el texto en castellano tal cual está arriba, el catalán y el inglés. Lo que falte sale en castellano. Lo común de las
+    pantallas ya va traducido (js/oficio-idioma.js) */
+ textos:[
+  ['Taller en Sants, Barcelona','Taller a Sants, Barcelona','Workshop in Sants, Barcelona'],
+  ['Furgoneta blanca con el logo de Ramírez','Furgoneta blanca amb el logo de Ramírez','White van with the Ramírez logo'],
+  ['Fuga de agua','Fuita d’aigua','Water leak'],
+  ['Atasco','Embús','Blockage'],
+  ['Sin agua caliente','Sense aigua calenta','No hot water'],
+  ['Cisterna que pierde','Cisterna que perd','Leaking cistern'],
+  ['Grifo que gotea','Aixeta que goteja','Dripping tap'],
+  ['Otra avería','Una altra avaria','Another problem'],
+  ['Desplazamiento en Barcelona','Desplaçament a Barcelona','Call-out within Barcelona'],
+  ['Servicio urgente: salimos en el momento','Servei urgent: sortim al moment','Emergency service: we leave straight away'],
+  ['Mano de obra','Mà d’obra','Labour'],
+  ['Desatasco manual, con desplazamiento','Desembús manual, amb desplaçament','Manual unblocking, call-out included'],
+  ['Máquina desatascadora','Màquina desembussadora','Drain-clearing machine'],
+  ['Ajuste o cambio de mecanismo, con desplazamiento','Ajust o canvi de mecanisme, amb desplaçament','Mechanism adjustment or replacement, call-out included'],
+  ['Cambio o reparación de grifo, con desplazamiento','Canvi o reparació d’aixeta, amb desplaçament','Tap replacement or repair, call-out included'],
+  ['Juntas y racores','Juntes i ràcords','Seals and fittings'],
+  ['Teflón y sellador','Tefló i segellador','PTFE tape and sealant'],
+  ['Latiguillos, el par','Flexos, el parell','Flexi hoses, per pair'],
+  ['Llave de escuadra','Clau d’escaire','Angle valve'],
+  ['Sifón','Sifó','Trap'],
+  ['Tramo de tubería, hasta 1 m','Tram de canonada, fins a 1 m','Pipe section, up to 1 m'],
+  ['Mecanismo de cisterna','Mecanisme de cisterna','Cistern mechanism'],
+  ['Válvula de seguridad','Vàlvula de seguretat','Safety valve'],
+  ['Termostato','Termòstat','Thermostat'],
+  ['Resistencia','Resistència','Heating element'],
+  ['Grifo monomando','Aixeta monocomandament','Single-lever tap'],
+  ['Termo eléctrico de 80 litros, instalado','Termo elèctric de 80 litres, instal·lat','80-litre electric water heater, installed'],
+  ['Revisión de la instalación','Revisió de la instal·lació','Installation inspection'],
+  ['Mantenimiento anual','Manteniment anual','Annual maintenance'],
+  ['Si sale agua, cierra la llave de paso. Si hay agua cerca de enchufes, baja el diferencial del cuadro de la luz.','Si surt aigua, tanca la clau de pas. Si hi ha aigua a prop d’endolls, abaixa el diferencial del quadre de la llum.','If water is coming out, turn off the stopcock. If there’s water near sockets, switch off the main breaker in the fuse box.'],
+  ['Si el termo pierde agua, ciérrale la llave de entrada y desenchúfalo.','Si el termo perd aigua, tanca-li la clau d’entrada i desendolla’l.','If the water heater is leaking, turn off its inlet valve and unplug it.'],
+  ['No eches productos desatascadores: pueden estropear la tubería y salpicar a quien lo arregle.','No hi tiris productes desembussadors: poden fer malbé la canonada i esquitxar qui ho arregli.','Don’t pour in drain cleaners: they can damage the pipe and splash whoever fixes it.'],
+  ['Cierra la llave de la cisterna (detrás o debajo) para que no siga corriendo el agua.','Tanca la clau de la cisterna (al darrere o a sota) perquè l’aigua no continuï corrent.','Turn off the cistern’s valve (behind or underneath) so the water stops running.'],
+  ['Si gotea mucho, cierra la llave que tiene debajo.','Si goteja molt, tanca la clau que té a sota.','If it drips a lot, turn off the valve underneath it.']]
+};
+
+/* ---------- los avisos de muestra de la demo, siempre recientes ---------- */
+const FIRMA='M14 78C30 70 44 34 50 14 54 44 44 86 26 96M52 62C64 66 80 58 90 48 84 66 86 80 98 76 108 72 114 54 118 46 118 62 122 72 132 70 144 68 150 50 156 38 156 52 156 66 166 66 178 66 188 42 194 26';
+g.OFICIO_MUESTRA=function(K,cfg,ahora){
+ const S=K.nuevo(),M=60000,H=3600000,D=86400000,C={rol:'centralita',id:'marta'},T=id=>({rol:'tecnico',id});
+ const haz=(a,q,t)=>{const r=K.aplicar(S,cfg,a,q,t);if(!r.ok)throw new Error('muestra: '+a.tipo+' → '+r.err);return r};
+ const pide=(t,av,cli,mas)=>haz(Object.assign({tipo:'pedir',av,cli},mas),{rol:'cliente'},t).id;
+ /* un trabajo completo: pedir, asignar, ir, firmar el precio, terminar */
+ const completo=(t,av,cli,tec,lineas,modo,min,nota)=>{const id=pide(t,av,cli,{origen:'llamada',nota});
+  haz({tipo:'asignar',id,tec},C,t+4*M);haz({tipo:'voy',id},T(tec),t+9*M);
+  haz({tipo:'empezar',id,pres:{lineas,firma:FIRMA}},T(tec),t+38*M);haz({tipo:'terminar',id,modo,firma:FIRMA},T(tec),t+(38+min)*M);
+  S.avisos.find(a=>a.id===id).msgs.forEach(m=>{if(m.k==='hecho'||m.k==='recibido'||m.k==='camino'||(m.k==='resena'&&m.t<ahora))m.env=m.t});return id};
+ const elvira={nombre:'Elvira',apellidos:'Casas',tel:'600 00 01 12',dir:'C/ Aragó 214, 4.º 2.ª',cp:'08011'};
+
+ /* hace once meses: la revisión de la instalación de Jaume. Dijo que sí a que le avisemos cuando toque la siguiente:
+ el mensaje ya toca mandarlo (sale un mes antes) */
+ S.n=84;
+ {const t=ahora-337*D,id=pide(t,'otra',{nombre:'Jaume',apellidos:'Ferrer',tel:'600 00 01 05',dir:'C/ de Provença 180, 1.º 1.ª',cp:'08036'},{origen:'llamada',nota:'Quiero que me revisen toda la instalación del piso.'});
+  haz({tipo:'asignar',id,tec:'omar'},C,t+4*M);haz({tipo:'voy',id},T('omar'),t+9*M);haz({tipo:'empezar',id,pres:{lineas:[{k:'desp'},{k:'revinst'}],firma:FIRMA}},T('omar'),t+38*M);
+  haz({tipo:'terminar',id,modo:'bizum',firma:FIRMA,avisar:true},T('omar'),t+98*M);haz({tipo:'facturar',id,num:'2025-0388'},C,t+D);
+  S.avisos.find(a=>a.id===id).msgs.forEach(m=>{if(m.k!=='proxima')m.env=m.t+20*M})}
+ /* hace siete meses: la cisterna de Elvira. Sigue en garantía */
+ S.n=97;let cis='';
+ {const id=cis=completo(ahora-212*D,'cisterna',elvira,'jordi',[{k:'cisterna'},{k:'mecanismo'}],'tarjeta',35,'Pierde agua sin parar.');
+  haz({tipo:'facturar',id,num:'2026-0412'},C,ahora-211*D)}   /* y su factura, hecha con el programa del negocio */
+ /* hace una semana: el desatasco de Pere. Hoy toca preguntarle si sigue todo bien (el seguimiento) */
+ S.n=131;
+ {const id=completo(ahora-7*D-5*H,'atasco',{nombre:'Pere',apellidos:'Roca',tel:'600 00 01 31',dir:'C/ de Còrsega 255, 5.º 2.ª',cp:'08036'},'laia',[{k:'desatasco'}],'efectivo',45,'La bañera no traga.');
+  haz({tipo:'facturar',id,num:'2026-0431'},C,ahora-6*D)}
+ /* hace tres días: el termo nuevo que Lluïsa no aceptó. Solo pagó el desplazamiento; hoy toca preguntarle por el presupuesto */
+ S.n=135;
+ {const t=ahora-3*D-4*H,id=pide(t,'termo',{nombre:'Lluïsa',apellidos:'Mas',tel:'600 00 01 35',dir:'C/ del Consell de Cent 402, 2.º 1.ª',cp:'08009'},{origen:'llamada',nota:'El termo es muy viejo y no calienta.'});
+  haz({tipo:'asignar',id,tec:'jordi'},C,t+4*M);haz({tipo:'voy',id},T('jordi'),t+9*M);
+  haz({tipo:'noacepta',id,modo:'tarjeta',pres:{lineas:[{k:'desp'},{k:'mo',q:1.5},{k:'termo80'}]}},T('jordi'),t+40*M);haz({tipo:'facturar',id,num:'2026-0435'},C,t+D);
+  S.avisos.find(a=>a.id===id).msgs.forEach(m=>{if(m.k!=='presupuesto')m.env=m.t+5*M})}
+ /* ayer: un termo, por transferencia. Queda por cobrar */
+ S.n=138;
+ completo(ahora-26*H,'termo',{nombre:'Andreu',apellidos:'Soler',tel:'600 00 01 39',dir:'C/ de Sants 131, 1.º 3.ª',cp:'08014'},'jordi',[{k:'desp'},{k:'mo',q:1.5},{k:'termostato'}],'pendiente',85,'El termo no calienta desde ayer.');
+ /* hoy: un atasco ya hecho y cobrado con tarjeta */
+ completo(ahora-190*M,'atasco',{nombre:'Carmen',apellidos:'Ortiz',tel:'600 00 01 40',dir:'C/ Mallorca 310, 3.º 1.ª',cp:'08037'},'omar',[{k:'desatasco'}],'tarjeta',40,'El fregadero no traga.');
+ /* hace diez días Laia empezó a llevar la cuenta de su furgoneta (Omar y Jordi, no): lo que contó y lo que cargó anteayer.
+    Le quedan pocas llaves de escuadra y un solo tramo de tubo: salen para reponer */
+ {const t=ahora-10*D;haz({tipo:'furgo',tec:'laia',llevar:true},T('laia'),t);
+  haz({tipo:'furgo',tec:'laia',cuenta:{juntas:8,sellador:3,latig:4,llave:2,sifon:2,tubo:1,mecanismo:3,valvula:2,termostato:1,grifon:1}},T('laia'),t+2*M);
+  haz({tipo:'furgo',tec:'laia',carga:{latig:2,resistencia:1}},T('laia'),ahora-2*D-15*H)}
+ /* ahora mismo: Laia está con un grifo */
+ {const t=ahora-52*M,id=pide(t,'grifo',{nombre:'Núria',apellidos:'Puig',tel:'600 00 01 41',dir:'Rambla del Poblenou 62, 3.º 2.ª',cp:'08005'},{origen:'llamada',nota:'Gotea el grifo de la cocina.'});
+  haz({tipo:'asignar',id,tec:'laia'},C,t+3*M);haz({tipo:'voy',id},T('laia'),t+6*M);haz({tipo:'empezar',id,pres:{lineas:[{k:'grifo'},{k:'latig'}],firma:FIRMA}},T('laia'),t+34*M);
+  S.avisos.find(a=>a.id===id).msgs.forEach(m=>{m.env=m.t})}
+ /* una cita para el próximo día laborable: la cisterna de Elvira otra vez. La pidió desde su zona con «Ha vuelto a fallar»:
+    la oficina ve que dice que es el trabajo que sigue en garantía y decide al verlo */
+ {const dias=K.diasDe(S,cfg,ahora-3*H,3),d=dias.find(x=>!x.hoy)||dias[0],fr=d.franjas.find(f=>f.ok&&f.id==='f2')||d.franjas.find(f=>f.ok);
+  pide(ahora-3*H,'cisterna',elvira,{origen:'cita',cita:{dia:d.dia,fr:fr.id},nota:'Vuelve a perder un poco de agua.',garDe:cis})}
+ /* y la urgencia que acaba de entrar: una fuga en Gràcia */
+ pide(ahora-6*M,'fuga',{nombre:'Montse',apellidos:'Vila',tel:'600 00 01 43',dir:'C/ Verdi 28, 2.º 1.ª',cp:'08012'},{origen:'llamada',nota:'Sale agua por debajo del fregadero. He cerrado la llave de paso.'});
+ /* y una cita de dentro de unos días, ya con técnico: el grifo del baño de Pere, pedido ayer en la web. Como faltan más de 24
+    horas, en su zona puede cambiarla o cancelarla él mismo (19-11-2026). Por la tarde y al quinto día con cita: lejos de lo que
+    se pide y se reparte en los primeros días */
+ {const t=ahora-20*H,dias=K.diasDe(S,cfg,t,6).filter(x=>!x.hoy),d=dias[Math.min(4,dias.length-1)],fr=d.franjas.find(f=>f.ok&&f.id==='f3')||d.franjas.find(f=>f.ok);
+  const id=pide(t,'grifo',{nombre:'Pere',apellidos:'Roca',tel:'600 00 01 31',dir:'C/ de Còrsega 255, 5.º 2.ª',cp:'08036'},{origen:'cita',cita:{dia:d.dia,fr:fr.id},nota:'El grifo del baño gotea.'});
+  haz({tipo:'asignar',id,tec:'jordi'},C,t+40*M);S.avisos.find(a=>a.id===id).msgs.forEach(m=>{if(m.t<=ahora)m.env=m.t+5*M})}
+ S.v=1;return S};
+})(typeof globalThis!=='undefined'?globalThis:this);

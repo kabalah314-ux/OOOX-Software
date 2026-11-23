@@ -1,0 +1,16 @@
+{
+  "video": "../../originales/flow-2026-11-13/entrada-v-omni12flash-360p-intento1.mp4",
+  "primera": "../../originales/flow-2026-11-13/llega-v.jpg",
+  "ultima": "../../originales/flow-2026-11-13/finalV2.jpg",
+  "salida": "salida/entrada-v",
+  "ancho": 720,
+  "alto": 1280,
+  "fps": 30,
+  "velocidad": [[0, 2.0], [1.6, 2.0], [3.0, 1.25], [7.2, 1.25], [7.3, 2.0]],
+  "rotulos": [[132, 338, 171, 365]],
+  "rotulo_igual": 0.9,
+  "rotulo_espera": 1,
+  "rotulo_rampa": 3,
+  "cola_corta": 10,
+  "crf": 25.5
+}
