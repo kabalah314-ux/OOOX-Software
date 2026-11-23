@@ -549,6 +549,6 @@ details[open]>summary.cs::after,.mdet[open]>summary::after{transform:rotate(-135
 <script src="js/app/acciones.js"></script>
 <script src="js/app/eventos.js"></script>
 <script src="js/app/arranque.js"></script>
-<script>(function(){if(!window.__prepara){window.__arranca();return}requestAnimationFrame(()=>{window.__pinto=performance.now();setTimeout(window.__arranca,0)})})();</script>
+<script>(function(){if(!window.__prepara){window.__arranca();return}let ya=0;const va=()=>{if(ya++)return;window.__pinto=performance.now();setTimeout(window.__arranca,0)};requestAnimationFrame(va);setTimeout(va,600)})();</script>   <!-- en una pestaña en segundo plano no hay fotogramas: sin el plazo de 600 ms se quedaba en «Preparando la demo…» (23-11-2026) -->
 </body>
 </html>
