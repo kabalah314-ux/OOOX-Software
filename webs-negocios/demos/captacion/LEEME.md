@@ -79,3 +79,12 @@ ordenador. Desde hoy `tanda.py` escribe la clave de cada carta en la columna «C
 también valen (la clave sale del enlace de «Su muestra»).
 
 Ojo: la demo pública solo cuenta cuando esta rama esté publicada (en `main`).
+
+## Captar en línea: la lista de llamadas (24-11-2026)
+
+Para empezar el mismo día sin esperar al correo: abre `llamadas.html` (doble clic) y elige la `hoja.csv` de la tanda.
+Sale una ficha por negocio con «Llamar», su demo, Maps e Instagram, el guion de un minuto y un estado con notas que se
+guarda en ese navegador. Si en la llamada dice que sí, «WhatsApp (ya dijo que sí)» o «Correo (ya dijo que sí)» abren el
+mensaje ya escrito con su enlace; lo mandas tú. «Bajar la hoja al día» da otra hoja.csv con estados y notas.
+El orden importa: primero la llamada y su permiso, después el mensaje (en España, mandar publicidad por WhatsApp o correo
+sin permiso choca con la LSSI). El contador de las cartas cuenta también a quien abre el enlace desde el WhatsApp.

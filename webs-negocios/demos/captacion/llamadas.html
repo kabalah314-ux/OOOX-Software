@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Llamadas de la tanda · OOOX Oficios</title>
+<!-- LA LISTA DE LLAMADAS (24-11-2026): para captar en línea sin esperar al correo. Se abre en el ordenador de Oscar (doble
+     clic) y se le da la hoja de una tanda (hoja.csv, la de tanda.py). Nada sale del ordenador: la hoja se lee aquí y lo que
+     apuntas (estado, notas) se guarda en este navegador. Al acabar, «Bajar la hoja al día» da otra hoja.csv con lo apuntado.
+     El orden que se propone: primero se llama; si dice que sí, se le manda su demo por WhatsApp o por correo con el texto ya
+     escrito (lo mandas tú, desde tu teléfono o tu correo). Mandar publicidad por WhatsApp o correo sin haberlo pedido no es
+     buena idea en España (LSSI): por eso el botón dice «después de que diga que sí». -->
+<style>
+:root{--papel:#f7f5f0;--tinta:#1c1b19;--gris:#6a655c;--linea:#e1dcd1;--ok:#1f6b4a;--aviso:#9a5b00;--no:#9b2c1f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:28px 18px 70px}
+h1{font-size:1.55rem;margin:0 0 4px}
+h2{font-size:1.05rem;margin:26px 0 8px}
+p{margin:0 0 10px;max-width:72ch}
+.gris{color:var(--gris)}
+.barra{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 18px}
+label.archivo,button,a.boton{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border:1px solid var(--tinta);border-radius:8px;background:#fff;color:var(--tinta);font:inherit;cursor:pointer;text-decoration:none}
+button.pri,a.pri{background:var(--tinta);color:#fff}
+label.archivo:focus-within,button:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #7aa7ff;outline-offset:2px}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0}
+details{background:#fff;border:1px solid var(--linea);border-radius:10px;padding:10px 14px;margin:0 0 12px}
+summary{cursor:pointer;font-weight:600}
+.guion p{margin:6px 0}
+.cuenta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.cuenta span{background:#fff;border:1px solid var(--linea);border-radius:999px;padding:4px 11px;font-size:.88rem}
+.fichas{display:grid;gap:10px}
+.ficha{background:#fff;border:1px solid var(--linea);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px 22px}
+.ficha.hecha{opacity:.62}
+.ficha h3{margin:0;font-size:1.05rem}
+.ficha .zona{font-size:.86rem;color:var(--gris)}
+.ficha .por{font-size:.88rem;margin-top:4px}
+.acc{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.acc a,.acc button{padding:6px 10px;font-size:.9rem}
+.estado select,.estado textarea{width:100%;font:inherit;padding:6px 8px;border:1px solid var(--linea);border-radius:8px;background:#fff}
+.estado textarea{min-height:58px;margin-top:6px;resize:vertical}
+.estado small{display:block;color:var(--gris);margin-top:4px}
+.e-interesa{border-color:var(--ok)} .e-no{border-color:var(--no)} .e-volver{border-color:var(--aviso)}
+@media (max-width:760px){.ficha{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>Llamadas de la tanda</h1>
+<p class="gris">Elige la <code>hoja.csv</code> de una tanda. La hoja no sale de este ordenador; lo que apuntes se guarda en este navegador.</p>
+<div class="barra">
+ <label class="archivo">Elegir la hoja de la tanda<input type="file" id="hoja" accept=".csv,text/csv"></label>
+ <button type="button" id="baja" hidden>Bajar la hoja al día</button>
+ <label class="gris" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="ocultar"> Ocultar los ya cerrados</label>
+</div>
+
+<details class="guion">
+<summary>El guion de la llamada (1 minuto)</summary>
+<p><b>1. Presentarte.</b> «Hola, ¿hablo con [negocio]? Soy Oscar, de OOOX, en Barcelona. Te robo un minuto.»</p>
+<p><b>2. Por qué ellos.</b> «He visto que tenéis [lo de «Por qué»: reseñas, urgencias…] y os he preparado una cosa con vuestro nombre.»</p>
+<p><b>3. Qué es.</b> «Es una web donde vuestros clientes piden cita solos, con los huecos reales de vuestros técnicos, y una app para repartir los avisos, hacer partes con firma y cobrar desde el móvil.»</p>
+<p><b>4. La oferta.</b> «Os la dejo probar una semana gratis con vuestros datos y, si os gusta, el primer mes de la app también es gratis.»</p>
+<p><b>5. El permiso.</b> «¿Te la mando por WhatsApp a este número para que la veas con calma?» → si dice que sí, pulsa «WhatsApp (ya dijo que sí)» y apúntalo.</p>
+<p><b>Si no puede ahora:</b> «¿Cuándo te va mejor que te llame?» → estado «Volver a llamar» y la hora en las notas.</p>
+<p><b>Si no le interesa:</b> «Gracias por tu tiempo, que vaya bien» → estado «No le interesa». No se insiste.</p>
+</details>
+
+<div id="sale"></div>
+</main>
+<script>
+const ESTADOS=[['','Por llamar'],['nocontesta','No contesta'],['volver','Volver a llamar'],['mandada','Le mandé su demo'],['interesa','Le interesa'],['reunion','Cita para enseñársela'],['cliente','¡Cliente!'],['no','No le interesa']];
+const CERRADOS=['no','cliente'],CLASE={interesa:'e-interesa',reunion:'e-interesa',cliente:'e-interesa',no:'e-no',volver:'e-volver'};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function csv(t){t=t.replace(/^﻿/,'');const F=[];let f=[],c='',q=false;
+ for(let i=0;i<t.length;i++){const x=t[i];
+  if(q){if(x==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=x;continue}
+  if(x==='"')q=true;else if(x===';'){f.push(c);c=''}else if(x==='\n'){f.push(c.replace(/\r$/,''));F.push(f);f=[];c=''}else c+=x}
+ if(c||f.length){f.push(c);F.push(f)}
+ const cab=F.shift()||[];return{cab,filas:F.filter(r=>r.length>1).map(r=>Object.fromEntries(cab.map((k,i)=>[k,r[i]||''])))}}
+const aCsv=(cab,filas)=>'﻿'+[cab,...filas.map(r=>cab.map(k=>r[k]||''))].map(r=>r.map(v=>/[;"\n]/.test(v)?'"'+String(v).replace(/"/g,'""')+'"':v).join(';')).join('\r\n')+'\r\n';
+const tel=t=>String(t||'').replace(/[^\d+]/g,'').replace(/^\+?34/,'');
+const movil=t=>/^[67]\d{8}$/.test(tel(t));
+const hoy=()=>new Date().toLocaleDateString('es-ES');
+let H=null,clave='';
+const mem={get(){try{return JSON.parse(localStorage.getItem(clave))||{}}catch(e){return{}}},set(v){try{localStorage.setItem(clave,JSON.stringify(v))}catch(e){}}};
+function textoWa(r){return 'Hola, soy Oscar, de OOOX. Como hemos hablado por teléfono, aquí tienes la demo que he preparado para '+(r['En la carta']||r['Negocio'])+': tu web con citas online y la app para repartir los avisos entre tus técnicos, hacer los partes con firma y cobrar desde el móvil. Ábrela desde el móvil: '+r['Su muestra']+'\n\nLa puedes probar una semana gratis con tus datos y, si te gusta, el primer mes de la app también es gratis. Cualquier duda, me dices por aquí.'}
+function textoMail(r){return{asunto:'La demo para '+(r['En la carta']||r['Negocio'])+' (OOOX)',cuerpo:'Hola:\n\nComo hemos hablado por teléfono, te paso la demo que he preparado para '+(r['En la carta']||r['Negocio'])+': la web con citas online y la app para repartir los avisos entre tus técnicos, hacer los partes con firma y cobrar desde el móvil.\n\nÁbrela aquí, mejor desde el móvil:\n'+r['Su muestra']+'\n\nLa puedes probar una semana gratis con tus datos y, si te gusta, el primer mes de la app también es gratis.\n\nUn saludo,\nOscar\nOOOX · ooox.es'}}
+function pinta(){
+ const S=mem.get(),oc=document.getElementById('ocultar').checked;
+ const cuenta={};for(const r of H.filas){const e=(S[r.Orden]||{}).e||'';cuenta[e]=(cuenta[e]||0)+1}
+ let h='<div class="cuenta">'+ESTADOS.filter(([k])=>cuenta[k]).map(([k,n])=>'<span>'+esc(n)+': <b>'+cuenta[k]+'</b></span>').join('')+'</div><div class="fichas">';
+ for(const r of H.filas){const s=S[r.Orden]||{},e=s.e||'';if(oc&&CERRADOS.includes(e))continue;
+  const t=tel(r['Teléfono']),m=textoMail(r);
+  h+='<article class="ficha '+(CERRADOS.includes(e)?'hecha':'')+'" data-o="'+esc(r.Orden)+'"><div>'
+   +'<h3>'+esc(r.Orden)+'. '+esc(r['En la carta']||r['Negocio'])+'</h3><div class="zona">'+esc(r['Zona'])+(r['Dirección']?' · '+esc(r['Dirección']):'')+'</div>'
+   +'<div class="por">'+esc(r['Por qué'])+'</div><div class="acc">'
+   +(t?'<a class="boton pri" href="tel:+34'+esc(t)+'">Llamar · '+esc(t.replace(/(\d{3})(\d{3})(\d{3})/,'$1 $2 $3'))+'</a>':'<span class="gris">sin teléfono</span>')
+   +(t&&movil(t)?'<a class="boton" target="_blank" rel="noopener" data-paso="mandada" href="https://wa.me/34'+esc(t)+'?text='+encodeURIComponent(textoWa(r))+'">WhatsApp (ya dijo que sí)</a>':'')
+   +(r['Correo']?'<a class="boton" data-paso="mandada" href="mailto:'+esc(r['Correo'])+'?subject='+encodeURIComponent(m.asunto)+'&body='+encodeURIComponent(m.cuerpo)+'">Correo (ya dijo que sí)</a>':'')
+   +'<a class="boton" target="_blank" rel="noopener" href="'+esc(r['Su muestra'])+'">Su demo</a>'
+   +(r['Maps']?'<a class="boton" target="_blank" rel="noopener" href="'+esc(r['Maps'])+'">Maps</a>':'')
+   +(r['Instagram']&&/^https?:/.test(r['Instagram'])?'<a class="boton" target="_blank" rel="noopener" href="'+esc(r['Instagram'])+'">Instagram</a>':'')
+   +'</div></div><div class="estado"><select aria-label="Cómo va con '+esc(r['En la carta']||r['Negocio'])+'" class="'+(CLASE[e]||'')+'">'
+   +ESTADOS.map(([k,n])=>'<option value="'+k+'"'+(k===e?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select>'
+   +'<textarea placeholder="Notas: con quién hablaste, cuándo volver a llamar…" aria-label="Notas de '+esc(r['En la carta']||r['Negocio'])+'">'+esc(s.n||'')+'</textarea>'
+   +(s.f?'<small>Último cambio: '+esc(s.f)+'</small>':'')+'</div></article>'}
+ document.getElementById('sale').innerHTML=h+'</div>';
+}
+function apunta(o,cambio){const S=mem.get();S[o]=Object.assign({},S[o],cambio,{f:hoy()});mem.set(S)}
+document.getElementById('sale').addEventListener('change',e=>{const f=e.target.closest('.ficha');if(!f)return;
+ if(e.target.tagName==='SELECT'){apunta(f.dataset.o,{e:e.target.value});pinta()}});
+document.getElementById('sale').addEventListener('input',e=>{const f=e.target.closest('.ficha');if(f&&e.target.tagName==='TEXTAREA')apunta(f.dataset.o,{n:e.target.value})});
+document.getElementById('sale').addEventListener('click',e=>{const a=e.target.closest('[data-paso]');const f=a&&a.closest('.ficha');if(!f)return;
+ const S=mem.get();if(!(S[f.dataset.o]||{}).e||(S[f.dataset.o]||{}).e==='volver'){apunta(f.dataset.o,{e:'mandada'});setTimeout(pinta,300)}});
+document.getElementById('ocultar').addEventListener('change',()=>H&&pinta());
+document.getElementById('hoja').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;
+ try{H=csv(await f.text());if(!H.filas.length||!('Su muestra' in H.filas[0]))throw new Error('Esta no parece la hoja.csv de tanda.py.');
+  clave='ooox:llamadas:'+(H.filas[0]['Hasta']||'')+':'+H.filas.length+':'+(H.filas[0]['Negocio']||'');
+  document.getElementById('baja').hidden=false;pinta()}
+ catch(err){document.getElementById('sale').innerHTML='<p style="color:var(--no);font-weight:600">'+esc(err.message||err)+'</p>'}});
+document.getElementById('baja').addEventListener('click',()=>{if(!H)return;const S=mem.get(),nombres=Object.fromEntries(ESTADOS);
+ const filas=H.filas.map(r=>{const s=S[r.Orden];if(!s)return r;const x=Object.assign({},r);
+  if(s.e)x['Estado']=nombres[s.e];if(s.n)x['Notas']=s.n;if(s.e==='mandada'&&!x['Permiso (cómo y cuándo)'])x['Permiso (cómo y cuándo)']='por teléfono, '+(s.f||'');return x});
+ const b=new Blob([aCsv(H.cab,filas)],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='hoja-al-dia.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)});
+</script>
+</body>
+</html>
