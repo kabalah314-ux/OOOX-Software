@@ -214,7 +214,10 @@ function vNuevo() {
       '</textarea></div>' +
       (B.err && !NP_DE[B.err] ? '<p class="err" style="color:var(--mal)" role="alert">' + (ERR[B.err] || 'No se ha podido crear el aviso.') + '</p>' : '');
   }
+  /* en pantalla grande (desde 1.100 px, 24-11-2026), al lado de los pasos: el equipo ahora, para saber quién podría ir
+     mientras se habla con el cliente. En el móvil no sale. */
   return (
+    '<div class="dosc"><div>' +
     cab +
     '<form class="form" id="fNuevo" data-paso="' +
     p +
@@ -222,6 +225,8 @@ function vNuevo() {
     h +
     '<div class="sigue"><button class="btn pri ancho" type="submit">' +
     (p === 'fin' ? 'Crear el aviso' : 'Continuar') +
-    '</button></div></form>'
+    '</button></div></form></div><aside class="ancho lado-np" aria-label="El equipo ahora"><section class="sec"><h2>El equipo ahora</h2>' +
+    tira() +
+    '</section></aside></div>'
   );
 }

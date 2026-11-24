@@ -211,7 +211,9 @@ main.dos.det>.col:last-child>*:has(+ .accion){margin-bottom:18px}
 .dosc .tareas>h2{color:var(--texto)}
 .dosc .tareas .porhacer{background:var(--asfalto)}
 .dosc .todos{margin-top:24px}
-@media (min-width:1200px){.dosc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}.dosc .tareas{position:sticky;top:20px}.dosc .todos{margin-top:22px}}
+/* dos columnas desde 1.100 px (24-11-2026): Cobros, Contratos y Nuevo aviso. Lo marcado «ancho» solo sale con sitio para las dos */
+.dosc>.ancho{display:none}
+@media (min-width:1100px){.dosc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}.dosc>.ancho{display:block;position:sticky;top:20px;padding-top:20px}.dosc .tareas{position:sticky;top:20px}.dosc>.ancho .tareas{position:static}.dosc .todos{margin-top:22px}.dosc>.ancho .todos{margin-top:0}.dosc>.ancho>.sec:first-child{margin-top:0}.dosc>.lado-np{padding-top:96px}}
 .seg a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:9px;font-weight:600;color:var(--suave);text-decoration:none}
 .seg a[aria-current]{background:var(--asfalto-3);color:var(--texto)}
 .segv{margin-top:14px}
@@ -432,6 +434,7 @@ main .sigue{margin:10px -16px 0;padding-left:16px;padding-right:16px}
  main.estrecha{max-width:760px;margin:0}
  /* Contratos: lo pendiente a un lado y la lista al otro, con sitio */
  main.estrecha:has(.dosc){max-width:1240px}
+ @media (max-width:1099px){main.estrecha:has(.dosc){max-width:760px}}
  .tecds{grid-template-columns:repeat(auto-fit,minmax(250px,1fr));align-items:start}
  .cifras{grid-template-columns:repeat(4,1fr)}
  .cifras div{border-top:0}
