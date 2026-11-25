@@ -160,6 +160,14 @@ async def main():
         await c.evaluate("document.activeElement&&document.activeElement.blur()"); await c.keyboard.press('Escape')
         await c.wait_for_function("location.hash==='#/bandeja'")
         es(True, 'atajos: Esc cierra el aviso abierto')
+        # dos columnas desde 1.100 px (24-11-2026): Cobros con la caja de hoy al lado, Contratos con «Por hacer» y la lista, y Nuevo aviso con el equipo
+        ve = "s=>{const e=document.querySelector('.dosc>.ancho');return !!e&&getComputedStyle(e).display!=='none'&&e.innerText.includes(s)}"
+        for ruta_, txt in (('#/cobros', 'Caja de hoy'), ('#/contratos/lista', 'Por hacer'), ('#/contratos/hacer', 'Los contratos'), ('#/nuevo', 'El equipo ahora')):
+            await c.evaluate(f"location.hash='{ruta_}'"); await c.wait_for_timeout(300)
+            es(await c.evaluate(ve, txt), f'dos columnas: en {ruta_}, a 1.280 px, al lado sale «{txt}»')
+        await c.set_viewport_size({'width': 1000, 'height': 860}); await c.wait_for_timeout(300)
+        es(not await c.evaluate(ve, 'El equipo ahora'), 'dos columnas: a 1.000 px, Nuevo aviso vuelve a una columna, sin el equipo al lado')
+        await c.set_viewport_size({'width': 1280, 'height': 860}); await c.evaluate("location.hash='#/bandeja'"); await c.wait_for_selector('.fila')
         # la bandeja enseña las citas sin técnico de hoy y del próximo día de trabajo; las de más adelante, la agenda de su día
         dc = await c.evaluate(f"Oficio.estado().avisos.find(a=>a.id==='{idc}').cita.dia")
         cerca = await c.evaluate(f"(()=>{{const K=Oficio.K,cfg=Oficio.cfg;let d=K.masDias(K.madrid(Date.now()).date,1);for(let i=0;i<7&&!K.laborable(cfg,d);i++)d=K.masDias(d,1);return '{dc}'<=d}})()")
@@ -270,7 +278,9 @@ async def main():
         A = await aviso(c, 'R-0139')
         es(A['pago']['cobrado'] and A['pago']['modo'] == 'transferencia', 'cobros: R-0139 cobrado por transferencia')
         await c.goto(B + 'app.html#/cobros'); await c.wait_for_selector('.fija .pestas')
-        es('Andreu Soler' not in await c.locator('main').inner_text(), 'cobros: ya no está entre los pendientes')
+        # en pantalla grande, al lado sale la caja de hoy con los últimos cobros (24-11-2026): se mira solo la columna de lo pendiente
+        es('Andreu Soler' not in await c.locator('main .dosc > div').first.inner_text(), 'cobros: ya no está entre los pendientes')
+        es(await c.evaluate("(()=>{const e=document.querySelector('.dosc>.ancho');return !e||getComputedStyle(e).display==='none'||e.innerText.includes('Andreu Soler')})()"), 'cobros: con sitio, pasa a «Últimos cobros», al lado')
         await c.click('.pestas a[href="#/cobros/facturar"]'); await c.wait_for_timeout(250)
         es('Andreu Soler' in await c.locator('main').inner_text() and await c.locator('.pestas a[href="#/cobros/facturar"][aria-current=page]').count() == 1, 'cobros: cobrado, pasa a «Por facturar» hasta que se haga su factura')
         await c.click('.pestas a[href="#/cobros/caja"]'); await c.wait_for_selector('.cifras')

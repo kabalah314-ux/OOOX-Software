@@ -23,19 +23,37 @@ function vCobros(pe) {
     pe,
     'Qué ver de los cobros'
   );
+  /* en pantalla grande (desde 1.100 px, 24-11-2026), al lado de lo que se cobra va la caja de hoy; en el móvil, no */
+  const cajaHoy = () => {
+    const U = S.avisos
+      .filter(a => a.e === 'hecho' && a.pago && a.pago.cobrado)
+      .sort((a, b) => b.pago.t - a.pago.t)
+      .slice(0, 5);
+    return (
+      '<section class="sec"><h2>Caja de hoy</h2><p class="cifra"><b class="num">' +
+      K.eur(r.caja.total) +
+      '</b>cobrado hoy</p><dl class="cifras">' +
+      ['efectivo', 'tarjeta', 'bizum', 'transferencia'].map(k => '<div><dt>' + PAGO[k] + '</dt><dd class="num">' + K.eur(r.caja[k]) + '</dd></div>').join('') +
+      '</dl></section>' +
+      (U.length ? sec('Últimos cobros', U, '', '') : '')
+    );
+  };
+  const lado = x => '<div class="dosc"><div>' + x + '</div><aside class="ancho" aria-label="La caja de hoy">' + cajaHoy() + '</aside></div>';
   if (pe === 'facturar')
     return (
       h +
-      '<div class="pcuerpo"><p class="cifra"><b class="num">' +
-      PF.length +
-      '</b>' +
-      (PF.length === 1 ? 'trabajo cobrado sin factura' : 'trabajos cobrados sin factura') +
-      '</p>' +
-      sec('Por facturar', PF, '', 'Todo lo terminado está facturado.') +
-      (PF.length
-        ? '<p class="mnota" style="margin:-4px 0 14px">Ábrelo, copia los datos, haz la factura con tu programa y toca «Marcar como facturada».</p>'
-        : '') +
-      '</div>'
+      lado(
+        '<div class="pcuerpo"><p class="cifra"><b class="num">' +
+          PF.length +
+          '</b>' +
+          (PF.length === 1 ? 'trabajo cobrado sin factura' : 'trabajos cobrados sin factura') +
+          '</p>' +
+          sec('Por facturar', PF, '', 'Todo lo terminado está facturado.') +
+          (PF.length
+            ? '<p class="mnota" style="margin:-4px 0 14px">Ábrelo, copia los datos, haz la factura con tu programa y toca «Marcar como facturada».</p>'
+            : '') +
+          '</div>'
+      )
     );
   if (pe === 'caja') {
     const U = S.avisos
@@ -44,7 +62,7 @@ function vCobros(pe) {
       .slice(0, 5);
     return (
       h +
-      '<div class="pcuerpo"><p class="cifra"><b class="num">' +
+      '<div class="pcuerpo dosc"><div><p class="cifra"><b class="num">' +
       K.eur(r.caja.total) +
       '</b>cobrado hoy</p><section class="sec"><h2>Caja de hoy</h2><dl class="cifras">' +
       ['efectivo', 'tarjeta', 'bizum', 'transferencia'].map(k => '<div><dt>' + PAGO[k] + '</dt><dd class="num">' + K.eur(r.caja[k]) + '</dd></div>').join('') +
@@ -52,21 +70,24 @@ function vCobros(pe) {
       K.eur(r.caja.total) +
       '. Las facturas las emite el programa de facturas del negocio, no esta app.</p></section>' +
       (U.length ? sec('Últimos cobros', U, '', '') : '') +
+      '</div><div>' +
       bMes() +
       bUrgMes() +
       bDeja() +
-      '</div>'
+      '</div></div>'
     );
   }
   return (
     h +
-    '<div class="pcuerpo"><p class="cifra"><b class="num">' +
-    K.eur(r.pend.total) +
-    '</b>' +
-    (r.pend.n === 1 ? 'por cobrar, de 1 trabajo' : 'por cobrar, de ' + r.pend.n + ' trabajos') +
-    '</p>' +
-    sec('Por cobrar', L, '', 'Todo lo terminado está cobrado.', { cobro: 1 }) +
-    '</div>'
+    lado(
+      '<div class="pcuerpo"><p class="cifra"><b class="num">' +
+        K.eur(r.pend.total) +
+        '</b>' +
+        (r.pend.n === 1 ? 'por cobrar, de 1 trabajo' : 'por cobrar, de ' + r.pend.n + ' trabajos') +
+        '</p>' +
+        sec('Por cobrar', L, '', 'Todo lo terminado está cobrado.', { cobro: 1 }) +
+        '</div>'
+    )
   );
 }
 /* las urgencias con suplemento cobradas este mes, y lo que es de OOOX por ellas */

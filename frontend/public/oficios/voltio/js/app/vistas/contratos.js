@@ -138,17 +138,17 @@ function vContratos() {
       k,
       'Qué ver de los contratos'
     ) + '<div class="pcuerpo">';
+  const porHacer = id =>
+    '<section class="sec tareas"><h2>Por hacer <span class="n">' +
+    al.length +
+    '</span></h2>' +
+    (al.length
+      ? '<ul class="porhacer"' + (id ? ' id="conAl"' : '') + ' aria-label="Lo que piden los contratos">' + al.join('') + '</ul>'
+      : '<p class="hueco">Nada pendiente: ni renovaciones, ni revisiones sin cita, ni cuotas por cobrar.</p>') +
+    '</section>';
+  /* en pantalla grande (desde 1.100 px, 24-11-2026): «Por hacer» y la lista de contratos, una al lado de la otra */
   if (k === 'hacer')
-    return (
-      h +
-      '<section class="sec tareas"><h2>Por hacer <span class="n">' +
-      al.length +
-      '</span></h2>' +
-      (al.length
-        ? '<ul class="porhacer" id="conAl" aria-label="Lo que piden los contratos">' + al.join('') + '</ul>'
-        : '<p class="hueco">Nada pendiente: ni renovaciones, ni revisiones sin cita, ni cuotas por cobrar.</p>') +
-      '</section></div>'
-    );
+    return h + '<div class="dosc"><div>' + porHacer(true) + '</div><aside class="ancho" aria-label="Los contratos">' + lista() + '</aside></div></div>';
   if (k === 'planes')
     return (
       h +
@@ -156,45 +156,48 @@ function vContratos() {
       PLANES.map(x => '<b>' + esc(cfg.planes[x].n) + '</b>, ' + K.eur(cfg.planes[x].precio) + ' al año: ' + incluye(x)).join('<br>') +
       ' No se renueva solo, y el cliente se da de baja cuando quiera.</p></section></div>'
     );
-  h +=
-    '<section class="sec todos"><h2>Los contratos <span class="n">' +
-    L.length +
-    '</span></h2>' +
-    (L.length
-      ? '<ul class="lista">' +
-        L.map(C => {
-          const u = C.per[C.per.length - 1],
-            vig = K.vigente(C, hoy),
-            bz = barrio({ cli: C.cli });
-          const est =
-            C.e !== 'activo'
-              ? '<span class="pill">De baja</span>'
-              : !vig
-                ? '<span class="pill ausente">Vencido</span>'
-                : !u.pago.cobrado
-                  ? '<span class="pill cobro">Por cobrar</span>'
-                  : '';
-          return (
-            '<li><button type="button" class="fila cont' +
-            (C.e !== 'activo' ? ' baja' : '') +
-            '" data-a="conVer" data-c="' +
-            C.id +
-            '"><span class="f1">' +
-            esc(K.nomCli(C.cli)) +
-            '</span><span class="f2">' +
-            esc(C.id) +
-            ' · hasta el ' +
-            K.fechaCorta(u.a) +
-            (bz ? ' · ' + esc(bz) : '') +
-            '</span>' +
-            (est ? '<span class="fd">' + est + '</span>' : '') +
-            '</button></li>'
-          );
-        }).join('') +
-        '</ul>'
-      : '<p class="hueco">Cuando un cliente diga que sí, se da de alta aquí o desde su aviso.</p>') +
-    '</section>';
-  return h + '</div>';
+  return h + '<div class="dosc"><div>' + lista() + '</div><aside class="ancho" aria-label="Por hacer">' + porHacer(false) + '</aside></div></div>';
+  function lista() {
+    return (
+      '<section class="sec todos"><h2>Los contratos <span class="n">' +
+      L.length +
+      '</span></h2>' +
+      (L.length
+        ? '<ul class="lista">' +
+          L.map(C => {
+            const u = C.per[C.per.length - 1],
+              vig = K.vigente(C, hoy),
+              bz = barrio({ cli: C.cli });
+            const est =
+              C.e !== 'activo'
+                ? '<span class="pill">De baja</span>'
+                : !vig
+                  ? '<span class="pill ausente">Vencido</span>'
+                  : !u.pago.cobrado
+                    ? '<span class="pill cobro">Por cobrar</span>'
+                    : '';
+            return (
+              '<li><button type="button" class="fila cont' +
+              (C.e !== 'activo' ? ' baja' : '') +
+              '" data-a="conVer" data-c="' +
+              C.id +
+              '"><span class="f1">' +
+              esc(K.nomCli(C.cli)) +
+              '</span><span class="f2">' +
+              esc(C.id) +
+              ' · hasta el ' +
+              K.fechaCorta(u.a) +
+              (bz ? ' · ' + esc(bz) : '') +
+              '</span>' +
+              (est ? '<span class="fd">' + est + '</span>' : '') +
+              '</button></li>'
+            );
+          }).join('') +
+          '</ul>'
+        : '<p class="hueco">Cuando un cliente diga que sí, se da de alta aquí o desde su aviso.</p>') +
+      '</section>'
+    );
+  }
 }
 /* un contrato, con todo lo que se puede hacer con él */
 function hConVer(C) {
