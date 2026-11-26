@@ -39,6 +39,7 @@ const sv = (d, x) =>
   '</svg>';
 const I = {
   mas: sv('<path d="M12 5v14M5 12h14"/>'),
+  mas3: sv('<circle cx="5.5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18.5" cy="12" r="1.4"/>'),
   lupa: sv('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'),
   atras: sv('<path d="M15 5l-7 7 7 7"/>'),
   x: sv('<path d="M6 6l12 12M18 6L6 18"/>'),

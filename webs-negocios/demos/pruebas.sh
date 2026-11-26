@@ -97,6 +97,7 @@ if [ "$QUE" != reglas ]; then
   paso "El contador de las cartas: cada paso de quien llega desde una carta, una vez y sin datos personales" python3 visitas.py
   paso "Zona del cliente: entrar con el teléfono y ver lo suyo" python3 cliente.py
   paso "Idiomas: la cita, la zona del cliente y los papeles, en catalán y en inglés" python3 idiomas.py
+  paso "La demo vacía y su recorrido guiado: crear, repartir, técnico, cobrar" python3 recorrido.py
   paso "Vídeo de entrada" python3 entrada.py
   paso "Vigía de fallos: lo que ve, lo que manda y lo que guarda sin red" python3 vigia.py "$COPIAS"
   paso "Otro negocio, de principio a fin" python3 negocio.py "$OTRO"

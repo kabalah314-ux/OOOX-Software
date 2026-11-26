@@ -32,7 +32,7 @@ async def sigue_nuevo(pg, siguiente, espera=10000):
     await pg.click('#fNuevo [type=submit]')
     await pg.wait_for_selector(f'#fNuevo[data-paso={siguiente}]', timeout=espera)
 
-async def nuevo_aviso(pg, av='atasco', urg=True, tel='', nomap='', dir='', cp='', nota='', origen='', dia=None, fr=None, crear=True):
+async def nuevo_aviso(pg, av='atasco', urg=True, tel='', nomap='', dir='', cp='', nota='', origen='', dia=None, fr=None, crear=True, por='', pis='', pue='', tim=''):
     """Rellena «Nuevo aviso» paso a paso. Con urg=False, cita: el día (dia) y la franja (fr) dados o la primera libre."""
     await pg.wait_for_selector('#fNuevo[data-paso=av]')
     await pg.locator(f'#fNuevo [data-b-av={av}]').click(); await sigue_nuevo(pg, 'cu')
@@ -43,7 +43,10 @@ async def nuevo_aviso(pg, av='atasco', urg=True, tel='', nomap='', dir='', cp=''
         await (pg.locator(f'#fNuevo [data-b-fr="{fr}"]') if fr else pg.locator('#fNuevo [data-b-fr]:not([disabled])').first).click()
     await sigue_nuevo(pg, 'qui')
     await pg.fill('#n_tel', tel); await pg.fill('#n_nomap', nomap); await sigue_nuevo(pg, 'don')
-    await pg.fill('#n_dir', dir); await pg.fill('#n_cp', cp); await sigue_nuevo(pg, 'fin')
+    await pg.fill('#n_dir', dir); await pg.fill('#n_cp', cp)
+    for k, v in (('por', por), ('pis', pis), ('pue', pue), ('tim', tim)):
+        if v: await pg.fill('#n_' + k, v)
+    await sigue_nuevo(pg, 'fin')
     if origen: await pg.locator(f'#fNuevo [data-b-or={origen}]').click()
     if nota: await pg.fill('#n_nota', nota)
     if crear: await pg.click('#fNuevo [type=submit]')

@@ -8,6 +8,7 @@ let mP = null,
 const RASTRO = [],
   PANT = [
     'bandeja',
+    'mas',
     'agenda',
     'equipo',
     'furgo',
@@ -278,6 +279,7 @@ function mTrae(fuerza) {
       }
     }
     pNav();
+    if (ruta().v === 'mas' && Q.rol !== 'tecnico') pinta(); /* «Más» lleva el número de «Mejoras»: se pone al día si llega después de pintar */
     return r;
   }));
 }

@@ -13,9 +13,9 @@ let CUR = '',
 function pNav() {
   if (!S) return; // antes del arranque no hay nada que contar (23-11-2026)
   const esT = Q.rol === 'tecnico',
-    res = K.resumen(S, cfg, Date.now()),
     mios = S.avisos.filter(a => a.tec === Q.id && a.e === 'asignado').length,
-    cur = CUR;
+    /* Cobros, Contratos y Mejoras viven dentro de «Más» (fase 1 de la propuesta UX, 26-11-2026): el menú marca «Más» */
+    cur = !esT && ['cobros', 'contratos', 'mejoras'].includes(CUR) && masItems().length ? 'mas' : CUR;
   const L = esT
     ? [
         ['hoy', 'Hoy', I.hoy, mios],
@@ -23,15 +23,9 @@ function pNav() {
         ['furgo', 'Furgoneta', I.furgo, FG(Q.id) ? K.cargaDe(S, cfg, Q.id, proxLab(), Date.now()).cargar.length : 0, ' por cargar']
       ]
     : [
-        ['bandeja', 'Bandeja', I.bandeja, bandejaN()],
+        ['bandeja', 'Ahora', I.bandeja, bandejaN()],
         ['agenda', 'Agenda', I.agenda, 0]
-      ].concat(
-        pro() ? [['cobros', 'Cobros', I.euro, res.pend.n]] : [],
-        HAY_CON()
-          ? [['contratos', 'Contratos', I.hecho, (p => p.renovar.length + p.revision.length + p.cobrar.length)(K.pendientesContratos(S, cfg, Date.now()))]]
-          : [],
-        SOP ? [['mejoras', 'Mejoras', I.mejoras, SOP.sinLeer(), ' sin leer']] : []
-      );
+      ].concat(masItems().length ? [['mas', 'Más', I.mas3, masN()]] : []);
   const h = L.map(
     x =>
       '<a href="#/' +
@@ -100,6 +94,7 @@ function pinta() {
   else if (r.v === 'agenda') h = vAgenda(r.a);
   else if (r.v === 'equipo') h = vEquipo(r.a);
   else if (r.v === 'furgo') h = vFurgo(r.a);
+  else if (r.v === 'mas' && masItems().length) h = vMas();
   else if (r.v === 'cobros' && pro()) h = vCobros(r.a);
   else if (r.v === 'contratos' && HAY_CON()) h = vContratos();
   else if (r.v === 'mejoras' && SOP) h = vMejoras();
@@ -121,12 +116,13 @@ function pinta() {
     (dos ? 'dos ' : '') +
     (det ? 'det ' : '') +
     (papel ? 'papelv ' : '') +
-    (!esT && (r.v === 'cobros' || r.v === 'contratos' || r.v === 'nuevo' || r.v === 'furgo' || (r.v === 'mejoras' && SOP)) ? 'estrecha ' : '') +
+    (!esT && (r.v === 'mas' || r.v === 'cobros' || r.v === 'contratos' || r.v === 'nuevo' || r.v === 'furgo' || (r.v === 'mejoras' && SOP)) ? 'estrecha ' : '') +
     Q.rol;
   v.innerHTML = h;
   document.body.classList.toggle('det', det);
   CUR = dos || r.v === 'nuevo' ? 'bandeja' : (r.v === 'equipo' || r.v === 'furgo') && !esT ? 'agenda' : r.v;
   pNav();
+  if (typeof pRec === 'function') pRec(); /* web.js se carga después de este archivo */
   geoSync();
   voyReloj();
   const t = cfg.tec[Q.id],

@@ -21,7 +21,7 @@ function vAviso(id) {
   const r0 = ruta(),
     pide = r0.v === 'aviso' && r0.a === A.id ? r0.b : '',
     M = A.msgs.filter(m => !m.env && m.t <= Date.now() && (pro() || m.k !== 'resena'));
-  let h = '<a class="atras" href="#/' + (esT ? 'hoy' : 'bandeja') + '">' + I.atras + (esT ? 'Hoy' : 'Bandeja') + '</a>';
+  let h = '<a class="atras" href="#/' + (esT ? 'hoy' : 'bandeja') + '">' + I.atras + (esT ? 'Hoy' : 'Ahora') + '</a>';
   h +=
     '<div class="cab"><div><h1>' +
     esc(av.n) +

@@ -345,7 +345,7 @@ async def main():
         es('Prueba Tres' in await cen.locator('main').inner_text(), f'prueba: lo que pide el cliente ({idp}) aparece en la centralita sin recargar')
         await cen.evaluate(f"Oficio.hacer({{tipo:'asignar',id:'{idp}',tec:'omar'}},{{rol:'centralita'}})"); await pg.wait_for_timeout(500)
         es(await tec.locator('[data-a=voy]').count() >= 1, 'prueba: y al asignarlo le sale a Omar con su «Voy»')
-        es(await pg.locator('[data-pack]').count() == 0 and await cen.locator('#nav a[href="#/cobros"]').count() == 1, 'prueba: ya no hay interruptor de pack; los cobros están siempre')
+        es(await pg.locator('[data-pack]').count() == 0 and await cen.locator('#nav a[href="#/mas"]').count() == 1, 'prueba: ya no hay interruptor de pack; «Más» (con los cobros) está siempre')
         await pg.click('#re'); await pg.wait_for_timeout(1300)
         es('Prueba Tres' not in await cen.locator('main').inner_text(), 'prueba: «Reiniciar» vuelve a la muestra')
         await pg.set_viewport_size({'width': 390, 'height': 844}); await pg.wait_for_timeout(400)

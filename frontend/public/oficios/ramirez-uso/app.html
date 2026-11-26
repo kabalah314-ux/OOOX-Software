@@ -57,6 +57,11 @@ main.dos.det>.col:last-child>*:has(+ .accion){margin-bottom:18px}
 .accion.of .acs{display:flex;gap:8px}
 .accion.of .acs .btn{flex:1 1 auto;min-width:0;padding:4px .7em;white-space:normal;text-align:center;line-height:1.15}
 .accion.of .acs .btn.pri{flex-grow:1.6}
+/* una sola acción destacada por aviso: las demás, en discreto (propuesta UX, 26-11-2026) */
+.accion.of .acs .btn:not(.pri){border-color:transparent;background:none;text-decoration:underline;text-decoration-color:var(--control);text-underline-offset:4px;color:var(--suave)}
+.lista.mas .fila{min-height:64px}
+.pleg{margin-top:8px}.pleg>summary{cursor:pointer;color:var(--suave);padding:10px 0;min-height:44px;display:flex;align-items:center}
+.pleg[open]>summary{color:var(--texto)}
 /* el aviso corto con botón («Deshacer») */
 #toast.on.conb{pointer-events:auto}
 #toast .tacc{min-height:44px;margin-left:6px;padding:0 8px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
@@ -317,13 +322,17 @@ button.fila{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .op[role=radio]{display:inline-flex;align-items:center;gap:8px}
 .op[role=radio]::before{content:"";flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--control);box-sizing:border-box}
 .op[role=radio][aria-checked=true]::before{border-color:var(--senal);background:radial-gradient(circle,var(--senal) 0 3.5px,transparent 4.5px)}
-.campo.mal [role=radiogroup] .op,.campo.mal .seg{border-color:var(--mal)}
+/* el error se dice con el texto y el rótulo, no pintando de coral las opciones sin elegir: parecían todas un fallo (propuesta UX, 26-11-2026) */
+.campo.mal .seg{border-color:var(--mal)}
+.campo.mal>.lb{color:var(--mal)}
 .op[disabled]{border-style:dashed;color:var(--tenue);cursor:not-allowed}
 .seg{display:inline-flex;padding:4px;border-radius:12px;background:var(--asfalto-2);border:1px solid var(--linea)}
 .seg button{min-height:44px;padding:0 16px;border-radius:9px;font-weight:600;color:var(--suave)}
 .seg button[aria-pressed=true],.seg button[aria-checked=true]{background:var(--asfalto-3);color:var(--texto);box-shadow:inset 0 0 0 2px var(--senal)}
 .seg.tres{display:flex}.seg.tres button{flex:1 1 auto;min-width:0;padding:0 8px}
 .duo{display:grid;grid-template-columns:1fr 120px;gap:12px}
+.cuatro{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media(max-width:420px){.cuatro{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .lb{font-size:.9375rem;font-weight:600}
 .hoja .ops .op{border-color:var(--control)}
 /* lo elegido se tiene que ver de un vistazo, también dentro de una hoja (la forma de pago, el plan, cómo dice que sí) */
@@ -500,6 +509,18 @@ details[open]>summary.cs::after,.mdet[open]>summary::after{transform:rotate(-135
 .fzr label{font-size:.9375rem}.fzr label small{display:block;color:var(--suave);font-size:.875rem}
 .fzr input{width:3.4em;height:44px;text-align:center;font:inherit;font-weight:700;border:1px solid var(--control);border-radius:10px;background:transparent;color:inherit;-moz-appearance:textfield;appearance:textfield}
 .fzr input::-webkit-inner-spin-button,.fzr input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.vacio p{margin:6px 0 14px;color:var(--suave)}.vacio .btn{display:inline-flex;align-items:center;gap:8px}
+/* el recorrido de la demo vacía (26-11-2026) */
+.rec{display:flex;align-items:center;gap:6px;flex:none;min-height:40px;padding:0 10px;border-radius:12px;border:1px solid var(--senal);background:rgba(255,196,0,.1);color:var(--texto);font:inherit;font-size:.8125rem;white-space:nowrap;cursor:pointer;text-align:left}
+.rec[hidden]{display:none}
+.rec b{font-size:.8125rem;color:var(--senal)}.rec small,.rec .l{display:none}
+.recl{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:14px}
+.recl li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;align-items:start;color:var(--suave)}
+.recl .rn{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1px solid var(--control);font-size:.875rem;font-weight:700}
+.recl li.ya{color:var(--texto)}.recl li.ya .rn{background:var(--senal);border-color:var(--senal);color:#17191b}
+.recl li.ok .rn{background:rgba(120,200,140,.18);border-color:rgba(120,200,140,.6);color:#9fe0b0}
+.recl p{margin:4px 0 12px;color:var(--suave)}
+@media(min-width:960px){.rec{width:100%;flex-wrap:wrap;padding:10px 12px;white-space:normal}.rec .c{display:none}.rec .l{display:inline}.rec small{display:block;flex-basis:100%;color:var(--suave);font-size:.875rem}}
 </style>
 </head>
 <body>
@@ -510,7 +531,7 @@ details[open]>summary.cs::after,.mdet[open]>summary::after{transform:rotate(-135
   <div id="quien"></div>
   <p id="red" role="status" hidden></p>
   <nav id="nav" aria-label="Secciones"></nav>
-  <p class="demo">Demo de OOOX Oficios. Todo es de ejemplo y se queda en este navegador.</p>
+  <p class="demo">Demo de OOOX Oficios. Lo que escribas se queda en este navegador.</p>
  </header>
  <main id="v" tabindex="-1"></main>
 </div>

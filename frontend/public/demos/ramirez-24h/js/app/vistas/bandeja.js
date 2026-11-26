@@ -186,6 +186,43 @@ function bUrgAhora() {
   );
 }
 
+/* «Más» (propuesta UX, 26-11-2026): lo que no corre prisa, fuera del menú de abajo. Cobros, Contratos y Mejoras, con su número */
+function masItems() {
+  if (!S || Q.rol === 'tecnico') return [];
+  const L = [];
+  if (pro()) L.push({ k: 'cobros', t: 'Cobros', d: 'Lo que falta por cobrar y por facturar', n: K.resumen(S, cfg, Date.now()).pend.n, i: I.euro });
+  if (HAY_CON())
+    L.push({
+      k: 'contratos',
+      t: 'Contratos',
+      d: 'Altas, revisiones y cuotas de mantenimiento',
+      n: (p => p.renovar.length + p.revision.length + p.cobrar.length)(K.pendientesContratos(S, cfg, Date.now())),
+      i: I.hecho
+    });
+  if (SOP) L.push({ k: 'mejoras', t: 'Mejoras', d: 'Pide cambios a OOOX y mira las novedades', n: SOP.sinLeer(), u: ' sin leer', i: I.mejoras });
+  return L;
+}
+const masN = () => masItems().reduce((a, x) => a + (x.n || 0), 0);
+function vMas() {
+  return (
+    '<div class="cab"><div><h1>Más</h1><p class="sub">Lo que no corre prisa.</p></div></div><ul class="lista mas">' +
+    masItems()
+      .map(
+        x =>
+          '<li><a class="fila" href="#/' +
+          x.k +
+          '"><span class="f1">' +
+          x.t +
+          '</span><span class="f2">' +
+          x.d +
+          '</span>' +
+          (x.n ? '<span class="fd"><span class="n" aria-label="' + x.n + (x.u || ' por atender') + '">' + x.n + '</span></span>' : '') +
+          '</a></li>'
+      )
+      .join('') +
+    '</ul>'
+  );
+}
 /* ===== centralita: la bandeja =====
    De arriba abajo, por orden de lo que corre más prisa (guía, pestaña «Usabilidad», 15-11-2026): buscar; lo urgente sin
    repartir, con un botón para dárselo al que antes llega; lo que hay que hacer, en una lista corta; el equipo ahora; las citas
@@ -259,11 +296,16 @@ function vBandeja(sel) {
       const i = cfg.franjas.findIndex(f => f.id === a.cita.fr);
       return i < 0 ? 99 : i;
     };
-  const urg = pend.filter(a => !a.cita).sort((a, b) => pri(b) - pri(a) || a.t - b.t);
+  /* arriba, solo lo que hay que resolver ya (propuesta UX, 26-11-2026): urgencias, avisos sin datos y avisos por reasignar;
+     las citas normales sin técnico van debajo */
+  const pideYa = a => !a.cita || !a.cli.tel || a.reasignar || a.e === 'ausente';
+  const urg = pend
+    .filter(a => pideYa(a) && (!a.cita || a.cita.dia <= p))
+    .sort((a, b) => (a.cita ? 1 : 0) - (b.cita ? 1 : 0) || pri(b) - pri(a) || a.t - b.t);
   const citas = pend
-    .filter(a => a.cita && a.cita.dia <= p)
+    .filter(a => a.cita && a.cita.dia <= p && !pideYa(a))
     .sort((a, b) => (a.cita.dia < b.cita.dia ? -1 : a.cita.dia > b.cita.dia ? 1 : 0) || fi(a) - fi(b) || pri(b) - pri(a) || a.t - b.t);
-  const luego = pend.filter(a => a.cita && a.cita.dia > p),
+  const luego = pend.filter(a => a.cita && a.cita.dia > p && !pideYa(a)),
     d1 = luego.map(a => a.cita.dia).sort()[0];
   const marcha = S.avisos
     .filter(a => ['asignado', 'camino', 'curso'].includes(a.e))
@@ -278,14 +320,26 @@ function vBandeja(sel) {
   }
   const t = BT;
   const sub = urg.length
-    ? (urg.length === 1 ? '1 urgencia sin repartir, ' : urg.length + ' urgencias sin repartir, la primera ') + hace(urg[0].t) + '.'
+    ? (urg.length === 1 ? '1 aviso por resolver ya, ' : urg.length + ' avisos por resolver ya, el primero ') + hace(urg[0].t) + '.'
     : citas.length
       ? n(citas.length) + ' sin técnico entre hoy y ' + diaCorto(p) + '.'
-      : 'Nada urgente ni por repartir.';
+      : Oficio.VACIA && !S.avisos.length
+        ? 'Todavía no hay ningún aviso.'
+        : 'Nada urgente ni por repartir.';
   let c = '';
-  if (t === 'repartir')
+  if (t === 'repartir' && Oficio.VACIA && !S.avisos.length)
+    /* la demo vacía: lo primero que ve quien llega es qué hacer, no una lista de «nada» */
     c =
-      (urg.length ? sec('Urgente', urg, sel, '', { dar: 1, sinPill: 1, id: 'sUrg' }) : '') +
+      '<section class="sec vacio"><h2>Empieza por aquí</h2><p>Un cliente acaba de llamar. Crea su aviso y sigue el recorrido: lo repartes, el técnico va y cobra, y lo ves todo aquí.</p>' +
+      '<a class="btn pri" href="#/nuevo">' +
+      I.mas +
+      'Crear el primer aviso</a></section>' +
+      '<section class="sec"><h2>El equipo ahora</h2>' +
+      tira() +
+      '</section>';
+  else if (t === 'repartir')
+    c =
+      (urg.length ? sec('Urgente y por completar', urg, sel, '', { dar: 1, sinPill: 1, id: 'sUrg' }) : '') +
       sec('Sin técnico · hoy y ' + diaCorto(p), citas, sel, 'Las citas de hoy y de ' + diaCorto(p) + ' ya tienen técnico.', { sinPill: 1, id: 'sSinTec' }) +
       (luego.length
         ? '<a class="mas" href="#/agenda/' + d1 + '"><span>Más adelante: ' + n(luego.length) + ' sin técnico</span><span aria-hidden="true">›</span></a>'
@@ -299,7 +353,7 @@ function vBandeja(sel) {
   return (
     '<div class="cab"><div><' +
     H +
-    '>Bandeja</' +
+    '>Ahora</' +
     Hc +
     '><p class="sub">' +
     sub +
@@ -321,7 +375,7 @@ function vBandeja(sel) {
         { k: 'hacer', h: '#/bandeja/hacer', t: 'Por hacer', n: AL.L.length + AL.D.length }
       ],
       t,
-      'Qué ver de la bandeja',
+      'Qué ver ahora',
       { grupo: 'b' }
     ) +
     '<div id="bResto" class="pcuerpo"' +

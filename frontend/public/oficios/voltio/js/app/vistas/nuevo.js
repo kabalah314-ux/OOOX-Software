@@ -6,7 +6,7 @@
    y, al final, el resumen con por dónde ha entrado y lo que cuenta. Cada paso tiene su dirección (#/nuevo/cu…): el
    «atrás» del navegador vuelve al anterior, y no se salta a un paso sin lo de antes. Visto el resumen, «Continuar» vuelve
    a él en cuanto está todo */
-const B = { av: '', or: 'llamada', cuando: '', dia: '', fr: '', nomap: '', tel: '', dir: '', cp: '', nota: '', err: '', visto: false };
+const B = { av: '', or: 'llamada', cuando: '', dia: '', fr: '', nomap: '', tel: '', dir: '', por: '', pis: '', pue: '', tim: '', cp: '', nota: '', err: '', visto: false };
 const NP = ['av', 'cu', 'qui', 'don'],
   NPT = { av: '¿Qué le pasa?', cu: '¿Cuándo?', qui: '¿Quién es?', don: '¿Dónde es?' },
   NP_DE = { av: 'av', cuando: 'cu', franja: 'cu', lleno: 'cu', nomap: 'qui', nombre: 'qui', apellidos: 'qui', tel: 'qui', dir: 'don', cp: 'don', zona: 'don' };
@@ -36,6 +36,11 @@ function npVe(p) {
   } else location.hash = npHash(p);
 }
 const NERR = { av: 'Elige qué le pasa.', cuando: 'Elige si es urgente o con cita.' };
+/* la dirección completa: calle + portal, piso, puerta y timbre, cada uno en su casilla */
+function dirFull() {
+  const x = (t, v) => (String(v || '').trim() ? ', ' + t + ' ' + String(v).trim() : '');
+  return String(B.dir).trim() + x('portal', B.por) + x('piso', B.pis) + x('puerta', B.pue) + x('timbre', B.tim);
+}
 function vNuevo() {
   const dias = K.diasDe(S, cfg, Date.now(), 5, true, B.av ? { av: B.av, cli: { dis: cfg.zonas.cp[B.cp] || '' } } : null);
   if (!dias.find(x => x.dia === B.dia)) B.dia = dias.length ? dias[0].dia : '';
@@ -100,7 +105,7 @@ function vNuevo() {
   const cab =
     '<a class="atras" href="#/bandeja">' +
     I.atras +
-    'Bandeja</a><div class="cab"><div><h1>Nuevo aviso</h1>' +
+    'Ahora</a><div class="cab"><div><h1>Nuevo aviso</h1>' +
     (p === 'av' ? '<p class="sub">Para lo que entra por teléfono, por WhatsApp o en persona. Lo que escribas aquí ya no se vuelve a escribir.</p>' : '') +
     '</div></div>' +
     prog +
@@ -187,8 +192,14 @@ function vNuevo() {
   else if (p === 'don')
     h =
       '<div class="duo">' +
-      c('dir', 'Calle, número y piso', B.dir, 'autocomplete="off"') +
+      c('dir', 'Calle y número', B.dir, 'autocomplete="off"') +
       c('cp', 'Código postal', B.cp, 'inputmode="numeric" maxlength="5" autocomplete="off"') +
+      '</div>' +
+      '<div class="cuatro">' +
+      c('por', 'Portal <small class="opc">Opc.</small>', B.por, 'autocomplete="off" maxlength="12"') +
+      c('pis', 'Piso <small class="opc">Opc.</small>', B.pis, 'autocomplete="off" maxlength="12"') +
+      c('pue', 'Puerta <small class="opc">Opc.</small>', B.pue, 'autocomplete="off" maxlength="12"') +
+      c('tim', 'Timbre <small class="opc">Opc.</small>', B.tim, 'autocomplete="off" maxlength="20"') +
       '</div>' +
       (B.err === 'zona' ? '<p class="err" style="color:var(--mal);margin-top:-8px">' + ERR.zona + '</p>' : '');
   else {
@@ -198,7 +209,7 @@ function vNuevo() {
       fila('Qué le pasa', esc(cfg.av[B.av].n), 'av') +
       fila('Cuándo', esc(cuTxt()), 'cu') +
       fila('Quién', esc(B.nomap) + ' · ' + K.telBonito(K.tel9(B.tel)), 'qui') +
-      fila('Dónde', esc(B.dir) + ', ' + esc(String(B.cp).replace(/\D/g, '')), 'don') +
+      fila('Dónde', esc(dirFull()) + ', ' + esc(String(B.cp).replace(/\D/g, '')), 'don') +
       '</ul>' +
       '<div class="campo"><span class="lb" id="l_or">¿Por dónde ha entrado?</span><div><div class="seg tres" role="radiogroup" aria-labelledby="l_or">' +
       [

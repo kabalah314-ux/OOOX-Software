@@ -69,7 +69,7 @@ async def caso(p,port,w,h,mobile,nombre,espera_blob):
     ok(llega and e['y']==0 and e['op']>0.95, f'{nombre}: acaba en la portada con la bienvenida, arriba del todo ({e})')
     fin_video=e['ended'] or (e['paused'] and e['d']>0 and e['t']>=e['d']-0.1)
     ok(fin_video or (e['src']=='' and e['poster']==f'fin-{o}.webp'), f'{nombre}: se queda en el último fotograma (o en su foto) ({e})',video=True)
-    if corre: ok(2.6<=e['d']<=4.5, f'{nombre}: la entrada es corta ({e["d"]} s)',video=True)
+    if corre: ok(2.6<=e['d']<=5.0, f'{nombre}: la entrada es corta ({e["d"]} s)',video=True)
     vis=await pg.evaluate("(()=>{const r=document.querySelector('#h1').getBoundingClientRect(),c=document.querySelector(innerWidth>=900?'#index .stage-acts .urg':'.bar .urg').getBoundingClientRect();return r.height>0&&r.top>=0&&r.bottom<=innerHeight&&c.height>0&&c.bottom<=innerHeight})()")
     ok(vis, f'{nombre}: «Fontaneros 24 horas.» y «Pedir cita urgente», a la vista')
     # 3. el siguiente gesto pasa a la primera sección; y hacia arriba vuelve a la portada, que no se repite

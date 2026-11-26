@@ -378,7 +378,10 @@ async def main():
 
         # ---------- 4. un solo plan: ya no hay interruptor de pack ----------
         await c.goto(B + 'app.html'); await c.wait_for_selector('.fila')
-        es(await c.locator('#nav a[href="#/cobros"]').count() == 1, 'la centralita tiene Cobros siempre')
+        es(await c.locator('#nav a[href="#/mas"]').count() == 1 and await c.locator('#nav a[href="#/cobros"]').count() == 0, 'la centralita tiene «Más» siempre (Cobros, Contratos y Mejoras van dentro)')
+        await c.goto(B + 'app.html#/mas'); await c.wait_for_selector('.lista.mas')
+        es(await c.locator('.lista.mas a[href="#/cobros"]').count() == 1, '«Más»: lleva a Cobros')
+        await c.goto(B + 'app.html'); await c.wait_for_selector('.fila')
         es((await c.evaluate("Oficio.hacer({tipo:'pack',pack:'basico'},{rol:'centralita'}).err")) in ('aviso', 'accion'), 'cambiar de pack ya no es una acción')
         await c.goto(B + 'app.html#/aviso/R-0142'); await c.wait_for_selector('.tec[data-tec=jordi]')
 

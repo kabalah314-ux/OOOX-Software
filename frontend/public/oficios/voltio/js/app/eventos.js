@@ -264,14 +264,14 @@ document.addEventListener('submit', e => {
       av: B.av,
       origen: B.or,
       nota: B.nota,
-      cli: { nombre: pn.nombre, apellidos: pn.apellidos, tel: B.tel, dir: B.dir, cp: B.cp },
+      cli: { nombre: pn.nombre, apellidos: pn.apellidos, tel: B.tel, dir: dirFull(), cp: B.cp },
       cita: B.cuando === 'cita' ? { dia: B.dia, fr: B.fr } : null
     },
     Q
   ).then(r => {
     B.va = false;
     if (r.ok) {
-      Object.assign(B, { av: '', or: 'llamada', cuando: '', fr: '', nomap: '', tel: '', dir: '', cp: '', nota: '', err: '', visto: false });
+      Object.assign(B, { av: '', or: 'llamada', cuando: '', fr: '', nomap: '', tel: '', dir: '', por: '', pis: '', pue: '', tim: '', cp: '', nota: '', err: '', visto: false });
       toast('Aviso ' + r.id + ' creado. Ahora, asígnalo.');
       S = Oficio.estado();
       if (location.hash === '#/aviso/' + r.id) pinta();

@@ -489,7 +489,10 @@ function bDinero(A) {
           : 'pendiente de pago')
       : '') +
     '</p>';
+  /* la centralita ve el total y, plegado, el desglose (propuesta UX, 26-11-2026) */
+  const pleg = Q.rol === 'centralita' && T.lineas.length > 1;
   h +=
+    (pleg ? '<details class="pleg"><summary>Ver el desglose (' + T.lineas.length + ' líneas)</summary>' : '') +
     '<ul class="lins">' +
     T.lineas
       .map(
@@ -503,7 +506,8 @@ function bDinero(A) {
           '</span></li>'
       )
       .join('') +
-    '</ul>';
+    '</ul>' +
+    (pleg ? '</details>' : '');
   if (A.rebajas && A.rebajas.length)
     h +=
       '<p class="ln" id="rebs">' +
@@ -621,6 +625,16 @@ function bFalta(A) {
   const L = A.falta || [],
     puede = !['hecho', 'cancelado'].includes(A.e) && (Q.rol === 'centralita' || A.tec === Q.id);
   if (!L.length && !puede) return '';
+  if (!L.length && Q.rol === 'centralita')
+    return (
+      '<section class="blq" id="falta"><details class="pleg"><summary>Material que falta · nada apuntado</summary>' +
+      '<p class="ln">Lo que se apunte sale en la lista del día.</p>' +
+      '<div class="acts"><button class="btn peq" data-a="falta" data-id="' +
+      A.id +
+      '">' +
+      I.mas +
+      'Apuntar material</button></div></details></section>'
+    );
   return (
     '<section class="blq" id="falta"><h2>Material que falta</h2>' +
     (L.length

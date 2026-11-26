@@ -337,13 +337,109 @@ function hMenu() {
       toast('Demo reiniciada.');
       return;
     }
-    Q = b.dataset.rol === 'centralita' ? { rol: 'centralita', id: 'oficina' } : { rol: 'tecnico', id: b.dataset.rol };
-    const u = new URL(location.href);
-    u.search = Q.rol === 'tecnico' ? '?papel=tecnico&tec=' + Q.id : '';
-    u.hash = '#/';
-    history.replaceState(null, '', u);
     d.close();
-    pinta();
-    scrollTo(0, 0);
+    cambiaRol(b.dataset.rol, '#/');
+  });
+}
+/* cambiar de papel dentro de la demo (menú y recorrido): conserva «?vacia» / «?ejemplo» para que, al recargar, siga siendo la misma demo */
+function cambiaRol(id, hash) {
+  Q = id === 'centralita' ? { rol: 'centralita', id: 'oficina' } : { rol: 'tecnico', id };
+  const sp = new URLSearchParams();
+  if (Q.rol === 'tecnico') {
+    sp.set('papel', 'tecnico');
+    sp.set('tec', Q.id);
+  }
+  ['vacia', 'ejemplo'].forEach(k => P.has(k) && sp.set(k, ''));
+  const u = new URL(location.href);
+  u.search = sp.toString() ? '?' + sp.toString().replace(/=(&|$)/g, '$1') : '';
+  u.hash = hash || '#/';
+  history.replaceState(null, '', u);
+  pinta();
+  scrollTo(0, 0);
+}
+
+/* ===== el recorrido de la demo (26-11-2026) =====
+   La demo pública arranca vacía: quien la ve por primera vez hace lo que haría con la app de verdad, con sus propios datos.
+   Seis pasos que se marcan solos según el estado (lo que él ha creado) y un botón que lleva al sitio y al papel que toca. */
+const REC = { visto: false };
+function recPasos() {
+  const L = S.avisos.filter(a => a.e !== 'cancelado').sort((a, b) => b.t - a.t),
+    A = L[0],
+    e = A ? A.e : '',
+    tec = A && A.tec && cfg.tec[A.tec] ? A.tec : N.tecnicos[0].id,
+    tn = (cfg.tec[tec] || {}).n || 'el técnico',
+    ho = A ? '#/aviso/' + A.id : '#/';
+  return [
+    { t: 'Crea un aviso', d: 'Eres la centralita y un cliente acaba de llamar. Apunta qué le pasa, cuándo y dónde vive.', ok: !!A, rol: 'centralita', hash: '#/nuevo', b: 'Crear un aviso' },
+    { t: 'Asígnalo a un técnico', d: 'Abre el aviso y elige quién va. La app te dice quién llega antes.', ok: !!A && !['nuevo', 'ausente'].includes(e), rol: 'centralita', hash: ho, b: 'Abrir el aviso' },
+    { t: 'Ponte en el lugar del técnico: «Voy»', d: 'Ahora eres ' + tn + '. Cuando sale hacia casa del cliente, pulsa «Voy»: al cliente le llega el aviso.', ok: ['camino', 'curso', 'hecho'].includes(e), rol: tec, hash: ho, b: 'Entrar como ' + tn },
+    { t: 'Empieza el trabajo y firma el presupuesto', d: 'Pulsa «Empezar», apunta lo que se va a hacer y que el cliente firme el precio en la pantalla.', ok: ['curso', 'hecho'].includes(e), rol: tec, hash: ho, b: 'Ir al aviso' },
+    { t: 'Termina y cobra', d: 'Pulsa «Terminado», elige cómo paga el cliente y firma él.', ok: e === 'hecho', rol: tec, hash: ho, b: 'Ir al aviso' },
+    { t: 'Vuelve a la centralita y mira el cobro', d: 'En el aviso queda todo: el parte, el precio firmado y el cobro. Y en «Más» › Cobros, lo que falta por facturar.', ok: e === 'hecho' && REC.visto, rol: 'centralita', hash: ho, b: 'Ver el aviso terminado' }
+  ];
+}
+function recMira() {
+  /* el último paso se da por visto al abrir, como centralita, los cobros o el aviso ya terminado */
+  if (REC.visto || !Oficio.VACIA || Q.rol !== 'centralita') return;
+  const r = ruta(),
+    A = S.avisos.filter(a => a.e === 'hecho').sort((a, b) => b.t - a.t)[0];
+  if (A && (r.v === 'cobros' || r.v === 'papel' || (r.v === 'aviso' && r.a === A.id))) REC.visto = true;
+}
+function pRec() {
+  let b = $('#rec');
+  if (!Oficio.VACIA || FIJO || P.has('solo') || SRV) {
+    if (b) b.hidden = true;
+    return;
+  }
+  recMira();
+  if (!b) {
+    b = document.createElement('button');
+    b.id = 'rec';
+    b.type = 'button';
+    b.className = 'rec';
+    $('#quien').insertAdjacentElement('afterend', b);
+    b.addEventListener('click', hRec);
+  }
+  const P6 = recPasos(),
+    i = P6.findIndex(x => !x.ok);
+  b.hidden = false;
+  b.innerHTML =
+    i < 0
+      ? '<b>Guía</b><span class="c">✓</span><span class="l">recorrido completo ✓</span>'
+      : '<b>Guía</b><span class="c">' + (i + 1) + '/' + P6.length + '</span><span class="l">paso ' + (i + 1) + ' de ' + P6.length + '</span><small>' + esc(P6[i].t) + '</small>';
+  b.setAttribute('aria-label', i < 0 ? 'Recorrido de la demo: completo' : 'Recorrido de la demo: paso ' + (i + 1) + ' de ' + P6.length + ', ' + P6[i].t);
+}
+function hRec() {
+  const P6 = recPasos(),
+    i = P6.findIndex(x => !x.ok);
+  const d = hoja(
+    hc('Recorrido de la demo') +
+      '<div class="hb"><p class="mnota">Haz con tus propios datos lo que harías con la app de verdad. Cada paso se marca solo.</p><ol class="recl">' +
+      P6.map(
+        (x, k) =>
+          '<li class="' +
+          (x.ok ? 'ok' : k === i ? 'ya' : '') +
+          '"><span class="rn" aria-hidden="true">' +
+          (x.ok ? '✓' : k + 1) +
+          '</span><div><b>' +
+          x.t +
+          '</b>' +
+          (k === i ? '<p>' + x.d + '</p><button class="btn pri" data-go="' + k + '">' + x.b + '</button>' : '') +
+          '</div></li>'
+      ).join('') +
+      '</ol>' +
+      (i < 0 ? '<p class="mnota">Ya has hecho el recorrido entero. Puedes crear otro aviso o reiniciar la demo desde el menú de arriba.</p>' : '') +
+      '</div>'
+  );
+  d.addEventListener('click', e => {
+    const g = e.target.closest('[data-go]');
+    if (!g) return;
+    const x = P6[+g.dataset.go];
+    d.close();
+    const igual = x.rol === 'centralita' ? Q.rol === 'centralita' : Q.rol === 'tecnico' && Q.id === x.rol;
+    if (igual) {
+      if (location.hash === x.hash) pinta();
+      else location.hash = x.hash;
+    } else cambiaRol(x.rol, x.hash);
   });
 }

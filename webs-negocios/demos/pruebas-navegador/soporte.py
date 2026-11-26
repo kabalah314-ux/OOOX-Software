@@ -117,16 +117,20 @@ async def main():
         # ---------- 1. el menú ----------
         nav = await c.locator('#nav a').all_inner_texts()
         con = await c.evaluate('Object.keys(Oficio.cfg.planes||{}).length>0')   # con contratos de mantenimiento, el menú lleva «Contratos»
-        es(any('Mejoras' in x for x in nav) and len(nav) == (5 if con else 4) and (not con or any('Contratos' in x for x in nav)), f'menú: la oficina tiene «Mejoras» junto a lo demás {[x.strip() for x in nav]}')
-        es(await c.locator('#nav a[href="#/mejoras"] .n').count() == 0, 'menú: sin nada nuevo, «Mejoras» no lleva número')
+        es(len(nav) == 3 and any('Más' in x for x in nav), f'menú: Ahora · Agenda · Más {[x.strip() for x in nav]}')
+        await c.goto(B + 'app.html#/mas'); await c.wait_for_selector('.lista.mas')
+        mas_t = await c.locator('.lista.mas').inner_text()
+        es('Mejoras' in mas_t and 'Cobros' in mas_t and (not con or 'Contratos' in mas_t), f'«Más»: lleva Cobros, Mejoras y, con contratos, Contratos ({mas_t!r})')
+        es(await c.locator('.lista.mas a[href="#/mejoras"] .n').count() == 0, 'menú: sin nada nuevo, «Mejoras» (dentro de «Más») no lleva número')
+        await c.goto(B + 'app.html'); await c.wait_for_selector('#nav a')
         t = await ctx.new_page(); vigila(t, 'técnico'); antes = len(srv.llamadas)
         await t.goto(B + 'app.html?papel=tecnico#/mejoras'); await t.wait_for_selector('#nav a'); await t.wait_for_timeout(2300)
         es(not any('Mejoras' in x for x in await t.locator('#nav a').all_inner_texts()) and await t.locator('#fMejora,#fCodigo').count() == 0, 'menú: el técnico no tiene «Mejoras», ni entrando por la dirección')
         await t.close()
 
         # ---------- 2. la pantalla ----------
-        await c.click('#nav a[href="#/mejoras"]'); await c.wait_for_selector('#fMejora')
-        es(await texto(c, '#v h1') == 'Mejoras' and await c.locator('#nav a[href="#/mejoras"][aria-current]').count() == 1, 'pantalla: se abre desde el menú y queda marcada')
+        await c.click('#nav a[href="#/mas"]'); await c.wait_for_selector('.lista.mas'); await c.click('.lista.mas a[href="#/mejoras"]'); await c.wait_for_selector('#fMejora')
+        es(await texto(c, '#v h1') == 'Mejoras' and await c.locator('#nav a[href="#/mas"][aria-current]').count() == 1, 'pantalla: se abre desde «Más» y «Más» queda marcado')
         es((await c.locator('.ojo').count() == 1) == demo, 'pantalla: el aviso de «esto es una demo» sale solo en la demo')
         es(await c.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), 'pantalla: en el móvil no se sale por los lados')
         pes = await c.evaluate("[...document.querySelectorAll('.fija .pestas a')].map(a=>a.firstChild.textContent)")
@@ -173,12 +177,15 @@ async def main():
         # ---------- 5. OOOX contesta ----------
         srv.pet[0]['estado'] = 'mirando'; srv.pet[0]['respuesta'] = 'Lo miramos esta semana.\nGracias por avisar.'
         await avanza(ctx, 31); await c.goto(B + 'app.html#/bandeja'); await c.reload(); await c.wait_for_selector('#nav a')
-        es(await hasta(c, "(()=>{const n=document.querySelector('#nav a[href=\"#/mejoras\"] .n');return n&&n.textContent==='1'&&n.getAttribute('aria-label')==='1 sin leer'})()"), 'respuesta: sin entrar, el menú avisa con un 1 de que hay algo sin leer')
-        await c.click('#nav a[href="#/mejoras"]'); await c.wait_for_selector('#mPet .pet')
+        es(await hasta(c, "!!document.querySelector('#nav a[href=\"#/mas\"] .n')"), 'respuesta: sin entrar, «Más» avisa con un número de que hay algo')
+        await c.click('#nav a[href="#/mas"]'); await c.wait_for_selector('.lista.mas')
+        es(await hasta(c, "(()=>{const n=document.querySelector('.lista.mas a[href=\"#/mejoras\"] .n');return n&&n.textContent==='1'&&n.getAttribute('aria-label')==='1 sin leer'})()"), 'respuesta: y dentro, «Mejoras» lleva un 1 de que hay algo sin leer')
+        await a_mejoras(c); await c.wait_for_selector('#mPet .pet')
         tp = await texto(c, '#mPet .pet')
         es('La estamos mirando' in tp and 'OOOX responde' in tp and 'Lo miramos esta semana.' in tp and 'Gracias por avisar.' in tp, 'respuesta: se lee el estado nuevo y lo que contesta OOOX')
         es(await c.locator('#mPet .pet.nueva').count() == 1 and 'Sin leer' in tp, 'respuesta: lo que no se había leído va marcado')
-        es(await c.locator('#nav a[href="#/mejoras"] .n').count() == 0, 'respuesta: al abrirlo, el número del menú desaparece')
+        await c.click('#nav a[href="#/mas"]'); await c.wait_for_selector('.lista.mas')
+        es(await c.locator('.lista.mas a[href="#/mejoras"] .n').count() == 0, 'respuesta: al abrirlo, el número de «Mejoras» desaparece')
         await c.evaluate("location.hash='#/agenda'"); await c.wait_for_selector('#v:not(.estrecha)'); await a_mejoras(c, 'peticiones')
         es(await c.locator('#mPet .pet').count() == 1 and await c.locator('#mPet .pet.nueva').count() == 0 and 'Sin leer' not in await texto(c, '#mPet'), 'respuesta: al volver, ya no va marcada')
 
@@ -249,8 +256,8 @@ async def main():
         pg = await g.new_page(); vigila(pg, 'ordenador')
         if not demo: await pg.add_init_script(f"localStorage.setItem('oficio:{N['id']}:soporte', JSON.stringify('CODIGO-DE-LA-COPIA'))")
         await pg.goto(B + 'app.html#/mejoras'); await pg.wait_for_selector('#fMejora')
-        caja = await pg.evaluate("(()=>{const m=document.querySelector('#v').getBoundingClientRect(),n=document.querySelector('#nav a[href=\"#/mejoras\"]').getBoundingClientRect();return{ancho:Math.round(m.width),nav:n.width>0&&n.height>=44,sale:document.documentElement.scrollWidth>innerWidth+1}})()")
-        es(caja['nav'] and not caja['sale'] and caja['ancho'] <= 760, f'ordenador: «Mejoras» está en el menú del lado y la pantalla va en columna estrecha {caja}')
+        caja = await pg.evaluate("(()=>{const m=document.querySelector('#v').getBoundingClientRect(),n=document.querySelector('#nav a[href=\"#/mas\"]').getBoundingClientRect();return{ancho:Math.round(m.width),nav:n.width>0&&n.height>=44,sale:document.documentElement.scrollWidth>innerWidth+1}})()")
+        es(caja['nav'] and not caja['sale'] and caja['ancho'] <= 760, f'ordenador: «Más» (con Mejoras) está en el menú del lado y la pantalla va en columna estrecha {caja}')
         await pg.keyboard.press('Tab'); foco = []
         for _ in range(40):
             f = await pg.evaluate("(()=>{const a=document.activeElement;return a?(a.id||a.dataset.mTipo||a.dataset.a||a.tagName):''})()"); foco.append(f)
@@ -281,7 +288,7 @@ async def main():
             else:
                 srv.claves[N2['id']] = 'Codigo-Bueno-2026'; k = len(srv.llamadas); await pr.wait_for_timeout(2300)
                 es(not [1 for f, x in srv.llamadas[k:] if x.get('p_negocio') == N2['id']], 'copia: sin código de soporte, la app no llama a OOOX')
-                await pr.click('#nav a[href="#/mejoras"]'); await pr.wait_for_selector('#fCodigo')
+                await a_mejoras(pr); await pr.wait_for_selector('#fCodigo')
                 es(await pr.locator('#fMejora').count() == 0 and await pr.locator('.ojo').count() == 0 and await pr.locator('label[for=m_cod]').count() == 1, 'copia: lo primero que pide es el código, y no dice que sea una demo')
                 await pr.click('#mCodOk'); await pr.wait_for_selector('#e_mcod')
                 es('Escribe el código' in await texto(pr, '#e_mcod') and await pr.evaluate("document.activeElement.id") == 'm_cod', 'copia: sin escribir nada, lo pide')
