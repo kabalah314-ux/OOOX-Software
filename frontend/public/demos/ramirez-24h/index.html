@@ -1120,6 +1120,14 @@ setInterval(pintaVivo,20000);document.addEventListener('visibilitychange',()=>{i
 if(SHOT){document.body.dataset.hdr=SHOT_AT||'track';
  if(SHOT_AT&&SECS.includes(SHOT_AT)){$('#track').style.display='none';for(const id of SECS){if(id===SHOT_AT)break;document.getElementById(id).style.display='none'}}scrollTo(0,0)}
 else onScroll()
+/* que nada se pida ni se decodifique al pasar de pantalla (26-11-2026): con la entrada ya en marcha y el navegador libre, las fotos
+   perezosas se piden y decodifican por detrás y las páginas a las que se va desde aquí (cita y app) se dejan preparadas.
+   Con ahorro de datos o conexión 2G, nada de esto. */
+{const co=navigator.connection||{},poco=co.saveData||/(^|-)2g$/.test(co.effectiveType||''),libre=window.requestIdleCallback?(f=>requestIdleCallback(f,{timeout:4000})):(f=>setTimeout(f,1200));
+ if(!poco&&!SHOT)addEventListener('load',()=>setTimeout(()=>libre(()=>{
+  document.querySelectorAll('img[loading="lazy"]').forEach(i=>{if(i.hidden||i.offsetParent===null&&!i.closest('.svs'))return;i.loading='eager';if(i.decode)i.decode().catch(()=>{})});
+  setTimeout(()=>libre(()=>['cita.html','app.html','oficio.css','js/oficio-nucleo.js','js/oficio-datos.js','js/oficio-idioma.js','js/oficio-estado.js','js/oficio-papeles.js'].forEach(u=>{
+   const l=document.createElement('link');l.rel='prefetch';l.href=u;document.head.appendChild(l)})),1500)}),1200),{once:true})}
 })();
 </script>
 </body>
