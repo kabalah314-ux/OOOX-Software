@@ -698,6 +698,57 @@ html.snap{scroll-snap-type:y mandatory}
  if(typeof j.b==='string'&&VEC[j.b]){const di={[j.b]:0},q=[j.b];while(q.length){const k=q.shift();for(const v of VEC[k])if(!(v in di)){di[v]=di[k]+1;q.push(v)}}
   window.__muestraZonas=Object.fromEntries(Object.keys(VEC).map(k=>[k,di[k]<=1?'a':di[k]===2?'b':'c']))}
  window.__muestraLiso=true;   // la furgoneta y la foto del final, sin el rótulo del negocio de ejemplo
+ /* PERFIL (26-11-2026): lo que ofrece de verdad un negocio concreto, sacado de su web y su ficha públicas, en lugar de la lista de
+    fontanería del negocio de ejemplo. Solo se activa con «"p":"<clave>"» dentro del enlace de su muestra; sin esa clave, esta web
+    sale igual que siempre. Cambia los textos de las 6 tarjetas (en los tres idiomas), sus precios de ejemplo, tres ilustraciones,
+    la garantía, la financiación y el botón «Reservar» (la cita de la demo es de fontanería: aquí «Pedir ahora» abre el WhatsApp). */
+ const PERFILES={raver24h:{
+  precios:{fuga:75,atasco:120,termo:70,cisterna:65,grifo:90,otra:80},
+  svg:{cisterna:'electrica',grifo:'boletin',otra:'clima'},
+  nota:{es:'Técnicos certificados. Financiación desde 80 €, sin comisiones con tarjetas de La Caixa.',ca:'Tècnics certificats. Finançament des de 80 €, sense comissions amb targetes de La Caixa.',en:'Certified technicians. Financing from €80, no fees, with La Caixa cards.'},
+  i18n:{
+   es:{'in.t':'Urgencias 24 horas.','av.fuga':'Fontanería de urgencia','av.fuga.d':'Fugas, obstrucciones y problemas con calentadores.','av.atasco':'Desatascos urgentes','av.atasco.d':'Con camión cuba, a cualquier hora.',
+    'av.termo':'Calderas y calentadores','av.termo.d':'Reparación, instalación y mantenimiento de calderas.','av.cisterna':'Reparaciones eléctricas','av.cisterna.d':'Cortes de luz, cortocircuitos y fallos en la instalación.',
+    'av.grifo':'Boletines eléctricos','av.grifo.d':'Emisión del boletín, en baja y alta tensión.','av.otra':'Climatización','av.otra.d':'Averías de aire acondicionado y calefacción.',
+    'wa.fuga':'Fontanería urgente','wa.atasco':'Desatasco urgente','wa.termo':'Avería de caldera','wa.cisterna':'Avería eléctrica','wa.grifo':'Boletín eléctrico','wa.otra':'Avería de aire acondicionado',
+    'sv.res':'Pedir ahora','sv.resA':'Pedir ahora: {a}','sv.l':'Precios orientativos con IVA, con cita y urgente. El precio final se cierra y lo firmas antes de empezar. También hacemos reformas de cocinas y baños.',
+    'cu.l':'Precio cerrado antes de empezar. Financiación desde 80 €, sin comisiones con tarjetas de La Caixa.','ga.d1':'Técnicos certificados y electricistas homologados','ga.big':'110 %','ga.s':'Si no lo resolvemos, el servicio es gratis.'},
+   ca:{'in.t':'Urgències 24 hores.','av.fuga':'Fontaneria d’urgència','av.fuga.d':'Fuites, obstruccions i problemes amb escalfadors.','av.atasco':'Desembussos urgents','av.atasco.d':'Amb camió cisterna, a qualsevol hora.',
+    'av.termo':'Calderes i escalfadors','av.termo.d':'Reparació, instal·lació i manteniment de calderes.','av.cisterna':'Reparacions elèctriques','av.cisterna.d':'Talls de llum, curtcircuits i avaries a la instal·lació.',
+    'av.grifo':'Butlletins elèctrics','av.grifo.d':'Emissió del butlletí, en baixa i alta tensió.','av.otra':'Climatització','av.otra.d':'Avaries d’aire condicionat i calefacció.',
+    'wa.fuga':'Fontaneria urgent','wa.atasco':'Desembús urgent','wa.termo':'Avaria de caldera','wa.cisterna':'Avaria elèctrica','wa.grifo':'Butlletí elèctric','wa.otra':'Avaria d’aire condicionat',
+    'sv.res':'Demanar ara','sv.resA':'Demanar ara: {a}','sv.l':'Preus orientatius amb IVA, amb cita i urgent. El preu final es tanca i el signes abans de començar. També fem reformes de cuines i banys.',
+    'cu.l':'Preu tancat abans de començar. Finançament des de 80 €, sense comissions amb targetes de La Caixa.','ga.d1':'Tècnics certificats i electricistes homologats','ga.big':'110 %','ga.s':'Si no ho resolem, el servei és gratuït.'},
+   en:{'in.t':'Urgent repairs, 24 hours.','guardia':'{n} technicians on call right now.','av.fuga':'Emergency plumbing','av.fuga.d':'Leaks, blockages and water-heater problems.','av.atasco':'Urgent drain clearing','av.atasco.d':'With a tanker truck, at any hour.',
+    'av.termo':'Boilers and water heaters','av.termo.d':'Boiler repair, installation and maintenance.','av.cisterna':'Electrical repairs','av.cisterna.d':'Power cuts, short circuits and installation faults.',
+    'av.grifo':'Electrical certificates','av.grifo.d':'Certificate issued, low and high voltage.','av.otra':'Air conditioning','av.otra.d':'Air-conditioning and heating faults.',
+    'wa.fuga':'Urgent plumbing','wa.atasco':'Urgent drain clearing','wa.termo':'Boiler fault','wa.cisterna':'Electrical fault','wa.grifo':'Electrical certificate','wa.otra':'Air-conditioning fault',
+    'wa.b':'Problem in {b}, right now. Sending you a photo.','wa.none':'I have a problem, right now. Sending you a photo.',
+    'sv.res':'Request now','sv.resA':'Request now: {a}','sv.l':'Guide prices with VAT, booked and urgent. The final price is fixed and signed before we start. We also do kitchen and bathroom renovations.',
+    'cu.l':'Fixed price before we start. Financing from €80, no fees, with La Caixa cards.','ga.d1':'Certified technicians and approved electricians','ga.big':'110 %','ga.s':'If we don’t fix it, the service is free.'}}}};
+ const PF=typeof j.p==='string'&&Object.prototype.hasOwnProperty.call(PERFILES,j.p)?PERFILES[j.p]:null;
+ if(PF){
+  PF.i18n.es['ga.k']='Garantía de '+n;PF.i18n.ca['ga.k']='Garantia de '+n;PF.i18n.en['ga.k']=n+' guarantee';
+  const av={};for(const k in PF.precios)av[k]={desde:PF.precios[k]};
+  window.__muestraWeb={av,orden:['fuga','atasco','termo','cisterna','grifo','otra']};
+  window.__muestraSinCita=true;
+  const nn={};for(const k in PF.precios)nn[k]=PF.nota;window.__muestraNota=nn;
+  /* tres ilustraciones (negro y amarillo, como las fotos): cuadro eléctrico, boletín y aire acondicionado */
+  const lienzo=c=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 480"><defs><radialGradient id="g" cx=".5" cy=".42" r=".65"><stop offset="0" stop-color="#2b2410"/><stop offset="1" stop-color="#0a0a0a"/></radialGradient><linearGradient id="y" x1="0" x2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#f2b705"/></linearGradient></defs><rect width="600" height="480" fill="url(#g)"/>'+c+'</svg>');
+  const rayo=(x,y,s)=>'<polygon transform="translate('+x+' '+y+') scale('+s+')" points="0,-36 -22,6 -4,6 -12,36 24,-10 4,-10 12,-36" fill="url(#y)"/>';
+  const dibujos={
+   electrica:()=>{let b='<rect x="150" y="50" width="300" height="380" rx="16" fill="#1d1d1d" stroke="#8d8a80" stroke-width="5"/><rect x="170" y="72" width="260" height="336" rx="8" fill="#141414" stroke="#3a3a3a" stroke-width="2"/>'+rayo(300,118,1.15);
+    [172,276].forEach((y0,r)=>{b+='<rect x="176" y="'+(y0+30)+'" width="248" height="14" fill="#2b2b2b"/>';for(let i=0;i<6;i++){const x=180+i*40,mal=r===0&&i===3;
+     b+='<rect x="'+x+'" y="'+y0+'" width="34" height="76" rx="4" fill="'+(mal?'url(#y)':'#ece9df')+'"/><rect x="'+(x+8)+'" y="'+(y0+(mal?40:12))+'" width="18" height="24" rx="3" fill="#1a1a1a"/>'}});
+    for(let k=0;k<6;k++)b+='<rect x="'+(180+k*40)+'" y="372" width="34" height="8" rx="2" fill="#4a4a4a"/>';return b},
+   boletin:()=>{let b='<rect x="165" y="45" width="270" height="385" rx="18" fill="#1f1f1f" stroke="#8d8a80" stroke-width="5"/><rect x="185" y="85" width="230" height="325" rx="6" fill="#f1eee4"/><rect x="240" y="30" width="120" height="44" rx="10" fill="url(#y)"/><rect x="262" y="42" width="76" height="10" rx="5" fill="#0a0a0a"/><rect x="205" y="108" width="120" height="14" rx="3" fill="#1a1a1a"/>'+rayo(372,116,.5);
+    for(let k=0;k<6;k++)b+='<rect x="205" y="'+(142+k*22)+'" width="'+(k%3===2?120:190)+'" height="8" rx="3" fill="#c9c5b8"/>';
+    b+='<circle cx="330" cy="352" r="40" fill="none" stroke="url(#y)" stroke-width="7"/><path d="M311 352l13 14 28-30" fill="none" stroke="#1a1a1a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M205 378c20-14 30 10 50-4s28 6 40-2" fill="none" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>';return b},
+   clima:()=>{let b='<rect x="80" y="100" width="440" height="160" rx="28" fill="#f3f1ea"/><rect x="80" y="100" width="440" height="52" rx="28" fill="#fff" opacity=".7"/><rect x="112" y="212" width="376" height="18" rx="9" fill="#1a1a1a"/><rect x="116" y="228" width="368" height="8" rx="4" fill="#d6d3c8"/><circle cx="470" cy="136" r="7" fill="url(#y)"/><rect x="120" y="128" width="64" height="20" rx="4" fill="#1a1a1a"/><rect x="128" y="134" width="30" height="8" rx="2" fill="url(#y)"/>';
+    [[170,.7],[300,.95],[430,.7]].forEach(([x,o])=>{b+='<path d="M'+x+' 280C'+(x-22)+' 312 '+(x+22)+' 336 '+x+' 368" fill="none" stroke="url(#y)" stroke-width="8" stroke-linecap="round" opacity="'+o+'"/>'});
+    b+='<g stroke="#f1eee4" stroke-width="5" stroke-linecap="round" transform="translate(300 424)"><path d="M0-26V26M-22-13L22 13M-22 13L22-13"/></g>';return b}};
+  window.__muestraSvg={};for(const k in PF.svg)window.__muestraSvg[k]=lienzo(dibujos[PF.svg[k]]());
+ }
  const taller=x=>dd?' '+x+': '+dd+'.':'';
  /* lo del negocio de ejemplo, por lo suyo: primero lo más largo */
  const R=[['Jordi Ramírez',n],['Ramírez 24 h',n],['Ramírez',n]].concat(t9?[['+34930000000','+34'+t9],['34930000000','34'+t9],['930 00 00 00',tel]]:[]).concat([['Minutos en llegar desde el taller de Sants','Minutos en llegar desde el taller'],['des del taller de Sants','des del taller'],['from our Sants workshop','from our workshop'],
@@ -707,13 +758,13 @@ html.snap{scroll-snap-type:y mandatory}
  const i18=document.getElementById('i18n');if(i18)try{   // antes de que la web lo lea
   const D=JSON.parse(cambia(i18.textContent)),P={es:'Muestra hecha por OOOX para '+n+': los precios, los clientes y las reseñas son de ejemplo.',
    ca:'Mostra feta per OOOX per a '+n+': els preus, els clients i les ressenyes són d’exemple.',en:'Sample made by OOOX for '+n+': prices, customers and reviews are examples.'};
-  for(const l in D)if(D[l]&&typeof D[l]==='object'&&P[l])D[l]['fi.demo']=P[l];i18.textContent=JSON.stringify(D);window.__muestraDemo=P.es}catch(e){}
+  for(const l in D)if(D[l]&&typeof D[l]==='object'){if(P[l])D[l]['fi.demo']=P[l];if(PF&&PF.i18n[l])Object.assign(D[l],PF.i18n[l])}i18.textContent=JSON.stringify(D);window.__muestraDemo=P.es}catch(e){}
  const H=document.documentElement;if(t9){H.dataset.tel='+34'+t9;H.dataset.telTxt=tel;H.dataset.wanum='34'+t9}
  const ATR=['aria-label','alt','title','content','placeholder'];
  const pasa=raiz=>{const tw=document.createTreeWalker(raiz,NodeFilter.SHOW_TEXT);for(let x;(x=tw.nextNode());){const v=cambia(x.nodeValue);if(v!==x.nodeValue)x.nodeValue=v}
   (raiz.querySelectorAll?[raiz].concat([...raiz.querySelectorAll('*')]):[]).forEach(e=>{if(!e.getAttribute)return;ATR.forEach(a=>{const v=e.getAttribute(a);if(v&&cambia(v)!==v)e.setAttribute(a,cambia(v))});
    if(e.matches&&e.matches('.wa-hd i')&&e.textContent==='R')e.textContent=n.charAt(0).toUpperCase()})};
- const pon=()=>{aviso();pasa(document.head);pasa(document.body);document.title=cambia(document.title);
+ const pon=()=>{aviso();pasa(document.head);pasa(document.body);document.title=PF?n+': reparaciones urgentes en Barcelona, 24 horas':cambia(document.title);
   const wm=document.querySelector('header .wm');if(wm){wm.innerHTML=esc(m[0])+(m[1]?'<span>'+esc(m[1])+'</span>':'')}
   /* la foto del fundador inventado no es de este negocio */
   document.querySelectorAll('.gfoto').forEach(e=>{e.hidden=true;e.style.display='none'});
@@ -852,7 +903,7 @@ const precioSv=p=>{const tt=total(p,false),suf=p.suf?' '+L(p.suf):'';return(p.de
 const citaUrl=id=>'cita.html?servicio='+encodeURIComponent(id)+'&lang='+LANG;   /* siempre con el idioma: la cita sale en el de la web */
 const WEBK='oficio:ramirez',eurOk=x=>typeof x==='number'&&isFinite(x)&&x>0&&x<=99999;
 const webDe=x=>{if(!x||typeof x!=='object'||Date.now()-(x.t0||0)>8*3600*1000)return null;const W=x.web;return W&&typeof W==='object'&&W.av&&typeof W.av==='object'&&!Array.isArray(W.av)?W:null};
-function webLee(){try{return webDe(JSON.parse(localStorage.getItem(WEBK)||'null'))}catch(e){return null}}
+function webLee(){try{return webDe(JSON.parse(localStorage.getItem(WEBK)||'null'))||window.__muestraWeb||null}catch(e){return window.__muestraWeb||null}}
 let WEB=webLee();
 function svLista(){const W=WEB||{av:{},orden:[]},ids=AV.map(a=>a.id),ord=(Array.isArray(W.orden)?W.orden:[]).filter((x,i,Z)=>ids.includes(x)&&Z.indexOf(x)===i);
  return ord.concat(ids.filter(x=>!ord.includes(x))).map(id=>{const o=W.av[id]&&typeof W.av[id]==='object'?W.av[id]:{},de=eurOk(o.desde)?o.desde:null;
@@ -863,10 +914,10 @@ const nomSv=x=>x.n||t('av.'+x.id);
 const precioNorm=x=>x.desde!=null?(x.hasta!=null?rango(x.desde,x.hasta):t('desde',{p:eur(x.desde)})):precioSv(x.p);
 /* el urgente, «desde», el de ahora: de día, el de con cita más el suplemento; de noche y festivos, también con el recargo */
 const urgDesde=x=>{const u=UR();return x.desde!=null?(u?Math.round(x.desde*(1+SUR)):x.desde)+URGE:total(x.p,u).a+URGE};
-const svImg=x=>x.foto?'<img src="'+x.foto+'" alt="" width="600" height="480" decoding="async">':'<img src="assets/img/sv-'+x.id+'-s.webp" srcset="assets/img/sv-'+x.id+'-s.webp 600w,assets/img/sv-'+x.id+'.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,76vw" alt="" width="600" height="480" loading="lazy" decoding="async">';
+const svImg=x=>window.__muestraSvg&&window.__muestraSvg[x.id]?'<img src="'+window.__muestraSvg[x.id]+'" alt="" width="600" height="480" decoding="async">':x.foto?'<img src="'+x.foto+'" alt="" width="600" height="480" decoding="async">':'<img src="assets/img/sv-'+x.id+'-s.webp" srcset="assets/img/sv-'+x.id+'-s.webp 600w,assets/img/sv-'+x.id+'.webp 1024w" sizes="(min-width:1200px) 15vw,(min-width:600px) 30vw,76vw" alt="" width="600" height="480" loading="lazy" decoding="async">';
 const svHtml=x=>'<li class="svc" data-av="'+x.id+'" data-paso>'+svImg(x)+'<div class="svx"><h3>'+esc(nomSv(x))+'</h3><p class="svd">'+esc(x.d||t('av.'+x.id+'.d'))+'</p>'+
  '<div class="svps"><p class="svp"><span class="svk">'+esc(t('sv.cita'))+'</span><b data-precio="'+x.id+'">'+esc(precioNorm(x))+'</b></p><p class="svu"><span>'+esc(t('sv.urg'))+'</span><b data-urg="'+x.id+'">'+esc(t('sv.urgP',{p:eur(urgDesde(x))}))+'</b></p></div></div>'+
- '<div class="sva"><a class="btn" href="'+citaUrl(x.id)+'" data-reserva="'+x.id+'" aria-label="'+esc(t('sv.resA',{a:nomSv(x)}))+'"><span>'+esc(t('sv.res'))+'</span></a><button class="txt" type="button" data-incluye="'+x.id+'">'+esc(t('sv.inc'))+'</button></div></li>';
+ '<div class="sva"><a class="btn" href="'+citaUrl(x.id)+'" data-reserva="'+x.id+'"'+(window.__muestraSinCita?' data-wa onclick="window.__eligeAv&&window.__eligeAv(\''+x.id+'\')"':'')+' aria-label="'+esc(t('sv.resA',{a:nomSv(x)}))+'"><span>'+esc(t('sv.res'))+'</span></a><button class="txt" type="button" data-incluye="'+x.id+'">'+esc(t('sv.inc'))+'</button></div></li>';
 let svFirma='';
 function pintaSv(){const L0=svLista().filter(x=>!x.oculto),f=LANG+'|'+UR()+'|'+JSON.stringify(L0);if(f===svFirma)return;svFirma=f;   /* pintaVivo la llama cada 20 s: al pasar a la tarifa de noche, cambia el urgente */
  const ul=$('#svs');ul.innerHTML=L0.map(svHtml).join('');
@@ -876,11 +927,12 @@ function svPunto(){const ul=$('#svs'),c=ul.querySelector('.svc');if(!c)return;co
  $$('#svDots i').forEach((d,k)=>d.classList.toggle('on',k===Math.min(i,$$('#svDots i').length-1)))}
 $('#svs').addEventListener('scroll',()=>requestAnimationFrame(svPunto),{passive:true});
 /* lo que cambia la app del negocio, al momento: por su canal (otra pestaña o el marco de la demo) o por el almacén */
-{const otra=x=>{WEB=x!==undefined?webDe(x):webLee();pintaSv();if(openP==='desglose')pintaDesglose()};
+{const otra=x=>{WEB=x!==undefined?(webDe(x)||window.__muestraWeb||null):webLee();pintaSv();if(openP==='desglose')pintaDesglose()};
  try{const ch=new BroadcastChannel(WEBK);ch.onmessage=e=>{const d=e&&e.data;otra(d&&d.S?d.S:undefined)}}catch(e){}
  addEventListener('storage',e=>{if(e.key===WEBK)otra()})}
 pintaSv();   /* antes de preparar la entrada de la pantalla: así la entrada anima las tarjetas buenas */
 const eligeAv=id=>{if(!AV.some(a=>a.id===id))return;S.av=id;S.av0=true;store.set('av',id);refreshLinks()};
+window.__eligeAv=eligeAv;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-incluye],[data-reserva]');if(!b)return;
  if(b.dataset.incluye){eligeAv(b.dataset.incluye);pintaDesglose();openPanel('desglose');return}
  eligeAv(b.dataset.reserva)});
@@ -891,7 +943,7 @@ function pintaDesglose(){const p=AV[avIdx()],tt=total(p,false),suf=p.suf?' '+L(p
  $('#dRows').innerHTML=propio?'':p.rows.map(r=>{const f=fila(r,false);return'<li><span>'+esc(L(r.l))+'</span><b>'+esc(f.a===f.b?eur(f.a):f.a?rango(f.a,f.b):(LANG==='en'?'up to ':LANG==='ca'?'fins a ':'hasta ')+eur(f.b))+'</b></li>'}).join('');
  $('#dTot').textContent=propio?precioNorm(x):(p.desde?t('desde',{p:eur(tt.a)}):rango(tt.a,tt.b))+suf;
  $('#dAlt').textContent=t(u?'d.urg.n':'d.urg',{p:eur(propio?urgDesde(x):ug.a+URGE),s:eur(URGE)});
- $('#dNote').textContent=p.nota?L(p.nota):'';$('#dNote').hidden=!p.nota;
+ {const nn=window.__muestraNota?((window.__muestraNota[p.id]&&window.__muestraNota[p.id][LANG])||(window.__muestraNota[p.id]&&window.__muestraNota[p.id].es)||''):(p.nota?L(p.nota):'');$('#dNote').textContent=nn;$('#dNote').hidden=!nn}
  $('#dRes').setAttribute('href',citaUrl(p.id));$('#dResT').textContent=t('sv.resA',{a:nomSv(x)})}
 /* --- lo que cuesta --- */
 $('#verEj').onclick=()=>openPanel('ejemplo');
